@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="deviceTypesA">
+        <item>Master (RED)</item>
+        <item>Client (BLUE)</item>
+        <item>Solo (YELLOW)</item>
+    </string-array>
+    <string-array name="filter_array">
+        <item>Not Started</item>
+        <item>Started (Yellow)</item>
+        <item>Faulty (Red)</item>
+        <item>Status Done (Green)</item>
+    </string-array>
+
+    <string-array name="deviceTypes_values">
+        <item>Master</item>
+        <item>Client</item>
+        <item>Solo</item>
+    </string-array>
+    <string-array name="log_levels">
+        <item>off</item>
+        <item>normal</item>
+        <item>critical</item>
+    </string-array>
+    <string-array name="log_level_values">
+        <item>off</item>
+        <item>normal</item>
+        <item>critical</item>
+    </string-array>
+    <string-array name="versionArray">
+        <item>Update only when the version of your App changes (default)</item>
+        <item>Check version for each configuration file individually</item>
+        <item>Forced load independent of version (slow!)</item>
+    </string-array>
+    <string-array name="versionValues">
+        <item>Major</item>
+        <item>Detailed</item>
+        <item>Forced</item>
+    </string-array>
+    <string-array name="syncMethodArray">
+        <item>Sync over Internet in a sync group</item>
+        <item>Turn sync off</item>
+    </string-array>
+    <string-array name="syncMethodValues">
+        <item>Internet</item>
+        <item>NONE</item>
+    </string-array>
+
+</resources>

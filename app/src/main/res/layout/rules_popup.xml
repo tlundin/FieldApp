@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/transparent_blue"
+>
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/background_light"
+    android:layout_margin="10dp"
+    android:orientation="vertical"
+    >
+    <ScrollView 
+    android:layout_width="match_parent"
+    android:layout_height="500dp"
+        >
+<LinearLayout 
+    android:id="@+id/pop"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:orientation="vertical" >   
+</LinearLayout>
+</ScrollView>
+<View
+    android:layout_width="fill_parent"
+    android:layout_height="2dip"
+    android:background="#000000" />
+<LinearLayout  
+    android:id="@+id/buttons"
+    android:gravity="right"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:orientation="horizontal"
+    >
+
+    <Button
+        android:id="@+id/avsluta"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/save_and_exit" />
+
+    <Button
+        android:id="@+id/korrigera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/back_to_page" />
+    
+</LinearLayout>
+
+</LinearLayout>
+</LinearLayout>

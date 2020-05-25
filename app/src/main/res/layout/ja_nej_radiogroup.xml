@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/header"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="8dp"
+        android:text="Synliga"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:layout_toStartOf="@+id/radioG"
+        android:layout_toLeftOf="@+id/radioG"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/radioG"
+        android:layout_weight="4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
+        android:layout_alignParentRight="true"
+        android:orientation="horizontal">
+        <RadioButton
+            android:id="@+id/ja"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Ja" />
+        <RadioButton
+            android:id="@+id/nej"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nej" />
+    </RadioGroup>
+
+</RelativeLayout>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RadioButton android:id="@+id/first"
+    android:button="@null"
+    android:drawableEnd="@android:drawable/btn_radio"
+    android:buttonTint="@color/white"
+    android:drawablePadding="10dp"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="5dp"
+    android:textColor="@color/white"
+    android:textAppearance="?android:attr/textAppearanceMedium"
+    xmlns:android="http://schemas.android.com/apk/res/android" />
+

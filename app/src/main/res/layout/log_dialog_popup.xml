@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <ScrollView
+        android:id="@+id/logScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="@drawable/stroke_bg"
+        android:minHeight="150dp"
+        android:layout_weight="2" >
+
+        <LinearLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:id="@+id/logger"
+                style="@style/ConsoleStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingLeft="16dip" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout style="?android:attr/buttonBarStyle"
+        android:id="@+id/Barparent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/stroke_bg">
+        <LinearLayout style="?android:attr/buttonBarStyle"
+            android:id="@+id/Barchild1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            android:background="@drawable/stroke_bg">
+                <Button style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/log_clear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Clear"
+                    android:singleLine="true"
+                    android:textColor="@color/white" />
+               <Button style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/scrollDown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Scroll down"
+                    android:singleLine="true"
+                    android:textColor="@color/white" />
+        </LinearLayout>
+        <LinearLayout style="?android:attr/buttonBarStyle"
+            android:id="@+id/Barchild2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="1"
+            android:background="@drawable/stroke_bg">
+
+               <Button style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/printdb"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="DB2file"
+                    android:singleLine="true"
+                    android:textColor="@color/white" />
+                <Button style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/printlog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="log2file"
+                    android:singleLine="true"
+                    android:textColor="@color/white" />
+                <Button style="?android:attr/buttonBarButtonStyle"
+                    android:id="@+id/crashlog"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Force crash"
+                    android:textSize="@dimen/text_size_small"
+                    android:singleLine="true"
+                    android:textColor="@color/white" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</LinearLayout>

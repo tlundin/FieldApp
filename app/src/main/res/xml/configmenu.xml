@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    <PreferenceCategory
+        android:title="@string/General"
+        android:key="general_options">
+        <EditTextPreference
+            android:dialogMessage="@string/UserName_dm"
+            android:dialogTitle="@string/UserName"
+            android:inputType="textCapSentences"
+            android:key="user_id"
+            android:title="@string/UserName" />
+        <EditTextPreference
+            android:dialogMessage="@string/Team_s"
+            android:dialogTitle="@string/Team"
+            android:inputType="textCapSentences"
+            android:key="lag_id"
+            android:summary="@string/Team_s"
+            android:title="@string/Team" />
+        <EditTextPreference
+            android:dialogMessage="@string/appDialMsg"
+            android:dialogTitle="App"
+            android:inputType="textCapSentences"
+            android:key="bundle_name"
+            android:title="@string/app_name_t" />
+        <EditTextPreference
+            android:defaultValue="http://www.teraim.com/"
+            android:dialogMessage="App server URL"
+            android:dialogTitle="URL"
+            android:key="server_location"
+            android:summary="@string/s_summary"
+            android:title="Server URL" />
+        <Preference
+            android:title="@string/scan_QR_code_h"
+            android:key="scan_qr_code"
+            android:summary="@string/scan_QR_code" />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/DevOp"
+        android:key="developer_options"
+        >
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="dev_switch"
+            android:summary="@string/debug_summary"
+            android:title="@string/developer_functions" />
+        <ListPreference
+            android:defaultValue="critical"
+            android:entries="@array/log_levels"
+            android:entryValues="@array/log_level_values"
+            android:key="log_levels"
+            android:title="@string/log_levels_h"
+            android:summary="@string/log_levels_d"/>
+        <Preference
+            android:title="@string/resetCache"
+            android:key="reset_cache"
+            android:summary="@string/reset_cache_d"/>
+        <ListPreference
+            android:defaultValue="Major"
+            android:entries="@array/versionArray"
+            android:entryValues="@array/versionValues"
+            android:key="version_control"
+            android:title="@string/Version_control" />
+        <ListPreference
+            android:defaultValue="Internet"
+            android:entries="@array/syncMethodArray"
+            android:entryValues="@array/syncMethodValues"
+            android:key="sync_method"
+            android:title="@string/Sync_method" />
+        <EditTextPreference
+            android:dialogMessage="@string/Backup_dm"
+            android:dialogTitle="Backup folder"
+            android:key="backup_location"
+            android:summary="@string/Backup_folder_s"
+            android:title="@string/Backup_folder" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:dialogMessage=""
+            android:dialogTitle=""
+            android:key="auto_backup"
+            android:summary="@string/Automatic_backup_s"
+            android:title="@string/Automatic_backup" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="show_author"
+            android:summary="@string/show_author_s"
+            android:title="@string/show_author_t" />
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:title="@string/config_from_server"
+            android:summary="@string/local_config_s"
+            android:key="local_config" />
+        <EditTextPreference
+            android:dialogMessage="Folder for configuration files"
+            android:title="Folder"
+            android:summary="@string/s_folder_summary"
+            android:key="file_picker"
+            />
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.gesture.GestureOverlayView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gesture_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+
+<RelativeLayout 
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TextView 
+         android:id="@+id/header"
+         android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true" 
+        android:layout_marginTop="20dp"
+        android:text=""    
+        android:textSize="25sp"
+        android:textStyle="bold"
+        />
+    
+    <TextView
+        android:id="@+id/sydsken"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="80dp"
+        android:text="Mot syd"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+    
+    <ImageButton
+        android:id="@+id/pic_soder"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_below="@+id/sydsken"
+        android:layout_centerHorizontal="true"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/case_no_pic" />
+    
+    <ImageButton
+        android:id="@+id/pic_vast"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/pic_soder"
+        android:layout_marginTop="50dp"
+        android:layout_marginRight="15dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/case_no_pic" />
+ 
+    <ImageButton
+        android:id="@+id/pic_ost"
+        android:layout_marginLeft="15dp"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignTop="@+id/pic_vast"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/case_no_pic" />
+
+    <ImageButton
+        android:id="@+id/pic_norr"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_below="@+id/pic_vast"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="50dp"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/case_no_pic" />
+
+        <ImageButton
+        android:id="@+id/pic_sp"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+    	android:layout_marginLeft="15dp"
+        android:layout_toRightOf="@+id/pic_soder"
+        android:layout_alignTop="@+id/pic_soder"
+        android:adjustViewBounds="true"
+        android:scaleType="fitXY"
+        android:src="@drawable/case_no_pic" />
+  
+    <TextView
+        android:id="@+id/vastT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/pic_ost"
+        android:layout_alignParentLeft="true"
+        android:layout_marginLeft="85dp"
+        android:text="Mot öst"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <TextView
+        android:id="@+id/ostT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/vastT"
+        android:layout_alignBottom="@+id/vastT"
+        android:layout_marginRight="91dp"
+        android:layout_alignParentRight="true"
+        android:text="Mot väst"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="125dp"
+        android:layout_height="125dp"
+        android:layout_alignTop="@+id/pic_vast"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="49dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/center" />
+
+
+
+  
+
+ 
+    <TextView
+        android:id="@+id/spT"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/pic_sp"
+        android:layout_marginRight="25dp"
+        android:layout_alignBaseline="@+id/sydsken"
+        android:layout_alignBottom="@+id/sydsken"
+        android:layout_alignParentRight="true"
+        android:text="Småprovyta"
+        android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        
+ 
+        <TextView
+            android:id="@+id/sydT"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/pic_vast"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="22dp"
+            android:gravity="center"
+            android:text="Mot norr"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
+
+        <Button
+            android:id="@+id/felibild"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="20dp"
+            android:text="Är en bild dålig eller fel? Rapportera det här" />
+
+</RelativeLayout>
+</android.gesture.GestureOverlayView>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <ImageView
+        android:id="@+id/bgImg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:background="@color/primary_light"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/logo"
+        android:scaleType="centerInside"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="16dp"
+
+        />
+
+    <TextView
+        android:id="@+id/logger"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:gravity="bottom"
+        android:background="#44000000"
+        android:maxLines="2"
+        android:textColor="@color/white"
+        android:scrollbars="vertical"
+        android:textSize="14sp"
+        android:layout_above="@+id/licenseTxt"
+
+
+         />
+
+    <TextView
+        android:id="@+id/appTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/versionTxt"
+        android:layout_alignParentLeft="true"
+        android:layout_alignRight="@+id/logger"
+        android:background="#44000000"
+        android:layout_marginLeft="16dp"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/versionTxt"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/logger"
+        android:layout_alignParentLeft="true"
+        android:layout_alignRight="@+id/logger"
+        android:layout_marginLeft="16dp"
+        android:background="#44000000"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/teraimlogo"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_margin="16dp"
+        android:src="@drawable/teraim_small_w"
+        android:layout_alignParentRight="true"
+        android:layout_above="@+id/appTxt" />
+
+
+    <TextView
+        android:id="@+id/licenseTxt"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:text="FieldPad uses 3rd party components that are under Apache 2.0 license."
+        android:layout_marginLeft="16dp"
+        android:textSize="8sp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        />
+
+
+
+</RelativeLayout>

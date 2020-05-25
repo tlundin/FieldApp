@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+ 
+    <FrameLayout
+        android:id="@+id/circle"
+        android:layout_width="match_parent"
+        android:layout_height="550dp" >
+
+    </FrameLayout>
+    
+    <LinearLayout
+        android:id="@+id/areaL"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:background="@drawable/border"
+        android:orientation="vertical"/>
+   
+	
+
+   <RelativeLayout 
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+       
+        <Button
+        android:id="@+id/reset"
+        android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+         android:layout_toLeftOf="@+id/rensa"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="reset" />
+    
+    <Button
+        android:id="@+id/redraw"
+        android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+         android:layout_toLeftOf="@+id/rensa"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="Beräkna delytor" />
+    
+    <Button
+        android:id="@+id/rensa"
+        android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/spara"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="Nyutlägg" />
+
+   <Button
+        android:id="@+id/spara"
+        android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="Spara ändringar" />
+</RelativeLayout>
+    
+</LinearLayout>

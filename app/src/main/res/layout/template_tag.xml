@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.gesture.GestureOverlayView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gesture_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+<LinearLayout 
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+ 
+    <FrameLayout
+        android:id="@+id/circle"
+        android:layout_width="match_parent"
+        android:layout_height="550dp" >
+
+    </FrameLayout>
+    
+    <LinearLayout
+        android:id="@+id/areaL"
+        android:layout_width="match_parent"
+        android:gravity="center"
+        android:layout_height="wrap_content"
+        android:background="@drawable/border"
+        android:orientation="horizontal"/>
+   
+<LinearLayout
+    android:id="@+id/tagLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center_horizontal"
+    android:gravity="center|center_horizontal"
+    android:orientation="vertical" >
+
+</LinearLayout>
+
+   <RelativeLayout 
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+    
+    <Button
+        android:id="@+id/rensa"
+        android:layout_width="wrap_content"
+     android:layout_height="wrap_content"
+        android:layout_toLeftOf="@+id/spara"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="Nyutlägg" />
+
+   <Button
+        android:id="@+id/spara"
+        android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="15dp"
+        android:text="Spara och gå ut" />
+</RelativeLayout>
+    
+</LinearLayout>
+
+</android.gesture.GestureOverlayView>

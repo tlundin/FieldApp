@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+    <resources>
+
+    <color name="primary">#795548</color>
+    <color name="primary_dark">#5D4037</color>
+    <color name="primary_light">#d7ccc8</color>
+    <color name="accent">#FF5722</color>
+    <color name="primary_text">#212121</color>
+    <color name="secondary_text">#757575</color>
+    <color name="icons">#FFFFFF</color>
+    <color name="divider">#BDBDBD</color>
+    <color name="pressed_color">#4d90fe</color>
+    <color name="default_color">#ffffff</color>
+    <color name="background_light">#f3f3f3</color>
+    <color name="moss_green">#8A9A5B</color>
+    <color name="read_only">#006400</color>
+    <color name="transparent_blue">#700000FF</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="red">#EE204D</color>
+    <color name="green">#00FF00</color>
+    <color name="grey2">#d3d3d3</color>
+    <color name="yellow">#ffff00</color>
+    <color name="purple">#800080</color>
+    <color name="brown">#5D4037</color>
+    <color name="blue">#0000ff</color>
+    <color name="blue_background">#86BBDB</color>
+    <color name="mixed_owner_bg">#996515</color>
+    <color name="master_owner_bg">#ffb6c1</color>
+    <color name="client_owner_bg">#e5e5ff</color>
+
+
+</resources>

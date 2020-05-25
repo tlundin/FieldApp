@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="deviceTypesA">
+        <item>Master (RÖD)</item>
+        <item>Klient (BLÅ)</item>
+        <item>Solo (GUL)</item>
+    </string-array>
+    <string-array name="filter_array">
+        <item>Inte startade</item>
+        <item>Startade (gula)</item>
+        <item>Fel (röda)</item>
+        <item>Klara (gröna)</item>
+    </string-array>
+    <string-array name="deviceTypes_values">
+        <item>Master</item>
+        <item>Client</item>
+        <item>Solo</item>
+    </string-array>
+    <string-array name="log_levels">
+        <item>Av</item>
+        <item>Normal</item>
+        <item>Kritiska</item>
+    </string-array>
+    <string-array name="log_level_values">
+        <item>off</item>
+        <item>normal</item>
+        <item>critical</item>
+    </string-array>
+    <string-array name="versionArray">
+        <item>Uppdatera filer bara när Appens version ändras (default)</item>
+        <item>Kontrollera version för enskilda filer varje uppstart</item>
+        <item>Forcerad laddning oberoende av version (långsamt)</item>
+    </string-array>
+    <string-array name="versionValues">
+        <item>Major</item>
+        <item>Detaljerad</item>
+        <item>Forced</item>
+    </string-array>
+    <string-array name="syncMethodArray">
+        <item>Synk över internet i en grupp</item>
+        <item>Ingen synk</item>
+    </string-array>
+    <string-array name="syncMethodValues">
+        <item>Internet</item>
+        <item>NONE</item>
+    </string-array>
+
+</resources>

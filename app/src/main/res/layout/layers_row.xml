@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:layout_gravity="left"
+    >
+
+    <TextView
+        android:id="@+id/filterName"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:text="Hallmarksstorängar"
+        android:paddingLeft="5dp"
+        android:paddingBottom="5dp"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/white" />
+
+    <CheckBox
+        android:id="@+id/cbShow"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:scaleX="0.60"
+        android:scaleY="0.60"
+        android:button="@drawable/custom_checkbox"
+        />
+
+    <CheckBox
+        android:id="@+id/cbLabels"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:scaleX="0.60"
+        android:scaleY="0.60"
+        android:button="@drawable/custom_checkbox"
+         />
+
+</LinearLayout>

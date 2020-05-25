@@ -1,0 +1,121 @@
+<resources>
+    <string name="app_name">Field Pad</string>
+    <string name="app_name_t">Name of application</string>
+    <string name="menu_settings">Settings</string>
+    <string name="about">About</string>
+    <string name="drawer_open">Open</string>
+    <string name="drawer_close">Close</string>
+    <string name="debug_summary">Enhanced validation when testing (App runs slower)</string>
+    <string name="u1">u1</string>
+    <string name="u2">u2</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="description">Description</string>
+    <string name="reference">Reference</string>
+    <string name="resetSyncButton">Reset_sync</string>
+    <string name="settings">Settings</string>
+    <string name="length_">Length:</string>
+    <string name="context">Context</string>
+    <string name="log">Log</string>
+    <string name="ok">OK</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="DeviceType">Device Type</string>
+    <string name="Team">Team</string>
+    <string name="UserName">Username</string>
+    <string name="DevOp">Advanced</string>
+    <string name="log_levels_h">Log Levels</string>
+    <string name="UserName_dm">User name</string>
+    <string name="Team_s">Name of team and sync group</string>
+
+    <string name="restart">Restart</string>
+    <string name="repair">Database repaired</string>
+    <string name="restartMessage">You need to restart for this change to take effect. Restart now?</string>
+    <string name="team_missing_error">Team required</string>
+    <string name="team_missing_error_message">To be able to use the sync function, you must enter a team name. Otherwise your entries will not be synchronised.</string>
+    <string name="developer_functions">Developer Functions</string>
+    <string name="Sync_method">Sync Method</string>
+    <string name="Version_control">Version Control</string>
+    <string name="Automatic_backup">Backup</string>
+    <string name="Backup_folder">Backup Folder</string>
+
+    <string name="sync_pop_header">Synchronization status</string>
+    <string name="sync_pop_sync_on">Current state</string>
+    <string name="sync_pop_time_since_last_sync">Time elapsed since last sync</string>
+    <string name="sync_pop_unsynced_user">My unsent entries </string>
+    <string name="sync_pop_sync_button_txt">Sync now</string>
+    <string name="sync_pop_sync_last_sync">Team Data</string>
+    <string name="synk_off">Turned off</string>
+    <string name="synk_error">Not working</string>
+    <string name="synk_idle">Idle, active</string>
+    <string name="synk_inserting">Inserting data</string>
+    <string name="synk_send_receive">Working </string>
+    <string name="in_sync">Fully syncronised</string>
+    <string name="imin_sync">Your data has been uploaded</string>
+    <string name="sync_time_months">month(s)</string>
+    <string name="sync_time_days">day(s)</string>
+    <string name="sync_time_hours">hour(s)</string>
+    <string name="sync_time_minutes">minute(s)</string>
+    <string name="sync_time_just_now">moments ago</string>
+
+    <string name="General">General</string>
+    <string name="appDialMsg">Enter the application name</string>
+    <string name="Backup_folder_s">Leave empty to use folder named \'backup\' under project folder</string>
+    <string name="Backup_dm">Default: files will be stored under \'backup\' in your project folder.</string>
+    <string name="Automatic_backup_s">Automatically backup database at regular intervals</string>
+    <string name="show_author_s">Show author of data (App runs slower)</string>
+    <string name="show_author_t">Show Author</string>
+    <string name="reset_sync_d">Erases all sync data</string>
+
+    <string name="layers">Layers</string>
+    <string name="filters">Filters</string>
+    <string name="backgrounds">Maps</string>
+
+    <string name="s_summary">Location of all configuration files</string>
+    <string name="s_folder_summary">Folder for configuration files</string>
+    <string name="config_from_server">Local Configuration</string>
+
+    <string name="local_config_s">Loads configuration from project folder in file system</string>
+
+    <string name="fieldpad_description">Field Pad is an app for collection of earth data in the field. It is configured using a bundle of control files. An optional back-end can be used to sync collected data between team members."</string>
+    <string name="teraim_description">We are a software house that started out serving the environmental science community, with functionality for collecting data about species in the field.</string>
+    <string name="feedback_txt">"We’d love to hear about your data collection experiences. Information about problems you’ve seen and suggestions for improvements are key to making Field Pad even better."</string>
+    <string name="feedback_header">FEEDBACK</string>
+    <string name="hide_details">Hide details </string>
+    <string name="details">Details</string>
+    <string name="contact_us_button_text">Contact us</string>
+    <string name="start">Start</string>
+    <string name="continue_">Continue</string>
+    <string name="reset_cache_d">Erase all cached files to force reload</string>
+    <string name="resetCache">Reset Cache</string>
+    <string name="reset_cache_warn">"This will erase all cached images and configuration files. Are you sure?"</string>
+    <string name="reset_cache_toast">files deleted from cache</string>
+    <string name="scan_QR_code_h">Scan QR</string>
+    <string name="scan_QR_code">If you have received settings via a QR code, you can scan it here</string>
+    <string name="log_levels_d">Determines granularity of information shown in log</string>
+    <string name="done_loading">"App is ready to run. 'About' page for details"</string>
+    <string name="_continue">"Continue"</string>
+    <string name="old_xml_message">"The FieldPad version you have installed is too old for this bundle. The required FieldPad version is "</string>
+    <string name="warning">Warning</string>
+    <string name="old_xml_message_cont">". Fieldpad will try to use an older version of the XML if you click Continue but this may lead to errors."</string>
+    <string name="none">None</string>
+    <string name="filtering">Filtering</string>
+    <string name="visible">Visible</string>
+    <string name="show_labels">Labels</string>
+    <string name="progress">Progress</string>
+    <string name="map_background">Map background</string>
+    <string name="sync_pop_time_since_last_entry">Time of last input</string>
+    <string name="loading_please_wait">Loading. Please wait...</string>
+    <string name="warning_exit">This will exit the page</string>
+    <string name="image_failed_to_load">GisImageView failed to load. File not found: </string>
+    <string name="save_and_exit">Save and exit</string>
+    <string name="back_to_page">Back to page</string>
+    <string name="continue_edit">Edit</string>
+    <string name="refresh_team">Refresh</string>
+    <string name="my_data">My Data</string>
+
+
+</resources>
