@@ -37,7 +37,7 @@ import java.io.InputStream;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-public class GestureImageView extends android.support.v7.widget.AppCompatImageView  {
+public class GestureImageView extends androidx.appcompat.widget.AppCompatImageView  {
 
 
 

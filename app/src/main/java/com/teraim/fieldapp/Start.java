@@ -15,9 +15,9 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
@@ -60,7 +60,7 @@ public class Start extends MenuActivity {
     public static Start singleton;
     private DrawerMenu mDrawerMenu;
 
-    private android.support.v7.app.ActionBarDrawerToggle mDrawerToggle;
+    private androidx.appcompat.app.ActionBarDrawerToggle mDrawerToggle;
     private boolean loading = false;
 
 
