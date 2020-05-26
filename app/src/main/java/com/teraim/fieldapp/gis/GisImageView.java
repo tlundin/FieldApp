@@ -89,6 +89,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private Variable myX,myY;
 	private static final Map<String,String>YearKeyHash = new HashMap<String,String>();
 
+
 	private static final int LabelOffset = 5;
 
 	//Long click or short click?
@@ -131,6 +132,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		this.setClickable(true);
 		YearKeyHash.clear();
 		YearKeyHash.put("år", Constants.getYear());
+		final String user = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
+		if (user!=null)
+			YearKeyHash.put(DbHelper.AUTHOR,user);
 		this.ctx=ctx;
 		//used for cursor blink.
 		calendar.setTime(new Date());
