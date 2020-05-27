@@ -73,6 +73,7 @@
     <string name="layers">Layers</string>
     <string name="filters">Filters</string>
     <string name="backgrounds">Maps</string>
+    <string name="candidates">Candidates</string>
 
     <string name="s_summary">Location of all configuration files</string>
     <string name="s_folder_summary">Folder for configuration files</string>
@@ -81,7 +82,7 @@
     <string name="local_config_s">Loads configuration from project folder in file system</string>
 
     <string name="fieldpad_description">Field Pad is an app for collection of earth data in the field. It is configured using a bundle of control files. An optional back-end can be used to sync collected data between team members."</string>
-    <string name="teraim_description">We are a software house that started out serving the environmental science community, with functionality for collecting data about species in the field.</string>
+    <string name="teraim_description">We are a software house that started out serving the ecosystem science community, with functionality for collecting data about species in the field.</string>
     <string name="feedback_txt">"We’d love to hear about your data collection experiences. Information about problems you’ve seen and suggestions for improvements are key to making Field Pad even better."</string>
     <string name="feedback_header">FEEDBACK</string>
     <string name="hide_details">Hide details </string>
@@ -116,6 +117,15 @@
     <string name="continue_edit">Edit</string>
     <string name="refresh_team">Refresh</string>
     <string name="my_data">My Data</string>
+    <string name="Export">Export</string>
+    <string name="Generating">1. Generating</string>
+    <string name="Backing_up">2. Backing up</string>
+    <string name="Forwarding">3. Forwarding</string>
+    <string name="Bundle">BUNDLE</string>
+    <string name="clear">Clear</string>
+    <string name="Scroll_down">Scroll down</string>
+    <string name="Send_error_log">Send Error Log to Teraim</string>
+    <string name="log_exit">Exit</string>
 
 
 </resources>
