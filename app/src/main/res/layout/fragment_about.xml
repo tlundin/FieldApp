@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="BUNDLE"
+        android:text="@string/Bundle"
         android:textAppearance="@style/TextAppearance.AppCompat.Medium" />
 
     <View

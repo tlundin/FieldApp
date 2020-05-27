@@ -74,6 +74,7 @@
 	<string name="layers">Lager</string>
 	<string name="filters">Filter</string>
 	<string name="backgrounds">Kartor</string>
+	<string name="candidates">Objekt</string>
 
 	<string name="config_from_server">Lokal konfiguration</string>
 	<string name="s_summary">Enheten laddar sin konfiguration härifrån</string>
@@ -107,7 +108,7 @@
 	<string name="progress">Status</string>
 	<string name="map_background">Kartbakgrund</string>
 	<string name="sync_pop_time_since_last_entry">Senaste inmatning av mig</string>
-	<string name="loading_please_wait">Laddar...</string>
+	<string name="loading_please_wait">Laddar…</string>
 	<string name="warning_exit">Du går nu ut från sidan</string>
 	<string name="image_failed_to_load">Bilden saknas och kan därför inte laddas: </string>
 	<string name="save_and_exit">Spara och avsluta</string>
@@ -115,5 +116,14 @@
 	<string name="continue_edit">Ändra</string>
 	<string name="refresh_team">Uppdatera</string>
 	<string name="my_data">Mitt Data</string>
+	<string name="Export">Exportera</string>
+	<string name="Generating">1. Skapar</string>
+	<string name="Backing_up">2. Kopierar</string>
+	<string name="Forwarding">3. Skickar</string>
+	<string name="Bundle">BUNDLE</string>
+    <string name="clear">Rensa</string>
+	<string name="Scroll_down">Visa botten</string>
+	<string name="Send_error_log">Skicka logg till Teraim</string>
+	<string name="log_exit">Avbryt</string>
 
 </resources>
