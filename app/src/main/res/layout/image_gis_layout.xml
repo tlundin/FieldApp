@@ -146,7 +146,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/start"
-                android:textColor="@color/white"
+                android:textColor="@color/primary_text"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -155,7 +155,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/cancel"
-                android:textColor="@color/white"
+                android:textColor="@color/primary_text"
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
@@ -224,26 +224,27 @@
                 android:layout_marginRight="5dp"
                 android:layout_marginBottom="5dp"
                 />
+
             <Button
                 android:id="@+id/createOkB"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="OK"
-                android:textColor="@color/white"
-                android:textSize="20sp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
+                android:text="@string/ok"
+                android:textColor="@color/primary_text"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
             <Button
                 android:id="@+id/createBackB"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="&lt;--"
-                android:textColor="@color/white"
-                android:textSize="20sp"
                 android:layout_marginLeft="5dp"
                 android:layout_marginRight="5dp"
+                android:text="&lt;--"
+                android:textColor="@color/primary_text"
+                android:textSize="20sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
@@ -259,10 +260,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
-                android:text="Candidates"
+                android:text="@string/candidates"
                 android:textAppearance="?android:attr/textAppearanceLarge"
-                android:textStyle="bold"
-                android:textColor="@color/white" />
+                android:textColor="@color/white"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/candidatesButtonL"

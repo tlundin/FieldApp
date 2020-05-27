@@ -19,17 +19,17 @@
         android:layout_gravity="center_horizontal">
 
         <Button
+            android:id="@+id/button1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Send Error Log to Teraim"
-            android:id="@+id/button1" />
+            android:text="@string/Send_error_log" />
 
         <Button
+            android:id="@+id/button2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Exit"
-            android:id="@+id/button2"
-            android:layout_gravity="center_vertical" />
+            android:layout_gravity="center_vertical"
+            android:text="@string/log_exit" />
 
     </LinearLayout>
 
