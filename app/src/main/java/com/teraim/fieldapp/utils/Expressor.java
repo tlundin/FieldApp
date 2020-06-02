@@ -1692,8 +1692,8 @@ public class Expressor {
                     return null;
 
                 case getSweRefX:
-                    Map<String, String> ar = GlobalState.getInstance().getVariableConfiguration().createYearKeyMap();
-                    Variable x = GlobalState.getInstance().getVariableCache().getVariable(ar, NamedVariables.MY_GPS_LAT);
+                    Map<String, String> gpsKeyMap = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
+                    Variable x = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyMap, NamedVariables.MY_GPS_LAT);
                     if (x!=null && x.getValue()!=null) {
                         return x.getValue();
                     }
@@ -1703,8 +1703,8 @@ public class Expressor {
                     }
 
                 case getSweRefY:
-                    ar = GlobalState.getInstance().getVariableConfiguration().createYearKeyMap();
-                    Variable y = GlobalState.getInstance().getVariableCache().getVariable(ar, NamedVariables.MY_GPS_LONG);
+                    gpsKeyMap = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
+                    Variable y = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyMap, NamedVariables.MY_GPS_LONG);
                     if (y!=null && y.getValue()!=null) {
                         return y.getValue();
                     }

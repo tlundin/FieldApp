@@ -7,6 +7,8 @@ import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.NamedVariables;
+import com.teraim.fieldapp.utils.DbHelper;
+import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.Serializable;
@@ -401,6 +403,13 @@ public class VariableConfiguration implements Serializable {
 		Map<String,String> ar = new HashMap<>();
 		ar.put(KEY_YEAR,Constants.getYear());
 		return ar;
+	}
+
+	public Map<String,String> createGpsKeyMap() {
+		Map<String,String> gps_keymap = new HashMap<>();
+		gps_keymap.put(KEY_YEAR,Constants.getYear());
+		gps_keymap.put(DbHelper.AUTHOR,gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
+		return gps_keymap;
 	}
 	public Map<String, String> createDelytaKeyMap() {
 		String currentYear = getGlobalVariable(NamedVariables.CURRENT_YEAR);
