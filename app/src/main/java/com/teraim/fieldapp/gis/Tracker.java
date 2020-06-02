@@ -54,11 +54,10 @@ public class Tracker extends Service implements LocationListener {
 	private final Variable myX, myY, myAcc;
 
     public Tracker() {
-        Map<String, String> yearKeyHash = new HashMap<String, String>();
-        yearKeyHash.put("år", Constants.getYear());
-		myX = GlobalState.getInstance().getVariableCache().getVariable(yearKeyHash, NamedVariables.MY_GPS_LAT);
-		myY = GlobalState.getInstance().getVariableCache().getVariable(yearKeyHash, NamedVariables.MY_GPS_LONG);
-		myAcc = GlobalState.getInstance().getVariableCache().getVariable(yearKeyHash, NamedVariables.MY_GPS_ACCURACY);
+        Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
+		myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
+		myY = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LONG);
+		myAcc = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_ACCURACY);
 
 
 	}
