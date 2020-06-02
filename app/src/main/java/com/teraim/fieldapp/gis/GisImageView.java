@@ -67,6 +67,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.teraim.fieldapp.GlobalState.*;
+
 public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private final static String Deg = "\u00b0";
@@ -87,7 +89,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	//Photometadata for the current view.
 	private PhotoMeta photoMetaData;
 	private Variable myX,myY;
-	private static final Map<String,String>YearKeyHash = new HashMap<String,String>();
+
 
 
 	private static final int LabelOffset = 5;
@@ -130,11 +132,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private void init(Context ctx) {
 
 		this.setClickable(true);
-		YearKeyHash.clear();
-		YearKeyHash.put("år", Constants.getYear());
-		final String user = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
-		if (user!=null)
-			YearKeyHash.put(DbHelper.AUTHOR,user);
+
+
 		this.ctx=ctx;
 		//used for cursor blink.
 		calendar.setTime(new Date());
@@ -206,8 +205,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		paintBlur.setMaskFilter(new BlurMaskFilter(15, BlurMaskFilter.Blur.NORMAL));
 
 
-		if (GlobalState.getInstance()!=null)
-			GlobalState.getInstance().getTracker().registerListener(this,Type.MAP);
+		if (getInstance()!=null)
+			getInstance().getTracker().registerListener(this,Type.MAP);
 
 
 	}
@@ -282,8 +281,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		imgHReal = pm.N-pm.S;
 		imgWReal = pm.E-pm.W;
-		myX = GlobalState.getInstance().getVariableCache().getVariable(YearKeyHash, NamedVariables.MY_GPS_LAT);
-		myY = GlobalState.getInstance().getVariableCache().getVariable(YearKeyHash, NamedVariables.MY_GPS_LONG);
+		Map<String, String> gps_key_map = getInstance().getVariableConfiguration().createGpsKeyMap();
+		myX = getInstance().getVariableCache().getVariable(gps_key_map, NamedVariables.MY_GPS_LAT);
+		myY = getInstance().getVariableCache().getVariable(gps_key_map, NamedVariables.MY_GPS_LONG);
 		this.allowZoom = allowZoom;
 
 
@@ -538,7 +538,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			String uid = UUID.randomUUID().toString();
 			Log.d("vortex","HACK: Adding uid: "+uid);
 			keyHash.put("uid", uid);
-			Variable gistyp = GlobalState.getInstance().getVariableCache().getVariable(keyHash,NamedVariables.GIS_TYPE);
+			Variable gistyp = getInstance().getVariableCache().getVariable(keyHash,NamedVariables.GIS_TYPE);
 			if (gistyp!=null ) {
 				gistyp.setValue(gisTypeToCreate.getObjectKeyHash().getContext().get("gistyp"));
 				Log.d("vortex", "keyhash for new obj is: " + keyHash.toString() + " and gistyp: " + gistyp.getValue());
@@ -594,12 +594,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 					//If this object exists in the db, it should be deleted if last dot is removed.
 					String keyPairs = Tools.convertToKeyPairs(newGisObj.getKeyHash());
-					int rowsAffected = GlobalState.getInstance().getDb().erase(keyPairs,null);
+					int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 					if (rowsAffected>0) {
 						Log.d("claxon","aff: "+rowsAffected);
-						GlobalState.getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + newGisObj.getLabel() + "]");
+						getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + newGisObj.getLabel() + "]");
 						//Create sync entry for all variables with matching keys (no pattern)
-						GlobalState.getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
+						getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 					}
 					//cancel the creation
 					cancelGisObjectCreation();
@@ -621,7 +621,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		//	((GisPathObject)newGisObj).getPaths().get(0).close();
 		if (currentCreateBag!=null) {
 			Log.d("vortex","inserting new GIS object.");
-			GlobalState.getInstance().getDb().insertGisObject(newGisObj);
+			getInstance().getDb().insertGisObject(newGisObj);
 
 			gisTypeToCreate=null;
 			touchedBag = currentCreateBag;
@@ -889,8 +889,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 			}
 		} catch(Exception e) {
-			if (GlobalState.getInstance()!=null) {
-				LoggerI o = GlobalState.getInstance().getLogger();
+			if (getInstance()!=null) {
+				LoggerI o = getInstance().getLogger();
 				if (o!=null) {
 					o.addRow("");
 
@@ -942,8 +942,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		Set<GisObject> ret = null;
 
-		final String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
-		final String user = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
+		final String team = getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
+		final String user = getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
 		if(team ==null || team.length()==0) {
 			Log.d("vortex","no team but team is set to show. alarm!");
 			return null;
@@ -951,7 +951,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 		int cc=0;
-		Map<String,DbHelper.LocationAndTimeStamp> myTeam = GlobalState.getInstance().getDb().getTeamMembers(team,user);
+		Map<String,DbHelper.LocationAndTimeStamp> myTeam = getInstance().getDb().getTeamMembers(team,user);
 		if (myTeam==null)
 			return null;
 
@@ -1359,7 +1359,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		//Check preconditions for GPS to work
 		//Log.d("wolf","In display distance an direction");
-		if (myX==null||myY==null||GlobalState.getInstance()==null) {
+		if (myX==null||myY==null|| getInstance()==null) {
 			myMap.setAvstTxt("Config");
 			myMap.setRiktTxt("fault!");
 			handler=null;
@@ -1367,7 +1367,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		}
 
 
-		if (!GlobalState.getInstance().getTracker().isGPSEnabled) {
+		if (!getInstance().getTracker().isGPSEnabled) {
 			myMap.setAvstTxt("GPS OFF");
 			myMap.setRiktTxt("");
 			return;
@@ -1466,10 +1466,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 	private void runSelectedWf(GisObject gop) {
 
-		GlobalState.getInstance().setDBContext(new DB_Context(null,gop.getKeyHash()));
+		getInstance().setDBContext(new DB_Context(null,gop.getKeyHash()));
 		Log.d("vortex","Setting current keyhash to "+gop.getKeyHash());
 		String target = gop.getWorkflow();
-		Workflow wf = GlobalState.getInstance().getWorkflow(target);
+		Workflow wf = getInstance().getWorkflow(target);
 		if (wf ==null) {
 			Log.e("vortex","missing click target workflow");
 			new AlertDialog.Builder(ctx)
@@ -1490,7 +1490,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				if (keyHash!=null)
 					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
 				Log.d("buu","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
-				Variable statusVariable = GlobalState.getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
+				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
 				if (statusVariable!=null) {
 					String valS = statusVariable.getValue();
 					if (valS == null || valS.equals("0")) {
@@ -1502,7 +1502,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					myMap.registerEvent(new WF_Event_OnSave("Gis"));
 				} else {
 					Log.e("grogg", "StatusVariable definition error");
-					LoggerI o = GlobalState.getInstance().getLogger();
+					LoggerI o = getInstance().getLogger();
 					o.addRow("");
 					o.addRedText("StatusVariable definition missing for: "+gop.getStatusVariableId());
 				}
@@ -1576,7 +1576,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		if (gisTypeToCreate!=null) {
 			gisTypeToCreate=null;
 			if (newGisObj!=null) {
-				Variable gistyp = GlobalState.getInstance().getVariableCache().getVariable(newGisObj.getKeyHash(),NamedVariables.GIS_TYPE);
+				Variable gistyp = getInstance().getVariableCache().getVariable(newGisObj.getKeyHash(),NamedVariables.GIS_TYPE);
 				if (gistyp!=null) {
 					gistyp.deleteValue();
 					Log.d("bertox", "Removed gistype value for new gisobject");
@@ -1603,12 +1603,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			//GlobalState.getInstance().getDb().deleteAllVariablesUsingKey(touchedGop.getKeyHash());
 
 			String keyPairs = Tools.convertToKeyPairs(touchedGop.getKeyHash());
-			int rowsAffected = GlobalState.getInstance().getDb().erase(keyPairs,null);
+			int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 			if (rowsAffected>0) {
 				Log.d("claxon","aff: "+rowsAffected);
-				GlobalState.getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + touchedGop.getLabel() + "]");
+				getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + touchedGop.getLabel() + "]");
 				//Create sync entry for all variables with matching keys (no pattern)
-				GlobalState.getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
+				getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 			}
 			//GlobalState.getInstance().getVariableCache().deleteAll(touchedGop.getKeyHash());
 			touchedBag.remove(touchedGop);
