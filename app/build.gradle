@@ -9,11 +9,11 @@ android {
         }
     }
     compileSdkVersion 28
-    buildToolsVersion '28.0.3'
+    buildToolsVersion '29.0.2'
     defaultConfig {
         applicationId "com.teraim.fieldapp"
         minSdkVersion 23
-        targetSdkVersion 27
+        targetSdkVersion 28
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

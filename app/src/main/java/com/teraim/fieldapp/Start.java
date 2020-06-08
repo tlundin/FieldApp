@@ -342,7 +342,8 @@ public class Start extends MenuActivity {
         //getSupportActionBar().setTitle(title);
         if (title != null)
         {
-            getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#ffffff'>" + title + "</font>" ) );
+            // font color set to primary_light
+            getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
         }
     }
 
