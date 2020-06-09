@@ -11,6 +11,11 @@ public interface TrackerListener {
 			return g;
 		}
 
+		private GPS_State() {
+			x=-1;
+			y=-1;
+		}
+
 		public enum State {
 
 			disabled,

@@ -1336,7 +1336,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			handler = new Handler();
 			Runnable runnable = new Runnable(){
 				public void run() {
-					displayDistanceAndDirectionL();
+					displayDistanceAndDirectionL(null);
 					//Log.d("vortex","displaydistcalled from disp timer");
 					if (handler!=null)
 						handler.postDelayed(this, interval);
@@ -1349,7 +1349,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	}
 
-	private void displayDistanceAndDirectionL() {
+	private void displayDistanceAndDirectionL(GPS_State s) {
 
 		if (touchedGop==null) {
 			handler=null;
@@ -1399,21 +1399,28 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			myMap.setRiktTxt(timeDiff+" s");
 
 		}
+
 		String mXs = myX.getValue();
 		String mYs = myY.getValue();
-		if (mXs!=null && mYs!=null) {
-			double mX = Double.parseDouble(mXs);
-			double mY = Double.parseDouble(mYs);
-			double gX = touchedGop.getLocation().getX();
-			double gY = touchedGop.getLocation().getY();
-            Integer currentDistance = (int) Geomatte.sweDist(mY, mX, gY, gX);
-			int rikt = (int)(Geomatte.getRikt2(mY, mX, gY, gX)*57.2957795);
-			myMap.setAvstTxt(currentDistance >9999?(currentDistance /1000+"km"):(currentDistance +"m"));
-			myMap.setRiktTxt(rikt+Deg);
-			//Log.d("wolf","update drawn");
-
-
+		double mX = Double.parseDouble(mXs);
+		double mY = Double.parseDouble(mYs);
+		//COMPARE DIFF - REPLACE WITH SIGNAL VALUE IF PRESENT AND DIFFERENT
+		if(s !=null && s.x != -1) {
+			if (mX != s.x || mY != s.y) {
+				mX = s.x;
+				mY = s.y;
+				GlobalState.getInstance().getLogger().addCriticalText("STALE GPS");
+			}
 		}
+
+		double gX = touchedGop.getLocation().getX();
+		double gY = touchedGop.getLocation().getY();
+		Integer currentDistance = (int) Geomatte.sweDist(mY, mX, gY, gX);
+		int rikt = (int)(Geomatte.getRikt2(mY, mX, gY, gX)*57.2957795);
+		myMap.setAvstTxt(currentDistance >9999?(currentDistance /1000+"km"):(currentDistance +"m"));
+		myMap.setRiktTxt(rikt+Deg);
+
+
 
 	}
 
@@ -1650,11 +1657,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private long mostRecentGPSValueTimeStamp=-1;
 	@Override
-	public void gpsStateChanged(GPS_State newState) {
+	public void gpsStateChanged(GPS_State gps_state) {
 		//Log.d("vortex","Got GPS STATECHANGE");
-		if (newState.state==GPS_State.State.newValueReceived||newState.state==GPS_State.State.ping) {
+		if (gps_state.state==GPS_State.State.newValueReceived||gps_state.state==GPS_State.State.ping) {
 			mostRecentGPSValueTimeStamp = System.currentTimeMillis();
-			displayDistanceAndDirectionL();
+			displayDistanceAndDirectionL(gps_state);
 		}
 		this.postInvalidate();
 
