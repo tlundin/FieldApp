@@ -1409,7 +1409,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			if (mX != s.x || mY != s.y) {
 				mX = s.x;
 				mY = s.y;
-				GlobalState.getInstance().getLogger().addCriticalText("STALE GPS");
+				myX.setOnlyCached(Double.toString(mX));
+				myY.setOnlyCached(Double.toString(mY));
 			}
 		}
 
