@@ -1204,7 +1204,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			//String color = colorShiftOnStatus(go.getStatus());
 			//if (color == null)
 			String color = go.getColor();
-			canvas.drawPath(p, createPaint(color, Paint.Style.STROKE, 0));
+			// strokeWidth: 0 changed to 2
+			canvas.drawPath(p, createPaint(color, Paint.Style.STROKE, 2));
 		}
 	}
 
