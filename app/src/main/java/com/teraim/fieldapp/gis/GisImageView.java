@@ -206,7 +206,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 		if (getInstance()!=null)
-			getInstance().getTracker().registerListener(this,Type.MAP);
+			getInstance().registerListener(this,Type.MAP);
 
 
 	}
@@ -1367,12 +1367,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		}
 
 
-		if (!getInstance().getTracker().isGPSEnabled) {
-			myMap.setAvstTxt("GPS OFF");
-			myMap.setRiktTxt("");
-			return;
+	//	if (!getInstance().getTracker().isGPSEnabled) {
+	//		myMap.setAvstTxt("GPS OFF");
+	//		myMap.setRiktTxt("");
+	//		return;
 			//myMap.setRiktTxt(spinAnim());
-		}
+	//	}
 		//Start a redrawtimer if not already started that redraws this window independent of the redraw cycle of the gops.
 
 		//Check  timediff. Returns null in case no value exists.

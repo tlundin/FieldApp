@@ -21,7 +21,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.expr.Aritmetic;
 import com.teraim.fieldapp.expr.Parser;
-import com.teraim.fieldapp.gis.Tracker;
+import com.teraim.fieldapp.gis.TrackerListener;
 import com.teraim.fieldapp.loadermodule.Configuration;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -72,7 +72,7 @@ public class GlobalState {
     private String myPartner = "?";
 
     private PersistenceHelper globalPh = null;
-    private Tracker myTracker = null;
+
     private final ConnectionManager myConnectionManager;
     private final BackupManager myBackupManager;
 
@@ -515,19 +515,40 @@ public class GlobalState {
 
 
     public static void destroy() {
-        if (singleton.getTracker() != null)
-            singleton.getTracker().stopSelf();
-
         singleton = null;
-
-
+    }
+    private TrackerListener map,menu,user;
+    public void registerListener(TrackerListener tl, TrackerListener.Type type) {
+        switch (type) {
+            case MAP:
+                map = tl;
+                break;
+            case MENU:
+                menu = tl;
+                break;
+            case USER:
+                user = tl;
+                break;
+        }
+    }
+    int oHash = -1;
+    public void updateCurrentPosition(TrackerListener.GPS_State newState, int hash) {
+        //if a disable arrives from a previous old object, discard it.
+        if (newState.state == TrackerListener.GPS_State.State.enabled)
+            oHash = hash;
+        else if (newState.state == TrackerListener.GPS_State.State.disabled && hash != oHash)
+            return;
+        if (newState.state == TrackerListener.GPS_State.State.newValueReceived && hash != oHash)
+            Log.e("GPS","received location from previous map");
+        if (menu!=null)
+            menu.gpsStateChanged(newState);
+        if (user!=null)
+            user.gpsStateChanged(newState);
+        if (map!=null)
+            map.gpsStateChanged(newState);
     }
 
-    public Tracker getTracker() {
-        if (myTracker == null)
-            myTracker = new Tracker();
-        return myTracker;
-    }
+
 
     public File getCachedFileFromUrl(String fileName) {
         return Tools.getCachedFile(fileName, Constants.VORTEX_ROOT_DIR + globalPh.get(PersistenceHelper.BUNDLE_NAME) + "/cache/");
