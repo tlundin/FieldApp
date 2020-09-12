@@ -26,7 +26,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 		multivar=true;
 		myXVar=x;
 		myYVar=y;
-		GlobalState.getInstance().getTracker().registerListener(this,Type.USER);
+		GlobalState.getInstance().registerListener(this,Type.USER);
 	}
 
 	public DynamicGisPoint(FullGisObjectConfiguration conf, Map<String, String> keyChain, Variable v1, String statusVar, String statusVal) {

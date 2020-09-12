@@ -36,6 +36,7 @@ public class CriticalOnlyLogger implements LoggerI {
 
 	@Override
 	public void addRedText(String text) {
+		Log.d("CRIT",text);
 		if (!hasRed) {
 			hasRed=true;
 			//Add a Last Executed Block marker.
