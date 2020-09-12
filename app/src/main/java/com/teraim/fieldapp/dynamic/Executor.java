@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.dynamic;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
@@ -9,11 +10,22 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
+
+import androidx.core.app.ActivityCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import android.os.Looper;
 import android.util.Log;
 
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -61,6 +73,7 @@ import com.teraim.fieldapp.dynamic.blocks.StartCameraBlock;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Rule;
+import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -74,12 +87,14 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnFlowExecuted
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
-import com.teraim.fieldapp.gis.Tracker;
+import com.teraim.fieldapp.gis.TrackerListener;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.utils.Expressor.Atom;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
+import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
@@ -89,6 +104,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.teraim.fieldapp.gis.TrackerListener.GPS_State.GPS_State_C;
 
 /**
  * Executor - executes workflow blocks.  
@@ -106,7 +124,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	public static final String REDRAW_PAGE = "executor_redraw_page";
     private static final String REFRESH_AFTER_SUBFLOW_EXECUTION = "executor_refresh_after_subflow";
 
-
+	private Long oldT = null;
 
 	protected Workflow wf;
 
@@ -121,6 +139,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	protected List<Rule> rules = new ArrayList<Rule>();
 	private List<Workflow> wfStack;
 	private Map<String,BlockCreateListEntriesFromFieldList> myListBlocks;
+	private FusedLocationProviderClient fusedLocationClient;
 
 	public WF_Context getCurrentContext() {
 		return myContext;
@@ -147,11 +166,12 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	//Create pop dialog to display status.
 	private ProgressDialog pDialog;
-
-
-
 	protected boolean survivedCreate = false;
     private WF_Event_OnSave delayedOnSave=null;
+
+	private Variable myX, myY, myAcc;
+	private LocationCallback locationCallback;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -219,9 +239,33 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				return;
 			} else {
 				myContext.setWorkflow(wf);
+
+
+
+					Log.d("GPS","tracker created");
+					Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
+					myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
+					myY = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LONG);
+					myAcc = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_ACCURACY);
+
+					locationCallback = new LocationCallback() {
+						@Override
+						public void onLocationResult(LocationResult locationResult) {
+							if (locationResult == null) {
+								return;
+							}
+							for (Location location : locationResult.getLocations()) {
+								onLocationChanged(location);
+							}
+						}
+					};
+
+					fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
+
 				Log.d("nils","GETS TO ONCREATE EXECUTOR FOR WF "+wf.getLabel());
 				survivedCreate = true;
 			}
+
 
 		}
 
@@ -233,20 +277,42 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	@Override
 	public void onResume() {
-		Log.d("vortex","in Executor onResume "+this.toString());
+		Log.d("vortex", "in Executor onResume " + this.toString());
 
 		gs = GlobalState.getInstance();
-		if ( gs!=null && gs.getContext()!=null) {
-			if(myContext!=null) {
-				if (myContext.hasGPSTracker())
-					gs.getTracker().startScan(gs.getContext());
-				else
-					gs.getTracker().stopUsingGPS();
-
-                resetContext();
- 			}
+		if (myContext != null) {
+			if (myContext.hasGPSTracker())
+				startLocationUpdates(createLocationRequest(), locationCallback);
+			resetContext();
 		}
+
 		super.onResume();
+	}
+
+	protected LocationRequest createLocationRequest() {
+		LocationRequest locationRequest = LocationRequest.create();
+		locationRequest.setInterval(1000);
+		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+		return locationRequest;
+	}
+
+	private void startLocationUpdates(LocationRequest locationRequest, LocationCallback locationCallback) {
+		Log.d("GPS","Start location updates "+this.hashCode());
+		if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			return;
+		}
+		fusedLocationClient.requestLocationUpdates(locationRequest,
+				locationCallback,
+				Looper.getMainLooper());
+		TrackerListener.GPS_State signal = GPS_State_C(TrackerListener.GPS_State.State.enabled);
+		gs.updateCurrentPosition(signal,this.hashCode());
+	}
+
+	private void stopLocationUpdates() {
+		Log.d("GPS","Stop location updates "+this);
+		fusedLocationClient.removeLocationUpdates(locationCallback);
+		TrackerListener.GPS_State signal = GPS_State_C(TrackerListener.GPS_State.State.disabled);
+		gs.updateCurrentPosition(signal,this.hashCode());
 	}
 
     private void resetContext() {
@@ -264,10 +330,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
     @Override
 	public void onPause()
 	{
-		super.onPause();
-		Log.d("Vortex", "onPause() for executor "+this.toString());
-		//Stop listening for bluetooth events.
 
+		Log.d("Vortex", "onPause() for executor "+this.toString());
+		if (myContext.hasGPSTracker())
+			stopLocationUpdates();
+		super.onPause();
 	}
 
 
@@ -438,12 +505,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 						myContext.enableGPS();
 						o.addRow("GPS scanning started");
 						Log.d("vortex", "GPS scanning started");
-
-						Tracker.ErrorCode code = gs.getTracker().startScan(gs.getContext());
-						o.addRow("GPS SCANNER RETURNS: " + code.name());
-						Log.d("vortex", "got " + code.name());
-					} else
-						Log.e("abba","GPS is turned of for "+wf.getLabel());
+					} else {
+						myContext.disableGPS();
+						Log.e("abba", "GPS is turned of for " + wf.getLabel());
+					}
 
 
 				} else if (b instanceof ContainerDefineBlock) {
@@ -760,7 +825,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 								if (bl.evaluate()) {
 									//redraw! We block all other conditional blocks from triggering.
 									myContext.setMyEndIsNear();
-									//myContext.onResume();
 									new Handler().postDelayed(new Runnable() {
 										public void run() {
 											//myContext.resetState();
@@ -1044,6 +1108,62 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 
 	}
+
+	public void onLocationChanged(Location location) {
+		if (location!=null && myX!=null) {
+			SweLocation myL = Geomatte.convertToSweRef(location.getLatitude(),location.getLongitude());
+
+			String oldX = myX.getValue();
+			String oldY = myY.getValue();
+
+
+			if (oldX!=null&&oldY!=null&&oldT!=null) {
+				long currT = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
+				long timeDiff = currT - oldT;
+				//Log.d("GPS","cuurT oldT time diff: "+currT+" "+oldT+" "+timeDiff);
+				double oldXd = Double.parseDouble(oldX);
+				double oldYd = Double.parseDouble(oldY);
+				double distx = Math.abs(oldXd - myL.getX());
+				double disty = Math.abs(oldYd - myL.getY());
+
+				//Log.d("GPS", "Distance between mesaurements in Tracker: (x,y) " + distx + "," + disty);
+				String accuracy = Float.toString(location.getAccuracy());
+				String x = Double.toString(myL.getX());
+				String y = Double.toString(myL.getY());
+
+
+				if (distx > 15 || disty > 15 || timeDiff > 60) {
+					//	Log.d("vortex","setting synced location");
+					myX.setValue(x);
+					myY.setValue(y);
+					if (myAcc!=null)
+						myAcc.setValue(accuracy);
+					oldT = myX.getTimeOfInsert();
+				} else {
+					myX.setValueNoSync(x);
+					myY.setValueNoSync(y);
+					if (myAcc!=null)
+						myAcc.setValueNoSync(accuracy);
+
+
+				}
+			} else {
+				myX.setValue(myL.getX() + "");
+				myY.setValue(myL.getY() + "");
+				if (myAcc!=null)
+					myAcc.setValue(location.getAccuracy() + "");
+				oldT = myX.getTimeOfInsert();
+			}
+
+			TrackerListener.GPS_State signal = GPS_State_C(TrackerListener.GPS_State.State.newValueReceived);
+			signal.accuracy=location.getAccuracy();
+			signal.x=myL.getX();
+			signal.y=myL.getY();
+			gs.updateCurrentPosition(signal,this.hashCode());
+
+		}
+	}
+
 
 
 

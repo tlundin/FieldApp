@@ -73,7 +73,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimerTask;
 
+import static com.teraim.fieldapp.gis.TrackerListener.GPS_State.GPS_State_C;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_DATA_READY_FOR_INSERT;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_ERROR_STATE;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_RUN_ENDED;
@@ -106,8 +108,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private Switch sync_switch;
 
 
-    //Tracker callback.
-    private GPS_State latestSignal = null;
+    //Contains the latest location update with timestamp.
+    private GPS_State latestSignal,previousSignal;
     /**
      * Flag indicating whether we have called bind on the sync service.
      */
@@ -128,7 +130,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private enum GPSQuality {
         red,
         yellow,
-        green
+        green,
+        old
     }
 
     private long lastRedraw = 0;
@@ -137,6 +140,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        latestSignal = GPS_State_C(TrackerListener.GPS_State.State.disabled);
+        previousSignal = null;
 
         me = this;
 
@@ -156,7 +161,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                         //listen to Tracker
                         if (GlobalState.getInstance() != null) {
 
-                            GlobalState.getInstance().getTracker().registerListener(MenuActivity.this, Type.MENU);
+                            GlobalState.getInstance().registerListener(MenuActivity.this, Type.MENU);
                             gs = GlobalState.getInstance();
                             //check current state of synk server.
                             //This determines the sync status.
@@ -233,9 +238,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         //Register to sync framework
         initializeSynchronisation();
-
-        //Gps latest signal
-        latestSignal = null;
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         // Inflate the sync popup
@@ -474,25 +476,30 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             }
             //Init done succesfully? Show all items.
         } else if (GlobalState.getInstance() != null && initDone) {
-
-            if (noGPS())
-                mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
-            else {
-                mnu[MENU_ITEM_GPS_QUALITY].setVisible(true);
-                //if (gpsSignalIsOld())
-                //	mnu[0].setIcon(R.drawable.btn_icon_none);
-                //else
-                {
+                if (latestSignal.state == GPS_State.State.disabled) {
+                    mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
+                    monitorGPS(false);
+                }
+                else if (latestSignal.state == GPS_State.State.enabled) {
+                    mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_none);
+                    mnu[MENU_ITEM_GPS_QUALITY].setVisible(true);
+                    monitorGPS(true);
+                }
+                else {
                     GPSQuality GPSq = calculateGPSKQI();
                     if (GPSq == GPSQuality.green) {
                         mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_ready);
                     } else if (GPSq == GPSQuality.yellow)
                         mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started);
-                    else
+                    else if (GPSq == GPSQuality.red)
                         mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started_with_errors);
+                    else if (GPSq == GPSQuality.old)
+                        mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_none);
                     mnu[MENU_ITEM_GPS_QUALITY].setTitle(Math.round(latestSignal.accuracy) + "");
                 }
-            }
+
+
+
 
             if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("NONE") || GlobalState.getInstance().isSolo())
                 mnu[MENU_ITEM_SYNC_TYPE].setVisible(false);
@@ -511,6 +518,31 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         }
     }
+
+    Handler GPShandler;
+    private void monitorGPS(boolean on) {
+        if (on) {
+                final int interval = 2500; // 1 Second
+                GPShandler = new Handler();
+                Runnable runnable = new Runnable(){
+                    public void run() {
+                        if (latestSignal != null) {
+                            long elapsed = System.currentTimeMillis() - latestSignal.time;
+                            if (elapsed > 5000)
+                                refreshStatusRow();
+                            GPShandler.postDelayed(this, interval);
+                        }
+                    }
+                };
+                GPShandler.postDelayed(runnable, interval);
+        } else
+            if (GPShandler!=null)
+                GPShandler.removeMessages(0);
+    }
+
+
+
+
 
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
@@ -642,7 +674,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         switch (selection) {
             case MENU_ITEM_GPS_QUALITY:
-                if (latestSignal != null) {
+                if (latestSignal.state == GPS_State.State.newValueReceived) {
                     new AlertDialog.Builder(this)
                             .setTitle("GPS Details")
                             .setMessage("GPS_X: " + latestSignal.x + "\n" +
@@ -1190,25 +1222,27 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     @Override
     public void gpsStateChanged(GPS_State signal) {
-        if (signal.state == GPS_State.State.newValueReceived) {
-            //Log.d("glapp", "Got gps signal!");
-            latestSignal = signal;
-        }
+        previousSignal = latestSignal;
+        latestSignal = signal;
         refreshStatusRow();
     }
 
-    private boolean noGPS() {
-        return (latestSignal == null);
-
-    }
 
     private GPSQuality calculateGPSKQI() {
-        if (latestSignal.accuracy <= 6)
-            return GPSQuality.green;
-        else if (latestSignal.accuracy <= 10)
-            return GPSQuality.yellow;
-        else
-            return GPSQuality.red;
+            int timeAcc = 100;
+            if (previousSignal != null)
+                timeAcc = Math.round((System.currentTimeMillis() - previousSignal.time) / 1000);
+
+            if (timeAcc >= 5) {
+                Log.d("GPS", "time acc: " + timeAcc);
+                return GPSQuality.old;
+            }
+            if (latestSignal.accuracy <= 6)
+                return GPSQuality.green;
+            else if (latestSignal.accuracy <= 10)
+                return GPSQuality.yellow;
+            else
+                return GPSQuality.red;
     }
 
 

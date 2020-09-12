@@ -350,6 +350,11 @@ public class WF_Context {
 	public void enableGPS() {
 		hasGPSTracker = true;
 	}
+
+	public void disableGPS() {
+		hasGPSTracker = false;
+	}
+
 	public void setHash(DB_Context myHash) {
 		this.myHash=myHash;
 	}
