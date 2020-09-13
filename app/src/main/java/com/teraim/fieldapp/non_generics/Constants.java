@@ -35,7 +35,7 @@ import java.util.UUID;
 
 public class Constants {
 
-    public final static float VORTEX_VERSION = 6.724f;
+    public final static float VORTEX_VERSION = 6.725f;
 
     public static final String DEFAULT_SERVER_URI = "http://www.teraim.com";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
