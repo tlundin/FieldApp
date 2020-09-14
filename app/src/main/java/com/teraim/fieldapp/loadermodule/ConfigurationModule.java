@@ -128,7 +128,6 @@ public abstract class ConfigurationModule {
 
 	public void cancelLoader() {
 		if (mLoader!=null) {
-			Log.e("vortex","Cancelled mLoader!");
 			mLoader.cancel(true);
 			mLoader = null;
 		}

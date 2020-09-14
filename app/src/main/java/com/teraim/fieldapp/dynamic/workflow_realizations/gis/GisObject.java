@@ -32,7 +32,7 @@ public class GisObject {
 		latlong
 	}
 
-	private FullGisObjectConfiguration foc;
+	protected FullGisObjectConfiguration foc;
 	
 	public GisObject(Map<String, String> keyChain,List<Location> myCoordinates) {
 		this.keyChain=keyChain;this.myCoordinates=myCoordinates;

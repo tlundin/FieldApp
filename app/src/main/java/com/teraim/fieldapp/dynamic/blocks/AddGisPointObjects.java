@@ -20,6 +20,7 @@ import com.teraim.fieldapp.dynamic.types.Variable.DataType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.DynamicGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GIS;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisMultiPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
@@ -158,7 +159,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		setDefaultBitmaps(myContext);
 		o = GlobalState.getInstance().getLogger();
 		GlobalState gs = GlobalState.getInstance();
-		WF_Gis_Map gisB = myContext.getCurrentGis();
+		GIS gisB = myContext.getCurrentGis();
 		if (gisB==null) {
 			Log.e("vortex","gisB null!!");
 			return;
@@ -463,7 +464,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			GisLayer myLayer = myContext.getCurrentGis().getLayerFromId(target);
 			if (myLayer !=null) {
 
-				myLayer.addObjectBag(nName,myGisObjects,dynamic,myContext.getCurrentGis().getGis());
+				myLayer.addObjectBag(nName,myGisObjects,dynamic);
 
 			} else {
 				Log.e("vortex","Could not find layer ["+target+"] for type "+nName);

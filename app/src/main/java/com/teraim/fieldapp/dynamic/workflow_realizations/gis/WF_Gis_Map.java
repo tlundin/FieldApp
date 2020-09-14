@@ -4,7 +4,9 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -42,21 +44,26 @@ import android.widget.ToggleButton;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
+import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
+import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.MapGisLayer;
 import com.teraim.fieldapp.dynamic.types.NudgeListener;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
+import com.teraim.fieldapp.dynamic.types.Variable;
+import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
+import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.gis.GisImageView;
+import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -69,6 +76,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.teraim.fieldapp.GlobalState.getInstance;
+
 /**
  *
  * @author Terje
@@ -78,7 +87,7 @@ import java.util.Set;
  *
  * Implements A GIS Map widget. Based on  
  */
-public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, AnimationListener {
+public class WF_Gis_Map extends GIS implements Drawable, EventListener, AnimationListener {
 
     private final FrameLayout mapView;
     private final Rect rect;
@@ -112,7 +121,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final TextView lengthT;
     private final TextView areaT;
     private final static String squareM = "\u33A1";
-    private List<GisLayer> myLayers;
+
 
     private final boolean isZoomLevel;
 
@@ -188,7 +197,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
-        super(id, mapView, isVisible, myContext);
+        super(id, mapView, isVisible, myContext, new GisViewImplementation(mapView.findViewById(R.id.GisV)));
 
         GlobalState gs = GlobalState.getInstance();
 
@@ -196,7 +205,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         this.myDaddy=createGisBlock;
         //This is a zoom level if layers are imported.
         isZoomLevel = daddyLayers!=null;
-        gisImageView = mapView.findViewById(R.id.GisV);
+        gisImageView = getGis().getImageGis();
         gisImageView.setImageBitmap(bmp);
         Log.d("vortex", "Image width and height is :"+ bmp.getWidth()+","+bmp.getHeight());
         Log.d("vortex", "realWW and realHH is :"+ realWW+","+realHH);
@@ -288,11 +297,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
             if (!layersPopup.isShown()) {
                 layersPopup.startAnimation(layersPopupShow);
-                getGis().setClickable(false);
+                gisImageView.setClickable(false);
                 mapView.invalidate();
             } else {
                 layersPopup.startAnimation(layersPopupHide);
-                getGis().setClickable(true);
+                gisImageView.setClickable(true);
             }
 
         });
@@ -392,7 +401,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     wasShowingPopup();
                     gisImageView.cancelGisObjectCreation();
                     gisObjectsPopUp.startAnimation(popupShow);
-                    getGis().setClickable(false);
+                    gisImageView.setClickable(false);
                     mapView.invalidate();
 
                     //gisImageView.centerOnUser();
@@ -591,7 +600,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
                     Log.d("bortex", "team is visible! Adding layer for team "+team);
-                    final GisLayer teamLayer = new GisLayer(this, "Team", "Team", true, true, true);
+                    final GisLayer teamLayer = new GisLayer("Team", "Team", true, true, true);
                     myLayers.add(teamLayer);
                 } //else {
                 //o = GlobalState.getInstance().getLogger();
@@ -631,10 +640,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         } else {
             Log.d("vortex","Actionmode already running or gisObjMenu open...");
         }
-    }
-
-    public GisImageView getGis() {
-        return gisImageView;
     }
 
 
@@ -725,7 +730,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 return;
             }
             Log.d("Vortex", "new sync event. Refreshing map.");
-            myContext.refreshGisObjects();
+            myContext.refreshGisObjects(gisImageView);
             Log.d("vortex", "Issuing redraw of gisimageview!!");
             //refresh team layer.
             GisLayer teamLayer = this.getLayerFromId("Team");
@@ -738,7 +743,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     Log.e("bortex", "No team members found on this map after Sync Event");
                 else {
                     Log.d("bortex", "found " + teamMembers.size() + " team members");
-                    teamLayer.addObjectBag("Team", teamMembers, false, gisImageView);
+                    teamLayer.addObjectBag("Team", teamMembers, false);
                 }
 
             }
@@ -783,7 +788,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         else if (animation.equals(popupHide)) {
             gisObjectsPopUp.setVisibility(View.GONE);
             gisObjMenuOpen = false;
-            getGis().setClickable(true);
+            gisImageView.setClickable(true);
         }
         else if (animation.equals(layersPopupShow)) {
             Log.d("vortex","Oooh...it ended!!");
@@ -820,7 +825,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         }
         else if (animation.equals(layersPopupHide)) {
             layersPopup.setVisibility(View.GONE);
-            getGis().setClickable(true);
+            gisImageView.setClickable(true);
         }
     }
 
@@ -829,6 +834,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     }
 
     //Add a gisobject to the createMenu.
+    @Override
     public void addGisObjectType(FullGisObjectConfiguration gop,String paletteName) {
         List<FullGisObjectConfiguration> typesInPalette = myGisObjectTypes.get(paletteName);
         if (typesInPalette==null) {
@@ -877,15 +883,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     }
 
 
-    public void addLayer(GisLayer layer) {
-        if(layer!=null) {
-            Log.d("vortex","Succesfully added layer "+layer.getLabel());
-            myLayers.add(layer);
 
-
-        }
-
-    }
     /*
 
      */
@@ -994,8 +992,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         gisImageView.setImageBitmap(bmp);
                         //if another map bg shown, swap the pref. layer
                         if (previouslyChecked !=-1) {
-                            radioB = radioGroup.findViewById(previouslyChecked);
-                            String p_text = radioB.getText().toString();
                             MapGisLayer prev_layer = (MapGisLayer) getLayerFromLabel(text);
                             Log.d("banjo","persist forget "+PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName());
                             localPh.put(PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName(), -1);
@@ -1150,55 +1146,15 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
 
-    public GisLayer getLayerFromLabel(String label) {
-        if (myLayers==null||myLayers.isEmpty()||label==null)
-            return null;
-        for (GisLayer gl:myLayers) {
-            if (gl.getLabel().equals(label)) {
-                Log.d("vortex","MATCH Label!!");
-                return gl;
-            }
-
-        }
-        Log.e("vortex","NO MATCH Label!!");
-        return null;
-
-    }
-
-    public GisLayer getLayerFromId(String identifier) {
-        if (myLayers==null||myLayers.isEmpty()||identifier==null)
-            return null;
-        for (GisLayer gl:myLayers) {
-            //Log.d("vortex","ID for layer: "+gl.getId());
-            if (gl.getId().equals(identifier)) {
-                //	Log.d("vortex","MATCH GL!!");
-                return gl;
-            }
-        }
-        Log.d("vortex", "Did not find layer " + identifier + " from GisMap.");
-
-        return null;
-    }
-
-
-    public List<GisLayer> getLayers() {
-        return myLayers;
-    }
-
-
-    public void clearLayerCaches() {
-        for (GisLayer gl:myLayers)
-            gl.clearCaches();
-        Log.d("vortex","Is zoom? "+isZoomLevel);
-    }
 
 
 
+    @Override
     public boolean isZoomLevel() {
         return isZoomLevel;
     }
 
-
+    @Override
     public boolean wasShowingPopup() {
         Log.d("vortex","popupshowing?");
         boolean ret=false;
@@ -1218,7 +1174,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         Log.d("vortex","gisObjCreate? "+ret);
         menuState = avstRL.getVisibility();
         if (menuState == View.VISIBLE) {
-            getGis().unSelectGop();
+            gisImageView.unSelectGop();
             ret=true;
         }
         Log.d("vortex","avstRikt? "+ret);
@@ -1228,7 +1184,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             ret=true;
         }
         Log.d("vortex","candidates? "+ret);
-        getGis().setClickable(true);
+        gisImageView.setClickable(true);
         return ret;
     }
 
@@ -1263,4 +1219,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public boolean isNotExcluded(String status) {
         return standardFilterM.get(status);
     }
+
+
 }

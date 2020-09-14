@@ -134,7 +134,7 @@ public class Geomatte {
 
 
 
-	public static LatLong convertToLatLong(double y, double x) {
+	public static LatLong convertToLatLong(double xE, double yN) {
 
 
 		double axis; // Semi-major axis of the ellipsoid.
@@ -156,10 +156,6 @@ public class Geomatte {
 		false_northing = 0.0;
 		false_easting = 500000.0;
 
-
-
-
-
 		double[] lat_lon = new double[2];
 
 		// Prepare ellipsoid-based stuff.
@@ -179,8 +175,8 @@ public class Geomatte {
 		// Convert.
 		double deg_to_rad = Math.PI / 180;
 		double lambda_zero = central_meridian * deg_to_rad;
-		double xi = (x - false_northing) / (scale * a_roof);
-		double eta = (y - false_easting) / (scale * a_roof);
+		double xi = (yN - false_northing) / (scale * a_roof);
+		double eta = (xE - false_easting) / (scale * a_roof);
 		double xi_prim = xi -
 				delta1 * Math.sin(2.0 * xi) * math_cosh(2.0 * eta) -
 				delta2 * Math.sin(4.0 * xi) * math_cosh(4.0 * eta) -

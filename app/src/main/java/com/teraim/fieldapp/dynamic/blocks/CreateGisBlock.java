@@ -162,10 +162,10 @@ public class CreateGisBlock extends Block {
 							Log.d("vortex", "picture " + picName + " now in cache.");
 							MapGisLayer mapLayer;
 							if (picName.equals(masterPicName)) {
-								mapLayer = new MapGisLayer(gis, GisConstants.DefaultTag, picName);
+								mapLayer = new MapGisLayer(GisConstants.DefaultTag, picName);
 
 							} else
-								mapLayer = new MapGisLayer(gis, "bg" + (I), picName);
+								mapLayer = new MapGisLayer("bg" + (I), picName);
 							Log.d("vortex", "Added layer: " + mapLayer.getLabel());
 							mapLayers.add(mapLayer);
 						} else {
@@ -175,7 +175,7 @@ public class CreateGisBlock extends Block {
 								o.addRow("");
 								o.addRedText(image_failed_to_load + serverFileRootDir + picName);
 							}
-							if (picName.equals(masterPicName)) {
+							if (picName !=null && picName.equals(masterPicName)) {
 								aborted = true;
 								cb.abortExecution(image_failed_to_load + serverFileRootDir + picName);
 							}

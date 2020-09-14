@@ -20,7 +20,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
@@ -400,7 +399,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					Log.e("bortex","no team members found");
 				else {
 					Log.d("bortex", "found " + teamMembers.size()+" team members");
-					layer.addObjectBag("Team", teamMembers, false, this);
+					layer.addObjectBag("Team", teamMembers, false);
 				}
 
 			}
@@ -1469,60 +1468,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		//update image to close polygon.
 		invalidate();
 		if (touchedGop!=null)
-			runSelectedWf(touchedGop);
+			myMap.runSelectedWf(touchedGop);
 		unSelectGop();
 
 	}
-	private void runSelectedWf(GisObject gop) {
 
-		getInstance().setDBContext(new DB_Context(null,gop.getKeyHash()));
-		Log.d("vortex","Setting current keyhash to "+gop.getKeyHash());
-		String target = gop.getWorkflow();
-		Workflow wf = getInstance().getWorkflow(target);
-		if (wf ==null) {
-			Log.e("vortex","missing click target workflow");
-			new AlertDialog.Builder(ctx)
-					.setTitle("Missing workflow")
-					.setMessage("No workflow associated with the GIS object or workflow not found: ["+target+"]. Check your XML.")
-					.setIcon(android.R.drawable.ic_dialog_alert)
-					.setCancelable(false)
-					.setNeutralButton("Ok",new Dialog.OnClickListener() {
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-
-						}
-					} )
-					.show();
-		} else {
-			if (gop.getStatusVariableId()!=null) {
-				Map<String, String> keyHash = gop.getKeyHash();
-				if (keyHash!=null)
-					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
-				Log.d("buu","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
-				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
-				if (statusVariable!=null) {
-					String valS = statusVariable.getValue();
-					if (valS == null || valS.equals("0")) {
-						Log.d("grogg", "Setting status variable to 1");
-						statusVariable.setValue("1");
-						gop.setStatusVariable(statusVariable);
-					} else
-						Log.d("grogg", "NOT Setting status variable to 1...current val: " + statusVariable.getValue());
-					myMap.registerEvent(new WF_Event_OnSave("Gis"));
-				} else {
-					Log.e("grogg", "StatusVariable definition error");
-					LoggerI o = getInstance().getLogger();
-					o.addRow("");
-					o.addRedText("StatusVariable definition missing for: "+gop.getStatusVariableId());
-				}
-
-			} else
-				Log.e("grogg",gop.getStatusVariableId()+" is null");
-
-			Start.singleton.changePage(wf,gop.getStatusVariableId());
-
-		}
-	}
 
 
 	public void centerOnUser() {

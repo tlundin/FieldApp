@@ -56,6 +56,7 @@ import com.teraim.fieldapp.dynamic.blocks.CoupledVariableGroupBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateCategoryDataSourceBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateEntryFieldBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
+import com.teraim.fieldapp.dynamic.blocks.CreateGoogleBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateImageBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateSliderEntryFieldBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateSortWidgetBlock;
@@ -87,6 +88,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnFlowExecuted
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
+import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.gis.TrackerListener;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -503,6 +505,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					Log.d("vortex", "Found pagedefine!");
 					if (bl.hasGPS()) {
 						myContext.enableGPS();
+						startLocationUpdates(createLocationRequest(), locationCallback);
 						o.addRow("GPS scanning started");
 						Log.d("vortex", "GPS scanning started");
 					} else {
@@ -895,9 +898,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 				} else if (b instanceof BarChartBlock) {
 					((BarChartBlock) b).create(myContext);
-
 				} else if (b instanceof CreateCategoryDataSourceBlock) {
 					((CreateCategoryDataSourceBlock) b).create(myContext);
+
+				} else if (b instanceof CreateGoogleBlock) {
+				((CreateGoogleBlock) b).create(myContext,this);
 
 				} else if (b instanceof CreateGisBlock) {
 					pDialog = ProgressDialog.show(myContext.getContext(), "",
@@ -1095,7 +1100,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	//Refresh all the gislayers.
-	public void refreshGisObjects() {
+	public void refreshGisObjects(GisImageView gi) {
 		for (Block b: wf.getBlocks()) {
 			AddGisPointObjects bl;
 			if (b instanceof AddGisPointObjects) {
@@ -1104,7 +1109,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			}
 		}
 		for (GisLayer layer :myContext.getCurrentGis().getLayers())
-			layer.filterLayer(myContext.getCurrentGis().getGis());
+			layer.filterLayer(gi);
 
 
 	}

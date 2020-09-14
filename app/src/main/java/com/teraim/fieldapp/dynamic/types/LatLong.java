@@ -1,11 +1,16 @@
 package com.teraim.fieldapp.dynamic.types;
 
 
+import com.google.android.libraries.maps.model.LatLng;
 
 public class LatLong implements Location {
 
 	private final double	latitude;
 	private final double longitude;
+
+	public LatLng ll() {
+		return new LatLng(latitude,longitude);
+	}
 
 		
 	public LatLong(double latitude, double longitude) {

@@ -126,6 +126,7 @@
     <string name="Scroll_down">Scroll down</string>
     <string name="Send_error_log">Send Error Log to Teraim</string>
     <string name="log_exit">Exit</string>
+    <string name="title_activity_maps">Map</string>
 
 
 </resources>

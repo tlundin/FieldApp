@@ -1,9 +1,12 @@
 package com.teraim.fieldapp.dynamic.blocks;
 
+import android.util.Log;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GIS;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 
 public class AddGisLayerBlock extends Block {
@@ -36,13 +39,12 @@ public class AddGisLayerBlock extends Block {
 
 	public void create(WF_Context myContext) {
 
-		Drawable gisMap = myContext.getDrawable(target);
-		
-		if (gisMap instanceof WF_Gis_Map) {
-            WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
-			if (!myGis.isZoomLevel()) {
-			final GisLayer gisLayer = new GisLayer(myGis,name,label,isVisible,hasWidget,showLabels);
-			myGis.addLayer(gisLayer);
+		GIS gisMap = myContext.getCurrentGis();
+		Log.d("google","In create gislayer");
+		if (gisMap instanceof GIS) {
+			if (!gisMap.isZoomLevel()) {
+				final GisLayer gisLayer = new GisLayer(name,label,isVisible,hasWidget,showLabels);
+				gisMap.addLayer(gisLayer);
 			}
 		} else {
 			if (gisMap==null) {

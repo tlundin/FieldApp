@@ -29,6 +29,7 @@ import com.teraim.fieldapp.dynamic.blocks.CoupledVariableGroupBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateCategoryDataSourceBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateEntryFieldBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
+import com.teraim.fieldapp.dynamic.blocks.CreateGoogleBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateImageBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateSliderEntryFieldBlock;
 import com.teraim.fieldapp.dynamic.blocks.CreateSortWidgetBlock;
@@ -238,12 +239,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					blocks.add(readBlockAddRule(parser));
 				else if (name.equals("block_create_sort_widget"))
 					blocks.add(readBlockCreateSorting(parser));
-				//This is a dummy call. Not supported block.				
 				else if (name.equals("block_create_list_entries")) 
 					dummyWarning("block_create_list_entries",parser);
 				else if (name.equals("block_create_entry_field")) 
 					blocks.add(readBlockCreateEntryField(parser));
-//entryfields
 				else if (name.equals("block_add_sum_of_selected_variables_display"))
 					blocks.add(readBlockAddSelectionOrSum(parser,isSum));
 				else if (name.equals("block_add_number_of_selections_display"))
@@ -252,8 +251,6 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					blocks.add(readBlockCreateEntryFieldSlider(parser));
 				else if (name.equals("block_create_display_field"))
 					blocks.add(readBlockCreateDisplayField(parser));
-//
-
 				else if (name.equals("block_create_list_entries_from_field_list"))
 					blocks.add(readBlockCreateListEntriesFromFieldList(parser));
 				else if (name.equals("block_create_table"))
@@ -281,8 +278,6 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					blocks.add(readBlockJump(parser));
 				else if (name.equals("block_set_value"))
 					blocks.add(readBlockSetValue(parser));
-				else if (name.equals("block_add_rule"))
-					blocks.add(readBlockAddRule(parser));
 				else if (name.equals("block_define_menu_header"))
 					blocks.add(readBlockDefineMenuHeader(parser));
 				else if (name.equals("block_define_menu_entry"))
@@ -302,6 +297,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				else if (name.equals("block_create_picture"))
 					blocks.add(readBlockCreatePicture(parser));
 				else if (name.equals("block_add_gis_image_view"))
+					blocks.add(readBlockAddGisImageView(parser));
+				else if (name.equals("block_add_gis_view"))
 					blocks.add(readBlockAddGisView(parser));
 				else if (name.equals("block_add_gis_layer"))
 					blocks.add(readBlockAddGisLayer(parser));
@@ -714,7 +711,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
         <file>/flygdata/207.jpg</url>
     </block_add_image_gis_view>
 	 */
-	private Block readBlockAddGisView(XmlPullParser parser) throws IOException,XmlPullParserException {
+	private Block readBlockAddGisImageView(XmlPullParser parser) throws IOException,XmlPullParserException {
 		o.addRow("Parsing block: block_add_gis_image_view...");
 		String id=null,nName=null,container=null,source=null;
 		String N=null,E=null,S=null,W=null;
@@ -764,6 +761,54 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		return new CreateGisBlock(id,nName,container,isVisible,source,N,E,S,W,hasSatNav,showTeam);
 
 	}
+
+	private Block readBlockAddGisView(XmlPullParser parser) throws IOException,XmlPullParserException {
+		o.addRow("Parsing block: block_add_gis_image_view...");
+		String id=null,nName=null,container=null;
+		String lat=null,lng=null,zoom=null;
+		boolean isVisible=true,hasSatNav=false,showTeam=false,showUser=false;
+
+		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_view");
+		Log.d("vortex","In block block_add_gis_view!!");
+		String name="";
+
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG) {
+				continue;
+			}
+			name= parser.getName();
+			if (name.equals("block_ID")) {
+				id = readText("block_ID",parser);
+			} else if (name.equals("name")) {
+				nName = readText("name",parser);
+			} else if (name.equals("container_name")) {
+				container = readText("container_name",parser);
+			} else if (name.equals("is_visible")) {
+				isVisible = readText("is_visible",parser).equals("true");
+			}else if (name.equalsIgnoreCase("lat")) {
+				lat = readText("lat",parser);
+			}else if (name.equalsIgnoreCase("lng")) {
+				lng = readText("lng",parser);
+			}else if (name.equalsIgnoreCase("zoom")) {
+				zoom = readText("zoom",parser);
+			}else if (name.equalsIgnoreCase("user_visible")) {
+				showUser = readText("user_visible",parser).equalsIgnoreCase("true");
+			}else if (name.equals("car_navigation_on")) {
+				hasSatNav = readText("car_navigation_on",parser).equals("true");
+			} else if (name.equals("team")) {
+				showTeam = readText("team", parser).equals("true");
+			} else {
+				Log.e("vortex","Skipped "+name);
+				skip(name,parser);
+			}
+		}
+
+		checkForNull("block_ID",id,"name",nName,"container_name",container);
+
+		return new CreateGoogleBlock(id,nName,container,isVisible,lat,lng,zoom,showUser,hasSatNav,showTeam);
+
+	}
+
 
 	private Block readBlockCreatePicture(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_create_picture...");

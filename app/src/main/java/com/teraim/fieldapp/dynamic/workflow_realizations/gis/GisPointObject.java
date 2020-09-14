@@ -12,14 +12,12 @@ import java.util.Map;
 
 public abstract class GisPointObject extends GisObject {
 
-	final FullGisObjectConfiguration poc;
-
 	
 	private int[] xy=new int[2];
 	
 	GisPointObject(FullGisObjectConfiguration poc, Map<String, String> keyChain, List<Location> myCoordinates, String statusVar, String statusVal) {
 		super(poc,keyChain,myCoordinates,statusVar,statusVal);
-		this.poc=poc;
+
 		
 	}
 
@@ -27,10 +25,10 @@ public abstract class GisPointObject extends GisObject {
 	public abstract boolean isUser();
 	
 	public Bitmap getIcon() {
-		return poc.getIcon();
+		return foc.getIcon();
 	}
 	public float getRadius() {
-		return poc.getRadius();
+		return foc.getRadius();
 	}
 
 
@@ -66,7 +64,7 @@ public abstract class GisPointObject extends GisObject {
 		//Log.d("vortex", "NO!: Dist x  y  tresh: "+xD+","+yD+","+distanceToClick+" thresh: "+ClickThresholdInMeters);
     }
 	public Style getStyle() {
-		return poc.getStyle();
+		return foc.getStyle();
 	}
 	
 	

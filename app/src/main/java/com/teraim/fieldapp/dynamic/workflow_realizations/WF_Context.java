@@ -27,7 +27,9 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Filterable;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GIS;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
+import com.teraim.fieldapp.gis.GisImageView;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -50,8 +52,8 @@ public class WF_Context {
 	private final Set<Integer> executedBlocks = new HashSet<Integer>();
     private String statusVariable=null;
 	private final List<Filterable> filterables;
-	private WF_Gis_Map currentGis;
-	private final List<WF_Gis_Map> gisses;
+	private GIS currentGis;
+	private final List<GIS> gisses;
 	private boolean hasGPSTracker = false;
 	private DB_Context myHash;
 	private Workflow myWorkflow;
@@ -71,7 +73,7 @@ public class WF_Context {
 		eventBroker = new EventBroker(ctx);
 		this.drawables=new HashMap<String,Drawable>();
 		this.filterables=new ArrayList<Filterable>();
-		this.gisses=new ArrayList<WF_Gis_Map>();
+		this.gisses=new ArrayList<GIS>();
 	}
 	public Context getContext() {
 		return ctx;
@@ -333,13 +335,15 @@ public class WF_Context {
 	public String getStatusVariable() {
 		return statusVariable;
 	}
-	public void addGis(String id, WF_Gis_Map wf_Gis_Map) {
+	public void addGis(String id, GIS wf_Gis_Map) {
+		Log.d("google","In addGis"+wf_Gis_Map);
 		currentGis = wf_Gis_Map;
 		gisses.add(wf_Gis_Map);
 		mapLayer++;
 	}
 	
-	public WF_Gis_Map getCurrentGis() {
+	public GIS getCurrentGis() {
+		Log.d("google","Returning"+currentGis);
 		return currentGis;
 	}
 	
@@ -383,8 +387,8 @@ public class WF_Context {
 		myTemplate.restart();
 	}
 	
-	public void refreshGisObjects() {
-		myTemplate.refreshGisObjects();
+	public void refreshGisObjects(GisImageView gi) {
+		myTemplate.refreshGisObjects(gi);
 	}
 	
 	public void setContextVariables(List<String> contextVars) {

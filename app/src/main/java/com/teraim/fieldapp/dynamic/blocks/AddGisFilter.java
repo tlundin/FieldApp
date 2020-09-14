@@ -15,6 +15,7 @@ import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GIS;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LoggerI;
@@ -41,7 +42,7 @@ public class AddGisFilter extends Block implements GisFilter {
 	private PolyType polyType;
 	private boolean hasWidget=true;
     private boolean isActive=true;
-	private WF_Gis_Map myGis;
+	private GIS myGis;
 	private final List<EvalExpr> expressionE;
 
 
@@ -92,8 +93,6 @@ public class AddGisFilter extends Block implements GisFilter {
 
 	//Collect the gisobjects affected by the filter. Apply the filtering.
 	public void create(WF_Context myContext) {
-
-			
 		myGis = myContext.getCurrentGis();
 		if (myGis!=null) {
 
@@ -113,7 +112,7 @@ public class AddGisFilter extends Block implements GisFilter {
 						@Override
 						public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {						
 							setActive(isChecked);
-							myGis.getGis().invalidate();
+							myGis.getGis().getImageGis().invalidate();
 						}
 
 

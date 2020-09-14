@@ -78,7 +78,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 		String res="";
 		res+=" \nDynamic: yes";
 		res+="\nMultivar: "+(multivar?"yes":"no");
-		res+="\nLabel: "+poc.getRawLabel();
+		res+="\nLabel: "+foc.getRawLabel();
 		res+="\nVariable values: xy, x, y";
 			if (myXYVar==null)
 				res+="null, ";
@@ -100,7 +100,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 	}
 	
 	public boolean isUser() {
-		return poc.isUser();
+		return foc.isUser();
 	}
 
 	@Override
