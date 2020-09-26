@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.teraim.fieldapp",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "properties": [],
+      "versionCode": 57,
+      "versionName": "6.726",
+      "enabled": true,
+      "outputFile": "app-release.apk"
+    }
+  ]
+}
