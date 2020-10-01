@@ -17,8 +17,8 @@ import android.view.View;
 
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.TabButton;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.Shape;
 import com.teraim.fieldapp.gis.GisImageView;
 
 import java.util.ArrayList;
@@ -42,7 +42,7 @@ public class GisObjectsMenu extends View {
 	private static final int MAX_ROWS = 5;
 	private static int SpaceBetweenHeaderAndButton;
 	private static int scale;
-	private  Map<String,LinkedHashMap<GisObjectType,Set<FullGisObjectConfiguration>>> myPalettes;
+	private  Map<String,LinkedHashMap<GisPolyType,Set<FullGisObjectConfiguration>>> myPalettes;
 	private Paint headerTextP;
     private Paint tabTextP;
     private GisImageView myGis;
@@ -79,7 +79,7 @@ public class GisObjectsMenu extends View {
 
 	private void init(Context context) {
 		//Mypalettes contains the palettes used to show gis objects.
-		myPalettes = new HashMap<String,LinkedHashMap<GisObjectType,Set<FullGisObjectConfiguration>>>();
+		myPalettes = new HashMap<String,LinkedHashMap<GisPolyType,Set<FullGisObjectConfiguration>>>();
 
 
 		int large= (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP,
@@ -290,10 +290,10 @@ public class GisObjectsMenu extends View {
 				currentPalette=firstEntry;
 			for (String paletteName : myMenuItems.keySet()) {
 				List<FullGisObjectConfiguration> myMenuItemsForPalette = myMenuItems.get(paletteName);
-				LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(paletteName);
+				LinkedHashMap<GisPolyType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(paletteName);
 				if (menuGroupsM == null) {
 					Log.d("vortex", "creating new menugroup for palette " + paletteName);
-					menuGroupsM = new LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>>();
+					menuGroupsM = new LinkedHashMap<GisPolyType, Set<FullGisObjectConfiguration>>();
 					myPalettes.put(paletteName, menuGroupsM);
 				}
 				//Sort the menuitems according to geojson type.
@@ -383,9 +383,9 @@ public class GisObjectsMenu extends View {
 		menuButtonArray= new MenuButton[NoOfButtonsPerRow][MAX_ROWS];
         String[] menuHeaderArray = new String[MAX_ROWS];
 		//for (String paletteName:myPalettes.keySet()) {
-		LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(currentPalette);
+		LinkedHashMap<GisPolyType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(currentPalette);
 		Log.d("vortex","palette is "+currentPalette);
-		for (GisObjectType type : menuGroupsM.keySet()) {
+		for (GisPolyType type : menuGroupsM.keySet()) {
 			Set<FullGisObjectConfiguration> itemSet = menuGroupsM.get(type);
 			Iterator<FullGisObjectConfiguration> it = itemSet.iterator();
 
@@ -492,20 +492,20 @@ public class GisObjectsMenu extends View {
 				RectF rect = new RectF(r.left+iconPadding, r.top+iconPadding, r.right-iconPadding, r.bottom-iconPadding);
 
 				if (fop.getIcon()==null) {
-					if (fop.getShape()==PolyType.circle) {
+					if (fop.getShape()== Shape.circle) {
 
 						//draw circle at rect mid.
 						canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2,(fop.getStyle()==Style.FILL? (currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP):myGis.createPaint(fop.getColor(),fop.getStyle())) );
 						//since background is white, add a black edge.
 						//if (fop.getStyle()==Style.FILL)
 						//	canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2, currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP);
-					} else if (fop.getShape()==PolyType.rect){
+					} else if (fop.getShape()== Shape.rect){
 
 						canvas.drawRect(rect, myGis.createPaint(fop.getColor(),fop.getStyle()));
 						//since background is white, add a black edge.
 						if (fop.getStyle()==Style.FILL)
 							canvas.drawRect(rect, currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP);
-					} else if (fop.getShape()==PolyType.triangle) {
+					} else if (fop.getShape()== Shape.triangle) {
 
 						myGis.drawTriangle(canvas, fop.getColor(),fop.getStyle(),
 								r.width()/2-iconPadding*2,(int) (r.left+r.width()/2), (int)(r.top+r.height()/2));

@@ -4,7 +4,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
 import com.teraim.fieldapp.utils.Geomatte;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class GisMultiPointObject extends GisPathObject {
 	}
 	
 	public boolean isLineString() {
-		return poc.getGisPolyType() != GisObjectType.Linestring;
+		return poc.getGisPolyType() != GisPolyType.Linestring;
 	}
 
 	

@@ -14,10 +14,9 @@ import android.widget.TextView;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.Shape;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GIS;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
@@ -39,7 +38,7 @@ public class AddGisFilter extends Block implements GisFilter {
     private final String color;
 	private float radius;
 	private Style fillType;
-	private PolyType polyType;
+	private Shape shape;
 	private boolean hasWidget=true;
     private boolean isActive=true;
 	private GIS myGis;
@@ -64,16 +63,16 @@ public class AddGisFilter extends Block implements GisFilter {
 			else if (fillType.equalsIgnoreCase("FILL_AND_STROKE"))
 				this.fillType = Paint.Style.FILL_AND_STROKE;
 		}
-		this.polyType=PolyType.circle;
+		this.shape = Shape.circle;
 		this.radius=10;
 		if (polyType!=null) {
 			try {
-			this.polyType=PolyType.valueOf(polyType);
+			this.shape = Shape.valueOf(polyType);
 			} catch (IllegalArgumentException e) {
 				if (polyType.toUpperCase().equals("SQUARE")||polyType.toUpperCase().equals("RECT")||polyType.toUpperCase().equals("RECTANGLE"))
-					this.polyType=PolyType.rect;
+					this.shape = Shape.rect;
 				else if (polyType.toUpperCase().equals("TRIANGLE"))
-					this.polyType=PolyType.triangle;
+					this.shape = Shape.triangle;
 				else {
 				o.addRow("");
 				o.addRedText("Unknown polytype: ["+polyType+"]. Will default to circle");
@@ -174,8 +173,8 @@ public class AddGisFilter extends Block implements GisFilter {
 
 
 	@Override
-	public PolyType getShape() {
-		return polyType;
+	public Shape getShape() {
+		return shape;
 	}
 
 

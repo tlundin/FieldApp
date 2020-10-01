@@ -20,19 +20,15 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.teraim.fieldapp.Start;
-import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
-import com.teraim.fieldapp.dynamic.types.Workflow;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.Shape;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisMultiPointObject;
@@ -316,7 +312,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 							if (bag!= null) {
 								Log.d("vortex","found correct bag!");
 								newGisObj = createNewGisObject(gisTypeToCreate,bag);
-								if (gisTypeToCreate.getGisPolyType()==GisObjectType.Point)
+								if (gisTypeToCreate.getGisPolyType()== GisPolyType.Point)
 									myMap.setVisibleCreate(true,newGisObj.getLabel());
 							}
 						}
@@ -725,7 +721,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								float radius = gop.getRadius();
 								String color = gop.getColor();
 								Style style = gop.getStyle();
-								PolyType polyType=gop.getShape();
+								Shape shape =gop.getShape();
 								String statusValue = gop.getStatus();
 								//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
@@ -751,7 +747,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 												radius = filter.getRadius();
 												//color = filter.getColor();
 												style = filter.getStyle();
-												polyType = filter.getShape();
+												shape = filter.getShape();
 											}
 										} else
 											Log.d("vortex","Filter turned off!");
@@ -766,7 +762,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								}
 								if (xy!=null) {
 									//Log.d("vortex","drawing "+gop.getLabel());
-									drawPoint(canvas,bitmap,radius,color,style,polyType,xy,adjustedScale,gop.getFullConfiguration().useIconOnMap());
+									drawPoint(canvas,bitmap,radius,color,style, shape,xy,adjustedScale,gop.getFullConfiguration().useIconOnMap());
 									if (layerO!=null && layerO.showLabels()) {
 										drawGopLabel(canvas,xy,go.getLabel(),LabelOffset,bCursorPaint,txtPaint);
 									}
@@ -989,8 +985,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 
 				@Override
-				public GisObjectType getGisPolyType() {
-					return GisObjectType.Point;
+				public GisPolyType getGisPolyType() {
+					return GisPolyType.Point;
 				}
 
 				@Override
@@ -1004,8 +1000,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 
 				@Override
-				public PolyType getShape() {
-					return PolyType.circle;
+				public Shape getShape() {
+					return Shape.circle;
 				}
 
 				@Override
@@ -1143,7 +1139,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					canvas.drawPath(p, polyPaint);
 				xy = intBuffer.getIntBuf();
 				translateMapToRealCoordinates(gpo.getCoordinates().get(gpo.getCoordinates().size()-1),xy);
-				drawPoint(canvas, null,2, "white", Style.STROKE, PolyType.circle, xy,1,false);
+				drawPoint(canvas, null,2, "white", Style.STROKE, Shape.circle, xy,1,false);
 			} else {
 				if (go instanceof GisPolygonObject) {
 					//check if buffered paths already exists.
@@ -1265,7 +1261,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	}
 
-	private void drawPoint(Canvas canvas, Bitmap bitmap, float radius, String color, Style style, PolyType type, int[] xy, float adjustedScale, boolean useIconOnMap) {
+	private void drawPoint(Canvas canvas, Bitmap bitmap, float radius, String color, Style style, Shape type, int[] xy, float adjustedScale, boolean useIconOnMap) {
 
 		Rect r;
 		//Log.d("bortex","in drawpoint type "+type.name()+" bitmap: "+bitmap);
@@ -1278,17 +1274,17 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			canvas.drawBitmap(bitmap, null, r, null);
 		} //circular?
 
-		else if (type == PolyType.circle) {
+		else if (type == Shape.circle) {
 			//Log.d("bortex","x,y,r"+xy[0]+","+xy[1]+","+radius);
 			canvas.drawCircle(xy[0], xy[1],radius, createPaint(color,style));
 		}
 		//no...square.
-		else if (type == PolyType.rect) {
+		else if (type == Shape.rect) {
 			//Log.d("vortex","rect!");
 			int diam = (int)(radius/2);
 			canvas.drawRect(xy[0]-diam, xy[1]-diam, xy[0]+diam, xy[1]+diam, createPaint(color,style));
 		}
-		else if (type == PolyType.triangle) {
+		else if (type == Shape.triangle) {
 			drawTriangle(canvas,color,style,radius,xy[0], xy[1]);
 		}
 	}

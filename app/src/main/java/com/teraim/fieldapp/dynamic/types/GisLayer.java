@@ -38,16 +38,19 @@ public class GisLayer {
 	private boolean showLabels;
 	private Map<String, Set<GisFilter>> myFilters;
 	private boolean myVisibility;
+	private String geoJsonSource;
 
 
 
 	public GisLayer(String name, String label, boolean isVisible,
-					boolean hasWidget, boolean showLabels) {
+					boolean hasWidget, boolean showLabels, String geoJsonSource) {
 		super();
 		this.name = name;
 		this.label = label;
 		this.hasWidget = hasWidget;
 		this.showLabels=showLabels;
+		this.geoJsonSource = geoJsonSource;
+		myFilters = new HashMap<>();
 		Log.d("zaza","Creating layer "+label+" with showlabels "+showLabels+" showgislayer "+isVisible+" layer id "+name);
 
 		//check if there is a persisted value for the layer visibility
@@ -380,6 +383,13 @@ public class GisLayer {
 			s+=st;
 		}
 		return s;
+	}
+
+	public String getGeoJsonSource() {
+		return geoJsonSource;
+	}
+	public boolean isGeoJson(){
+		return geoJsonSource != null;
 	}
 
 

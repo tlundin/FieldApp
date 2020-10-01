@@ -59,9 +59,8 @@ public class WF_Container extends WF_Thing implements Container {
 			//If the widget is the container, don't draw. The same if the comp is already attached.
 			if (v.equals(me)||(v.getParent()!=null && v.getParent().equals(me))) {
 				Log.d("nils","Parent of this object is me. Skip draw!!!");
-				continue;
-			}
-			me.addView(v);
+			} else
+				me.addView(v);
 
 			d.postDraw();
 			

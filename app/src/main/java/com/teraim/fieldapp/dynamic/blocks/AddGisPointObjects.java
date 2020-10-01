@@ -27,7 +27,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObjectsMenu;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper.DBColumnPicker;
@@ -63,13 +62,13 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 
 	private Bitmap icon=null;
 	private final boolean isVisible;
-	private final GisObjectType myType;
+	private final GisPolyType myType;
 	private boolean loadDone=false;
 	private Set<GisObject> myGisObjects;
 	private float radius;
 	private final String color;
 	private Paint.Style fillType;
-	private PolyType polyType;
+	private Shape shape;
 	private final String onClick;
 	private final String statusVariable;
 	private DB_Context objectKeyHash;
@@ -84,9 +83,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private String creator;
 
 	public AddGisPointObjects(String id, String nName, String label,
-							  String target, String objectContext,String coordType, String locationVars,
-							  String imgSource,boolean use_image_icon_on_map, String refreshRate, String radius, boolean isVisible,
-							  GisObjectType type, String color, String polyType, String fillType,
+							  String target, String objectContext, String coordType, String locationVars,
+							  String imgSource, boolean use_image_icon_on_map, String refreshRate, String radius, boolean isVisible,
+							  GisPolyType type, String color, String shape, String fillType,
 							  String onClick, String statusVariable, boolean isUser, boolean createAllowed, String palette, LoggerI o) {
 		super();
 		this.blockId = id;
@@ -110,7 +109,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		if (coordType==null||coordType=="")
 			this.coordType=GisConstants.SWEREF;
 		else
-			Log.e("vortex","LATLONG!");
+			Log.e("vortex","LATLONG? "+coordType);
 		setRadius(radius);
 
 		this.fillType=Paint.Style.FILL;
@@ -120,19 +119,21 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			else if (fillType.equalsIgnoreCase("FILL_AND_STROKE"))
 				this.fillType = Paint.Style.FILL_AND_STROKE;
 		}
-		this.polyType=PolyType.circle;
+		this.shape = Shape.circle;
 		this.radius=10;
-		if (polyType!=null) {
+		if (shape!=null) {
 			try {
-				this.polyType=PolyType.valueOf(polyType);
+				this.shape = Shape.valueOf(shape);
 			} catch (IllegalArgumentException e) {
-				if (polyType.toUpperCase().equals("SQUARE")||polyType.toUpperCase().equals("RECT")||polyType.toUpperCase().equals("RECTANGLE"))
-					this.polyType=PolyType.rect;
-				else if (polyType.toUpperCase().equals("TRIANGLE"))
-					this.polyType=PolyType.triangle;
+				if (shape.toUpperCase().equals("SQUARE")||shape.toUpperCase().equals("RECT")||shape.toUpperCase().equals("RECTANGLE"))
+					this.shape = Shape.rect;
+				else if (shape.equalsIgnoreCase("triangle"))
+					this.shape = Shape.triangle;
+				else if (shape.equalsIgnoreCase("marker"))
+					this.shape = Shape.marker;
 				else {
 					o.addRow("");
-					o.addRedText("Unknown polytype: ["+polyType+"]. Will default to circle");
+					o.addRedText("Unknown polytype: ["+shape+"]. Will default to circle");
 				}
 			}
 		}
@@ -250,7 +251,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		if (twoVars)
 			locationVar2 = locationVarArray[1].trim();
 		//Log.d("vortex","Twovars is "+twoVars+" gisvars are: "+(twoVars?" ["+locationVarArray[0]+","+locationVarArray[1]:locationVarArray[0])+"]");
-		if(twoVars && myType.equals(GisObjectType.Multipoint)) {
+		if(twoVars && myType.equals(GisPolyType.Multipoint)) {
 			Log.e("vortex","Multivar on multipoint!");
 			o.addRow("");
 			o.addRedText("Multipoint can only have one Location variable with comma separated values, eg. GPSX_1,GPSY_1,...GPSX_n,GPSY_n");
@@ -431,7 +432,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 						} else {
 							String myTypeS = myType.toString();
 							this.creator = storedVar1.creator;
-							if (myTypeS.equalsIgnoreCase(GisObjectType.Point.toString())) {
+							if (myTypeS.equalsIgnoreCase(GisPolyType.Point.toString())) {
 								if (!dynamic) {
 									//Log.d("vortex","adding "+this.getName());
 									myGisObjects.add(new StaticGisPoint(this, map1, new SweLocation(storedVar1.value), statusVarP.first, statusVarP.second));
@@ -440,10 +441,10 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 									myGisObjects.add(new DynamicGisPoint(this,map1,v1,statusVarP.first,statusVarP.second));
 								}
 							}
-							else if (myTypeS.equals(GisObjectType.Multipoint.toString())||myTypeS.equalsIgnoreCase(GisObjectType.Linestring.toString()))
+							else if (myTypeS.equals(GisPolyType.Multipoint.toString())||myTypeS.equalsIgnoreCase(GisPolyType.Linestring.toString()))
 								myGisObjects.add(new GisMultiPointObject(this,map1,GisObject.createListOfLocations(storedVar1.value,coordType),statusVarP.first,statusVarP.second));
 
-							else if (myTypeS.equalsIgnoreCase(GisObjectType.Polygon.toString())) {
+							else if (myTypeS.equalsIgnoreCase(GisPolyType.Polygon.toString())) {
 								//Log.d("vortex","Adding polygon");
 								myGisObjects.add(new GisPolygonObject(this,map1,storedVar1.value,coordType,statusVarP.first,statusVarP.second));
 							}
@@ -484,7 +485,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private void setDefaultBitmaps(WF_Context myContext) {
 		if (icon==null) {
 
-			if (myType == GisObjectType.Polygon) {
+			if (myType == GisPolyType.Polygon) {
 
 				icon = BitmapFactory.decodeResource(myContext.getContext().getResources(), R.drawable.poly);
 
@@ -558,7 +559,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	}
 
 	@Override
-	public GisObjectType getGisPolyType() {
+	public GisPolyType getGisPolyType() {
 		return myType;
 	}
 
@@ -587,8 +588,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	}
 
 	@Override
-	public PolyType getShape() {
-		return polyType;
+	public Shape getShape() {
+		return shape;
 	}
 
 	@Override

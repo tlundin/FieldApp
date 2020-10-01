@@ -15,16 +15,17 @@ public class AddGisLayerBlock extends Block {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -4149408006972701777L;
+	private static final long serialVersionUID = -4149408006972701778L;
 	private final String name;
     private final String label;
     private final String target;
 	private final boolean isVisible;
     private final boolean hasWidget;
     private final boolean showLabels;
+    private final String geoJsonSource;
 	
 	public AddGisLayerBlock(String id, String name, String label,
-			String target, boolean isVisible, boolean hasWidget, boolean showLabels) {
+			String target, boolean isVisible, boolean hasWidget, boolean showLabels, String geoJsonSource) {
 		super();
 		this.blockId = id;
 		this.name = name;
@@ -33,6 +34,7 @@ public class AddGisLayerBlock extends Block {
 		this.isVisible = isVisible;
 		this.hasWidget = hasWidget;
 		this.showLabels = showLabels;
+		this.geoJsonSource = geoJsonSource;
 		
 	}
 	
@@ -43,7 +45,7 @@ public class AddGisLayerBlock extends Block {
 		Log.d("google","In create gislayer");
 		if (gisMap instanceof GIS) {
 			if (!gisMap.isZoomLevel()) {
-				final GisLayer gisLayer = new GisLayer(name,label,isVisible,hasWidget,showLabels);
+				final GisLayer gisLayer = new GisLayer(name,label,isVisible,hasWidget,showLabels,geoJsonSource);
 				gisMap.addLayer(gisLayer);
 			}
 		} else {

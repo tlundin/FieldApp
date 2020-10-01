@@ -4,9 +4,7 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -44,26 +42,20 @@ import android.widget.ToggleButton;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
-import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
-import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.MapGisLayer;
 import com.teraim.fieldapp.dynamic.types.NudgeListener;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
-import com.teraim.fieldapp.dynamic.types.Variable;
-import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
 import com.teraim.fieldapp.gis.GisImageView;
-import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -75,8 +67,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static com.teraim.fieldapp.GlobalState.getInstance;
 
 /**
  *
@@ -600,7 +590,7 @@ public class WF_Gis_Map extends GIS implements Drawable, EventListener, Animatio
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
                     Log.d("bortex", "team is visible! Adding layer for team "+team);
-                    final GisLayer teamLayer = new GisLayer("Team", "Team", true, true, true);
+                    final GisLayer teamLayer = new GisLayer("Team", "Team", true, true, true,null);
                     myLayers.add(teamLayer);
                 } //else {
                 //o = GlobalState.getInstance().getLogger();
@@ -666,11 +656,11 @@ public class WF_Gis_Map extends GIS implements Drawable, EventListener, Animatio
             areaT.setVisibility(View.GONE);
             circumT.setVisibility(View.GONE);
             setSelectedObjectText(touchedGop.getLabel());
-            if (touchedGop.getGisPolyType()!=GisObjectType.Point) {
+            if (touchedGop.getGisPolyType()!= GisPolyType.Point) {
                 circumT.setVisibility(View.VISIBLE);
                 double omkrets = Geomatte.getCircumference(touchedGop.getCoordinates());
                 circumT.setText(new DecimalFormat("##.##").format(omkrets)+"m");
-                if (touchedGop.getGisPolyType()==GisObjectType.Polygon) {
+                if (touchedGop.getGisPolyType()== GisPolyType.Polygon) {
                     areaT.setVisibility(View.VISIBLE);
                     double area = Geomatte.getArea(touchedGop.getCoordinates());
                     areaT.setText(new DecimalFormat("##.##").format(area)+squareM);

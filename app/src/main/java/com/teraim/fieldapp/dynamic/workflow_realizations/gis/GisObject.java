@@ -6,8 +6,8 @@ import com.teraim.fieldapp.dynamic.types.LatLong;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.Shape;
 import com.teraim.fieldapp.utils.Expressor;
 
 import java.util.ArrayList;
@@ -112,11 +112,11 @@ public class GisObject {
 		return foc.getName();
 	}
 	
-	public  GisObjectType getGisPolyType() {
+	public GisPolyType getGisPolyType() {
 		return foc.getGisPolyType();
 	}
 	
-	public PolyType getShape() {
+	public Shape getShape() {
 		return foc.getShape();
 	}
 	

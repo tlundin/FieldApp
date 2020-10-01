@@ -1,0 +1,5754 @@
+{
+  "name": "Trakter_TrakterPY",
+  "type": "FeatureCollection",
+  "crs": {
+    "type": "Name",
+    "properties": {
+      "name": "EPSG:3006"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          633958.17329999991,
+          6521854.6316
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 1,
+        "TRAKT": 990401,
+        "FIXEDGID": "{5B175A16-EFE7-4536-A330-79FC3EE9EFEF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          608786.6316,
+          6536547.9597
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 2,
+        "TRAKT": 990402,
+        "FIXEDGID": "{75F9DD9C-E179-4930-8FA3-AACCD53E90CA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          623781.0429999996,
+          6536728.7883
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 3,
+        "TRAKT": 990403,
+        "FIXEDGID": "{A2200474-F592-4EEC-A2E2-CA1CC189856D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          633777.45909999963,
+          6536849.3469999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 4,
+        "TRAKT": 990404,
+        "FIXEDGID": "{C04B0822-2A6D-42B2-9D4C-7DD73123E691}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          648772.29640000034,
+          6537030.1953
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 5,
+        "TRAKT": 990405,
+        "FIXEDGID": "{6895A894-F3D4-4945-8FC9-9B49C82C5866}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          517969.7472000001,
+          6564942.8892
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 6,
+        "TRAKT": 991801,
+        "FIXEDGID": "{800469B9-A447-44CF-B5E1-E326FCC84601}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          647621.80090000015,
+          6631998.0432999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 7,
+        "TRAKT": 990301,
+        "FIXEDGID": "{F2C72B81-90C2-4D66-9F84-3355B801A818}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          587067.32940000016,
+          6261357.7173
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 12,
+        "TRAKT": 763,
+        "FIXEDGID": "{3DB3F8EF-D6E1-461B-A22C-E580E1B71D43}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          333330.32909999968,
+          6583198.9483
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 14,
+        "TRAKT": 5120,
+        "FIXEDGID": "{0ED87D9A-A490-4592-B6DD-FD3A191507F3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          358313.3797000004,
+          6583501.6853
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 15,
+        "TRAKT": 5125,
+        "FIXEDGID": "{5A633AD1-2F05-4E40-AFED-792A3FA07D7C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          408281.5872,
+          6584107.1105
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 16,
+        "TRAKT": 5135,
+        "FIXEDGID": "{2AAFF123-95D1-46A3-85B7-B1253A6592AD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          511807.06180000032,
+          6285465.7930999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 17,
+        "TRAKT": 990,
+        "FIXEDGID": "{AD3635A4-E90F-456B-AC55-37A47810D6C1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          720963.2714999998,
+          6352920.3793
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 19,
+        "TRAKT": 1783,
+        "FIXEDGID": "{35ED34CF-4E06-44B4-8CC8-0929CE756136}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          460947.87249999959,
+          6359836.5722
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 20,
+        "TRAKT": 1884,
+        "FIXEDGID": "{85B3C140-8D72-4182-8F86-DB1F11AD2037}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          510625.22620000038,
+          6385416.6715999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 22,
+        "TRAKT": 2247,
+        "FIXEDGID": "{D486A3AF-5B32-4E4F-B1C1-DB538EFC13C9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          585591.63829999976,
+          6386307.5847
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 24,
+        "TRAKT": 2262,
+        "FIXEDGID": "{416C1262-EE9B-4B9C-B571-65EED753F3A2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          710550.41270000022,
+          6387793.0013
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 25,
+        "TRAKT": 2272,
+        "FIXEDGID": "{8C44CD66-66EF-42A1-B990-16D593A9A919}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          460354.00619999971,
+          6409809.0128000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 26,
+        "TRAKT": 2597,
+        "FIXEDGID": "{EB460B10-5D7F-4C8D-9DCD-D3CFEFAB25B7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          432963.69859999983,
+          6609395.317
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 45,
+        "TRAKT": 5581,
+        "FIXEDGID": "{24B643B2-71B9-4ACF-9BEF-1F83AAB3D398}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          381468.39510000031,
+          6733709.2686
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 63,
+        "TRAKT": 7417,
+        "FIXEDGID": "{2D7C474B-8D1A-42A0-98D5-0F08C7570075}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          605429.62409999967,
+          6811441.4184999987
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 69,
+        "TRAKT": 8252,
+        "FIXEDGID": "{EA58E424-759D-4AD7-906F-0F1817FDE260}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          398157.4452,
+          6174182.9681
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 100,
+        "TRAKT": 142,
+        "FIXEDGID": "{7DC77F21-8546-4D91-B47A-4B9139830080}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          477411.33619999979,
+          6235080.8823000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 112,
+        "TRAKT": 503,
+        "FIXEDGID": "{2FAB4CE2-B5DE-44C6-B373-95FB8010ECB7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          361008.92690000031,
+          6358651.7685
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 118,
+        "TRAKT": 1864,
+        "FIXEDGID": "{023E8CDD-A0EE-4E0B-8AD3-B400E44AFDEC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          335134.00499999989,
+          6433303.1493
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 121,
+        "TRAKT": 2929,
+        "FIXEDGID": "{897A0B4A-1568-4231-9D58-0FA4F8D2F8E7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          592358.23199999984,
+          6236426.1669
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 125,
+        "TRAKT": 523,
+        "FIXEDGID": "{E4CF1669-46A4-427F-BA16-67F733BB2C6B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          587243.1458,
+          6246363.6907
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 126,
+        "TRAKT": 617,
+        "FIXEDGID": "{FB256889-68EC-4A9A-BD80-5D6089AF7FCE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          587125.96530000027,
+          6256359.7094
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 127,
+        "TRAKT": 713,
+        "FIXEDGID": "{5BA259F7-6EC4-4B18-AE3A-E745DB8C3C41}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          591947.9868999999,
+          6271412.4423999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 129,
+        "TRAKT": 857,
+        "FIXEDGID": "{2BBCCC24-8631-4B80-835D-86B74A7CB4A8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          601709.01609999966,
+          6291522.2469
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 132,
+        "TRAKT": 1059,
+        "FIXEDGID": "{8A5D35FF-3682-4607-AAB1-AF7E67B75A44}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          601532.37160000019,
+          6306516.5175
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 133,
+        "TRAKT": 1217,
+        "FIXEDGID": "{F9179C53-519E-4BFA-8CC8-AC3D9BEC56CD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          611410.69070000015,
+          6316630.6681999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 134,
+        "TRAKT": 1332,
+        "FIXEDGID": "{35835791-F3F3-491B-A051-FCA145BE09D9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          616349.84680000041,
+          6321687.8336
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 135,
+        "TRAKT": 1391,
+        "FIXEDGID": "{6B270F96-C5A9-4A7F-B1BE-C16861C4BEC4}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          616172.65099999961,
+          6336682.3533
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 136,
+        "TRAKT": 1572,
+        "FIXEDGID": "{5B2DE0DD-BA00-4D61-9884-ED44786DB7E7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          616113.52599999961,
+          6341680.524
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 137,
+        "TRAKT": 1636,
+        "FIXEDGID": "{D708B7AC-4605-4576-966F-A01956BF88B9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          620934.1535,
+          6356734.259
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 138,
+        "TRAKT": 1843,
+        "FIXEDGID": "{FEEF1585-028F-4A00-AE67-E489CA2A0A0B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          625932.3646,
+          6356793.4901
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 139,
+        "TRAKT": 1844,
+        "FIXEDGID": "{0F9294D4-F48B-458D-ACB9-928BA1725257}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          691443.8722000001,
+          6312576.0441999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 141,
+        "TRAKT": 1275,
+        "FIXEDGID": "{7BEA1B00-E2EE-46DC-B440-5BA09313018C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          701323.15600000042,
+          6322691.3864999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 142,
+        "TRAKT": 1395,
+        "FIXEDGID": "{BA99967C-294F-497C-8228-24C5939F6297}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          701086.73060000036,
+          6342686.1106
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 143,
+        "TRAKT": 1641,
+        "FIXEDGID": "{9EDEF884-9D15-45FA-915C-0594820B171C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          711084.14499999955,
+          6342804.4465
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 144,
+        "TRAKT": 1643,
+        "FIXEDGID": "{D121AD93-5AC1-4A83-8B7B-4BCE69D527BC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          735127.53139999975,
+          6423082.2287000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 145,
+        "TRAKT": 2776,
+        "FIXEDGID": "{6A1C1ECA-F5A5-4864-AC96-0EBF03C2E1E1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          720904.0231999997,
+          6357919.171
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 146,
+        "TRAKT": 1853,
+        "FIXEDGID": "{C215D1CC-1FBE-463B-AB77-13DF4C23ED4F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          705789.21100000013,
+          6367738.7897
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 147,
+        "TRAKT": 1987,
+        "FIXEDGID": "{578E6C7F-062A-4D8F-A9DA-E3CA46662CBE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          715786.66579999961,
+          6367857.4267
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 148,
+        "TRAKT": 1989,
+        "FIXEDGID": "{DDA700C9-8FA4-4E44-BECC-2336E841E0B0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          720785.43769999966,
+          6367916.7481999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 149,
+        "TRAKT": 1990,
+        "FIXEDGID": "{1048DFC7-B41C-4DE2-8E09-BC4DC43009DD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          725784.23919999972,
+          6367976.0715999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 150,
+        "TRAKT": 1991,
+        "FIXEDGID": "{A82EB789-1FAD-4ED8-B61F-0CA87F0853F6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          685675.97910000011,
+          6377498.6926000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 151,
+        "TRAKT": 2126,
+        "FIXEDGID": "{B0F326D1-61DB-490B-95B8-117A678BD3DE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          720547.91110000014,
+          6387911.8787999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 152,
+        "TRAKT": 2274,
+        "FIXEDGID": "{998E570F-7630-49F5-A14C-2CC3A8E9C3C6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          725546.70459999982,
+          6387971.3205999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 153,
+        "TRAKT": 2275,
+        "FIXEDGID": "{86D31A3A-F81B-4E6E-99D5-7BA02355A54B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          705313.7324000001,
+          6407728.3111000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 154,
+        "TRAKT": 2555,
+        "FIXEDGID": "{618B16E6-13D4-4F15-88FE-6F6CF9C4B6CF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          710312.4298,
+          6407787.8646000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 155,
+        "TRAKT": 2556,
+        "FIXEDGID": "{6E706AA8-9B33-4F84-8B42-CC5320438D2F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          725308.69799999986,
+          6407966.5370000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 156,
+        "TRAKT": 2559,
+        "FIXEDGID": "{CEB78003-8897-4DC8-A69D-54B29E357D23}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          725189.51850000024,
+          6417964.1329999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 157,
+        "TRAKT": 2704,
+        "FIXEDGID": "{61FD0F8D-628F-4FB4-A8DB-654EF501CBD8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          745184.93690000009,
+          6418202.6259
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 158,
+        "TRAKT": 2708,
+        "FIXEDGID": "{692A9AF8-100F-43A2-BA44-30EC9F501358}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          705492.25800000038,
+          6392732.2546999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 159,
+        "TRAKT": 2341,
+        "FIXEDGID": "{1CFB8A5A-A96C-456D-A6A6-D763F8A73963}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          715489.69359999988,
+          6392851.1873
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 160,
+        "TRAKT": 2343,
+        "FIXEDGID": "{7E62AF0F-6F54-4B95-855F-C13F5179FFD9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          711143.2999,
+          6337805.7086
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 161,
+        "TRAKT": 1579,
+        "FIXEDGID": "{90A3549F-E812-4B3A-8853-2770436F826D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          398447.63350000052,
+          6149198.7485000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 162,
+        "TRAKT": 50,
+        "FIXEDGID": "{90DE6C7B-6A4C-4CDF-934F-2163A8C15E7E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          388047.52309999987,
+          6184060.3025
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 163,
+        "TRAKT": 175,
+        "FIXEDGID": "{BD18D46F-187B-43C4-A772-A31C0E707BAC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          413031.82799999969,
+          6184351.1897
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 164,
+        "TRAKT": 180,
+        "FIXEDGID": "{6AB82ABA-3EBA-4077-85E2-74E29252CB30}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          418028.78199999972,
+          6184409.3663
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 165,
+        "TRAKT": 181,
+        "FIXEDGID": "{B6F43099-005B-4720-BC45-92AE27EEBD97}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          407743.6333999997,
+          6209277.5533000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 166,
+        "TRAKT": 290,
+        "FIXEDGID": "{151BB4BD-F4E3-43D5-8EA0-278FB58C3383}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          412740.55759999988,
+          6209335.8847
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 167,
+        "TRAKT": 291,
+        "FIXEDGID": "{7D409683-9383-4F3C-B3C3-52CF875EB02A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          522563.95480000041,
+          6220614.4132
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 168,
+        "TRAKT": 378,
+        "FIXEDGID": "{1D7931FC-3486-4AD4-A385-333869470117}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          517507.94269999949,
+          6225553.6023999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 169,
+        "TRAKT": 420,
+        "FIXEDGID": "{E2B1AB1A-31E7-4044-91D7-5F5A7E2A912B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          522505.54310000042,
+          6225612.0291000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 170,
+        "TRAKT": 421,
+        "FIXEDGID": "{9CC28F70-426B-4133-A340-498D34554BE0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          387464.19560000021,
+          6234028.1572999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 171,
+        "TRAKT": 485,
+        "FIXEDGID": "{7513FD6E-7595-4E47-B79C-8103DB96ACE7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          392460.99849999981,
+          6234086.6436
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 172,
+        "TRAKT": 486,
+        "FIXEDGID": "{C6DDC2A5-E27F-4D4F-A629-D86D644C5A4D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          437433.60390000051,
+          6234613.0079
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 173,
+        "TRAKT": 495,
+        "FIXEDGID": "{19C30854-DE2C-4350-8179-D2288A5D3E1F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          387230.00449999981,
+          6254015.3109000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 174,
+        "TRAKT": 674,
+        "FIXEDGID": "{31DAC3BD-859E-4125-9D84-8A9EEFFF14C2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          357191.19020000013,
+          6258660.2552000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 175,
+        "TRAKT": 718,
+        "FIXEDGID": "{AA37E326-AFAF-45A1-A053-EEC8AB0466FC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          362187.81240000023,
+          6258718.8973999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 176,
+        "TRAKT": 719,
+        "FIXEDGID": "{6E98014B-6B94-4BB4-97C6-1D6DC74582F1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          387171.38030000031,
+          6259012.1002999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 177,
+        "TRAKT": 724,
+        "FIXEDGID": "{18BFCE07-C76B-4818-B9C5-FE8383D832B0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          437140.80090000009,
+          6259598.4784999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 178,
+        "TRAKT": 734,
+        "FIXEDGID": "{93302754-96A9-4609-B980-AD48982D0846}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          384502.31510000018,
+          6483868.0934999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 179,
+        "TRAKT": 3615,
+        "FIXEDGID": "{97B32225-4F44-4287-AFAE-4D0FDEF398CF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          383297.1325000003,
+          6583804.4044
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 180,
+        "TRAKT": 5130,
+        "FIXEDGID": "{4BE410F0-A5B4-41C9-8315-181C9E567278}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          486819.69689999992,
+          6285171.8399
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 181,
+        "TRAKT": 985,
+        "FIXEDGID": "{7A26005C-805C-49B5-99C3-D5509F2079F3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          436611.84009999968,
+          6304572.3299
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 182,
+        "TRAKT": 1185,
+        "FIXEDGID": "{1A5CC512-92B6-40CF-9925-3D15107ED390}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          436552.91550000012,
+          6309569.4249000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 183,
+        "TRAKT": 1240,
+        "FIXEDGID": "{626AEF8B-663A-414D-8F5C-9F7159EA5308}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          561489.69230000023,
+          6311042.9842000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 184,
+        "TRAKT": 1265,
+        "FIXEDGID": "{268C87C6-489D-4554-9F1B-D27B9354891A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          586479.30279999971,
+          6311337.74
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 185,
+        "TRAKT": 1270,
+        "FIXEDGID": "{28D33EFD-927E-4A41-9D9F-984D68B20EF5}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          381291.6014,
+          6333904.9024
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 186,
+        "TRAKT": 1528,
+        "FIXEDGID": "{0E4BA378-ED0E-411A-880D-86EAFB540FBB}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          386288.38279999979,
+          6333963.9948999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 187,
+        "TRAKT": 1529,
+        "FIXEDGID": "{3E2F0DA0-C607-43AE-BBD2-FBC799E5FB1C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          506220.10950000031,
+          6335382.1632
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 188,
+        "TRAKT": 1553,
+        "FIXEDGID": "{BAD34F64-33B6-461D-BCEF-679F2FEEC9D1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          511217.63850000041,
+          6335441.2554
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 189,
+        "TRAKT": 1554,
+        "FIXEDGID": "{62F2B64E-D6DA-4B8C-955E-9E903D2CEF51}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          695969.6799999997,
+          6352624.2367
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 190,
+        "TRAKT": 1778,
+        "FIXEDGID": "{C3181ABE-CC26-44B6-90D7-AE9C4B1380B5}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          385398.65330000041,
+          6408915.991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 191,
+        "TRAKT": 2582,
+        "FIXEDGID": "{85C7B367-99B7-4572-BF21-1794DB7C82D6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          390395.47130000032,
+          6408975.5276999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 192,
+        "TRAKT": 2583,
+        "FIXEDGID": "{FDB389FA-5C04-4C5A-9B1C-1C2DD037B6D6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          385992.54829999991,
+          6358947.9820000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 193,
+        "TRAKT": 1869,
+        "FIXEDGID": "{40AECC0E-12AC-4BBB-A766-C9F455349BA0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          510921.8037,
+          6360428.9692
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 194,
+        "TRAKT": 1894,
+        "FIXEDGID": "{66DAE8F6-963C-4AB2-80BD-265DA92E17B1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          435665.45720000012,
+          6384525.8599
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 195,
+        "TRAKT": 2232,
+        "FIXEDGID": "{1FE78407-AC31-4A4F-A8C8-76841F298DE6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          515325.46250000037,
+          6410463.8995999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 196,
+        "TRAKT": 2608,
+        "FIXEDGID": "{43986E50-BF1F-4B4A-AA10-67BF57174406}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          710252.86060000025,
+          6412786.5757
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 197,
+        "TRAKT": 2629,
+        "FIXEDGID": "{F54B9135-03B0-4263-A656-4DB4A331AC66}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          710193.26209999993,
+          6417785.2848000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 198,
+        "TRAKT": 2701,
+        "FIXEDGID": "{086E8F19-EEE0-460C-9626-880E261172AE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          310151.80150000012,
+          6433004.6879999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 199,
+        "TRAKT": 2924,
+        "FIXEDGID": "{CB97B59F-217F-4EA1-AB25-B9A036A7A335}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          460055.96999999968,
+          6434795.2301
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 200,
+        "TRAKT": 2954,
+        "FIXEDGID": "{2A861753-E961-4F50-813A-430A80CF64B8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          584996.16550000012,
+          6436287.3559000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 201,
+        "TRAKT": 2979,
+        "FIXEDGID": "{BE944AD2-D53B-464C-9621-AB41CB233EE7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          344947.89439999958,
+          6448412.2474000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 202,
+        "TRAKT": 3131,
+        "FIXEDGID": "{8E775EF6-E4ED-4626-B34C-2201F26CA50A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          309852.96360000042,
+          6457986.5390000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 203,
+        "TRAKT": 3255,
+        "FIXEDGID": "{4DD14051-C937-41DF-946E-43F3C2FAD546}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          434771.352,
+          6459482.3172999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 204,
+        "TRAKT": 3280,
+        "FIXEDGID": "{FA803CBB-40B8-4059-B20A-358561769CE1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          439768.4645999996,
+          6459542.1431000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 205,
+        "TRAKT": 3281,
+        "FIXEDGID": "{17952DF6-D4F7-4E91-8676-3D9459799028}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          501154.5708999997,
+          6755171.9502000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 206,
+        "TRAKT": 7663,
+        "FIXEDGID": "{CD84ED46-F1AE-4EEC-9E61-D40124142D04}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          519606.49089999963,
+          6470494.5494
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 207,
+        "TRAKT": 3430,
+        "FIXEDGID": "{F66A5161-239E-4B27-B926-18F455AF80BE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          519546.58949999983,
+          6475492.1388000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 208,
+        "TRAKT": 3500,
+        "FIXEDGID": "{F964A47C-548D-4819-A470-05FF8C0DE922}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          559408.32660000026,
+          6485967.1234000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 209,
+        "TRAKT": 3648,
+        "FIXEDGID": "{88F2F0A1-465E-428D-9114-E60269458F9F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          386158.07330000028,
+          6758754.9631999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 210,
+        "TRAKT": 7695,
+        "FIXEDGID": "{131C6412-FE7A-4BBB-9A24-17DB09311C93}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          344348.68780000042,
+          6498378.0306
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 211,
+        "TRAKT": 3816,
+        "FIXEDGID": "{82C6D051-4FB7-4E71-8AF0-4474458538E4}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          534119.35919999983,
+          6510655.6038000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 212,
+        "TRAKT": 3988,
+        "FIXEDGID": "{867BA2E4-ADE2-4709-A350-7AC352CD688C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          609087.648,
+          6511557.4728
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 213,
+        "TRAKT": 4003,
+        "FIXEDGID": "{4ABDAA8C-0AC3-4416-8923-4D0208FE3FB7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          608726.34300000034,
+          6541546.0535
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 214,
+        "TRAKT": 4452,
+        "FIXEDGID": "{C799039E-B475-418F-9C77-57F66F51C41B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          358676.14570000023,
+          6553521.6163
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 215,
+        "TRAKT": 4649,
+        "FIXEDGID": "{AB6E5DEA-054D-4279-A0F1-F7F69004BF6B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          358615.75530000031,
+          6558518.2927
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 216,
+        "TRAKT": 4727,
+        "FIXEDGID": "{3D26E949-E6F1-439E-B39F-99D0F9D6F05C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          363612.44620000012,
+          6558578.6969000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 217,
+        "TRAKT": 4728,
+        "FIXEDGID": "{BACBBC8B-1FA8-4923-8FEB-0F0996AD7F00}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          508528.77479999978,
+          6560330.2807
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 218,
+        "TRAKT": 4749,
+        "FIXEDGID": "{A4A1FAA6-9803-4B53-8DAA-D57A51C84409}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          513526.31319999968,
+          6560390.6811999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 219,
+        "TRAKT": 4750,
+        "FIXEDGID": "{5C656771-CC52-40AA-A06E-6260FEAC53DF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          658467.20289999992,
+          6562142.6409000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 220,
+        "TRAKT": 4779,
+        "FIXEDGID": "{2E9C0A64-19B1-417D-AFE0-96379C6DF927}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          553205.25739999954,
+          6585862.786
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 221,
+        "TRAKT": 5164,
+        "FIXEDGID": "{83B32C2D-EB9F-4A07-AC0A-68B5B42A40CC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          558203.04600000009,
+          6585923.3324
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 222,
+        "TRAKT": 5165,
+        "FIXEDGID": "{C29A4B34-1C58-4DDD-B35B-3D4D62DD2ECB}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          683156.8701,
+          6587437.3452
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 223,
+        "TRAKT": 5190,
+        "FIXEDGID": "{42D2A386-AA3E-4BD0-89C9-C15E8A5FF225}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          683096.27799999993,
+          6592435.8475
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 224,
+        "TRAKT": 5275,
+        "FIXEDGID": "{AC44AA50-32A5-4012-95D6-6A480AC712BA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          527913.67090000026,
+          6610548.2289
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 225,
+        "TRAKT": 5600,
+        "FIXEDGID": "{7C7176B3-C67B-43B2-9035-C9F5214AB673}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          532911.31649999972,
+          6610608.9116999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 226,
+        "TRAKT": 5601,
+        "FIXEDGID": "{E116B5DB-C3EB-4084-AEF4-E7795891AC65}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          657861.5049,
+          6612126.2719
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 227,
+        "TRAKT": 5626,
+        "FIXEDGID": "{56939A2C-729C-4C69-9C68-68CEE4699ED1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          457645.818,
+          6634684.9173000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 228,
+        "TRAKT": 6022,
+        "FIXEDGID": "{AF9DC5A6-63A1-407C-B3B8-D4C47337997A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          657557.60989999957,
+          6637118.0302000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 229,
+        "TRAKT": 6062,
+        "FIXEDGID": "{62C63FEE-E1C9-4E1B-885B-87913F806737}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          662555.97169999965,
+          6637178.8792
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 230,
+        "TRAKT": 6063,
+        "FIXEDGID": "{94EF813A-8A0D-4779-BDFA-6B39AE22985B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          682245.0685,
+          6662414.7000999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 231,
+        "TRAKT": 6462,
+        "FIXEDGID": "{FC53125A-F596-427D-B3AF-CAD2DF26D959}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          656641.79719999991,
+          6712093.0768
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 232,
+        "TRAKT": 7164,
+        "FIXEDGID": "{B184BF75-1910-4579-B010-856A0E5EE808}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          461666.47690000013,
+          6714702.0333999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 233,
+        "TRAKT": 7191,
+        "FIXEDGID": "{32DEFF17-972B-4CDF-91B5-D2B2267FCDE2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          608875.02259999979,
+          6936454.2910000011
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 234,
+        "TRAKT": 9656,
+        "FIXEDGID": "{02C797B5-981B-4F31-8BB8-7989716F4EB0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          550514.62409999967,
+          6805764.1596999988
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 235,
+        "TRAKT": 8192,
+        "FIXEDGID": "{CF7F004D-3995-4A2E-81EE-3EC06B244053}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          484865.49760000041,
+          6859932.9281000011
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 236,
+        "TRAKT": 8776,
+        "FIXEDGID": "{636CCF75-DEF0-489D-B3C2-7946FF57070E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          624554.41810000036,
+          6881662.3407000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 237,
+        "TRAKT": 9030,
+        "FIXEDGID": "{1055B72C-1923-4AB6-9D53-E4A4B0C882F0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          473625.10940000042,
+          6959755.7690000013
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 238,
+        "TRAKT": 9943,
+        "FIXEDGID": "{5B1D426D-D57B-4C6B-8464-03444379C2ED}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          557264.67430000007,
+          7065771.9886000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 239,
+        "TRAKT": 11459,
+        "FIXEDGID": "{75F6890D-CB29-4202-B487-343A6C536100}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          558019.6810999997,
+          7005798.8579000011
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 240,
+        "TRAKT": 10556,
+        "FIXEDGID": "{B6355CF5-A8E6-45F8-A0A6-C0509602C80B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          403038.12090000039,
+          7008850.1719999984
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 241,
+        "TRAKT": 10595,
+        "FIXEDGID": "{2A7063A7-A500-4A16-8D5E-A1B1AB04ED39}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          402975.31879999948,
+          7013847.1673000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 242,
+        "TRAKT": 10667,
+        "FIXEDGID": "{37495246-B1E0-436F-91A9-66CF7411CD03}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          702839.65380000044,
+          7017616.5953
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 243,
+        "TRAKT": 10727,
+        "FIXEDGID": "{31112A95-248E-43B5-A563-A619454ED574}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          702588.03139999975,
+          7037610.5068
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 244,
+        "TRAKT": 11020,
+        "FIXEDGID": "{FFDC47A7-13D8-4048-B8F5-0FA516C9257B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          382673.14190000022,
+          7038580.3944000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 245,
+        "TRAKT": 11030,
+        "FIXEDGID": "{A01B981F-B9AB-4B45-9FAC-E7475EDB0750}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          427394.29270000011,
+          7059135.3222
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 246,
+        "TRAKT": 11352,
+        "FIXEDGID": "{A2032A3F-C6C2-45CC-99A7-322CED5CF061}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          727013.03699999955,
+          7082912.5958999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 247,
+        "TRAKT": 11743,
+        "FIXEDGID": "{556CFF93-5EEC-484D-9F9D-5F4662229740}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          396843.68400000042,
+          7103729.9090000018
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 248,
+        "TRAKT": 12088,
+        "FIXEDGID": "{2C6AF9BB-E85C-4E14-8F2B-BAFF93B3F286}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          401840.67619999958,
+          7103793.1640000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 249,
+        "TRAKT": 12089,
+        "FIXEDGID": "{15817402-FB83-4893-9330-564CCD0FCBB2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          721698.25700000022,
+          7107842.1598000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 250,
+        "TRAKT": 12152,
+        "FIXEDGID": "{1D3C1E56-65D2-4F8C-8BEA-114C935A8A4E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          576053.25590000022,
+          7160983.3216999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 251,
+        "TRAKT": 12904,
+        "FIXEDGID": "{41DEC2FC-9FCA-4893-BA04-0DCEABE53781}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          706005.01769999973,
+          7162635.3416999988
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 252,
+        "TRAKT": 12930,
+        "FIXEDGID": "{6E9ECFCE-F7C0-4977-8DAC-E6413B4FFE05}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          711003.48120000027,
+          7162698.9017999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 253,
+        "TRAKT": 12931,
+        "FIXEDGID": "{47E0107D-4FA9-44B7-AC1F-84B18180BA94}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          496027.35369999992,
+          7164964.4853000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 254,
+        "TRAKT": 12965,
+        "FIXEDGID": "{535D1FA8-FA72-4300-8B59-1295B2E5CA2C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          675441.84300000034,
+          7207238.7425
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 255,
+        "TRAKT": 13583,
+        "FIXEDGID": "{0500D881-AFAC-47E9-95B7-3E5DD0F71375}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          545430.28809999954,
+          7210579.120000001
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 256,
+        "TRAKT": 13626,
+        "FIXEDGID": "{498B416F-9205-47CE-8D31-1429E89C2D58}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          780027.94020000007,
+          7238570.7716999985
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 257,
+        "TRAKT": 14016,
+        "FIXEDGID": "{95FA4481-4631-49AA-9F4D-B2DBC47D72A0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          499877.3387000002,
+          7254982.6691999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 258,
+        "TRAKT": 14244,
+        "FIXEDGID": "{E5BC4704-841D-442A-96B4-DDF333A4E2A3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          774645.13680000044,
+          7268499.2634
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 259,
+        "TRAKT": 14444,
+        "FIXEDGID": "{7EBFFA56-E7AF-42DF-8117-E0C935E78C90}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          774581.04910000041,
+          7273497.9936
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 260,
+        "TRAKT": 14520,
+        "FIXEDGID": "{D77A23E3-F031-4A87-AA13-17F8441896E6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          799446.70990000013,
+          7283816.1996
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 261,
+        "TRAKT": 14676,
+        "FIXEDGID": "{839B439D-8DA6-4311-A584-7F0498B5EA53}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          504426.56500000041,
+          7290029.1261
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 262,
+        "TRAKT": 14771,
+        "FIXEDGID": "{70DBDA3B-B5A2-4FE8-9E9E-3960851781FB}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          603545.4748999998,
+          7356284.853
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 263,
+        "TRAKT": 15889,
+        "FIXEDGID": "{2785DA4A-C245-4C2C-9874-40291A24D788}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          893333.83949999977,
+          7370022.7645
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 264,
+        "TRAKT": 16103,
+        "FIXEDGID": "{F8737C56-F706-4EC7-860D-FB54E0F7138D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          777840.89360000007,
+          7408527.4992000014
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 265,
+        "TRAKT": 16668,
+        "FIXEDGID": "{FA5537C3-3BA0-4010-8C02-4EDE7E8781BD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          862043.159,
+          7469616.2228999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 266,
+        "TRAKT": 17505,
+        "FIXEDGID": "{18B692E3-1EC0-46DE-9E21-DD8FB1236F76}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          867042.18630000018,
+          7469681.2294999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 267,
+        "TRAKT": 17506,
+        "FIXEDGID": "{AA515B11-5630-43AD-A984-71665C9F27C2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          775759.59030000027,
+          7568484.2023000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 268,
+        "TRAKT": 18679,
+        "FIXEDGID": "{4E6F108E-A899-48B7-A116-24E862419A10}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          795164.9123,
+          7613733.8211999983
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 269,
+        "TRAKT": 19044,
+        "FIXEDGID": "{CF9053FF-FF43-4027-9F63-C1AEDEEBD69F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          387347.1612,
+          6244021.7332000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 270,
+        "TRAKT": 580,
+        "FIXEDGID": "{A8AC940E-3BDB-413F-94CD-A9B871C75962}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          345544.19199999981,
+          6398446.5421999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 271,
+        "TRAKT": 2428,
+        "FIXEDGID": "{23FD7CA2-BF68-41C3-879C-DAC413B2E883}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          569823.17669999972,
+          6451101.9296
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 272,
+        "TRAKT": 3173,
+        "FIXEDGID": "{00E1E3F7-C99F-454F-8784-A59EF493AFBA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          323337.3054,
+          6583077.8475
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 273,
+        "TRAKT": 5118,
+        "FIXEDGID": "{4AC5B951-C51C-4250-8EB9-A5991EF63282}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          373303.54710000008,
+          6583683.3186000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 274,
+        "TRAKT": 5128,
+        "FIXEDGID": "{468D7780-4066-45F6-8B39-30B4D8F8112C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          386877.80339999963,
+          6283996.0541999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 275,
+        "TRAKT": 965,
+        "FIXEDGID": "{170C0EC6-2F5F-4B74-9C7D-A442A3CA8AF6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          551198.94660000037,
+          6335914.0123
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 276,
+        "TRAKT": 1562,
+        "FIXEDGID": "{26632F2D-D798-4F8D-A364-C2BA79B6B025}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          561076.31510000024,
+          6346027.8921000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 277,
+        "TRAKT": 1692,
+        "FIXEDGID": "{6FDFEED1-DACE-4DAA-BC65-687054BC8883}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          585888.2703999998,
+          6361317.6615999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 278,
+        "TRAKT": 1909,
+        "FIXEDGID": "{F64F9EB4-3469-4800-94C1-F70C84BFBFB4}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          575000.27940000035,
+          6436167.9706
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 279,
+        "TRAKT": 2977,
+        "FIXEDGID": "{B6BA220A-CE79-4491-A085-14B325DC45B9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          468971.57670000009,
+          6524865.9976
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 280,
+        "TRAKT": 4193,
+        "FIXEDGID": "{4CAADA4C-49FD-4EEB-96AA-B936DA0C6DDB}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          483843.1456000004,
+          6535041.3658000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 281,
+        "TRAKT": 4350,
+        "FIXEDGID": "{B95B8352-2154-4981-9238-D2FC7C9BA981}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          498533.78259999963,
+          6560209.4811
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 282,
+        "TRAKT": 4747,
+        "FIXEDGID": "{364CD95B-B277-497E-ADC1-1A01DDB772A8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          658164.70409999974,
+          6587134.4755000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 283,
+        "TRAKT": 5185,
+        "FIXEDGID": "{8971C00E-393F-4E27-A891-26AEDFD7294A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          503296.62000000011,
+          6985118.4633000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 284,
+        "TRAKT": 10275,
+        "FIXEDGID": "{BE3C2EB5-D32C-4200-AB18-852A99DCF45A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          647256.3981999997,
+          6661987.7813000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 285,
+        "TRAKT": 6455,
+        "FIXEDGID": "{EEDB2CD1-4A59-408F-BBDA-C71263AE3CF2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          493614.68549999967,
+          6960005.9177
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 286,
+        "TRAKT": 9947,
+        "FIXEDGID": "{7EF61C18-3D37-4F9A-9A76-9B55EF338D28}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          517975.57670000009,
+          7010294.2916
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 287,
+        "TRAKT": 10617,
+        "FIXEDGID": "{58634C8F-0B44-4739-AC48-3A9F521206E3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          562451.52859999985,
+          7050841.7071999982
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 288,
+        "TRAKT": 11221,
+        "FIXEDGID": "{BB638BE6-4144-44A6-BD8B-C79107A0B7BF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          542649.44859999977,
+          7035596.6871000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 289,
+        "TRAKT": 10988,
+        "FIXEDGID": "{40E00841-ED99-4A5B-922F-0CAC444B6CC0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          592312.62559999991,
+          7061215.5318000019
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 290,
+        "TRAKT": 11385,
+        "FIXEDGID": "{652B25CA-6025-42E1-8FED-D4D196DF8A64}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          403444.4923,
+          6149256.7080000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 291,
+        "TRAKT": 51,
+        "FIXEDGID": "{1810D860-DC0C-4C07-998F-6BD93EA12BE8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          408151.19699999969,
+          6174299.1985
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 292,
+        "TRAKT": 144,
+        "FIXEDGID": "{A1B741C8-6DE6-458B-934C-4D005996EC56}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          413089.98929999949,
+          6179354.2513999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 293,
+        "TRAKT": 163,
+        "FIXEDGID": "{98E5F87C-E0CE-4CC3-8C07-278F233CDE95}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          427848.11500000022,
+          6199516.8138
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 294,
+        "TRAKT": 242,
+        "FIXEDGID": "{D76BB763-600D-46A7-9F7C-B47911A27538}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          527386.25760000013,
+          6235665.748
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 295,
+        "TRAKT": 513,
+        "FIXEDGID": "{CD5496CF-B9AE-45F2-A937-2A024B94A8F5}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          471651.13779999968,
+          6299987.3904
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 296,
+        "TRAKT": 1138,
+        "FIXEDGID": "{FB173F4D-0963-4D3D-9245-C9C203FFE30C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          494858.21169999993,
+          6450205.3368999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 297,
+        "TRAKT": 3158,
+        "FIXEDGID": "{E3A7510E-EF72-4ACA-AB30-29A6D73616C6}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          451838.65689999983,
+          6284760.3166000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 298,
+        "TRAKT": 978,
+        "FIXEDGID": "{DFA4C632-2978-4E1D-809C-47EDF8AB8033}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          351429.67420000018,
+          6323557.1636999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 299,
+        "TRAKT": 1400,
+        "FIXEDGID": "{3743DE3E-CCD8-4CAB-8DD0-73BEA37264D8}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          395808.34960000031,
+          6374057.0398999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 300,
+        "TRAKT": 2083,
+        "FIXEDGID": "{D9B1614D-C28C-4A88-964A-3B368D4CE44E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          419300.6529000001,
+          6499278.9349000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 301,
+        "TRAKT": 3827,
+        "FIXEDGID": "{AB5E16BA-539C-43D2-B24F-91328E047C5B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          469272.21729999973,
+          6499879.5001
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 302,
+        "TRAKT": 3837,
+        "FIXEDGID": "{2DF69A03-4330-4D56-B9E2-C4BACB636FBE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          548509.87239999976,
+          6560813.4989
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 303,
+        "TRAKT": 4757,
+        "FIXEDGID": "{9616C976-1A9E-4861-9088-8CD375B61A96}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          647560.96949999966,
+          6636996.3366
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 304,
+        "TRAKT": 6060,
+        "FIXEDGID": "{95FCB2DB-0B5A-47F3-A777-1CC899F21288}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          492444.60659999959,
+          6650102.9458000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 305,
+        "TRAKT": 6275,
+        "FIXEDGID": "{E2C09136-ED06-4834-B428-DF314F78D339}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          447346.9581000004,
+          6659549.2134000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 306,
+        "TRAKT": 6415,
+        "FIXEDGID": "{26C69B35-3C9D-40F9-B71C-976ADB1EA617}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          457219.42019999959,
+          6669665.6066999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 307,
+        "TRAKT": 6561,
+        "FIXEDGID": "{23A46243-EABA-4EDE-A3A2-C66896EDA745}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          381958.47200000013,
+          6693734.5896000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 308,
+        "TRAKT": 6903,
+        "FIXEDGID": "{8D056610-7525-4B79-87C4-DACC3CC184AD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          406942.97599999979,
+          6694040.3384000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 309,
+        "TRAKT": 6908,
+        "FIXEDGID": "{B51D7DDB-499B-4D49-9F42-C303E984F877}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          368811.49029999971,
+          6948448.8288999982
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 310,
+        "TRAKT": 9796,
+        "FIXEDGID": "{F076EB2B-BB19-4CDB-9B8D-DBBF897E1C2C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          442511.7873,
+          7049330.0335999988
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 311,
+        "TRAKT": 11197,
+        "FIXEDGID": "{33052650-66FB-4FD3-997F-8604FE1B00FE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          749907.8404000001,
+          7248184.4237999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 312,
+        "TRAKT": 14153,
+        "FIXEDGID": "{E3F30452-7B97-45D3-BAA6-7542526A7B50}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          795361.5186999999,
+          7598737.8095999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 313,
+        "TRAKT": 18946,
+        "FIXEDGID": "{7502C706-E461-479C-8E06-5063FD1F0D0C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          462711.49490000028,
+          6209919.1916000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 314,
+        "TRAKT": 301,
+        "FIXEDGID": "{CB0A38C9-F44B-4F1E-A8BC-31AA4D28FF84}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          362480.64059999958,
+          6233735.7183
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 315,
+        "TRAKT": 480,
+        "FIXEDGID": "{B772385D-E729-4194-AB8F-1D186B14F69F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          412448.51669999963,
+          6234320.5856
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 316,
+        "TRAKT": 490,
+        "FIXEDGID": "{D469573D-4759-4E5A-9BFC-5AE55FAD5CF7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          437725.64109999972,
+          6209627.5387999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 317,
+        "TRAKT": 296,
+        "FIXEDGID": "{F67B4BEA-B51E-48C6-B3E4-BBAD67676FE4}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          536795.1831,
+          6285759.7579999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 318,
+        "TRAKT": 995,
+        "FIXEDGID": "{BE90AE5A-3D85-4878-AD58-27A58D467B71}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          611469.66480000038,
+          6311632.5212999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 319,
+        "TRAKT": 1273,
+        "FIXEDGID": "{669EE683-E4E0-4ADE-A70B-64CF6AFD7A98}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          486230.29229999991,
+          6335145.7985
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 320,
+        "TRAKT": 1549,
+        "FIXEDGID": "{721E7C76-46C5-4541-8D55-2F75A36CB417}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          536205.7319,
+          6335736.7238
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 321,
+        "TRAKT": 1559,
+        "FIXEDGID": "{C031096B-5560-4311-9BC2-4F26450A206C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          560304.74920000043,
+          6410999.7573000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 324,
+        "TRAKT": 2617,
+        "FIXEDGID": "{A4BA9AA3-B339-4BB5-9705-3779BCA55009}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          484144.0745000001,
+          6510054.4418
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 328,
+        "TRAKT": 3979,
+        "FIXEDGID": "{306C0597-5791-4E50-BC89-36DB26409D34}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          658768.99650000036,
+          6537150.7681000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 329,
+        "TRAKT": 4385,
+        "FIXEDGID": "{C9C70E54-6F4B-453C-9787-9F62A540AC11}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          683459.40940000024,
+          6562444.8078000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 332,
+        "TRAKT": 4784,
+        "FIXEDGID": "{0307A00C-2BE6-4C58-836C-FED382E457BA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          667979.64130000025,
+          6602250.8686999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 336,
+        "TRAKT": 5450,
+        "FIXEDGID": "{E079CDE5-B305-449A-A962-E154BA7AB55E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          507923.36720000021,
+          6610305.5025999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 339,
+        "TRAKT": 5596,
+        "FIXEDGID": "{DDD5D736-13AA-409E-8B4F-07326B2407DA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          607575.51339999959,
+          6636509.6174
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 340,
+        "TRAKT": 6052,
+        "FIXEDGID": "{EFDE765F-45F0-4DFC-90D0-10090FCD9374}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          732535.93780000042,
+          6638030.9465
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 343,
+        "TRAKT": 6077,
+        "FIXEDGID": "{36C9A82B-2B68-47E4-A233-EF120459BAE0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          592398.80439999979,
+          6651321.0781999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 344,
+        "TRAKT": 6295,
+        "FIXEDGID": "{28DF6615-047A-4BAF-9702-C8DB40392F0D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          667371.6826,
+          6652234.9319
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 345,
+        "TRAKT": 6310,
+        "FIXEDGID": "{542DCD96-A904-456A-A86C-87C4E32F6865}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          532303.0987,
+          6660585.4768
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 346,
+        "TRAKT": 6432,
+        "FIXEDGID": "{EC151A71-E84A-4D0F-BCBB-DEB9C11686CF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          692058.96239999961,
+          6677532.2809999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 349,
+        "TRAKT": 6679,
+        "FIXEDGID": "{4CEFA582-E0B8-421B-913A-7BA220726517}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          581975.82890000008,
+          6686184.7394999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 351,
+        "TRAKT": 6800,
+        "FIXEDGID": "{73E951FE-E588-4073-AE97-E5AF39A0041B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          631956.4287,
+          6686795.8365
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 352,
+        "TRAKT": 6810,
+        "FIXEDGID": "{D356D13D-63A8-4D3F-839A-83960C89C6CC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          506704.23249999993,
+          6710255.8269
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 353,
+        "TRAKT": 7134,
+        "FIXEDGID": "{01BB0E57-51DB-4651-9F61-652252E05340}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          641463.05900000036,
+          6726904.0326000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 355,
+        "TRAKT": 7353,
+        "FIXEDGID": "{7E861E1D-2ABE-434C-8535-A77E3C09A672}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          388627.75,
+          6134092.4885000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 356,
+        "TRAKT": 1,
+        "FIXEDGID": "{461F532D-4AD9-4533-9AF5-46C786BC9E60}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          413322.32340000011,
+          6159366.5003999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 357,
+        "TRAKT": 91,
+        "FIXEDGID": "{74DF3EA1-8CBC-4A73-BAB7-1131CDA974BA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          497225.34159999993,
+          6250307.2065999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 358,
+        "TRAKT": 648,
+        "FIXEDGID": "{2D4B4EE9-F5EB-43F9-BF4E-BBDA63A80669}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          512100.64120000042,
+          6260478.0442999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 359,
+        "TRAKT": 749,
+        "FIXEDGID": "{C27FEF40-5AD3-42ED-B500-A11A23F0E0E5}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          562370.5241,
+          6236075.1868999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 360,
+        "TRAKT": 520,
+        "FIXEDGID": "{3D658C01-E960-4762-9A56-AC78D57ADD87}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          562077.67260000017,
+          6261064.4735
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 361,
+        "TRAKT": 759,
+        "FIXEDGID": "{5BBB1EE2-0C2A-4080-AA99-D61D4E6AED24}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          562429.0027999999,
+          6231077.327
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 362,
+        "TRAKT": 474,
+        "FIXEDGID": "{791E9F89-7570-408F-86E0-BA381B3EC287}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          592006.6847000001,
+          6266414.4061999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 363,
+        "TRAKT": 811,
+        "FIXEDGID": "{DFA79C83-B461-4890-8973-DADEF6DDBE4F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          571308.45909999963,
+          6326154.6008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 364,
+        "TRAKT": 1444,
+        "FIXEDGID": "{03F621F8-2FBF-4049-B7F7-5581927BD688}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          336026.04910000041,
+          6358355.5390000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 365,
+        "TRAKT": 1859,
+        "FIXEDGID": "{47C052F1-0C14-4690-B867-F0A9416AFA4D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          345841.2385,
+          6373463.7183
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 366,
+        "TRAKT": 2073,
+        "FIXEDGID": "{B70B5BEC-1A87-450F-AA3D-F421FBFEE403}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          560602.09640000015,
+          6386010.5947999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 367,
+        "TRAKT": 2257,
+        "FIXEDGID": "{D66117DA-6F9E-48BE-8131-B3E851B1A6D1}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          283970.52660000039,
+          6532630.8772
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 368,
+        "TRAKT": 4319,
+        "FIXEDGID": "{0A594A55-AB80-4FBD-8CC0-ED90023F8565}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          584697.3339999998,
+          6461277.2042
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 369,
+        "TRAKT": 3308,
+        "FIXEDGID": "{332BEB0B-0B8D-4A02-B7A8-B175101EAC6E}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          533214.38329999987,
+          6585620.6072
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 370,
+        "TRAKT": 5160,
+        "FIXEDGID": "{F7AE0525-3F6E-4E27-8EA9-B4ED4906D193}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          583192.40950000007,
+          6586226.0771999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 371,
+        "TRAKT": 5170,
+        "FIXEDGID": "{F9E6EB4B-9207-4650-A10F-27AA23024A8B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          682853.63030000031,
+          6612429.8396000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 375,
+        "TRAKT": 5631,
+        "FIXEDGID": "{D7ED918D-BEF9-445C-9DBF-27A5729EF425}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          598002.59839999955,
+          7006301.0375999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 376,
+        "TRAKT": 10564,
+        "FIXEDGID": "{7B71E310-AECF-4BBB-B8F9-03A4A17BD540}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          554831.6091,
+          6860801.3194000013
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 377,
+        "TRAKT": 8790,
+        "FIXEDGID": "{4D3BBAC0-FE2F-444D-A48A-EF48C724DDFF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          580624.99920000043,
+          6796138.8293000013
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 378,
+        "TRAKT": 8099,
+        "FIXEDGID": "{5D928FF8-6B2E-47C7-B492-90D4C4E729B7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          581669.9671,
+          6711174.3455
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 379,
+        "TRAKT": 7149,
+        "FIXEDGID": "{12CC7482-896D-4F32-8B36-B2E2CEAAACD0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          556374.19359999988,
+          6735857.0625
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 380,
+        "TRAKT": 7452,
+        "FIXEDGID": "{7A0DB279-D43A-4959-A9FA-C2835EFCC6D0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          591175.0576,
+          6751280.5792
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 381,
+        "TRAKT": 7626,
+        "FIXEDGID": "{BEABA518-2EA4-40C9-945C-832B685864BF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          457036.26630000031,
+          6684657.3304999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 382,
+        "TRAKT": 6775,
+        "FIXEDGID": "{2B142CDA-0EA8-45C3-A6F3-8BA5806943BF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          477025.44990000041,
+          6684901.7003000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 383,
+        "TRAKT": 6779,
+        "FIXEDGID": "{546DBF85-12BB-45B3-A0E9-994DF622915C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          582889.30379999988,
+          6611215.7787999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 384,
+        "TRAKT": 5611,
+        "FIXEDGID": "{815FE0D4-DE3D-4ACF-9914-96F85CCADA98}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          632870.07529999968,
+          6611822.7423
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 385,
+        "TRAKT": 5621,
+        "FIXEDGID": "{322E8309-5386-415D-95C9-CC8003F59385}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          632748.61479999963,
+          6621819.1722
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 386,
+        "TRAKT": 5801,
+        "FIXEDGID": "{772A3AB6-755A-40D4-A55F-1BD426DC350F}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          607879.34159999993,
+          6611519.2462000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 387,
+        "TRAKT": 5616,
+        "FIXEDGID": "{FDDA570F-A640-45E4-BDAC-95F0E66B0392}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          533516.74909999967,
+          6560632.2877999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 388,
+        "TRAKT": 4754,
+        "FIXEDGID": "{650DB8D1-6AB6-4671-AB69-32496D285111}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          508226.4216,
+          6585317.8968
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 389,
+        "TRAKT": 5155,
+        "FIXEDGID": "{7E8A8B28-C9B1-4E61-92A6-74FACDB4B4D0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          359518.62260000041,
+          6483568.2195999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 390,
+        "TRAKT": 3610,
+        "FIXEDGID": "{90F5FD48-5F15-49D3-A773-F16B3FA0F2BA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          385100.60209999979,
+          6433900.0131
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 391,
+        "TRAKT": 2939,
+        "FIXEDGID": "{FB8FD139-3DD7-4164-8A98-25CE65F36911}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          334715.46150000021,
+          6468278.7657999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 392,
+        "TRAKT": 3395,
+        "FIXEDGID": "{4D9A19F0-151E-4FD8-BB1D-27EDFF6352EA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          434471.8613,
+          6484467.8089000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 393,
+        "TRAKT": 3625,
+        "FIXEDGID": "{0A68CC7C-35DD-4EA0-87BB-7B686F22B7A9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          459457.71470000042,
+          6484767.6596000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 394,
+        "TRAKT": 3630,
+        "FIXEDGID": "{0CFFD1C6-2D68-47E4-8905-A9C1C19BB6D3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          444286.07639999973,
+          6499579.2182
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 395,
+        "TRAKT": 3832,
+        "FIXEDGID": "{2539EAD5-382C-448C-ABA0-9E5726BF41DB}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          509731.08359999949,
+          6460379.7118
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 396,
+        "TRAKT": 3293,
+        "FIXEDGID": "{41D1F190-E2C7-4399-A784-80DDBAF06EAA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          534719.10960000008,
+          6460678.8589999992
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 397,
+        "TRAKT": 3298,
+        "FIXEDGID": "{6D458B1E-4DA8-4905-BBEB-571CCF2C8072}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          559707.85969999991,
+          6460978.0215000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 398,
+        "TRAKT": 3303,
+        "FIXEDGID": "{745EF86F-2F89-4055-BCA2-3436E7E89CC9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          460651.30850000028,
+          6384822.7935000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 399,
+        "TRAKT": 2237,
+        "FIXEDGID": "{909DFE48-E0C4-4C64-B510-2801B02E16DF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          485042.5513000004,
+          6435093.6333000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 400,
+        "TRAKT": 2959,
+        "FIXEDGID": "{01F29DD2-F891-4DAF-96BB-C6F1C69A8EAE}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          438016.9079,
+          6184642.0712
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 401,
+        "TRAKT": 185,
+        "FIXEDGID": "{74F30D06-94C5-4564-A578-0570FD1F9C9D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          362772.70239999978,
+          6208752.5543000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 402,
+        "TRAKT": 281,
+        "FIXEDGID": "{612EE01F-06D3-4DFD-901B-0C77014DA6FF}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          397866.48000000039,
+          6199167.1961
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 403,
+        "TRAKT": 236,
+        "FIXEDGID": "{69FB9F24-B87D-4F82-80F8-83A09C947C98}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          487698.11880000029,
+          6210210.8475
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 404,
+        "TRAKT": 306,
+        "FIXEDGID": "{B563F0F2-B73B-4A42-A65E-78444E299E93}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          596593.20859999955,
+          6301459.5324000008
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 405,
+        "TRAKT": 1163,
+        "FIXEDGID": "{D64002F5-E2C5-49FB-A0B2-4A36E5E78377}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          592182.59549999982,
+          6251420.2913000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 406,
+        "TRAKT": 665,
+        "FIXEDGID": "{BC77F1C1-2924-4B3D-8871-093A97F25D65}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          776620.36089999974,
+          7113537.429299999
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 407,
+        "TRAKT": 12236,
+        "FIXEDGID": "{8F83D91E-9C0A-4789-A2AA-9FAD2F803F76}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          602937.7851,
+          7011361.8027000017
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 408,
+        "TRAKT": 10634,
+        "FIXEDGID": "{23DC19E0-C65F-40CD-A860-5D2E15E679C4}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          577633.86110000033,
+          7036037.1123999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 409,
+        "TRAKT": 10995,
+        "FIXEDGID": "{2B2935DB-9609-49CD-B8C8-FB484D1A1A6D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          676965.28369999956,
+          7087279.184
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 410,
+        "TRAKT": 11817,
+        "FIXEDGID": "{ADCB76EE-30BC-47AA-8CA1-2FC0EA4E8875}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          776936.81670000032,
+          7088543.3669999987
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 411,
+        "TRAKT": 11837,
+        "FIXEDGID": "{067BE43A-35A9-4876-9173-6F992C74DBF7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          701324.0685,
+          7137579.620099999
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 412,
+        "TRAKT": 12563,
+        "FIXEDGID": "{B9627A9C-3CC8-46D7-AEEE-8EB929C3A4F7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          775985.65479999967,
+          7163525.3718000017
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 413,
+        "TRAKT": 12944,
+        "FIXEDGID": "{BB34008F-8DB5-4E64-A976-A4DC80BCADCA}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          750035.74100000039,
+          7238187.1667000018
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 414,
+        "TRAKT": 14010,
+        "FIXEDGID": "{1CFF9CCE-4080-4EEC-AF2E-BFBA9A7EE031}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          800023.19979999959,
+          7238826.557
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 415,
+        "TRAKT": 14020,
+        "FIXEDGID": "{2B29029C-4375-495D-A81E-321650B3CD00}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          799703.15589999966,
+          7263820.829
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 416,
+        "TRAKT": 14375,
+        "FIXEDGID": "{AE2D3AA1-2921-47DD-8483-6FCAED1FC946}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          748107.7429,
+          7388145.0956999995
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 417,
+        "TRAKT": 16374,
+        "FIXEDGID": "{D94551D6-4432-4045-9773-2D92C818CE8C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          797447.15610000025,
+          7438778.9105999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 418,
+        "TRAKT": 17093,
+        "FIXEDGID": "{0573EA0A-30BD-4A0C-8BA3-13B2D849073C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          632261.66569999978,
+          6661804.8385000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 419,
+        "TRAKT": 6452,
+        "FIXEDGID": "{10486989-C871-4DBA-9864-1F94B7FE2B8D}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          642075.05829999968,
+          6676921.5661999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 420,
+        "TRAKT": 6669,
+        "FIXEDGID": "{FE04AB97-715D-47FE-8CFF-9407B3E32706}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          666760.9709999999,
+          6702218.8356
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 421,
+        "TRAKT": 7030,
+        "FIXEDGID": "{F90F248A-43BD-4590-8B68-B25CB2CE53FD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          410680.3443,
+          6384228.9238000009
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 422,
+        "TRAKT": 2227,
+        "FIXEDGID": "{87D6E00E-E0CD-43CD-AEF3-4D4B3A2D2247}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          358917.42399999959,
+          6533534.9176
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 423,
+        "TRAKT": 4334,
+        "FIXEDGID": "{072495BC-F0EF-46AF-B957-F4BB6743D017}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          708149.73639999982,
+          6587740.2576
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 424,
+        "TRAKT": 5195,
+        "FIXEDGID": "{7B1A3506-C003-4CA4-8CB4-FEE8897970E7}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          717357.04289999977,
+          6652844.3594
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 425,
+        "TRAKT": 6320,
+        "FIXEDGID": "{F14A2A2C-8FDD-47E7-93B9-7E16C09C7C0A}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          707237.7993999999,
+          6662719.6926000006
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 426,
+        "TRAKT": 6467,
+        "FIXEDGID": "{63387D9C-FB25-49E9-8E4D-7E0AB50C6F18}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          333632.72460000031,
+          6558216.2601999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 427,
+        "TRAKT": 4722,
+        "FIXEDGID": "{07358207-9BEE-46F5-A744-9D5C0DF9B854}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          433266.7435999997,
+          6584409.8081
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 428,
+        "TRAKT": 5140,
+        "FIXEDGID": "{C76BABF2-3857-4E6E-A699-E0FFF87396C3}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          583796.51410000026,
+          6536246.6012999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 429,
+        "TRAKT": 4370,
+        "FIXEDGID": "{E0262D1D-33D5-4D55-8C22-DE548B2F69AD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          360712.335,
+          6383635.0259000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 430,
+        "TRAKT": 2217,
+        "FIXEDGID": "{6FBF1B26-CFB0-4BEF-8EBC-E2016219367B}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          579820.73919999972,
+          6861111.4882000014
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 431,
+        "TRAKT": 8795,
+        "FIXEDGID": "{2F554843-5616-4C4D-B692-43A326E526E9}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          580439.7944,
+          6811132.5337000005
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 432,
+        "TRAKT": 8247,
+        "FIXEDGID": "{FC96847B-7CCB-486A-BBB8-4059DE953B38}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          606659.90000000037,
+          6711480.5593
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 433,
+        "TRAKT": 7154,
+        "FIXEDGID": "{9F03DB88-4B6C-4460-BDA9-F1A57B060DC2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          493355.00459999958,
+          6575141.3991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 434,
+        "TRAKT": 4983,
+        "FIXEDGID": "{8A2101C6-0F9A-4A57-B07B-B9E344B240BD}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          483239.16089999961,
+          6585015.1965999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 435,
+        "TRAKT": 5150,
+        "FIXEDGID": "{D12664D6-1748-4D9D-9599-881C3D4F2593}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          593912.96129999962,
+          6526371.1208
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 436,
+        "TRAKT": 4218,
+        "FIXEDGID": "{5652EFDF-1543-4F20-861C-CA3BF33761D0}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          558807.10659999959,
+          6535945.2675
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 437,
+        "TRAKT": 4365,
+        "FIXEDGID": "{72D4E002-0EC7-4BCF-9CE2-5CBA94A5C4C2}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          462126.65319999959,
+          6259891.6627999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 438,
+        "TRAKT": 739,
+        "FIXEDGID": "{467AFB4C-F8FA-4711-91C8-622B8C220A8C}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          496932.07230000012,
+          6275294.5037999991
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 439,
+        "TRAKT": 886,
+        "FIXEDGID": "{5DF37943-BD43-494B-93C9-8471C9F11636}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          586184.16000000015,
+          6336327.7134000007
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 440,
+        "TRAKT": 1569,
+        "FIXEDGID": "{94338967-B863-4087-8812-FD66C649DF72}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          510327.91060000012,
+          6410404.3628
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 441,
+        "TRAKT": 2607,
+        "FIXEDGID": "{C287418E-5E81-449B-9F5D-9EE1CB9CF0AC}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          609687.53220000025,
+          6461576.4115999993
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 442,
+        "TRAKT": 3313,
+        "FIXEDGID": "{F347B4D0-477C-46C0-8D79-5107A9706445}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "coordinates": [
+          559108.074,
+          6510956.2053999994
+        ],
+        "type": "Point"
+      },
+      "properties": {
+        "OBJECTID": 443,
+        "TRAKT": 3993,
+        "FIXEDGID": "{E78286CB-CAD7-4076-82CB-E63685D9A639}",
+        "GISTYP": "trakter",
+        "TYPKOD": "TR",
+        "INVENTAR": 2020
+      }
+    }
+  ]
+}

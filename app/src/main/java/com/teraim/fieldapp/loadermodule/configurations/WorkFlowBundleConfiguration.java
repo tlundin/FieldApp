@@ -47,7 +47,7 @@ import com.teraim.fieldapp.dynamic.blocks.StartBlock;
 import com.teraim.fieldapp.dynamic.blocks.StartCameraBlock;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Not_ClickableField_SumAndCountOfVariables;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisPolyType;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
 import com.teraim.fieldapp.loadermodule.XMLConfigurationModule;
@@ -303,13 +303,13 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				else if (name.equals("block_add_gis_layer"))
 					blocks.add(readBlockAddGisLayer(parser));
 				else if (name.equals("block_add_gis_point_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Point));
+					blocks.add(readBlockAddGisPointObjects(parser, GisPolyType.Point));
 				else if (name.equals("block_add_gis_multipoint_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Multipoint));
+					blocks.add(readBlockAddGisPointObjects(parser, GisPolyType.Multipoint));
 				else if (name.equals("block_add_gis_polygons"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Polygon));
+					blocks.add(readBlockAddGisPointObjects(parser, GisPolyType.Polygon));
 				else if (name.equals("block_add_gis_linestring_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Linestring));
+					blocks.add(readBlockAddGisPointObjects(parser, GisPolyType.Linestring));
 				else if (name.equals("block_add_gis_filter"))
 					blocks.add(readBlockAddGisFilter(parser));
 				else if (name.equals("block_delete_matching_variables"))
@@ -596,7 +596,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	 */
 
 
-	private Block readBlockAddGisPointObjects(XmlPullParser parser,GisObjectType type) throws IOException, XmlPullParserException {
+	private Block readBlockAddGisPointObjects(XmlPullParser parser, GisPolyType type) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_add_gis_point_objects...");
 		String id=null,nName=null,target=null,label=null,coordType = null, color=null,polyType=null,fillType=null,
 				palette = null, location=null,objContext=null,imgSource=null,refreshRate=null,radius=null,onClick=null,statusVariable = null;
@@ -668,7 +668,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockAddGisLayer(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_add_gis_layer...");
-		String id=null,nName=null,target=null,label=null;
+		String id=null,nName=null,target=null,label=null,geoJsonSource=null;
 		boolean isVisible=true,hasWidget=true,showLabels=false;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
@@ -692,7 +692,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				nName = readText("name",parser);
 			}else if (name.equalsIgnoreCase("has_widget")) {
 				hasWidget = "true".equals(readText("has_widget", parser));
-			} 
+			} else if (name.equalsIgnoreCase("geo_json_source")) {
+				geoJsonSource = readText("geo_json_source", parser);
+			}
 			else {
 				Log.e("vortex","Skipped "+name);
 				skip(name,parser);
@@ -700,7 +702,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
-		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels);
+		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,geoJsonSource);
 
 	}
 
@@ -763,8 +765,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	}
 
 	private Block readBlockAddGisView(XmlPullParser parser) throws IOException,XmlPullParserException {
-		o.addRow("Parsing block: block_add_gis_image_view...");
-		String id=null,nName=null,container=null;
+		o.addRow("Parsing block: block_add_gis_view...");
+		String id=null,nName=null,container=null,mapType="normal";
 		String lat=null,lng=null,zoom=null;
 		boolean isVisible=true,hasSatNav=false,showTeam=false,showUser=false;
 
@@ -794,18 +796,20 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}else if (name.equalsIgnoreCase("user_visible")) {
 				showUser = readText("user_visible",parser).equalsIgnoreCase("true");
 			}else if (name.equals("car_navigation_on")) {
-				hasSatNav = readText("car_navigation_on",parser).equals("true");
+				hasSatNav = readText("car_navigation_on",parser).equalsIgnoreCase("true");
 			} else if (name.equals("team")) {
-				showTeam = readText("team", parser).equals("true");
+				showTeam = readText("team", parser).equalsIgnoreCase("true");
+			} else if (name.equals("type")) {
+				mapType = readText("type", parser);
 			} else {
 				Log.e("vortex","Skipped "+name);
 				skip(name,parser);
 			}
 		}
 
-		checkForNull("block_ID",id,"name",nName,"container_name",container);
+		checkForNull("block_ID",id,"name",nName,"container_name",container,"lat",lat,"lng",lng);
 
-		return new CreateGoogleBlock(id,nName,container,isVisible,lat,lng,zoom,showUser,hasSatNav,showTeam);
+		return new CreateGoogleBlock(id,nName,container,isVisible,lat,lng,zoom,showUser,hasSatNav,showTeam,mapType);
 
 	}
 

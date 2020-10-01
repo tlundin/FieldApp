@@ -6,7 +6,7 @@
         <item name="android:textStyle">normal</item>
     </style>
 
-    <style name="AppBaseTheme" parent="@style/Theme.AppCompat.Light.DarkActionBar">
+    <style name="AppBaseTheme" parent="@style/Theme.AppCompat.Light.NoActionBar">
         <item name="actionBarStyle">@style/MyActionBar</item>
     </style>
     <style name ="MyActionBar" parent="@style/ThemeOverlay.AppCompat.Dark.ActionBar">

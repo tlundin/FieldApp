@@ -3,7 +3,7 @@ package com.teraim.fieldapp.dynamic.workflow_realizations.gis;
 import android.graphics.Bitmap;
 import android.graphics.Paint.Style;
 
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.Shape;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 
 public interface GisFilter {
@@ -20,7 +20,7 @@ public interface GisFilter {
 
 	Style getStyle();
 
-	PolyType getShape();
+	Shape getShape();
 	
 	boolean isActive();
 
