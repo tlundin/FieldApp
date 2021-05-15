@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -158,51 +159,68 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		txtPaint = new Paint();
 		txtPaint.setTextSize(8);
 		txtPaint.setColor(Color.WHITE);
-		txtPaint.setStyle(Paint.Style.STROKE);
+		// Changed .STROKE to .FILL_AND_STROKE
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		txtPaint.setTextAlign(Paint.Align.CENTER);
         Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
 		selectedPaint.setColor(Color.BLACK);
-		selectedPaint.setStyle(Paint.Style.STROKE);
+		// Changed .STROKE to .FILL_AND_STROKE
+		selectedPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
         Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
 		btnTxt.setColor(Color.WHITE);
-		btnTxt.setStyle(Paint.Style.STROKE);
+		// Changed .STROKE to .FILL_AND_STROKE
+		btnTxt.setStyle(Paint.Style.FILL_AND_STROKE);
 		btnTxt.setTextAlign(Paint.Align.CENTER);
+		//vtnTxt is used to write the labels on the GIS object palettes
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
 		vtnTxt.setColor(Color.WHITE);
-		vtnTxt.setStyle(Paint.Style.STROKE);
+		// Changed .STROKE to .FILL_AND_STROKE
+		vtnTxt.setStyle(Paint.Style.FILL_AND_STROKE);
 		vtnTxt.setTextAlign(Paint.Align.CENTER);
         Paint borderPaint = new Paint();
 		borderPaint.setColor(Color.WHITE);
 		borderPaint.setStyle(Paint.Style.STROKE);
 		borderPaint.setStrokeWidth(3);
+
+		// polyPaint is used when manually creating polygons
 		polyPaint = new Paint();
 		polyPaint.setColor(Color.WHITE);
 		polyPaint.setStyle(Paint.Style.STROKE);
-		polyPaint.setStrokeWidth(0);
+		// Changed width 0 --> 2
+		// Changed to display-adapted width calculation
+		polyPaint.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
+		// Added dashed line feature. First float is "on" and second float is "off" length.
+		polyPaint.setPathEffect( new DashPathEffect( new float[] {20,5,},0 ) );
 
 		fgPaintSel = new Paint();
 		fgPaintSel.setColor(Color.YELLOW);
 		fgPaintSel.setStyle(Paint.Style.STROKE);
 		fgPaintSel.setStrokeWidth(2);
 
+		// paintSimple and paintBlur are used when rendering selected polygons
 		paintSimple = new Paint();
 		paintSimple.setAntiAlias(true);
 		paintSimple.setDither(true);
 		paintSimple.setColor(Color.argb(248, 255, 255, 255));
-		paintSimple.setStrokeWidth(2f);
+		// Changed to display-adapted width calculation
+		paintSimple.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
 		paintSimple.setStyle(Paint.Style.STROKE);
 		paintSimple.setStrokeJoin(Paint.Join.ROUND);
 		paintSimple.setStrokeCap(Paint.Cap.ROUND);
 
 		paintBlur = new Paint();
 		paintBlur.set(paintSimple);
-		paintBlur.setColor(Color.argb(235, 74, 138, 255));
-		paintBlur.setStrokeWidth(5f);
-		paintBlur.setMaskFilter(new BlurMaskFilter(15, BlurMaskFilter.Blur.NORMAL));
+		// Changed transparency (alpha) 235 --> 245
+		paintBlur.setColor(Color.argb(245, 74, 138, 255));
+		// Changed to display-adapted width calculation
+		paintBlur.setStrokeWidth(5f * getResources().getDisplayMetrics().density);
+		// Changed radius 15 --> 10
+		// .0f * getResources().getDisplayMetrics().density
+		paintBlur.setMaskFilter(new BlurMaskFilter(10, BlurMaskFilter.Blur.NORMAL));
 
 
 		if (getInstance()!=null)
@@ -1204,8 +1222,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			//String color = colorShiftOnStatus(go.getStatus());
 			//if (color == null)
 			String color = go.getColor();
-			// strokeWidth: 0 changed to 2
-			canvas.drawPath(p, createPaint(color, Paint.Style.STROKE, 2));
+			// strokeWidth: 0 changed to display-aware
+			canvas.drawPath(p,
+					createPaint(
+							color,
+							Paint.Style.STROKE,
+							(int) (2.0f * getResources().getDisplayMetrics().density) ));
 		}
 	}
 
@@ -1432,7 +1454,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private final Map<String,Paint> paintCache = new HashMap<String,Paint>();
 
 	public Paint createPaint(String color, Paint.Style style) {
-		return createPaint(color,style,2);
+		// Changed to display-adapted width calculation
+		return createPaint(color,style, (int) (2.0f * getResources().getDisplayMetrics().density) );
 	}
 
 	private Paint createPaint(String color, Paint.Style style, int strokeWidth) {
