@@ -42,6 +42,7 @@ public class BarcodeReader implements EventListener {
 
         detector =
                 new BarcodeDetector.Builder(ctx)
+                        .setBarcodeFormats(Barcode.QR_CODE)
                         .build();
     }
 
