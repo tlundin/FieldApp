@@ -3,6 +3,7 @@ package com.teraim.fieldapp.ui;
 import android.accounts.Account;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -26,6 +27,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import com.google.android.gms.vision.barcode.Barcode;
+import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -34,14 +37,15 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
+import java.util.Calendar;
 
 public class ConfigMenu extends PreferenceActivity {
 	private final SettingsFragment sf = new SettingsFragment();
-	private static boolean askForRestart = false;
+	private static boolean anyChange = false;
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 
-		askForRestart = false;
+		anyChange = false;
 		// Display the fragment as the main content.
 		getFragmentManager().beginTransaction()
 				.replace(android.R.id.content, sf)
@@ -59,6 +63,7 @@ public class ConfigMenu extends PreferenceActivity {
 		private EditTextPreference teamPref;
 		private EditTextPreference userPref;
 		private EditTextPreference appPref;
+		private CheckBoxPreference devFuncPref;
 
 		@Override
 		public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -69,6 +74,7 @@ public class ConfigMenu extends PreferenceActivity {
 			if (requestCode == Constants.QR_SCAN_REQUEST) {
 				if (Activity.RESULT_OK == resultCode) {
 					Log.d("vortex", "code img taken...scan!");
+
 					String url = (new BarcodeReader(this.getActivity())).analyze();
 
 					Log.d("vortex", "GOT " + (url == null ? "null" : url));
@@ -88,7 +94,7 @@ public class ConfigMenu extends PreferenceActivity {
 						(new AlertDialog.Builder(this.getActivity())).setTitle("Recieved QR configuration")
 								.setMessage("The following QR setting was received:" +
 										Tools.printIfNotNull("\nApplication: ", application) +
-										Tools.printIfNotNull("\nTeam: ", team) +
+										Tools.printIfNotNull("\nSyncGroup: ", team) +
 										Tools.printIfNotNull("\nName: ", name) +
 										Tools.printIfNotNull("\nSync: ", sync) +
 										Tools.printIfNotNull("\nVersion Control: ", control) +
@@ -155,7 +161,10 @@ public class ConfigMenu extends PreferenceActivity {
 			this.getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE)
 					.registerOnSharedPreferenceChangeListener(this);
 
-			//Create a filter that stops users from entering disallowed characters.
+
+
+
+				//Create a filter that stops users from entering disallowed characters.
 			InputFilter filter = new InputFilter() {
 				@Override
 				public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
@@ -187,8 +196,29 @@ public class ConfigMenu extends PreferenceActivity {
 			};
 
 
+			devFuncPref = (CheckBoxPreference)findPreference("dev_switch");
 			teamPref = (EditTextPreference) findPreference(PersistenceHelper.LAG_ID_KEY);
-			teamPref.setSummary(teamPref.getText());
+			String syncGroupText = teamPref.getText();
+
+			if (!isEmpty(syncGroupText))
+				teamPref.setSummary(syncGroupText);
+			else {
+				teamPref.setText(null);
+				teamPref.setSummary(getText(R.string.Team_s));
+			}
+			teamPref.setEnabled(devFuncPref.isChecked());
+			teamPref.getEditText().setFilters(new InputFilter[] {filter});
+
+			userPref = (EditTextPreference) findPreference(PersistenceHelper.USER_ID_KEY);
+			String syncUserText = userPref.getText();
+			if (!isEmpty(syncUserText))
+				userPref.setSummary(syncUserText);
+			else {
+				userPref.setText(null);
+				userPref.setSummary(getText(R.string.UserName_dm));
+			}
+			userPref.getEditText().setFilters(new InputFilter[] {filter});
+
 
 //			ListPreference color = (ListPreference)findPreference(PersistenceHelper.DEVICE_COLOR_KEY_NEW);
 //			color.setSummary(color.getValue());
@@ -199,9 +229,6 @@ public class ConfigMenu extends PreferenceActivity {
 			syncPref = (ListPreference)findPreference(PersistenceHelper.SYNC_METHOD);
 			syncPref.setSummary(syncPref.getValue());
 
-			userPref = (EditTextPreference) findPreference(PersistenceHelper.USER_ID_KEY);
-			userPref.setSummary(userPref.getText());
-			userPref.getEditText().setFilters(new InputFilter[] {filter});
 
 			serverPref = (EditTextPreference) findPreference(PersistenceHelper.SERVER_URL);
 			serverPref.setText(Tools.server(serverPref.getText()));
@@ -331,9 +358,11 @@ public class ConfigMenu extends PreferenceActivity {
 		 */
 		@Override
 		public void onPause() {
+			super.onPause();
 			this.getActivity().getApplicationContext().getSharedPreferences("GlobalPrefs", Context.MODE_PRIVATE)
 					.unregisterOnSharedPreferenceChangeListener(this);
-			super.onPause();
+			if (anyChange)
+				Tools.restart(this.getActivity());
 		}
 
 
@@ -360,16 +389,20 @@ public class ConfigMenu extends PreferenceActivity {
 			askForRestart();
 			Preference pref = findPreference(key);
 			Account mAccount = GlobalState.getmAccount(getActivity());
-
+			teamPref.setEnabled(devFuncPref.isChecked());
 			if (pref instanceof EditTextPreference) {
 				EditTextPreference etp = (EditTextPreference) pref;
-				if (etp.getText().length()!=0) {
+				if (!isEmpty(etp.getText())) {
 					char[] strA = etp.getText().toCharArray();
 					if (key.equals(PersistenceHelper.BUNDLE_NAME)) {
 						Log.d("vortex", "changing bundle");
 						setFolderPref(findPreference(PersistenceHelper.FOLDER));
 						strA[0] = Character.toUpperCase(strA[0]);
-						etp.setText(new String(strA));
+						String bundleName = new String(strA);
+						etp.setText(bundleName);
+						String syncGroup = bundleName+"synk"+Calendar.getInstance().get(Calendar.YEAR);
+						teamPref.setText(syncGroup);
+						teamPref.setSummary(syncGroup);
 
 					}
 
@@ -380,85 +413,25 @@ public class ConfigMenu extends PreferenceActivity {
                 ListPreference letp = (ListPreference) pref;
                 pref.setSummary(letp.getEntry());
             }
-			/*
-                switch (letp.getKey()) {
-                    case PersistenceHelper.DEVICE_COLOR_KEY_NEW:
-                        switch (letp.getValue()) {
-                            case "Master":
-                                Log.d("nils", "Changed to MASTER");
-                                break;
-                            case "Client":
-                                Log.d("nils", "Changed to CLIENT");
-                                break;
-                            case "Solo":
-                                //Turn off sync if on
-                                getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).edit().putString(PersistenceHelper.SYNC_METHOD, "NONE").apply();
-                                Log.d("nils", "Changed to SOLO");
-                                Log.d("vortex", "sync stopped");
-                                ContentResolver.setSyncAutomatically(mAccount, Start.AUTHORITY, false);
-                                break;
-                        }
-                        break;
-
-                }
-             */
-
-
-
-
 		}
 
 
 
 		private void askForRestart() {
-			askForRestart=true;
+			anyChange=true;
 		}
 
-
+		private boolean isEmpty(String s) {
+			return s == null || s.isEmpty();
+		}
 
 	}
 
 
 
-	@Override
-	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-			SharedPreferences sharedPrefs = this.getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE);
-			String team = sharedPrefs.getString(PersistenceHelper.LAG_ID_KEY,PersistenceHelper.UNDEFINED);
-			if (!sharedPrefs.getString(PersistenceHelper.SYNC_METHOD,"NONE").equals("NONE")&&team.equals(PersistenceHelper.UNDEFINED)) {
-
-				new AlertDialog.Builder(this)
-						.setTitle(R.string.team_missing_error)
-						.setMessage(R.string.team_missing_error_message)
-						.setIcon(android.R.drawable.ic_dialog_alert)
-						.setCancelable(false)
-						.setPositiveButton(R.string.ok, (dialog, which) -> {
-
-                        })
-						.show();
 
 
 
-
-			} else if (askForRestart) {
-
-				new AlertDialog.Builder(this)
-						.setTitle(R.string.restart)
-						.setMessage(R.string.restartMessage)
-						.setIcon(android.R.drawable.ic_dialog_alert)
-						.setCancelable(false)
-						.setPositiveButton(R.string.ok, (dialog, which) -> Tools.restart(ConfigMenu.this))
-						.setNegativeButton(R.string.cancel, (dialog, which) -> {
-                        })
-						.show();
-
-
-			}
-
-			Log.d(this.getClass().getName(), "back button pressed");
-		}
-		return super.onKeyDown(keyCode, event);
-	}
 
 
 
