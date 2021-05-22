@@ -558,7 +558,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         boolean fullySyncedWithTeam = (syncGroup != null && syncGroup.getTeam() != null && syncGroup.getTeam().isEmpty());
 
-        boolean fullySynced = (numOfUnsynchedEntries ==0)&&(numOfInsertSyncEntries == 0) && fullySyncedWithTeam;
+        boolean fullySynced = numOfUnsynchedEntries == 0 && numOfInsertSyncEntries == 0 && fullySyncedWithTeam;
 
         boolean sync_on = syncOn();
 
