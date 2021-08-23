@@ -494,24 +494,25 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			return false;
 		}
 		//Assume it is inside
-		boolean isInside = true;
+		boolean isInside = false;
 		double mapDistX = l.getX()-photoMetaData.W;
 		double mapDistY = l.getY()-photoMetaData.S;
 		if ((mapDistX <=imgWReal && mapDistX>=0) && (mapDistY <=imgHReal && mapDistY>=0)) {
-            Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
+            //Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
+			isInside = true;
 		}
-		else {
-			if(mapDistX>imgWReal||mapDistX<0)
-				Log.e("jgw","Distance X in meter: "+mapDistX+" [outside!]");
-			if(mapDistY>imgHReal||mapDistY<0)
-				Log.e("jgw","Distance Y in meter: "+mapDistY+" [outside!]");
-			Log.d("jgw","w h of gis image. w h of image ("+photoMetaData.getWidth()+","+photoMetaData.getHeight()+") ("+this.getScaledWidth()+","+this.getScaledHeight()+")");
-			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
-			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
-			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
+//		else {
+//			if(mapDistX>imgWReal||mapDistX<0)
+//				Log.e("jgw","Distance X in meter: "+mapDistX+" [outside!]");
+//			if(mapDistY>imgHReal||mapDistY<0)
+//				Log.e("jgw","Distance Y in meter: "+mapDistY+" [outside!]");
+//			Log.d("jgw","w h of gis image. w h of image ("+photoMetaData.getWidth()+","+photoMetaData.getHeight()+") ("+this.getScaledWidth()+","+this.getScaledHeight()+")");
+//			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
+//			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
+//			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
 			//No, it is outside.
-			isInside = false;
-		}
+//			isInside = false;
+//		}
 
 
 		pXR = this.getImageWidth()/photoMetaData.getWidth();
@@ -717,7 +718,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								GisPointObject gop = (GisPointObject)go;
 								//Log.d("baha",gop.getId());
 								if (gop.isDynamic()) {
-									Log.d("Glapp","found dynamic object");
+									//Log.d("Glapp","found dynamic object");
 									int[] xy = intBuffer.getIntBuf();
                                     boolean inside = translateMapToRealCoordinates(gop.getLocation(),xy);
 									if (!inside) {
@@ -730,7 +731,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 										continue;
 									} else {
 
-										Log.d("inside","inside. Label :"+gop.getLabel());
+										//Log.d("inside","inside. Label :"+gop.getLabel());
 										if (gop.isUser()) {
 											userGop = gop;
 											myMap.showCenterButton(true);
@@ -1216,12 +1217,13 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private void drawPath(Path p, boolean selected, Canvas canvas, GisObject go) {
 		if (selected) {
+			Log.d("bel","get status returns "+go.getStatus());
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
-			//String color = colorShiftOnStatus(go.getStatus());
-			//if (color == null)
-			String color = go.getColor();
+			String color = colorShiftOnStatus(go.getStatus());
+			if (color == null)
+				color = go.getColor();
 			// strokeWidth: 0 changed to display-aware
 			canvas.drawPath(p,
 					createPaint(

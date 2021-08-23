@@ -1216,7 +1216,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     private boolean syncOn() {
         boolean syncOn = ContentResolver.getSyncAutomatically(mAccount, Start.AUTHORITY);
-        Log.d("sync","in syncOn. Syncon is "+syncOn);
+        //Log.d("sync","in syncOn. Syncon is "+syncOn);
         return syncOn;
     }
 
