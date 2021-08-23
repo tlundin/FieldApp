@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.net.Uri;
+import android.os.Looper;
 import android.provider.MediaStore;
 import androidx.core.content.FileProvider;
 import android.util.Log;
@@ -78,6 +79,9 @@ public class ImageHandler {
 		if (fileName == null) {			
 			return false;
 		}
+		if(Looper.myLooper() == Looper.getMainLooper())
+			Log.d("bel","In UI thread");
+
 		options.inJustDecodeBounds=true;
 		Bitmap bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);		
 
@@ -91,9 +95,9 @@ public class ImageHandler {
 			double ratio = realH/realW;
 			//Height should not be higher than width.
 			if (ratio >0) {
-				Log.d("nils", "picture is not landscape. its portrait..");
+				Log.d("bel", "picture is not landscape. its portrait..");
 			}
-			Log.d("nils", "realW realH"+realW+" "+realH);
+			Log.d("bel", "realW realH"+realW+" "+realH);
 
 			//Find out screen size.
 			Display display = fragment.getActivity().getWindowManager().getDefaultDisplay();
@@ -110,23 +114,23 @@ public class ImageHandler {
 			//use target values to calculate the correct inSampleSize
 			options.inSampleSize = Tools.calculateInSampleSize(options, (int)tWidth, tHeight);
 
-			Log.d("nils"," Calculated insamplesize "+options.inSampleSize);
+			Log.d("bel"," Calculated insamplesize "+options.inSampleSize);
 			//now create real bitmap using insampleSize
 
 			options.inJustDecodeBounds = false;
-			Log.d("nils","Filename: "+fileName);
+			Log.d("bel","Filename: "+fileName);
 			bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);
 			if (bip!=null) {
 				b.setImageBitmap(bip);
 				return true;
 			} else {
-				Log.d("bils","Picture was null after decode");
+				Log.d("bel","Picture was null after decode");
 				return false;
 			}
 
 		}
 		else {
-			Log.d("nils","Did not find picture "+fileName);
+			Log.d("bel","Did not find picture "+fileName);
 			//need to set the width equal to the height...
 			return false;
 		}

@@ -107,7 +107,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 	public void gpsStateChanged(GPS_State signal) {
 		if (signal.state == GPS_State.State.newValueReceived) {
 			myLocation = new SweLocation(signal.x,signal.y);
-            Log.d("Glapp","updated user position"+System.currentTimeMillis());
+            //Log.d("Glapp","updated user position"+System.currentTimeMillis());
 
 		}
 	}
