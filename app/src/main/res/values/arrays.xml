@@ -39,11 +39,13 @@
         <item>Forced</item>
     </string-array>
     <string-array name="syncMethodArray">
-        <item>Sync over Internet in a sync group</item>
-        <item>Turn sync off</item>
+        <item>Sync on</item>
+        <item>Read only</item>
+        <item>Sync off</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item>Internet</item>
+        <item>Read</item>
         <item>NONE</item>
     </string-array>
 
