@@ -13,7 +13,10 @@
         android:layout_width="0px"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        android:requiresFadingEdge="vertical"
+        android:fadingEdgeLength="20dp"
+        android:overScrollMode="never"/>
 
     <View
         android:layout_width="1dip"
@@ -24,7 +27,10 @@
         android:layout_width="0px"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:orientation="vertical"/>
+        android:orientation="vertical"
+        android:requiresFadingEdge="vertical"
+        android:fadingEdgeLength="20dp"
+        android:overScrollMode="never"/>
 </LinearLayout>
 
 </ScrollView>
