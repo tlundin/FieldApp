@@ -15,7 +15,6 @@ import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.ImageButton;
-
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -78,6 +77,7 @@ public class ImageHandler {
 		if (fileName == null) {			
 			return false;
 		}
+
 		options.inJustDecodeBounds=true;
 		Bitmap bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);		
 
@@ -89,12 +89,6 @@ public class ImageHandler {
 		//check if file exists
 		if (realW>0) {
 			double ratio = realH/realW;
-			//Height should not be higher than width.
-			if (ratio >0) {
-				Log.d("nils", "picture is not landscape. its portrait..");
-			}
-			Log.d("nils", "realW realH"+realW+" "+realH);
-
 			//Find out screen size.
 			Display display = fragment.getActivity().getWindowManager().getDefaultDisplay();
 			Point size = new Point();
@@ -110,23 +104,23 @@ public class ImageHandler {
 			//use target values to calculate the correct inSampleSize
 			options.inSampleSize = Tools.calculateInSampleSize(options, (int)tWidth, tHeight);
 
-			Log.d("nils"," Calculated insamplesize "+options.inSampleSize);
+			Log.d("bel"," Calculated insamplesize "+options.inSampleSize);
 			//now create real bitmap using insampleSize
 
 			options.inJustDecodeBounds = false;
-			Log.d("nils","Filename: "+fileName);
+			Log.d("bel","Filename: "+fileName);
 			bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);
 			if (bip!=null) {
 				b.setImageBitmap(bip);
 				return true;
 			} else {
-				Log.d("bils","Picture was null after decode");
+				Log.d("bel","Picture was null after decode");
 				return false;
 			}
 
 		}
 		else {
-			Log.d("nils","Did not find picture "+fileName);
+			Log.d("bel","Did not find picture "+fileName);
 			//need to set the width equal to the height...
 			return false;
 		}

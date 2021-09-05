@@ -166,11 +166,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             //check current state of synk server.
                             //This determines the sync status.
                             toggleSyncOnOff(syncOn());
-
-                            if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("Internet"))
+                            String sync = globalPh.get(PersistenceHelper.SYNC_METHOD);
+                            if (sync.equals("Internet"))
                                 getTeamSyncStatusFromServer();
-
-
                         }
 
                         break;
@@ -308,7 +306,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     @Override
     protected void onResume() {
         super.onResume();
-        if ("Internet".equals(this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.SYNC_METHOD, ""))) {
+        String sync = this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.SYNC_METHOD, "");
+        if ("Internet".equals(sync)) {
             Intent myIntent = new Intent(MenuActivity.this, SyncService.class);
             myIntent.setAction(MESSAGE_ACTION);
             bindService(myIntent, mConnection,
@@ -550,7 +549,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void refreshSyncDisplay() {
-
         int numOfUnsynchedEntries = gs.getDb().getNumberOfUnsyncedEntries();
         long numOfInsertSyncEntries = gs.getDb().getSyncRowsLeft();
         //List of people in team with data on server
@@ -559,7 +557,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         boolean fullySyncedWithTeam = (syncGroup != null && syncGroup.getTeam() != null && syncGroup.getTeam().isEmpty());
 
         boolean fullySynced = numOfUnsynchedEntries == 0 && numOfInsertSyncEntries == 0 && fullySyncedWithTeam;
-
         boolean sync_on = syncOn();
 
         String synkStatusTitle;
@@ -915,9 +912,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         } else {
             if (syncMethod.equals("Internet")) {
                 Log.d("vortex", "in togglesync internet");
-
                 if (on) {
-
                     //Check there is name and team.
                     String user = globalPh.get(PersistenceHelper.USER_ID_KEY);
                     String team = globalPh.get(PersistenceHelper.LAG_ID_KEY);
@@ -943,7 +938,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             b.putString("app", app);
                             b.putString("team", team);
                             b.putString("uuid", gs.getUserUUID());
-
                             msg.obj = b;
 
                             try {
@@ -1216,7 +1210,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     private boolean syncOn() {
         boolean syncOn = ContentResolver.getSyncAutomatically(mAccount, Start.AUTHORITY);
-        Log.d("sync","in syncOn. Syncon is "+syncOn);
+        //Log.d("sync","in syncOn. Syncon is "+syncOn);
         return syncOn;
     }
 
