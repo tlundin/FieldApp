@@ -40,12 +40,10 @@
     </string-array>
     <string-array name="syncMethodArray">
         <item>Sync on</item>
-        <item>Read only</item>
         <item>Sync off</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item>Internet</item>
-        <item>Read</item>
         <item>NONE</item>
     </string-array>
 

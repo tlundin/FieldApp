@@ -59,12 +59,10 @@ public class SyncService extends Service {
 					String team = 						appData.getString("team");
 					String user = 						appData.getString("user");
 					String userUUID = 					appData.getString("uuid");
-					String syncMethod = 				appData.getString("syncMethod");
 
                    	sSyncAdapter.init_session(mClient,
                             team,user,app,userUUID,
-							last_known_receiveTimestamp,
-							syncMethod);
+							last_known_receiveTimestamp);
                     break;
 
 				case MSG_USER_STOPPED_SYNC:

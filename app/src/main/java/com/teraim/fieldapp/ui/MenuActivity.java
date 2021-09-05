@@ -309,7 +309,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     protected void onResume() {
         super.onResume();
         String sync = this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.SYNC_METHOD, "");
-        if ("Internet".equals(sync)||"Read".equals(sync)) {
+        if ("Internet".equals(sync)) {
             Intent myIntent = new Intent(MenuActivity.this, SyncService.class);
             myIntent.setAction(MESSAGE_ACTION);
             bindService(myIntent, mConnection,
@@ -559,8 +559,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         boolean fullySyncedWithTeam = (syncGroup != null && syncGroup.getTeam() != null && syncGroup.getTeam().isEmpty());
 
-        boolean fullySynced = (numOfUnsynchedEntries == 0 || "Read".equals(syncMethod)) && numOfInsertSyncEntries == 0 && fullySyncedWithTeam ;
-
+        boolean fullySynced = numOfUnsynchedEntries == 0 && numOfInsertSyncEntries == 0 && fullySyncedWithTeam;
         boolean sync_on = syncOn();
 
         String synkStatusTitle;
@@ -914,11 +913,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 }
             });
         } else {
-            if (syncMethod.equals("Internet")||syncMethod.equals("Read")) {
+            if (syncMethod.equals("Internet")) {
                 Log.d("vortex", "in togglesync internet");
-
                 if (on) {
-
                     //Check there is name and team.
                     String user = globalPh.get(PersistenceHelper.USER_ID_KEY);
                     String team = globalPh.get(PersistenceHelper.LAG_ID_KEY);
@@ -944,8 +941,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             b.putString("app", app);
                             b.putString("team", team);
                             b.putString("uuid", gs.getUserUUID());
-                            b.putString("syncMethod",syncMethod);
-
                             msg.obj = b;
 
                             try {
