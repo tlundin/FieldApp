@@ -79,8 +79,6 @@ public class ImageHandler {
 		if (fileName == null) {			
 			return false;
 		}
-		if(Looper.myLooper() == Looper.getMainLooper())
-			Log.d("bel","In UI thread");
 
 		options.inJustDecodeBounds=true;
 		Bitmap bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);		
@@ -93,12 +91,6 @@ public class ImageHandler {
 		//check if file exists
 		if (realW>0) {
 			double ratio = realH/realW;
-			//Height should not be higher than width.
-			if (ratio >0) {
-				Log.d("bel", "picture is not landscape. its portrait..");
-			}
-			Log.d("bel", "realW realH"+realW+" "+realH);
-
 			//Find out screen size.
 			Display display = fragment.getActivity().getWindowManager().getDefaultDisplay();
 			Point size = new Point();
