@@ -167,10 +167,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             //This determines the sync status.
                             toggleSyncOnOff(syncOn());
                             String sync = globalPh.get(PersistenceHelper.SYNC_METHOD);
-                            if (sync.equals("Internet")||sync.equals("Read"))
+                            if (sync.equals("Internet"))
                                 getTeamSyncStatusFromServer();
-
-
                         }
 
                         break;
@@ -551,7 +549,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void refreshSyncDisplay() {
-        String syncMethod = globalPh.get(PersistenceHelper.SYNC_METHOD);
         int numOfUnsynchedEntries = gs.getDb().getNumberOfUnsyncedEntries();
         long numOfInsertSyncEntries = gs.getDb().getSyncRowsLeft();
         //List of people in team with data on server
