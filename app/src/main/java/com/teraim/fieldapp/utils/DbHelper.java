@@ -2776,7 +2776,7 @@ public class DbHelper extends SQLiteOpenHelper {
             c.moveToFirst();
             lastEntry = c.getLong(0);
         } else {
-            Log.d("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
+            //Log.d("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
             lastEntry = 0;
         }
         c.close();

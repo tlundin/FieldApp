@@ -4,7 +4,7 @@ android {
     signingConfigs {
         config {
             keyAlias 'vortexkey'
-            storeFile file('C:/Apps/Android/keystore/TerjePavek_2')
+            storeFile file('C:/Users/terje/dev/keys/TerjePavek_2')
             storePassword 'TerjePavek_2'
         }
     }
