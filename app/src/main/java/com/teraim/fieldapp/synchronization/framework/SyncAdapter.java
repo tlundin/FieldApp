@@ -277,35 +277,37 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private StampedData getMyUnsavedEntries() throws SyncFailedException {
+        SyncEntry[] syncEntries=null;
+        long maxStamp = -1; boolean hasMore=false;
         Cursor c = mContentResolver.query(BASE_CONTENT_URI, null, null, null, null);
-        if (c==null)
+        if (c == null)
             throw new SyncFailedException("ContentResolver null in getMyUnsavedEntries");
         //StringBuilder targets=new StringBuilder();
-        long maxStamp = -1,entryStamp;
-        int rows,maxToSync,rowCount=0;
-        String action,changes,variable;
+        long entryStamp;
+        int rows, maxToSync, rowCount = 0;
+        String action, changes, variable;
         rows = c.getCount();
         //Log.d("sync",rows+" rows to sync from ["+mUser+"] to ["+mTeam+"]");
 
         maxToSync = Math.min(c.getCount(), MaxSyncableEntriesClient);
-        boolean hasMore = maxToSync== MaxSyncableEntriesClient;
-        SyncEntry[] syncEntries = new SyncEntry[maxToSync];
+        hasMore = maxToSync == MaxSyncableEntriesClient;
+        syncEntries = new SyncEntry[maxToSync];
         while (c.moveToNext() && rowCount < maxToSync) {
-            action 		=	c.getString(c.getColumnIndex("action"));
-            changes 	=	c.getString(c.getColumnIndex("changes"));
-            entryStamp	=	c.getLong(c.getColumnIndex("timestamp"));
-            variable    = 	c.getString(c.getColumnIndex("target"));
+            action = c.getString(c.getColumnIndex("action"));
+            changes = c.getString(c.getColumnIndex("changes"));
+            entryStamp = c.getLong(c.getColumnIndex("timestamp"));
+            variable = c.getString(c.getColumnIndex("target"));
             //Keep track of the highest timestamp in the set!
             //Log.d("sync","variable: "+variable);
-            if (entryStamp>maxStamp)
-                maxStamp=entryStamp;
-            syncEntries[rowCount++] = new SyncEntry(SyncEntry.action(action),changes,entryStamp,variable,mUser);
+            if (entryStamp > maxStamp)
+                maxStamp = entryStamp;
+            syncEntries[rowCount++] = new SyncEntry(SyncEntry.action(action), changes, entryStamp, variable, mUser);
             //targets.append(variable);
             //targets.append(",");
         }
         c.close();
 
-        if (syncEntries.length == 0) {
+        if (syncEntries.length == 0 ) {
             Log.d("sync","no data , returning endofstream");
             return new StampedData(new EndOfStream(), maxStamp, false);
         } else {
