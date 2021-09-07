@@ -526,7 +526,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	}
 	
 	public float getScale() {
-		Log.d("vortex","getScale returns "+scaleAdjust);
+		//Log.d("vortex","getScale returns "+scaleAdjust);
 		return scaleAdjust;
 	}
 
