@@ -710,7 +710,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 							GisObject go = iterator.next();
 							//Log.d("bortex","Checking "+go.getLabel()+" id: "+go.getId()+ "type: "+go.getClass().getCanonicalName());
 							//If not inside map, or if touched, skip.
-							if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatus())) {
+							if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatusVariableValue())) {
 								//Log.d("bortex",go.getLabel()+" is thown. useful?" + go.isUseful());
 								continue;
 							}
@@ -746,10 +746,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								String color = gop.getColor();
 								Style style = gop.getStyle();
 								PolyType polyType=gop.getShape();
-								String statusValue = gop.getStatus();
+
 								//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
-								String statusColor = colorShiftOnStatus(gop.getStatus());
+								String statusColor = colorShiftOnStatus(gop.getStatusVariableValue());
 								if (statusColor!=null)
 									color = statusColor;
 
@@ -1217,11 +1217,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private void drawPath(Path p, boolean selected, Canvas canvas, GisObject go) {
 		if (selected) {
-			Log.d("bel","get status returns "+go.getStatus());
+			Log.d("bel","get status returns "+go.getStatusVariableValue());
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
-			String color = colorShiftOnStatus(go.getStatus());
+			String color = colorShiftOnStatus(go.getStatusVariableValue());
 			if (color == null)
 				color = go.getColor();
 			// strokeWidth: 0 changed to display-aware
@@ -1530,7 +1530,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					if (valS == null || valS.equals("0")) {
 						Log.d("grogg", "Setting status variable to 1");
 						statusVariable.setValue("1");
-						gop.setStatusVariable(statusVariable);
+						gop.setStatusVariableValue("1");
 					} else
 						Log.d("grogg", "NOT Setting status variable to 1...current val: " + statusVariable.getValue());
 					myMap.registerEvent(new WF_Event_OnSave("Gis"));
