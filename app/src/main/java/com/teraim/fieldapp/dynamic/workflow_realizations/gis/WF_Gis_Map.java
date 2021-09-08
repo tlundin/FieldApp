@@ -654,10 +654,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         Log.d("vortex","Entering setVisibleAvstRikt..");
         if (isVisible) {
             avstRL.setVisibility(View.VISIBLE);
-            String status = touchedGop.getStatus();
+            String status = touchedGop.getStatusVariableValue();
             boolean isInitial = status==null || status.equals(Constants.STATUS_INITIAL);
             startB.setText(isInitial?R.string.start:R.string.continue_);
-            Log.d("borste","getstat: "+touchedGop.getStatus());
+            Log.d("borste","getstat: "+touchedGop.getStatusVariableValue());
             areaT.setVisibility(View.GONE);
             circumT.setVisibility(View.GONE);
             setSelectedObjectText(touchedGop.getLabel());

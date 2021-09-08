@@ -21,9 +21,9 @@ public class GisObject {
 	double distanceToClick=-1;
 	protected String label=null;
 	private String statusVariableId=null,statusVariableValue=null;
-	private Variable statusVariable = null;
-	public void setStatusVariable(Variable statusVariable) {
-		this.statusVariable = statusVariable;
+
+	public void setStatusVariableValue(String value) {
+		this.statusVariableValue =value;
 	}
 
 
@@ -124,16 +124,10 @@ public class GisObject {
 		return statusVariableId;
 	}
 
-	public String getStatus() {
-		if (statusVariable==null) {
-			//Log.d("vortex","statvar missing for "+this.label);
-			return null;
-		}
-		//Log.d("vortex","returning status for "+this.label);
-		return statusVariable.getValue();
+	public String getStatusVariableValue() {
+		return statusVariableValue;
 	}
 
-	
 	public String getColor() {
 		return foc.getColor();
 	}
