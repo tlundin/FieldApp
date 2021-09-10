@@ -408,7 +408,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 									Log.d("nils","No rules found - exiting");
 									if (statusVariable!=null) {
 										statusVariable.setValue(WF_StatusButton.Status.ready.ordinal()+"");
-										//myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
+										//Log.e("grogg","PSETTING STATUSVAR: "+statusVariable.getId()+" key: "+statusVariable.getKeyChain()+ "Value: "+statusVariable.getValue());
+										myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
 
 									}
 									else

@@ -353,18 +353,18 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (statusVariable !=null) {
 				myContext.setStatusVariable(b.getString("status_variable"));
 				//Add onSaveListener for the statusvariable. Change to "1" when first value saved.
-				Log.e("vortex","Added onsave listener for "+b.getString("status_variable"));
+				//Log.e("vortex","Added onsave listener for "+b.getString("status_variable"));
 				myContext.registerEventListener(new EventListener() {
 					@Override
 					public void onEvent(Event e) {
-						Log.d("vortex","Received onSave in statusvariable change on first save event");
-						Log.d("vortex","Context keychain is "+myContext.getKeyHash());
+						//Log.d("grog","Received onSave in statusvariable change on first save event");
+						//Log.d("grogg","Context keychain is "+myContext.getKeyHash());
 						String statusVar = myContext.getStatusVariable();
 						Variable statusVariable =null;
 						if (statusVar!=null)
 							statusVariable = varCache.getVariable(myContext.getKeyHash(),statusVar);
 						else
-						Log.e("vortex","statusvariable is null for "+statusVar+" with hash "+myContext.getKeyHash() );
+							Log.e("vortex","statusvariable is null for "+statusVar+" with hash "+myContext.getKeyHash() );
 						if (statusVariable!=null && statusVariable.getValue()!=null && statusVariable.getValue().equals(Constants.STATUS_INITIAL)) {
 							statusVariable.setValue(Constants.STATUS_STARTAD_MEN_INTE_KLAR);
 
@@ -1105,8 +1105,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				bl.create(myContext, true);
 			}
 		}
-		for (GisLayer layer :myContext.getCurrentGis().getLayers())
+		for (GisLayer layer :myContext.getCurrentGis().getLayers()) {
+			//Log.d("grogg","In refreshgisobjects");
 			layer.filterLayer(myContext.getCurrentGis().getGis());
+		}
 
 
 	}

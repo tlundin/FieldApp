@@ -1,8 +1,11 @@
 package com.teraim.fieldapp.dynamic.types;
 
+import static com.teraim.fieldapp.GlobalState.getInstance;
+
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.DynamicGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
@@ -10,7 +13,9 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPathObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
+import com.teraim.fieldapp.gis.CurrStatVar;
 import com.teraim.fieldapp.gis.GisImageView;
+import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.util.HashMap;
@@ -251,7 +256,9 @@ public class GisLayer {
 			Log.e("vortex","Layer "+ getLabel()+" has no bags. Exiting filterlayer");
 			return;
 		}
-		Log.d("vortex","In filterAndCopy, layer has "+gops.size()+" bags");
+		CurrStatVar currStat = gisImageView.getCurrentStatusVariable();
+		//Log.d("grogg","In filterAndCopy for layer "+getLabel()+" layer has "+gops.size()+" bags." );
+
 		for (String key:gops.keySet()) {
 			Set<GisObject> bag = gops.get(key);
 
@@ -267,19 +274,36 @@ public class GisLayer {
 
 
 			}
-			Log.d("bloon","Bag: "+key+" size: "+bag.size());
+			//Log.d("bloon","Bag: "+key+" size: "+bag.size());
 			int c=0;
-			for (GisObject gob:bag) {
-				if (gob.isUseful()) {
-					//Log.d("brakka","Useful: "+ gob.getLabel()+" key: "+gob.getKeyHash());
+			for (GisObject gop:bag) {
+				if (gop.isUseful()) {
+					//Log.d("grogg","Useful: "+ gob.getLabel()+" key: "+gob.getKeyHash());
 					c++;
-				} else {
-                  Log.d("brakka","Useless: "+gob.getKeyHash());
+
+
+
+					if (currStat !=null) {
+						//Log.d("grogg","currstid "+currStat.id);
+						if (currStat.id.equals(gop.getKeyHash().get("uid"))) {
+							String valS = currStat.v.getValue();
+							if (valS != null) {
+								if (!valS.equals(gop.getStatusVariableValue())) {
+									Map<String, String> keyHash = gop.getKeyHash();
+									Log.d("grogg", "Statuserror for " + gop.getLabel());
+									Log.d("grogg", "wfclick keyhash is " + keyHash + " for " + gop.getLabel());
+									gop.setStatusVariableValue(currStat.v.getValue());
+								}
+							}
+						}
+					}
+
+					} else {
+                  //Log.d("grogg","Useless: "+gop.getKeyHash());
                 }
 
 			}
-			Log.d("jgw","bag has "+c+" useful members");
-
+			Log.d("grogg","bag has "+c+" useful members");
 		}
 	}
 
@@ -301,6 +325,7 @@ public class GisLayer {
 				//Log.d("vortex","Added point inside map");
 				go.markAsUseful();
 				gop.setTranslatedLocation(xy);
+				//Log.d("grogg","P statusvar: "+go.getStatusVariableId()+" value: "+go.getStatusVariableValue());
 			}
 			//else
 			//	Log.e("bortex","Removed object outside map");
@@ -320,6 +345,7 @@ public class GisLayer {
 				for (Location location : ll) {
 					if (gisImageView.translateMapToRealCoordinates(location, xy)) {
 						gpo.markAsUseful();
+						//Log.d("grogg","statusvar: "+gpo.getStatusVariableId()+" value: "+gpo.getStatusVariableValue());
 						return;
 					}
 				}

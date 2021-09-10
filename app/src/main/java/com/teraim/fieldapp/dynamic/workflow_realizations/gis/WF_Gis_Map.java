@@ -718,15 +718,13 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     @Override
     public void onEvent(Event e) {
 
-        Log.d("vortex", "In GIS_Map Event Handler");
+        //Log.d("grogg", "In GIS_Map Event Handler");
         if (e.getProvider().equals(Constants.SYNC_ID)) {
             if (!gisImageView.isInitialized()) {
-                Log.d("vortex","discarding event. Imageview is not initialized");
                 return;
             }
-            Log.d("Vortex", "new sync event. Refreshing map.");
+            Log.d("grogg", "new sync event. Refreshing map.");
             myContext.refreshGisObjects();
-            Log.d("vortex", "Issuing redraw of gisimageview!!");
             //refresh team layer.
             GisLayer teamLayer = this.getLayerFromId("Team");
             if (teamLayer != null) {
@@ -748,7 +746,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         }
         else if (e.getType() == EventType.onFlowExecuted) {
-            Log.d("vortex","flow executed! Initializing gis imageview!");
+            Log.d("grogg","flow executed! Initializing gis imageview!");
             //Must be done here since all layers first needs to be added.
             //!isZoomLevel
             gisImageView.initialize(this,photoMeta,true);
