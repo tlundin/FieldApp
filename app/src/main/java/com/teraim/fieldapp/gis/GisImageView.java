@@ -31,6 +31,8 @@ import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.Workflow;
+import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
+import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
@@ -112,7 +114,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
     private boolean candMenuVisible=false, initialized = false;
 
-
 	public GisImageView(Context context) {
 		super(context);
 		init(context);
@@ -130,11 +131,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		init(context);
 	}
 
+
+	private CurrStatVar currentStatusVariable;
+
 	private void init(Context ctx) {
-
 		this.setClickable(true);
-
-
 		this.ctx=ctx;
 		//used for cursor blink.
 		calendar.setTime(new Date());
@@ -422,17 +423,13 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 
 			}
-
-
 			layer.filterLayer(this);
-
 		}
-
-
 	}
 
-
-
+	public CurrStatVar getCurrentStatusVariable() {
+		return currentStatusVariable;
+	}
 
 	private float fixedX=-1;
 	private float fixedY;
@@ -1523,17 +1520,20 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				Map<String, String> keyHash = gop.getKeyHash();
 				if (keyHash!=null)
 					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
-				Log.d("buu","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
+				Log.d("grogg","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
 				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
 				if (statusVariable!=null) {
 					String valS = statusVariable.getValue();
 					if (valS == null || valS.equals("0")) {
-						Log.d("grogg", "Setting status variable to 1");
 						statusVariable.setValue("1");
 						gop.setStatusVariableValue("1");
-					} else
-						Log.d("grogg", "NOT Setting status variable to 1...current val: " + statusVariable.getValue());
-					myMap.registerEvent(new WF_Event_OnSave("Gis"));
+						myMap.registerEvent(new WF_Event_OnSave("Gis"));
+					}
+					//keep track
+					currentStatusVariable = new CurrStatVar();
+					currentStatusVariable.v = statusVariable;
+					currentStatusVariable.id = gop.getKeyHash().get("uid");
+
 				} else {
 					Log.e("grogg", "StatusVariable definition error");
 					LoggerI o = getInstance().getLogger();
