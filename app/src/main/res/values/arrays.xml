@@ -39,8 +39,8 @@
         <item>Forced</item>
     </string-array>
     <string-array name="syncMethodArray">
-        <item>Sync on</item>
-        <item>Sync off</item>
+        <item>Sync over Internet in a sync group</item>
+        <item>Turn sync off</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item>Internet</item>

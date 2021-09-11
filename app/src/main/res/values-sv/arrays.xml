@@ -38,8 +38,8 @@
         <item>Forced</item>
     </string-array>
     <string-array name="syncMethodArray">
-        <item>Synk på</item>
-        <item>Synk av</item>
+        <item>Synk över internet i en grupp</item>
+        <item>Ingen synk</item>
     </string-array>
     <string-array name="syncMethodValues">
         <item>Internet</item>

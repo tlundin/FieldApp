@@ -24,16 +24,16 @@
     <string name="cancel">Cancel</string>
 
     <string name="DeviceType">Device Type</string>
-    <string name="Team">Sync Group</string>
+    <string name="Team">Team</string>
     <string name="UserName">Username</string>
     <string name="DevOp">Advanced</string>
     <string name="log_levels_h">Log Levels</string>
-    <string name="UserName_dm">Required for sync</string>
-    <string name="Team_s">Required for sync</string>
+    <string name="UserName_dm">User name</string>
+    <string name="Team_s">Name of team and sync group</string>
 
     <string name="restart">Restart</string>
     <string name="repair">Database repaired</string>
-    <string name="restartMessage">The app will restart</string>
+    <string name="restartMessage">You need to restart for this change to take effect. Restart now?</string>
     <string name="team_missing_error">Team required</string>
     <string name="team_missing_error_message">To be able to use the sync function, you must enter a team name. Otherwise your entries will not be synchronised.</string>
     <string name="developer_functions">Developer Functions</string>

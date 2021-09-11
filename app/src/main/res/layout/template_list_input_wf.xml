@@ -18,10 +18,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
-                android:scrollbars="none"
-                android:requiresFadingEdge="vertical"
-                android:fadingEdgeLength="20dp"
-                android:overScrollMode="never" >
+                android:scrollbars="none" >
 
                 <LinearLayout
                     android:id="@+id/Selected"
@@ -41,10 +38,7 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.5"
-                android:orientation="vertical"
-                android:requiresFadingEdge="vertical"
-                android:fadingEdgeLength="20dp"
-                android:overScrollMode="never" >
+                android:orientation="vertical" >
             </LinearLayout>
         </LinearLayout>
 
@@ -90,10 +84,7 @@
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="0.5"
-                        android:fillViewport="true"
-                        android:requiresFadingEdge="vertical"
-                        android:fadingEdgeLength="20dp"
-                        android:overScrollMode="never" >
+                        android:fillViewport="true" >
 
                         <LinearLayout
                             android:id="@+id/sortPanel"
@@ -127,10 +118,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="0.6"
                 android:fillViewport="true"
-                android:scrollbars="none"
-                android:requiresFadingEdge="vertical"
-                android:fadingEdgeLength="20dp"
-                android:overScrollMode="never" >
+                android:scrollbars="none" >
 
                 <LinearLayout
                     android:id="@+id/fieldList"

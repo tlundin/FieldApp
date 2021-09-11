@@ -25,16 +25,16 @@
 	<string name="cancel">Avbryt</string>
 		
 	<string name="DeviceType">Dosans typ</string>
-	<string name="Team">Synkgrupp</string>
+	<string name="Team">Lag</string>
 	<string name="UserName">Användare</string>
 	<string name="DevOp">Avancerat</string>
 	<string name="log_levels_h">Logg-nivåer</string>
-	<string name="UserName_dm">Måste anges för synk</string>
-	<string name="Team_s">Måste anges för synk</string>
+	<string name="UserName_dm">Användarens namn</string>
+	<string name="Team_s">Namn på ditt lag och synkgrupp</string>
 	
 	<string name="restart">Omstart</string>
 	<string name="repair">Databas reparerad</string>
-	<string name="restartMessage">Appen kommer nu starta om</string>
+	<string name="restartMessage">Du måste starta om för att ändringen ska gälla. Starta om?</string>
 	<string name="team_missing_error">Lag krävs</string>
 	<string name="team_missing_error_message">För att kunna använda synk, måste du ange ett lag (team).</string>
 	<string name="developer_functions">Avlusningsfunktioner</string>

@@ -126,11 +126,11 @@ public class GisObject {
 
 	public String getStatus() {
 		if (statusVariable==null) {
-			//Log.d("vortex","statvar missing for "+this.label);
-			return null;
+			//Log.d("vortex","value only");
+			return statusVariableValue;
 		}
-		//Log.d("vortex","returning status for "+this.label);
-		return statusVariable.getValue();
+		else
+			return statusVariable.getValue();
 	}
 
 	
