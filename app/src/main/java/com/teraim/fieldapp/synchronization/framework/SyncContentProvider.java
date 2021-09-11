@@ -113,7 +113,7 @@ public class SyncContentProvider extends ContentProvider {
         }
         PersistenceHelper globalPh = gs.getGlobalPreferences();
         final String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
-        final String syncGroup =  globalPh.get(PersistenceHelper.LAG_ID_KEY,"");
+        final String teamName =  globalPh.get(PersistenceHelper.LAG_ID_KEY,"");
         if (bundleName == null || bundleName.length()==0) {
             Log.e("vortex","Bundlename was null in content provider!");
             return null;
@@ -131,10 +131,10 @@ public class SyncContentProvider extends ContentProvider {
                 } else {
 
                     //Timestamp key includes team name, since change of team name should lead to resync from zero.
-                    Long timestamp = gs.getDb().getSendTimestamp(syncGroup);
+                    Long timestamp = gs.getDb().getSendTimestamp(teamName);
                     Log.d("burlesk", "SYNCPROVIDER - Timestamp for last sync in Query is " + timestamp);
                     c = db.query(DbHelper.TABLE_AUDIT, null,
-                            "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), syncGroup}, null, null, "timestamp asc", null);
+                            "timestamp > ?", new String[]{timestamp.toString()}, null, null, "timestamp asc", null);
 
                 }
             } else {

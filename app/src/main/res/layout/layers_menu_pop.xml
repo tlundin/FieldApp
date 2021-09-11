@@ -106,10 +106,7 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="30dp"
-        android:overScrollMode="never">
+        android:layout_height="wrap_content">
 
         <FrameLayout
             android:id="@+id/LayersL"

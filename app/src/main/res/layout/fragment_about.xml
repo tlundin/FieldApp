@@ -41,10 +41,7 @@
     </LinearLayout>
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="20dp"
-        android:overScrollMode="never">
+        android:layout_height="wrap_content">
         <TextView
             android:id="@+id/LoadDetails"
             android:layout_width="match_parent"
