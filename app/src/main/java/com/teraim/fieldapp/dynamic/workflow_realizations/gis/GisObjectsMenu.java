@@ -102,7 +102,7 @@ public class GisObjectsMenu extends View {
 		tabTextP.setTextSize(scaledSize);
 
 		Log.d("alfa","scale on device is "+scale);
-		tabTextP.setStyle(Paint.Style.STROKE);
+		tabTextP.setStyle( Style.FILL_AND_STROKE);
 		tabTextP.setTextAlign(Paint.Align.CENTER);
 
 		tabEdgePaint = new Paint();

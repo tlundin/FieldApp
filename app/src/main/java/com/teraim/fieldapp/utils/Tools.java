@@ -1267,6 +1267,8 @@ public class Tools {
                 return Color.RED;
             else if (colorName.equalsIgnoreCase("blue"))
                 return Color.BLUE;
+            else if (colorName.equalsIgnoreCase("Lightgray"))
+            	return Color.parseColor("#D3D3D3");
 			try {
 				int resourceId = ctx.getResources().getIdentifier(colorName.toLowerCase(), "color", ctx.getPackageName());
 				return ctx.getColor(resourceId);
@@ -1274,7 +1276,7 @@ public class Tools {
 				e.printStackTrace();
 			}
 		}
-		Log.e("plax","Color not know...returning default");
+		Log.e("plax","Color "+colorName+" not known...returning default");
 		return ctx.getColor(defaultColor);
 	}
 

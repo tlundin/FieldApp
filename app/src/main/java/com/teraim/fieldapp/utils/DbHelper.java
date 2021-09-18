@@ -2085,8 +2085,7 @@ public class DbHelper extends SQLiteOpenHelper {
  //           Cursor c = db().query(TABLE_AUDIT, null,
  //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             Cursor c = db().query(TABLE_AUDIT, null,
-                    "timestamp > ?", new String[]{timestamp.toString()}, null, null, "timestamp asc", null);
-
+                    "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             ret = c.getCount();
             c.close();
             return ret;

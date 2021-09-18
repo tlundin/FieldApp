@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
@@ -30,6 +31,8 @@ import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.Workflow;
+import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
+import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
@@ -111,7 +114,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
     private boolean candMenuVisible=false, initialized = false;
 
-
 	public GisImageView(Context context) {
 		super(context);
 		init(context);
@@ -129,11 +131,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		init(context);
 	}
 
+
+	private CurrStatVar currentStatusVariable;
+
 	private void init(Context ctx) {
-
 		this.setClickable(true);
-
-
 		this.ctx=ctx;
 		//used for cursor blink.
 		calendar.setTime(new Date());
@@ -158,22 +160,22 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		txtPaint = new Paint();
 		txtPaint.setTextSize(8);
 		txtPaint.setColor(Color.WHITE);
-		txtPaint.setStyle(Paint.Style.STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		txtPaint.setTextAlign(Paint.Align.CENTER);
         Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
 		selectedPaint.setColor(Color.BLACK);
-		selectedPaint.setStyle(Paint.Style.STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
         Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
 		btnTxt.setColor(Color.WHITE);
-		btnTxt.setStyle(Paint.Style.STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		btnTxt.setTextAlign(Paint.Align.CENTER);
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
 		vtnTxt.setColor(Color.WHITE);
-		vtnTxt.setStyle(Paint.Style.STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		vtnTxt.setTextAlign(Paint.Align.CENTER);
         Paint borderPaint = new Paint();
 		borderPaint.setColor(Color.WHITE);
@@ -182,8 +184,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		polyPaint = new Paint();
 		polyPaint.setColor(Color.WHITE);
 		polyPaint.setStyle(Paint.Style.STROKE);
-		polyPaint.setStrokeWidth(0);
-
+		polyPaint.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
+		polyPaint.setPathEffect( new DashPathEffect( new float[] {20,5,},0 ) );
 		fgPaintSel = new Paint();
 		fgPaintSel.setColor(Color.YELLOW);
 		fgPaintSel.setStyle(Paint.Style.STROKE);
@@ -193,16 +195,16 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		paintSimple.setAntiAlias(true);
 		paintSimple.setDither(true);
 		paintSimple.setColor(Color.argb(248, 255, 255, 255));
-		paintSimple.setStrokeWidth(2f);
+		paintSimple.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
 		paintSimple.setStyle(Paint.Style.STROKE);
 		paintSimple.setStrokeJoin(Paint.Join.ROUND);
 		paintSimple.setStrokeCap(Paint.Cap.ROUND);
 
 		paintBlur = new Paint();
 		paintBlur.set(paintSimple);
-		paintBlur.setColor(Color.argb(235, 74, 138, 255));
-		paintBlur.setStrokeWidth(5f);
-		paintBlur.setMaskFilter(new BlurMaskFilter(15, BlurMaskFilter.Blur.NORMAL));
+		paintBlur.setColor(Color.argb(245, 74, 138, 255));
+		paintBlur.setStrokeWidth(5f * getResources().getDisplayMetrics().density);
+		paintBlur.setMaskFilter(new BlurMaskFilter(10, BlurMaskFilter.Blur.NORMAL));
 
 
 		if (getInstance()!=null)
@@ -404,17 +406,13 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 
 			}
-
-
 			layer.filterLayer(this);
-
 		}
-
-
 	}
 
-
-
+	public CurrStatVar getCurrentStatusVariable() {
+		return currentStatusVariable;
+	}
 
 	private float fixedX=-1;
 	private float fixedY;
@@ -476,24 +474,25 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			return false;
 		}
 		//Assume it is inside
-		boolean isInside = true;
+		boolean isInside = false;
 		double mapDistX = l.getX()-photoMetaData.W;
 		double mapDistY = l.getY()-photoMetaData.S;
 		if ((mapDistX <=imgWReal && mapDistX>=0) && (mapDistY <=imgHReal && mapDistY>=0)) {
-            Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
+			//Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
+			isInside = true;
 		}
-		else {
-			if(mapDistX>imgWReal||mapDistX<0)
-				Log.e("jgw","Distance X in meter: "+mapDistX+" [outside!]");
-			if(mapDistY>imgHReal||mapDistY<0)
-				Log.e("jgw","Distance Y in meter: "+mapDistY+" [outside!]");
-			Log.d("jgw","w h of gis image. w h of image ("+photoMetaData.getWidth()+","+photoMetaData.getHeight()+") ("+this.getScaledWidth()+","+this.getScaledHeight()+")");
-			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
-			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
-			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
-			//No, it is outside.
-			isInside = false;
-		}
+//		else {
+//			if(mapDistX>imgWReal||mapDistX<0)
+//				Log.e("jgw","Distance X in meter: "+mapDistX+" [outside!]");
+//			if(mapDistY>imgHReal||mapDistY<0)
+//				Log.e("jgw","Distance Y in meter: "+mapDistY+" [outside!]");
+//			Log.d("jgw","w h of gis image. w h of image ("+photoMetaData.getWidth()+","+photoMetaData.getHeight()+") ("+this.getScaledWidth()+","+this.getScaledHeight()+")");
+//			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
+//			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
+//			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
+		//No, it is outside.
+//			isInside = false;
+//		}
 
 
 		pXR = this.getImageWidth()/photoMetaData.getWidth();
@@ -691,7 +690,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 							GisObject go = iterator.next();
 							//Log.d("bortex","Checking "+go.getLabel()+" id: "+go.getId()+ "type: "+go.getClass().getCanonicalName());
 							//If not inside map, or if touched, skip.
-							if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatus())) {
+							if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatusVariableValue())) {
 								//Log.d("bortex",go.getLabel()+" is thown. useful?" + go.isUseful());
 								continue;
 							}
@@ -699,7 +698,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								GisPointObject gop = (GisPointObject)go;
 								//Log.d("baha",gop.getId());
 								if (gop.isDynamic()) {
-									Log.d("Glapp","found dynamic object");
+									//Log.d("Glapp","found dynamic object");
 									int[] xy = intBuffer.getIntBuf();
                                     boolean inside = translateMapToRealCoordinates(gop.getLocation(),xy);
 									if (!inside) {
@@ -712,7 +711,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 										continue;
 									} else {
 
-										Log.d("inside","inside. Label :"+gop.getLabel());
+										//Log.d("inside","inside. Label :"+gop.getLabel());
 										if (gop.isUser()) {
 											userGop = gop;
 											myMap.showCenterButton(true);
@@ -727,10 +726,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								String color = gop.getColor();
 								Style style = gop.getStyle();
 								PolyType polyType=gop.getShape();
-								String statusValue = gop.getStatus();
+
 								//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
-								String statusColor = colorShiftOnStatus(gop.getStatus());
+								String statusColor = colorShiftOnStatus(gop.getStatusVariableValue());
 								if (statusColor!=null)
 									color = statusColor;
 
@@ -1198,14 +1197,19 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private void drawPath(Path p, boolean selected, Canvas canvas, GisObject go) {
 		if (selected) {
+			//Log.d("bel","get status returns "+go.getStatusVariableValue());
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
-			//String color = colorShiftOnStatus(go.getStatus());
-			//if (color == null)
-			String color = go.getColor();
-			// strokeWidth: 0 changed to 2
-			canvas.drawPath(p, createPaint(color, Paint.Style.STROKE, 2));
+			String color = colorShiftOnStatus(go.getStatusVariableValue());
+			if (color == null)
+				color = go.getColor();
+			// strokeWidth: 0 changed to display-aware
+			canvas.drawPath(p,
+					createPaint(
+							color,
+							Paint.Style.STROKE,
+							(int) (2.0f * getResources().getDisplayMetrics().density) ));
 		}
 	}
 
@@ -1432,7 +1436,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private final Map<String,Paint> paintCache = new HashMap<String,Paint>();
 
 	public Paint createPaint(String color, Paint.Style style) {
-		return createPaint(color,style,2);
+		return createPaint(color,style, (int) (2.0f * getResources().getDisplayMetrics().density) );
 	}
 
 	private Paint createPaint(String color, Paint.Style style, int strokeWidth) {
@@ -1498,17 +1502,20 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				Map<String, String> keyHash = gop.getKeyHash();
 				if (keyHash!=null)
 					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
-				Log.d("buu","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
+				Log.d("grogg","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
 				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
 				if (statusVariable!=null) {
 					String valS = statusVariable.getValue();
 					if (valS == null || valS.equals("0")) {
-						Log.d("grogg", "Setting status variable to 1");
 						statusVariable.setValue("1");
-						gop.setStatusVariable(statusVariable);
-					} else
-						Log.d("grogg", "NOT Setting status variable to 1...current val: " + statusVariable.getValue());
-					myMap.registerEvent(new WF_Event_OnSave("Gis"));
+						gop.setStatusVariableValue("1");
+						myMap.registerEvent(new WF_Event_OnSave("Gis"));
+					}
+					//keep track
+					currentStatusVariable = new CurrStatVar();
+					currentStatusVariable.v = statusVariable;
+					currentStatusVariable.id = gop.getKeyHash().get("uid");
+
 				} else {
 					Log.e("grogg", "StatusVariable definition error");
 					LoggerI o = getInstance().getLogger();

@@ -90,11 +90,6 @@ public class ImageHandler {
 		if (realW>0) {
 			double ratio = realH/realW;
 			//Height should not be higher than width.
-			if (ratio >0) {
-				Log.d("nils", "picture is not landscape. its portrait..");
-			}
-			Log.d("nils", "realW realH"+realW+" "+realH);
-
 			//Find out screen size.
 			Display display = fragment.getActivity().getWindowManager().getDefaultDisplay();
 			Point size = new Point();
