@@ -284,8 +284,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (myContext.hasGPSTracker())
 				startLocationUpdates(createLocationRequest(), locationCallback);
 			resetContext();
-		} else
-			Log.e("vortex","myContext null");
+		}
 
 		super.onResume();
 	}
@@ -331,6 +330,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
     @Override
 	public void onPause()
 	{
+
 		Log.d("Vortex", "onPause() for executor "+this.toString());
 		if (myContext != null) {
 			if (myContext.hasGPSTracker())

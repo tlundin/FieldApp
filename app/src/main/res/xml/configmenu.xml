@@ -6,7 +6,6 @@
         <EditTextPreference
             android:dialogMessage="@string/UserName_dm"
             android:summary="@string/UserName_dm"
-            android:dialogTitle="@string/UserName"
             android:inputType="textCapSentences"
             android:key="user_id"
             android:title="@string/UserName" />

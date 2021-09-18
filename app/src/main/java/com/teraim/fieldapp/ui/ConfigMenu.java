@@ -3,7 +3,6 @@ package com.teraim.fieldapp.ui;
 import android.accounts.Account;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.assist.AssistStructure;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -27,8 +26,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
-import com.google.android.gms.vision.barcode.Barcode;
-import com.google.android.gms.vision.barcode.BarcodeDetector;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -74,7 +71,6 @@ public class ConfigMenu extends PreferenceActivity {
 			if (requestCode == Constants.QR_SCAN_REQUEST) {
 				if (Activity.RESULT_OK == resultCode) {
 					Log.d("vortex", "code img taken...scan!");
-
 					String url = (new BarcodeReader(this.getActivity())).analyze();
 
 					Log.d("vortex", "GOT " + (url == null ? "null" : url));
@@ -94,7 +90,7 @@ public class ConfigMenu extends PreferenceActivity {
 						(new AlertDialog.Builder(this.getActivity())).setTitle("Recieved QR configuration")
 								.setMessage("The following QR setting was received:" +
 										Tools.printIfNotNull("\nApplication: ", application) +
-										Tools.printIfNotNull("\nSyncGroup: ", team) +
+										Tools.printIfNotNull("\nTeam: ", team) +
 										Tools.printIfNotNull("\nName: ", name) +
 										Tools.printIfNotNull("\nSync: ", sync) +
 										Tools.printIfNotNull("\nVersion Control: ", control) +
@@ -161,10 +157,7 @@ public class ConfigMenu extends PreferenceActivity {
 			this.getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE)
 					.registerOnSharedPreferenceChangeListener(this);
 
-
-
-
-				//Create a filter that stops users from entering disallowed characters.
+			//Create a filter that stops users from entering disallowed characters.
 			InputFilter filter = new InputFilter() {
 				@Override
 				public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
@@ -228,7 +221,6 @@ public class ConfigMenu extends PreferenceActivity {
 
 			syncPref = (ListPreference)findPreference(PersistenceHelper.SYNC_METHOD);
 			syncPref.setSummary(syncPref.getValue());
-
 
 			serverPref = (EditTextPreference) findPreference(PersistenceHelper.SERVER_URL);
 			serverPref.setText(Tools.server(serverPref.getText()));
@@ -363,6 +355,7 @@ public class ConfigMenu extends PreferenceActivity {
 					.unregisterOnSharedPreferenceChangeListener(this);
 			if (anyChange)
 				Tools.restart(this.getActivity());
+
 		}
 
 
@@ -400,7 +393,7 @@ public class ConfigMenu extends PreferenceActivity {
 						strA[0] = Character.toUpperCase(strA[0]);
 						String bundleName = new String(strA);
 						etp.setText(bundleName);
-						String syncGroup = bundleName+"synk"+Calendar.getInstance().get(Calendar.YEAR);
+						String syncGroup = bundleName+"synk"+ Calendar.getInstance().get(Calendar.YEAR);
 						teamPref.setText(syncGroup);
 						teamPref.setSummary(syncGroup);
 
@@ -418,7 +411,7 @@ public class ConfigMenu extends PreferenceActivity {
 
 
 		private void askForRestart() {
-			anyChange=true;
+			anyChange =true;
 		}
 
 		private boolean isEmpty(String s) {
@@ -426,8 +419,6 @@ public class ConfigMenu extends PreferenceActivity {
 		}
 
 	}
-
-
 
 
 
