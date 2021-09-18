@@ -160,54 +160,41 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		txtPaint = new Paint();
 		txtPaint.setTextSize(8);
 		txtPaint.setColor(Color.WHITE);
-		// Changed .STROKE to .FILL_AND_STROKE
 		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		txtPaint.setTextAlign(Paint.Align.CENTER);
         Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
 		selectedPaint.setColor(Color.BLACK);
-		// Changed .STROKE to .FILL_AND_STROKE
-		selectedPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
         Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
 		btnTxt.setColor(Color.WHITE);
-		// Changed .STROKE to .FILL_AND_STROKE
-		btnTxt.setStyle(Paint.Style.FILL_AND_STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		btnTxt.setTextAlign(Paint.Align.CENTER);
-		//vtnTxt is used to write the labels on the GIS object palettes
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
 		vtnTxt.setColor(Color.WHITE);
-		// Changed .STROKE to .FILL_AND_STROKE
-		vtnTxt.setStyle(Paint.Style.FILL_AND_STROKE);
+		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
 		vtnTxt.setTextAlign(Paint.Align.CENTER);
         Paint borderPaint = new Paint();
 		borderPaint.setColor(Color.WHITE);
 		borderPaint.setStyle(Paint.Style.STROKE);
 		borderPaint.setStrokeWidth(3);
-
-		// polyPaint is used when manually creating polygons
 		polyPaint = new Paint();
 		polyPaint.setColor(Color.WHITE);
 		polyPaint.setStyle(Paint.Style.STROKE);
-		// Changed width 0 --> 2
-		// Changed to display-adapted width calculation
 		polyPaint.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
-		// Added dashed line feature. First float is "on" and second float is "off" length.
 		polyPaint.setPathEffect( new DashPathEffect( new float[] {20,5,},0 ) );
-
 		fgPaintSel = new Paint();
 		fgPaintSel.setColor(Color.YELLOW);
 		fgPaintSel.setStyle(Paint.Style.STROKE);
 		fgPaintSel.setStrokeWidth(2);
 
-		// paintSimple and paintBlur are used when rendering selected polygons
 		paintSimple = new Paint();
 		paintSimple.setAntiAlias(true);
 		paintSimple.setDither(true);
 		paintSimple.setColor(Color.argb(248, 255, 255, 255));
-		// Changed to display-adapted width calculation
 		paintSimple.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
 		paintSimple.setStyle(Paint.Style.STROKE);
 		paintSimple.setStrokeJoin(Paint.Join.ROUND);
@@ -215,12 +202,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		paintBlur = new Paint();
 		paintBlur.set(paintSimple);
-		// Changed transparency (alpha) 235 --> 245
 		paintBlur.setColor(Color.argb(245, 74, 138, 255));
-		// Changed to display-adapted width calculation
 		paintBlur.setStrokeWidth(5f * getResources().getDisplayMetrics().density);
-		// Changed radius 15 --> 10
-		// .0f * getResources().getDisplayMetrics().density
 		paintBlur.setMaskFilter(new BlurMaskFilter(10, BlurMaskFilter.Blur.NORMAL));
 
 
@@ -495,7 +478,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		double mapDistX = l.getX()-photoMetaData.W;
 		double mapDistY = l.getY()-photoMetaData.S;
 		if ((mapDistX <=imgWReal && mapDistX>=0) && (mapDistY <=imgHReal && mapDistY>=0)) {
-            //Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
+			//Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
 			isInside = true;
 		}
 //		else {
@@ -507,7 +490,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 //			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
 //			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
 //			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
-			//No, it is outside.
+		//No, it is outside.
 //			isInside = false;
 //		}
 
@@ -1214,7 +1197,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private void drawPath(Path p, boolean selected, Canvas canvas, GisObject go) {
 		if (selected) {
-			Log.d("bel","get status returns "+go.getStatusVariableValue());
+			//Log.d("bel","get status returns "+go.getStatusVariableValue());
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
@@ -1453,7 +1436,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private final Map<String,Paint> paintCache = new HashMap<String,Paint>();
 
 	public Paint createPaint(String color, Paint.Style style) {
-		// Changed to display-adapted width calculation
 		return createPaint(color,style, (int) (2.0f * getResources().getDisplayMetrics().density) );
 	}
 

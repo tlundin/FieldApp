@@ -116,7 +116,6 @@ import java.util.regex.Pattern;
 				showImage();
 			}
 		});
-
 	}
 
 	private void showImage() {
@@ -142,6 +141,7 @@ import java.util.regex.Pattern;
 				ViewGroup.LayoutParams.MATCH_PARENT));
 		builder.show();
 	}
+
 
 	private void setImageFromFile(WF_Context myContext, ImageView img) {
 		if (dynImgName==null) {
@@ -184,40 +184,6 @@ import java.util.regex.Pattern;
 			}).start();
 
 
-		}
-		else {
-			Log.d("nils","Did not find picture "+dynImgName);
-		}
-	}
-
-
-	private void setImageFromFile_old(WF_Context myContext, ImageView img) {
-		if (dynImgName==null) {
-			Log.e("vortex","no dynimage name in createimageblock... exit");
-		}
-		if(Looper.myLooper() == Looper.getMainLooper())
-			Log.d("bel","In UI thread");
-		final int divisor = 1;
-		final BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds=true;
-		Bitmap bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
-		float realW = options.outWidth;
-		float realH = options.outHeight;
-		if (realW>0) {
-			float ratio = realH/realW;
-			Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
-			Point size = new Point();
-			display.getSize(size);
-			float sWidth = size.x;
-			float tWidth = sWidth/divisor;
-			int tHeight = (int) (tWidth*ratio);
-			options.inSampleSize = Tools.calculateInSampleSize(options, (int)tWidth, tHeight);
-			options.inJustDecodeBounds = false;
-			bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
-			if (bip!=null)
-				img.setImageBitmap(bip);
-			else
-				Log.d("nils","Could not decode image "+dynImgName);
 		}
 		else {
 			Log.d("nils","Did not find picture "+dynImgName);

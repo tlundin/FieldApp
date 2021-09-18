@@ -2082,11 +2082,10 @@ public class DbHelper extends SQLiteOpenHelper {
             Long timestamp = getSendTimestamp(team);
             //Log.d("biff","Time difference from now to my last sync is "+(System.currentTimeMillis()-timestamp)+". Timestamp: "+timestamp+" team: "+team+" tsglobal: "+timestamp2+" app: "+globalPh.get(PersistenceHelper.BUNDLE_NAME));
 
+ //           Cursor c = db().query(TABLE_AUDIT, null,
+ //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             Cursor c = db().query(TABLE_AUDIT, null,
                     "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
- //           Cursor c = db().query(TABLE_AUDIT, null,
- //                   "timestamp > ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
-
             ret = c.getCount();
             c.close();
             return ret;
@@ -2776,7 +2775,7 @@ public class DbHelper extends SQLiteOpenHelper {
             c.moveToFirst();
             lastEntry = c.getLong(0);
         } else {
-            //Log.d("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
+            Log.e("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
             lastEntry = 0;
         }
         c.close();

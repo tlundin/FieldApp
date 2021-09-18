@@ -42,6 +42,7 @@ public class WebLoader extends Loader {
 			url = new URL(module.getURL());
 			Log.d("vortex","trying to open connection");
 			URLConnection ucon = url.openConnection();
+			Log.d("FRAGG",url.toString());
 			Log.d("vortex","setting timeout");
 			ucon.setConnectTimeout(5000);
 			in = ucon.getInputStream();

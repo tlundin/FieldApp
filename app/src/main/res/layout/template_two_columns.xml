@@ -13,10 +13,7 @@
         android:layout_width="0px"
         android:layout_weight="1"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:requiresFadingEdge="vertical"
-        android:fadingEdgeLength="20dp"
-        android:overScrollMode="never"/>
+        android:orientation="vertical"/>
 
     <View
         android:layout_width="1dip"

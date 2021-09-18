@@ -10,9 +10,14 @@
     {
       "type": "SINGLE",
       "filters": [],
+<<<<<<< HEAD
       "attributes": [],
       "versionCode": 698,
       "versionName": "6.98",
+=======
+      "versionCode": 696,
+      "versionName": "6.96",
+>>>>>>> 238aced3d1630cf65e3ad336438f51f2b44fd0cc
       "outputFile": "app-release.apk"
     }
   ],
