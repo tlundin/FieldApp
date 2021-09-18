@@ -1473,6 +1473,7 @@ public class DbHelper extends SQLiteOpenHelper {
         boolean resetCache = false;
         final String uidCol = getDatabaseColumnName("uid");
         final String spyCol = getDatabaseColumnName("spy");
+        final String vpsCol = getDatabaseColumnName("vps");
         //String arCol = getDatabaseColumnName("år");
         //SyncStatus syncStatus=new SyncStatus();
         TimeStampedMap tsMap = changes.getTimeStampedMap();
@@ -1484,7 +1485,7 @@ public class DbHelper extends SQLiteOpenHelper {
         //keep track of most current location update per user. For each user, keep a map of most current gps_x,gps_y,gps_accuracy etc
         Map<String,Map<String,SyncEntry>> mostCurrentSyncMessage = new HashMap<>();
 
-        String variableName = null,uid=null, spy=null,syncTeam=null;
+        String variableName = null,uid=null, spy=null,vps=null, syncTeam=null;
         int synC = 1;
 
         final String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
@@ -1495,6 +1496,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
             uid=null;
             spy=null;
+            vps=null;
             synC++;
             //Only insert location updates that are newest.
             if (s.isInsertArray()) {
@@ -1534,13 +1536,14 @@ public class DbHelper extends SQLiteOpenHelper {
                 //
                 uid = cv.getAsString(uidCol);  //unique key for object. uid.
                 spy = cv.getAsString(spyCol); //smaprovyteid
+                vps = cv.getAsString(vpsCol);
                 variableName = cv.getAsString(VARID);
 
                 if (uid != null ) {
                     //Log.d("brakko", "INSERT U: " + uid+ "Target: "+ s.getTarget() + " CH: " + s.getChange()+" TS:"+s.getTimeStamp()+" A:"+s.getAuthor());
                     //Log.d("vortex","added to tsmap: "+uid);
-                    tsMap.add(tsMap.getKey(uid,spy),variableName, cv);
-                    if (!variableCache.turboRemoveOrInvalidate(uid, spy, variableName, true))
+                    tsMap.add(tsMap.getKey(uid,spy,vps),variableName, cv);
+                    if (!variableCache.turboRemoveOrInvalidate(uid, spy, vps, variableName, true))
                     resetCache = true;
                 } else {
                     //Log.e("bascar", "Inserting RAW" + s.getChange());
@@ -1569,9 +1572,10 @@ public class DbHelper extends SQLiteOpenHelper {
                 }
                 spy = sKeys.get("spy");
                 uid = sKeys.get("uid");
+                vps = sKeys.get("vps");
                 variableName = sKeys.get(VARID);
 
-                Unikey ukey = Unikey.FindKeyFromParts(uid,spy,tsMap.getKeySet());
+                Unikey ukey = Unikey.FindKeyFromParts(uid,spy,vps,tsMap.getKeySet());
                 tsMap.delete(ukey, variableName);
                     try {
                         //Log.d("bascar","not found in sync cache buffer (TS): "+variableName);
@@ -1581,7 +1585,7 @@ public class DbHelper extends SQLiteOpenHelper {
                             changes.failedDeletes++;
                         } else {
                             changes.deletes++;
-                            if (!variableCache.turboRemoveOrInvalidate(uid, spy, variableName, false))
+                            if (!variableCache.turboRemoveOrInvalidate(uid, spy, vps, variableName, false))
                                 resetCache = true;
                         }
                     } catch (SQLException e) {
@@ -2666,13 +2670,15 @@ public class DbHelper extends SQLiteOpenHelper {
     public void insertIfMax(SyncReport sr) {
         //if spy exist?
         boolean hasSpy = hasDatabaseColumnName("spy");
+        boolean hasVps = hasDatabaseColumnName("vps");
         TimeStampedMap tsMap = sr.getTimeStampedMap();
         VariableCache varCache = GlobalState.getInstance().getVariableCache();
         long t = System.currentTimeMillis();
         Set<Integer> idsToDelete = new HashSet<>();
         String query = "SELECT id,timestamp,"+getDatabaseColumnName("år")+","+VARID+","+getDatabaseColumnName("uid")+
-                (hasSpy?","+getDatabaseColumnName("spy"):"")
-                +" from "+TABLE_VARIABLES+" where "+getDatabaseColumnName("år")+"<>'H' AND "+getDatabaseColumnName("uid")+" NOT NULL";
+                (hasSpy?","+getDatabaseColumnName("spy"):"")+
+                (hasVps?","+getDatabaseColumnName("vps"):"")+
+                " from "+TABLE_VARIABLES+" where "+getDatabaseColumnName("år")+"<>'H' AND "+getDatabaseColumnName("uid")+" NOT NULL";
         //Log.d("kakko","query: "+query);
         Cursor c = db().rawQuery(query,null);
         //Log.d("rosto","C size: "+c.getCount());
@@ -2680,7 +2686,8 @@ public class DbHelper extends SQLiteOpenHelper {
             String vid = c.getString(3);
             String uid = c.getString(4);
             String spy = (hasSpy?c.getString(5):null);
-            Unikey ukey = Unikey.FindKeyFromParts(uid,spy,tsMap.getKeySet());
+            String vps = (hasVps?c.getString(hasSpy?6:5):null);
+            Unikey ukey = Unikey.FindKeyFromParts(uid,spy, vps,tsMap.getKeySet());
             if (ukey!=null) {
                 //Log.d("sync", "Found ukey " + uid + ": " + vid);
 
@@ -2724,7 +2731,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     cv=m.get(vid);
                     db().insert(TABLE_VARIABLES, null, cv);
                     //Log.d("sync","inserted "+cv);
-                    varCache.turboRemoveOrInvalidate(uid.getUid(),uid.getSpy(),vid,true);
+                    varCache.turboRemoveOrInvalidate(uid.getUid(),uid.getSpy(),uid.getVps(),vid,true);
                     sr.inserts++;
                 }
             }

@@ -96,14 +96,14 @@ public class TimeStampedMap {
         }
         Map<String, ContentValues> vars;
         if (pattern==null){
-           vars = (myMap.remove(Unikey.FindKeyFromParts(uid, null, myMap.keySet())));
+           vars = (myMap.remove(Unikey.FindKeyFromParts(uid, null,null, myMap.keySet())));
            if (vars!=null) {
                Log.d("bascar", "deleteall removed something!");
                return vars.size();
            } else
                return 0;
         } else {
-            vars = myMap.get(Unikey.FindKeyFromParts(uid, null, myMap.keySet()));
+            vars = myMap.get(Unikey.FindKeyFromParts(uid, null,null, myMap.keySet()));
             int result = 0;
             for(String var:vars.keySet()) {
                 if (var.matches(pattern) ) {
@@ -117,64 +117,7 @@ public class TimeStampedMap {
     }
 
 
-     /*    else {
-
-            String spy = keys.remove("spy");
-
-            Map<String, ContentValues> vars = myMap.get(Unikey.FindKeyFromParts(uid, spy, myMap.keySet()));
-            Log.e("myMap","myMap: "+myMap.keySet()+"\nLooking for\n "+uid+" , "+spy);
-            if (vars != null) {
-                Log.d("bascar", "found vars");
-                for (String var : vars.keySet()) {
-                    if (pattern == null || var.matches(pattern)) {
-                        Log.d("bascar", "found var: " + var);
-                        //now each remaining key must be in contentvalues.
-                        ContentValues cv = vars.get(var);
-                        boolean match = true;
-                        for (String key : keys.keySet()) {
-                            Log.d("bascar", "key " + key + " cv: "+cv);
-                            if (cv.containsKey(key)) {
-                                //check equal.
-                                Log.d("bascar", "key " + key + " found in cval");
-                                String cVal = cv.getAsString(key);
-                                String val = keys.get(key);
-                                if ((val == null && cVal == null) ||
-                                        ((val != null && cVal != null) &&
-                                                (val.equals(cVal) ||
-                                                        val.equals("NN")))) {
-                                    Log.d("bascar", "key val" + val + " matches in cval");
-
-                                } else {
-                                    match = false;
-                                    break;
-                                }
-                            } else {
-                                match = false;
-                                break;
-                            }
-
-                        }
-                        if (match) {
-                            Log.d("bascar", "full match for variable " + var + ". Deleting...");
-                            if (vars.remove(var) != null) {
-                                Log.d("bascar", " removed!");
-                                result++;
-                            } else
-                                Log.e("bascar", "not removed!");
-                        }
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
-
-*/
-
-
-
-    public void delete(Unikey uniqueKey, String variableName) {
+      public void delete(Unikey uniqueKey, String variableName) {
         //Log.d("bascar","In deleteTimeSTMap with: "+uniqueKey+","+variableName);
         if (uniqueKey==null || variableName==null) {
             return;
@@ -197,10 +140,10 @@ public class TimeStampedMap {
     }
 
     //return key if it exists, otherwise create.
-    public Unikey getKey(String uid, String spy) {
-        Unikey key = Unikey.FindKeyFromParts(uid,spy,myMap.keySet());
+    public Unikey getKey(String uid, String spy, String vps) {
+        Unikey key = Unikey.FindKeyFromParts(uid,spy,vps,myMap.keySet());
         if (key==null)
-            key = new Unikey(uid,spy);
+            key = new Unikey(uid,spy,vps);
         //else
          //   Log.d("bascar","found existing key for "+uid);
         return key;
