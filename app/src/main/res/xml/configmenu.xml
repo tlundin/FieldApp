@@ -5,7 +5,7 @@
         android:key="general_options">
         <EditTextPreference
             android:dialogMessage="@string/UserName_dm"
-            android:dialogTitle="@string/UserName"
+            android:summary="@string/UserName_dm"
             android:inputType="textCapSentences"
             android:key="user_id"
             android:title="@string/UserName" />
@@ -74,7 +74,7 @@
             android:summary="@string/Backup_folder_s"
             android:title="@string/Backup_folder" />
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:dialogMessage=""
             android:dialogTitle=""
             android:key="auto_backup"

@@ -10,6 +10,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.ColorDrawable;
 import android.os.AsyncTask;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Display;
 import android.view.View;
@@ -146,27 +147,43 @@ import java.util.regex.Pattern;
 		if (dynImgName==null) {
 			Log.e("vortex","no dynimage name in createimageblock... exit");
 		}
-		final int divisor = 1;
+
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds=true;
+
 		Bitmap bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
-		int realW = options.outWidth;
-		int realH = options.outHeight;
+		float realW = options.outWidth;
+		float realH = options.outHeight;
 		if (realW>0) {
-			double ratio = realH/realW;
-			Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
-			Point size = new Point();
-			display.getSize(size);
-			int sWidth = size.x;
-			double tWidth = sWidth/divisor;
-			int tHeight = (int) (tWidth*ratio);
-			options.inSampleSize = Tools.calculateInSampleSize(options, (int)tWidth, tHeight);
-			options.inJustDecodeBounds = false;
-			bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
-			if (bip!=null)
-				img.setImageBitmap(bip);
-			else
-				Log.d("nils","Could not decode image "+dynImgName);
+			new Thread(new Runnable() {
+				public void run() {
+					float ratio = realH/realW;
+					Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
+					Point size = new Point();
+					display.getSize(size);
+					Log.d("bel","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
+
+					int x = size.x/2;
+					int y = size.y/3;
+					options.inSampleSize = Tools.calculateInSampleSize(options,x,y);
+					Log.d("bel", "insample was "+Tools.calculateInSampleSize(options,x,y));
+					options.inJustDecodeBounds = false;
+					Bitmap bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
+					CreateImageBlock.this.myContext.getActivity().runOnUiThread(new Runnable() {
+						public void run() {
+							if(Looper.myLooper() == Looper.getMainLooper())
+								Log.d("bel","In UI thread");
+							if (bip!=null)
+								img.setImageBitmap(bip);
+							else
+								Log.d("nils","Could not decode image "+dynImgName);
+						}
+					});
+
+				}
+			}).start();
+
+
 		}
 		else {
 			Log.d("nils","Did not find picture "+dynImgName);

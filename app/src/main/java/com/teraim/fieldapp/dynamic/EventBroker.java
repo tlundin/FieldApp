@@ -43,13 +43,13 @@ public class EventBroker {
 		if (els==null) {
 			Log.d("nils","No eventlistener exists for event "+e.getType().name());
 		} else {
-			//Log.d("nils","sending event to "+els.size()+" listeners:");
-		int i =0;
+			//Log.d("grogg","sending event "+e.getType()+" to "+els.size()+" listeners:");
+			//int i =0;
 			for(EventListener el:els) {
 
-				//Log.d("vortex","LISTENER NUMBER "+i+": "+el.getName());
+				//Log.d("grogg","LISTENER NUMBER "+i+": "+el.getName());
 				el.onEvent(e);
-				i++;
+				//i++;
 			}
 		}
 

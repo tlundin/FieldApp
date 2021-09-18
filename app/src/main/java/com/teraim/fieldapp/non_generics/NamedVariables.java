@@ -1,10 +1,8 @@
 package com.teraim.fieldapp.non_generics;
 
 public class NamedVariables {
-
 	//LINJEOBJEKT SOM OMNÄMNS
 	public static final String RENSTIG = "Renstig";
-
 	//VARIABLER SOM OMNÄMNS
 	public static final String QR_RESULT = "QR_Result";
 	public static final String AVGRANSSLUT = "Avgränsning:avgransslut";

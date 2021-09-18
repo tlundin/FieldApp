@@ -119,7 +119,7 @@ public class CriticalOnlyLogger implements LoggerI {
 	
 	@Override
 	public boolean hasRed() {
-		Log.d("vortex","calling hasred on "+this.toString());
+		//Log.d("vortex","calling hasred on "+this.toString());
 		if (hasRed) {
 			Log.d("vortex","hasred!");
 			hasRed=false;
