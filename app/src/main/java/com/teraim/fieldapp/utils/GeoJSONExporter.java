@@ -17,6 +17,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -40,7 +41,7 @@ public class GeoJSONExporter extends Exporter {
 		LoggerI o = GlobalState.getInstance().getLogger();
         StringWriter sw = new StringWriter();
 		writer = new JsonWriter(sw);
-
+		String sub = "spy";
 		try {
 			if (cp!=null && cp.moveToFirst()) {
 				writer.setIndent("  ");
@@ -80,8 +81,11 @@ public class GeoJSONExporter extends Exporter {
 					uid = currentHash.get("uid");
 					rutMap.put(uid,currentHash.get(NamedVariables.AreaTerm));
 
-					spy = currentHash.get("spy");
-
+					spy = currentHash.get(sub);
+					if (spy==null) {
+						sub="vps";
+						spy = currentHash.get(sub);
+					}
 
 					//Log.d("botox","CURRENT_HASH: "+currentHash);
 					if (uid==null) {
@@ -333,7 +337,7 @@ public class GeoJSONExporter extends Exporter {
 						}
 						//Check if there are other spy than default.
 						if (gisObjH != null && !gisObjH.isEmpty()) {
-							writer.name("sub");
+							writer.name(sub);
 							writer.beginArray();
 							for (String key : gisObjH.keySet()) {
 								if (key == null) {
@@ -344,7 +348,7 @@ public class GeoJSONExporter extends Exporter {
 								gisObjM = gisObjH.get(key);
 								if (gisObjM != null) {
 									writer.beginObject();
-									write("SPY", key);
+									write(sub.toUpperCase(Locale.ROOT), key);
 									for (String mKey : gisObjM.keySet()) {
 										write(mKey, gisObjM.get(mKey));
 										//Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
