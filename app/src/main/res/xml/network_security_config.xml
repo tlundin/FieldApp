@@ -2,6 +2,7 @@
 <network-security-config>
     <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">slu-beanstalk.eu-west-1.elasticbeanstalk.com</domain>
+        <domain includeSubdomains="true">Slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com</domain>
         <domain includeSubdomains="true">www.one.com</domain>
         <domain includeSubdomains="true">teraim.com</domain>
         <domain includeSubdomains="true">rlo.slu.se</domain>

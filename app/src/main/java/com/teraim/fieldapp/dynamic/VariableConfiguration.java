@@ -273,7 +273,7 @@ public class VariableConfiguration implements Serializable {
 
 	public String getDescription(List<String> row) {
 		String b = myTable.getElement(Col_Group_Description, row);
-		if(b==null) 
+		if(b==null)
 			b = this.getVariableDescription(row);
 
 		return (b==null?"":b);

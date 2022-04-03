@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 7.01f;
+    public final static float VORTEX_VERSION = 8.01f;
     public static final String DEFAULT_SERVER_URI = "http://www.teraim.com";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
@@ -61,7 +61,6 @@ public class Constants {
     public static final String DEFAULT_EXT_BACKUP_DIR = "";
     public static final String TEMP_BARCODE_IMG_NAME = "tmpbar" ;
     public static final String DEFAULT_IMG_FORMAT = "jgw";
-    //public static String NILS_BASE_DIR = "/nils";
     public static String UNDEFINED = "undefined";
 
     public static final String Color_Pressed="#4682B4";
@@ -228,8 +227,11 @@ public class Constants {
     public static final long BACKUP_FREQUENCY = 86_400_000;
 
     //AWS Cloud
-    public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
-    public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+    //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
+    //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+    public static final String SyncDataURI = "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
+    public static final String SynkStatusURI =      "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+
     //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
 
     //public static final String SynkServerURI = "https://rlo.slu.se:8443/com.teraim.synkserv_slu_prod/SynkServ";
