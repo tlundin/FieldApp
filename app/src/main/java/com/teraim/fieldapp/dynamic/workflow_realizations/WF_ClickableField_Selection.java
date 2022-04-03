@@ -22,10 +22,6 @@ public class WF_ClickableField_Selection extends WF_ClickableField {
 
 	@Override
 	public LinearLayout getFieldLayout() {
-		//LayoutInflater.from(context.getContext()).inflate(R.layout.clickable_field_normal,null)
-		//return 	(LinearLayout)LayoutInflater.from(ctx).inflate(R.layout.output_field,null);
-		//o.setText(varId.getLabel()+": "+value);	
-		//u.setText(" ("+varId.getPrintedUnit()+")");
 		return (LinearLayout)LayoutInflater.from(myContext.getContext()).inflate(R.layout.output_field_selection_element,null);
 	}
 

@@ -1,5 +1,6 @@
 package com.teraim.fieldapp;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.Fragment;
@@ -15,13 +16,14 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.ViewConfiguration;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.templates.LinjePortalTemplate;
@@ -123,7 +125,7 @@ public class Start extends MenuActivity {
 
         try {
             ViewConfiguration config = ViewConfiguration.get(this);
-            Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
+            @SuppressLint("SoonBlockedPrivateApi") Field menuKeyField = ViewConfiguration.class.getDeclaredField("sHasPermanentMenuKey");
             if(menuKeyField != null) {
                 menuKeyField.setAccessible(true);
                 menuKeyField.setBoolean(config, false);
@@ -265,7 +267,6 @@ public class Start extends MenuActivity {
         } else {
             // Permission has already been granted
 
-
             if (GlobalState.getInstance() == null) {
                 loading = true;
 
@@ -291,6 +292,7 @@ public class Start extends MenuActivity {
             }
         }
     }
+
 
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
@@ -370,6 +372,8 @@ public class Start extends MenuActivity {
 
         String label = wf.getLabel();
         String template = wf.getTemplate();
+        if (template!=null && template.equals("GisMapTemplate"))
+            template = "DefaultTemplate";
 
         //Set context.
         Log.d("vortex","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"]");

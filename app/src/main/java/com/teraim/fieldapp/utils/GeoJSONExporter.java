@@ -82,9 +82,12 @@ public class GeoJSONExporter extends Exporter {
 					rutMap.put(uid,currentHash.get(NamedVariables.AreaTerm));
 
 					spy = currentHash.get(sub);
+					Log.d("SPY","Current HASH "+currentHash.toString());
+
 					if (spy==null) {
-						sub="vps";
-						spy = currentHash.get(sub);
+						spy = currentHash.get("vps");
+						if (spy != null)
+							sub="vps";
 					}
 
 					//Log.d("botox","CURRENT_HASH: "+currentHash);
