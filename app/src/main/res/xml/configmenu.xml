@@ -12,6 +12,7 @@
         <EditTextPreference
             android:dialogMessage="@string/Team_s"
             android:dialogTitle="@string/Team"
+            android:defaultValue="vortexsynk"
             android:inputType="textCapSentences"
             android:key="lag_id"
             android:summary="@string/Team_s"
@@ -23,7 +24,7 @@
             android:key="bundle_name"
             android:title="@string/app_name_t" />
         <EditTextPreference
-            android:defaultValue="http://www.teraim.com/"
+            android:defaultValue="https://www.teraim.com/"
             android:dialogMessage="App server URL"
             android:dialogTitle="URL"
             android:key="server_location"
@@ -56,7 +57,7 @@
             android:key="reset_cache"
             android:summary="@string/reset_cache_d"/>
         <ListPreference
-            android:defaultValue="Major"
+            android:defaultValue="Forced"
             android:entries="@array/versionArray"
             android:entryValues="@array/versionValues"
             android:key="version_control"

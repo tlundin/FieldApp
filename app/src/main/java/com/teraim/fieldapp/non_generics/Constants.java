@@ -36,8 +36,8 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.01f;
-    public static final String DEFAULT_SERVER_URI = "http://www.teraim.com";
+    public final static float VORTEX_VERSION = 8.02f;
+    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
     public static final String TIMESTAMP_LATEST_SUCCESFUL_SYNC = "timestamp_latest_sync" ;
@@ -229,8 +229,8 @@ public class Constants {
     //AWS Cloud
     //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
     //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
-    public static final String SyncDataURI = "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
-    public static final String SynkStatusURI =      "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+    public static final String SyncDataURI = "https://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
+    public static final String SynkStatusURI =      "https://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
 
     //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
 

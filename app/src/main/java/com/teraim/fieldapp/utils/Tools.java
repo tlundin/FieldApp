@@ -1030,7 +1030,7 @@ public class Tools {
 		}
 
 		protected Boolean doInBackground(String... fileNameAndUrl) {
-			final String protoH = "http://";
+			final String protoH = "https://";
 			if (fileNameAndUrl==null||fileNameAndUrl.length<3) {
 				Log.e("vortex","filename or url name corrupt in downloadtask");
 				return false;
@@ -1239,7 +1239,7 @@ public class Tools {
 			if (serverUrl.length() < 4)
 				serverUrl = Constants.DEFAULT_SERVER_URI;
 			else {
-				serverUrl = "http://" + serverUrl;
+				serverUrl = "https://" + serverUrl;
 
 
 			}
