@@ -214,14 +214,15 @@
         android:layout_alignRight="@+id/ll1"
         android:layout_marginBottom="5dp"
         android:text="@string/close" />
+
     <Button
         android:id="@+id/refresh_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
         android:layout_alignTop="@+id/close_button"
-        android:layout_toLeftOf="@+id/close_button"
+        android:layout_alignParentBottom="true"
         android:layout_marginBottom="5dp"
+        android:layout_toLeftOf="@+id/close_button"
         android:text="@string/sync_pop_sync_button_txt" />
 
 

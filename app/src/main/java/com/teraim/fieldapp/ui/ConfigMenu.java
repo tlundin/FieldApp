@@ -218,6 +218,7 @@ public class ConfigMenu extends PreferenceActivity {
 
 			versionControlPref = (ListPreference)findPreference(PersistenceHelper.VERSION_CONTROL);
 			versionControlPref.setSummary(versionControlPref.getValue());
+			versionControlPref.setEnabled(devFuncPref.isChecked());
 
 			syncPref = (ListPreference)findPreference(PersistenceHelper.SYNC_METHOD);
 			syncPref.setSummary(syncPref.getValue());
@@ -309,8 +310,6 @@ public class ConfigMenu extends PreferenceActivity {
             });
 
 
-
-
 		}
 
 		private void setFolderPref(Preference folderPref) {
@@ -383,6 +382,7 @@ public class ConfigMenu extends PreferenceActivity {
 			Preference pref = findPreference(key);
 			Account mAccount = GlobalState.getmAccount(getActivity());
 			teamPref.setEnabled(devFuncPref.isChecked());
+			versionControlPref.setEnabled(devFuncPref.isChecked());
 			if (pref instanceof EditTextPreference) {
 				EditTextPreference etp = (EditTextPreference) pref;
 				if (!isEmpty(etp.getText())) {
@@ -396,9 +396,7 @@ public class ConfigMenu extends PreferenceActivity {
 						String syncGroup = bundleName+"synk"+ Calendar.getInstance().get(Calendar.YEAR);
 						teamPref.setText(syncGroup);
 						teamPref.setSummary(syncGroup);
-
 					}
-
 				}
 				pref.setSummary(etp.getText());
 			}
