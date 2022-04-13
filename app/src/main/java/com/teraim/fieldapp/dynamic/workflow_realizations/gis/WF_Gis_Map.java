@@ -66,6 +66,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -975,7 +976,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 if (layer!=null) {
 
                     layer.setVisible(true);
-                    final String cacheFolder = Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/cache/";
+                    final String cacheFolder = GlobalState.getInstance().getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/";
                     String cachedImgFilePath = cacheFolder + layer.getImageName();
                     Log.d("vortex", "found layer: "+cachedImgFilePath+" for text "+text);
                     BitmapFactory.Options options = new BitmapFactory.Options();

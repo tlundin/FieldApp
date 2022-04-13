@@ -8,6 +8,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.text.method.ScrollingMovementMethod;
@@ -44,6 +46,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 
@@ -88,8 +91,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		debugConsole = Start.singleton.getLogger();
 
 		//Send a signal that init starts
-
-		//First time vortex runs? Then create global folders.
+		//First time this application runs? Then create config folder.
 		if (this.initIfFirstTime()) {
 			if (!Connectivity.isConnected(getActivity())) {
 				showErrorMsg("You need a network connection first time you start the program. Vortex requires configuration files to run.");
@@ -98,36 +100,25 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 				this.initialize();
 			}
 		}
-		//First time this application runs? Then create config folder.
-		if (!new File(Constants.VORTEX_ROOT_DIR+bundleName).isDirectory()) {
-			Log.d("vortex","First time execution!");
-			debugConsole.addRow("");
-			debugConsole.addPurpleText("First time execution of App "+bundleName);
-		} //else
-		//	Log.d("vortex","This application has been executed before.");
-
-		//TODO: Move this code into above in next release.
-		File folder = new File(Constants.VORTEX_ROOT_DIR+bundleName);
-		folder = new File(Constants.VORTEX_ROOT_DIR+bundleName+"/config");
-		folder = new File(Constants.VORTEX_ROOT_DIR+bundleName+"/cache");
-
-		//write down version..quickly! :)
-		globalPh.put(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM, Constants.VORTEX_VERSION);
-
 		bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
 		if (bundleName == null || bundleName.length()==0)
 			bundleName = InitialBundleName;
 
+		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT));
+		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/config");
+		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/cache");
+
+		//write down version..quickly! :)
+		globalPh.put(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM, Constants.VORTEX_VERSION);
 		ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(globalPh.get(PersistenceHelper.BUNDLE_NAME), Context.MODE_PRIVATE));
 		oldV= ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
-
 		appTxt.setText(bundleName+" "+(oldV==-1?"":oldV));
 		String p_serverURL = globalPh.get(PersistenceHelper.SERVER_URL);
 		String checked_URL = Tools.server(p_serverURL);
 		if (!checked_URL.equals(p_serverURL))
 		    globalPh.put(PersistenceHelper.SERVER_URL,checked_URL);
-		String appBaseUrl = checked_URL+bundleName.toLowerCase()+"/";
-		final String appRootFolderPath = Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/";
+		String appBaseUrl = checked_URL+bundleName.toLowerCase(Locale.ROOT)+"/";
+		final String appRootFolderPath = getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/";
 		loginConsole = new PlainLogger(getActivity(),"INITIAL");
 		loginConsole.setOutputView(log);
 
@@ -159,22 +150,10 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			}
 		});
 
-		//Tools.preCacheImage(bgUrl,"logo.png",appRootFolderPath+"cache/",loginConsole);
-
-		//new DownloadImageTask((ImageView) view.findViewById(R.id.bgImg))
-		//		.execute(bgUrl.toLowerCase());
-
-
-
-		//create module descriptors for all known configuration files.
-		//Log.d("vortex","Creating Configuration and ModuleLoader");
-
-		//Check if configuration should be loaded from server or from file system.
-
 		if (globalPh.getB("local_config"))
-			myModules = new Configuration(Constants.getCurrentlyKnownModules(ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
+			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
 		else
-			myModules = new Configuration(Constants.getCurrentlyKnownModules(ConfigurationModule.Source.internet,globalPh,ph,globalPh.get(PersistenceHelper.SERVER_URL),bundleName,debugConsole));
+			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,globalPh.get(PersistenceHelper.SERVER_URL),bundleName,debugConsole));
 		String loaderId = "moduleLoader";
 		boolean allFrozen = ph.getB(PersistenceHelper.ALL_MODULES_FROZEN+loaderId);
 		myLoader = new ModuleLoader(loaderId,myModules,loginConsole,globalPh,allFrozen,debugConsole,this,getActivity());
@@ -241,10 +220,10 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		//If testFile doesnt exist it will be created and found next time.
 		Log.d("vortex","Checking if this is first time use of Vortex...");
 		boolean first = (globalPh.get(PersistenceHelper.FIRST_TIME_KEY).equals(PersistenceHelper.UNDEFINED));
-
-
 		if (first) {
 			Log.d("vortex","Yes..executing  first time init");
+			debugConsole.addRow("");
+			debugConsole.addPurpleText("First time execution");
 			return true;
 		}
 		else {
@@ -255,15 +234,17 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	}
 
 	private void initialize() {
-
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
 		//create data folder. This will also create the ROOT folder for the Strand app.
-		File folder = new File(Constants.PIC_ROOT_DIR);
+		File folder = new File(primaryExternalStorage.getAbsolutePath() + "/pics/");
 		if(!folder.mkdirs())
 			Log.e("NILS","Failed to create pic root folder");
-		folder = new File(Constants.OLD_PIC_ROOT_DIR);
+		folder = new File(primaryExternalStorage.getAbsolutePath() + "/old_pics/");
 		if(!folder.mkdirs())
 			Log.e("NILS","Failed to create old pic root folder");
-		folder = new File(Constants.EXPORT_FILES_DIR);
+		folder = new File(primaryExternalStorage.getAbsolutePath() + "/export/");
 		if(!folder.mkdirs())
 			Log.e("NILS","Failed to create export folder");
 
@@ -277,12 +258,9 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
 
-
-
-		folder = new File(Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/"+Constants.CACHE_ROOT_DIR);
+		folder = new File(getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/");
 		if(!folder.mkdirs())
-			Log.e("NILS","Failed to create gis image folder");
-
+			Log.e("NILS","Failed to create cache folder");
 		globalPh.put(PersistenceHelper.FIRST_TIME_KEY,"Initialized");
 		long millis = System.currentTimeMillis();
 		//date = Constants.getTimeStamp();
@@ -351,7 +329,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 					loadSuccess(_loaderId, majorVersionChange, "\ndb modules unchanged",socketBroken);
 				} else {
 					//Load configuration files asynchronously.
-					Constants.getDBImportModules(globalPh, ph, globalPh.get(PersistenceHelper.SERVER_URL), bundleName, debugConsole, myDb, t, new AsyncLoadDoneCb() {
+					Constants.getDBImportModules(getContext(),globalPh, ph, globalPh.get(PersistenceHelper.SERVER_URL), bundleName, debugConsole, myDb, t, new AsyncLoadDoneCb() {
 						public void onLoadSuccesful(List<ConfigurationModule> modules) {
 							Configuration dbModules = new Configuration(modules);
 							if (modules != null) {

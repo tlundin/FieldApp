@@ -43,6 +43,7 @@ import com.teraim.fieldapp.utils.Tools.WebLoaderCb;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class CreateGisBlock extends Block {
 
@@ -119,7 +120,7 @@ public class CreateGisBlock extends Block {
 		PersistenceHelper globalPh = gs.getGlobalPreferences();
 
 		final String serverFileRootDir = globalPh.get(PersistenceHelper.SERVER_URL)+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase()+"/extras/";
-		final String cacheFolder = Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/cache/";
+		final String cacheFolder = GlobalState.getInstance().getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/";
 
 
 		if (sourceE==null ) {
@@ -329,17 +330,17 @@ public class CreateGisBlock extends Block {
 				default:
 					/*falls through*/
 				case "xml":
-					meta = new AirPhotoMetaDataXML(gs.getGlobalPreferences(),
+					meta = new AirPhotoMetaDataXML(gs.getContext(),gs.getGlobalPreferences(),
 							gs.getPreferences(),Source.internet,
 							serverFileRootDir,metaFileName,"");
 					break;
 				case "ini":
-					meta = new AirPhotoMetaDataIni(gs.getGlobalPreferences(),
+					meta = new AirPhotoMetaDataIni(gs.getContext(),gs.getGlobalPreferences(),
 							gs.getPreferences(),Source.internet,
 							serverFileRootDir,metaFileName,"");
 					break;
 				case "jgw":
-					meta = new AirPhotoMetaDataJgw(gs.getGlobalPreferences(),
+					meta = new AirPhotoMetaDataJgw(gs.getContext(),gs.getGlobalPreferences(),
 							GlobalState.getInstance().getPreferences(),Source.internet,
 							serverFileRootDir,metaFileName,"");
 					break;

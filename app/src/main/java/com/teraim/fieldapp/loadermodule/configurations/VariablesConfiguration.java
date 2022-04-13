@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
@@ -35,8 +36,8 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 	private int groupIndex;
 
 
-	public VariablesConfiguration(Source source,PersistenceHelper globalPh,PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
-		super(globalPh,ph, source, serverOrFile,VariablesConfiguration.NAME,"Variables module      ");
+	public VariablesConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
+		super(context, globalPh,ph, source, serverOrFile,VariablesConfiguration.NAME,"Variables module      ");
 		this.o = debugConsole;
 		o.addRow("Parsing Variables.csv file");
 

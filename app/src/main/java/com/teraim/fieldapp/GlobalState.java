@@ -36,6 +36,7 @@ import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -551,7 +552,7 @@ public class GlobalState {
 
 
     public File getCachedFileFromUrl(String fileName) {
-        return Tools.getCachedFile(fileName, Constants.VORTEX_ROOT_DIR + globalPh.get(PersistenceHelper.BUNDLE_NAME) + "/cache/");
+        return Tools.getCachedFile(fileName, GlobalState.getInstance().getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/");
     }
 
 

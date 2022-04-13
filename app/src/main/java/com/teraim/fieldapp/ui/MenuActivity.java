@@ -19,6 +19,8 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
+
+import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.JsonReader;
@@ -519,25 +521,19 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         }
     }
 
-    Handler GPShandler;
+    Handler GPShandler=null;
     private void monitorGPS(boolean on) {
-        if (on) {
-                final int interval = 2500; // 1 Second
+        Log.d("gps","MONITOR CALLED "+on);
+        if (on && GPShandler == null) {
                 GPShandler = new Handler();
                 Runnable runnable = new Runnable(){
                     public void run() {
-                        if (latestSignal != null) {
-                            long elapsed = System.currentTimeMillis() - latestSignal.time;
-                            if (elapsed > 5000)
-                                refreshStatusRow();
-                            GPShandler.postDelayed(this, interval);
+                            GPShandler=null;
+                            refreshStatusRow();
                         }
-                    }
                 };
-                GPShandler.postDelayed(runnable, interval);
-        } else
-            if (GPShandler!=null)
-                GPShandler.removeMessages(0);
+                GPShandler.postDelayed(runnable, 5000);
+        }
     }
 
 
@@ -550,7 +546,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void refreshSyncDisplay() {
-
+        Log.d("Egon","In refresh syncdisplay");
         int numOfUnsynchedEntries = gs.getDb().getNumberOfUnsyncedEntries();
         long numOfInsertSyncEntries = gs.getDb().getSyncRowsLeft();
         //List of people in team with data on server
@@ -778,7 +774,10 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             return;
                         try {
                             String fileName = "log.txt";
-                            File outputFile = new File(Constants.VORTEX_ROOT_DIR + globalPh.get(PersistenceHelper.BUNDLE_NAME) + "/backup/", fileName);
+                            File[] externalStorageVolumes =
+                                    ContextCompat.getExternalFilesDirs(gs.getContext(), null);
+                            File primaryExternalStorage = externalStorageVolumes[0];
+                            File outputFile = new File(primaryExternalStorage + globalPh.get(PersistenceHelper.BUNDLE_NAME) + "/backup/", fileName);
                             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
                             writer.write(logText.toString());
                             Toast.makeText(MenuActivity.this,

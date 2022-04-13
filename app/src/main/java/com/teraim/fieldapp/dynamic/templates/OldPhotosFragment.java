@@ -24,6 +24,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.Variable;
@@ -48,7 +50,7 @@ public class OldPhotosFragment extends Fragment implements OnGesturePerformedLis
 		Log.d("nils","in onCreateView of old photos");
         View v = inflater.inflate(R.layout.template_foto_right, container, false);
 		TextView header = v.findViewById(R.id.header);
-		header.setText("Historiska foton hårifrån ("+Constants.getHistoricalPictureYear()+")");
+		header.setText("Historiska foton härifrån ("+Constants.getHistoricalPictureYear()+")");
 		GestureOverlayView gestureOverlayView = v.findViewById(R.id.gesture_overlay);
 		gestureOverlayView.setGestureVisible(false);
 		gestureOverlayView.addOnGesturePerformedListener(this);
@@ -144,9 +146,12 @@ public class OldPhotosFragment extends Fragment implements OnGesturePerformedLis
 			}
 		});
 		
-		imgHandler = new ImageHandler(gs,this);	
-
-		File folder = new File(Constants.OLD_PIC_ROOT_DIR);
+		imgHandler = new ImageHandler(gs,this);
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String OLD_PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/old_pics/";
+		File folder = new File(OLD_PIC_ROOT_DIR);
 
 		if(!folder.mkdirs())
 			Log.e("NILS","Failed to create pic root folder");

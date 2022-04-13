@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
@@ -12,9 +13,9 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 
 public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements PhotoMetaI {
 
-    public AirPhotoMetaDataIni(PersistenceHelper gPh, PersistenceHelper ph,
+    public AirPhotoMetaDataIni(Context context, PersistenceHelper gPh, PersistenceHelper ph,
                                ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(gPh,ph, Type.ini, source, urlOrPath, fileName, moduleName);
+        super(context,gPh,ph, Type.ini, source, urlOrPath, fileName, moduleName);
     }
 
     @Override

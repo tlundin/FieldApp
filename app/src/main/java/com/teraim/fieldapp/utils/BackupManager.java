@@ -5,6 +5,8 @@ import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.ExportDialog;
@@ -132,7 +134,9 @@ public class BackupManager {
 	
 	
 	private File createOrFindBackupStorageDir() {
-
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(gs.getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
 		//String state = Environment.getExternalStorageState();
 		//Log.d("vortex","ext state: "+state);
 		//Log.d("backup stordir: ", Environment.getExternalStorageDirectory().toString());
@@ -143,7 +147,7 @@ public class BackupManager {
 		String backupFolder = gs.getGlobalPreferences().get(PersistenceHelper.BACKUP_LOCATION);
 		if (backupFolder==null || backupFolder.isEmpty()) {
 
-			backupFolder = Constants.VORTEX_ROOT_DIR+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup";
+			backupFolder = primaryExternalStorage+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup";
 			Log.e("vortex","no backup folder configured...reverting to default:\n"+backupFolder);
 			//backupFolder = Constants.DEFAULT_EXT_BACKUP_DIR;
 		}
@@ -316,6 +320,9 @@ public class BackupManager {
 	}
 	private boolean restoreDatabase(String backupFileName) {
 		String appName = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(gs.getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
 		File dbFile = ctx.getDatabasePath(appName);
 		Log.d("vortex","starting restore for "+dbFile);
 		
@@ -324,7 +331,7 @@ public class BackupManager {
 			File dir = createOrFindBackupStorageDir();
 			
 			if (dir == null) {
-				Log.e("vortex","failed to find backup folder named ["+ Constants.VORTEX_ROOT_DIR+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup"+"]");
+				Log.e("vortex","failed to find backup folder named ["+ primaryExternalStorage+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup"+"]");
 				return false;
 				
 			}

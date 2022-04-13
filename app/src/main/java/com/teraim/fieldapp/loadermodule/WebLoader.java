@@ -50,8 +50,8 @@ public class WebLoader extends Loader {
 			BufferedReader reader = new BufferedReader(inStream);
 			//check version for xml file.
 			String headerRow1,headerRow2;
+			reader.mark(500) ;
 			if (module.isBundle) {
-				reader.mark(500) ;
 				headerRow1 = reader.readLine();
 				headerRow2 = reader.readLine();
 				if (headerRow1 == null) {
@@ -71,6 +71,10 @@ public class WebLoader extends Loader {
 						return new LoadResult(module, ErrorCode.IOError);
 					}
 					version = getVersion(headerRow1,null);
+					if (version == -1) {
+						Log.d("jack","no version, rewinding");
+						reader.reset();
+					}
 				}
 			}
 

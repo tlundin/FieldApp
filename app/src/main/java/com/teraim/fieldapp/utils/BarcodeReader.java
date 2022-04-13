@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.util.SparseArray;
 
+import androidx.core.content.ContextCompat;
+
 import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
@@ -16,6 +18,8 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.non_generics.Constants;
+
+import java.io.File;
 
 /**
  * Created by Terje on 2016-10-12.
@@ -71,7 +75,11 @@ public class BarcodeReader implements EventListener {
             BitmapFactory.Options option = new BitmapFactory.Options();
             //option.inJustDecodeBounds = false;
             option.inSampleSize = 4;
-            Bitmap myBitmap = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR + Constants.TEMP_BARCODE_IMG_NAME,option);
+            File[] externalStorageVolumes =
+                    ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(),  null);
+            File primaryExternalStorage = externalStorageVolumes[0];
+            String PIC_ROOT_DIR = primaryExternalStorage+"pics/";
+            Bitmap myBitmap = BitmapFactory.decodeFile(PIC_ROOT_DIR + Constants.TEMP_BARCODE_IMG_NAME,option);
             Frame frame = new Frame.Builder().setBitmap(myBitmap).build();
             SparseArray<Barcode> barcodes = detector.detect(frame);
             if (barcodes!=null) {

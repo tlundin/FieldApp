@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import android.util.Log;
@@ -40,8 +41,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     private boolean isDebug = false;
 
 
-    public GisObjectConfiguration(PersistenceHelper globalPh, PersistenceHelper ph, Source source, String fileLocation, String fileName, LoggerI debugConsole, DbHelper myDb, Table t) {
-        super(globalPh,ph, source,fileLocation, fileName, fileName);
+    public GisObjectConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, Source source, String fileLocation, String fileName, LoggerI debugConsole, DbHelper myDb, Table t) {
+        super(context,globalPh,ph, source,fileLocation, fileName, fileName);
         this.o = debugConsole;
         this.myDb = myDb;
         //isDatabaseModule=true;
@@ -98,7 +99,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             reader.beginObject();
             while (reader.hasNext()) {
                 String name = reader.nextName();
-
                 if (name.equals("features")) {
                     reader.beginArray();
                     return null;
@@ -106,6 +106,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                     reader.skipValue();
             }
         } catch (IOException e) {
+            e.printStackTrace();
             o.addRow("");
             o.addRedText("Error reading import file header. Check syntax of Version field on the first row");
             return new LoadResult(this,ErrorCode.IOError);
@@ -174,7 +175,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                     attributes.put(name, this.getAttribute(reader));
                                 }
                             }
-                            Log.d("vortex",attributes.toString());
+                            //Log.d("vortex",attributes.toString());
                             //end attributes
                             reader.endObject();
                             String uuid = attributes.remove(GisConstants.FixedGid);

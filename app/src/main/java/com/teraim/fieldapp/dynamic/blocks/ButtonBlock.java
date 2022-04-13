@@ -12,6 +12,8 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.view.Gravity;
@@ -505,8 +507,6 @@ public  class ButtonBlock extends Block  implements EventListener {
                                                         ExportReport exportResult = jRep.getReport();
                                                         if (exportResult == ExportReport.OK) {
                                                             msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
-                                                            msg += "In folder:\n " + Constants.EXPORT_FILES_DIR + " \non this device";
-
 
                                                             if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
                                                                 //nothing more to do...file is already on disk.
@@ -576,8 +576,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 									if (intent.resolveActivity(ctx.getPackageManager()) != null) {
 										// Create the File where the photo should go
 
-
-										photoFile = new File(Constants.PIC_ROOT_DIR, getTarget());
+										File[] externalStorageVolumes =
+												ContextCompat.getExternalFilesDirs(ctx, null);
+										File primaryExternalStorage = externalStorageVolumes[0];
+										//create data folder. This will also create the ROOT folder for the Strand app.
+										photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/");
 
 										// Continue only if the File was successfully created
 										if (photoFile != null) {
@@ -601,8 +604,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 								File photoFile;
 								if (intent.resolveActivity(ctx.getPackageManager()) != null) {
 									// Create the File where the photo should go
-									photoFile = new File(Constants.PIC_ROOT_DIR,Constants.TEMP_BARCODE_IMG_NAME);
-
+									File[] externalStorageVolumes =
+											ContextCompat.getExternalFilesDirs(ctx, null);
+									File primaryExternalStorage = externalStorageVolumes[0];
+									//create data folder. This will also create the ROOT folder for the Strand app.
+									photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/",Constants.TEMP_BARCODE_IMG_NAME);
 									// Continue only if the File was successfully created
 									if (photoFile != null) {
 										Uri photoURI = FileProvider.getUriForFile(ctx,

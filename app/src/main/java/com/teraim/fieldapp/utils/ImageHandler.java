@@ -9,6 +9,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.net.Uri;
 import android.provider.MediaStore;
+
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.util.Log;
 import android.view.Display;
@@ -79,7 +81,12 @@ public class ImageHandler {
 			return false;
 		}
 		options.inJustDecodeBounds=true;
-		Bitmap bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);		
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
+		String OLD_PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/old_pics/";
+		Bitmap bip = BitmapFactory.decodeFile((historical?OLD_PIC_ROOT_DIR:PIC_ROOT_DIR)+fileName,options);
 
 		//there is a picture..
 		int realW = options.outWidth;
@@ -110,7 +117,7 @@ public class ImageHandler {
 
 			options.inJustDecodeBounds = false;
 			Log.d("nils","Filename: "+fileName);
-			bip = BitmapFactory.decodeFile((historical?Constants.OLD_PIC_ROOT_DIR:Constants.PIC_ROOT_DIR)+fileName,options);
+			bip = BitmapFactory.decodeFile((historical?OLD_PIC_ROOT_DIR:PIC_ROOT_DIR)+fileName,options);
 			if (bip!=null) {
 				b.setImageBitmap(bip);
 				return true;
@@ -128,8 +135,12 @@ public class ImageHandler {
 	}
 	
 	public boolean deleteImage(final String name) {
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
 		String fileName = createFileName(name,false);
-		File file = new File(Constants.PIC_ROOT_DIR, fileName);
+		File file = new File(PIC_ROOT_DIR, fileName);
 		return file.delete();
 	}
 
@@ -149,12 +160,15 @@ public class ImageHandler {
 				//		"pic" + name + " selected",
 				//		Toast.LENGTH_SHORT).show();
 				currSaving=name;
-
+				File[] externalStorageVolumes =
+						ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+				File primaryExternalStorage = externalStorageVolumes[0];
+				String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
 				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-				File photoFile = new File(Constants.PIC_ROOT_DIR, fileName);
+				File photoFile = new File(PIC_ROOT_DIR, fileName);
 				if (intent.resolveActivity(fragment.getActivity().getPackageManager()) != null) {
 					// Create the File where the photo should go
-					photoFile = new File(Constants.PIC_ROOT_DIR,Constants.TEMP_BARCODE_IMG_NAME);
+					photoFile = new File(PIC_ROOT_DIR,Constants.TEMP_BARCODE_IMG_NAME);
 
 					// Continue only if the File was successfully created
 					if (photoFile != null) {

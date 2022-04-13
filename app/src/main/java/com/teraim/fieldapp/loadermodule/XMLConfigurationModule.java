@@ -1,5 +1,7 @@
 package com.teraim.fieldapp.loadermodule;
 
+import android.content.Context;
+
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
@@ -11,9 +13,9 @@ import java.io.IOException;
 public abstract class XMLConfigurationModule extends ConfigurationModule {
 
 	
-	protected XMLConfigurationModule(PersistenceHelper gPh, PersistenceHelper ph,
-                                     Source source, String urlOrPath, String fileName, String moduleName) {
-		super(gPh,ph, Type.xml, source, urlOrPath, fileName, moduleName);
+	protected XMLConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
+									 Source source, String urlOrPath, String fileName, String moduleName) {
+		super(context,gPh,ph, Type.xml, source, urlOrPath, fileName, moduleName);
 	}
 	protected abstract LoadResult prepare(XmlPullParser parser) throws XmlPullParserException, IOException;
 	protected abstract LoadResult parse(XmlPullParser parser) throws XmlPullParserException, IOException;

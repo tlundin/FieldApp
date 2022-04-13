@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
 import android.util.Log;
@@ -28,9 +29,9 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
     private Map<String,String> keyz;
 	private final Table varTable;
 
-	public ImportDataConfiguration(PersistenceHelper globalPh,PersistenceHelper ph, String server, String bundle, LoggerI debugConsole,
-			DbHelper myDb, Table t) {
-		super(globalPh,ph, Source.internet, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");	 
+	public ImportDataConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String server, String bundle, LoggerI debugConsole,
+								   DbHelper myDb, Table t) {
+		super(context,globalPh,ph, Source.internet, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");
 		this.o = debugConsole;
 		this.myDb = myDb;
 		isDatabaseModule=true;

@@ -27,6 +27,9 @@ import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
+
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
@@ -203,25 +206,15 @@ public class FotoTemplate extends Executor {
 		initPic(syd,Constants.SYD);
 		initPic(ost,Constants.OST);
 		initPic(vast,Constants.VAST);
-		initPic(sp,Constants.SMA);	
-		
-		
-		File folder = new File(Constants.PIC_ROOT_DIR);
+		initPic(sp,Constants.SMA);
+
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
+		File folder = new File(PIC_ROOT_DIR);
 		folder.mkdirs();
 
-		/*gpsB.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (gpsB.isChecked()) {
-					if (!setStartPoint())
-						gpsB.setChecked(false);
-				} else 
-					fixed = false;					
-				
-			}
-		});
-*/
 		avstandB.setOnCheckedChangeListener(new OnCheckedChangeListener() {
 			
 			@Override
@@ -433,13 +426,17 @@ public class FotoTemplate extends Executor {
 
 	@Override
 	public void onStop() {
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
 		Log.d("vortex","In foto stop");
-		boolean hasN = Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.NORR,false));
-		boolean hasS = Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.SYD,false));
-		boolean hasE = Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.OST,false));
-		boolean hasW = Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.VAST,false)); 
-		boolean hasSma=Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.SMA,false));
-		boolean hasFjarr = Tools.doesFileExist(Constants.PIC_ROOT_DIR,imgHandler.createFileName(Constants.AVST,false));
+		boolean hasN = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.NORR,false));
+		boolean hasS = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.SYD,false));
+		boolean hasE = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.OST,false));
+		boolean hasW = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.VAST,false));
+		boolean hasSma=Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.SMA,false));
+		boolean hasFjarr = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.AVST,false));
 		boolean hasAll = hasN&&hasS&&hasE&&hasW&&hasSma;
 		boolean hasOne = hasN||hasS||hasE||hasW||hasSma;
 		

@@ -3,6 +3,8 @@ package com.teraim.fieldapp.utils;
 import android.database.Cursor;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
@@ -1738,8 +1740,6 @@ public class Expressor {
                                 Exporter.ExportReport exportResult = jRep.getReport();
                                 if (exportResult == Exporter.ExportReport.OK) {
                                     msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
-                                    msg += "In folder:\n " + Constants.EXPORT_FILES_DIR + " \non this device";
-
 
                                     if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
                                         //nothing more to do...file is already on disk.
@@ -1774,7 +1774,11 @@ public class Expressor {
                 case photoExists:
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
                         //System.out.println("Arg 0: "+evalArgs.get(0).toString());
-                        File dir = new File(Constants.PIC_ROOT_DIR);
+                        File[] externalStorageVolumes =
+                                ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+                        File primaryExternalStorage = externalStorageVolumes[0];
+                        //create data folder. This will also create the ROOT folder for the Strand app.
+                        File dir = new File(primaryExternalStorage.getAbsolutePath() + "/pics/");
                         final String regexp = evalArgs.get(0).toString(); // needs to be final so the anonymous class can use it
                         File[] matchingFiles = dir.listFiles(fileName -> {
                             //System.out.println("Testing "+fileName);
