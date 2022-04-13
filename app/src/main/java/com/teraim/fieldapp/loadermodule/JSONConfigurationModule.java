@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule;
 
+import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
@@ -11,9 +12,9 @@ import java.io.IOException;
 
 public abstract class JSONConfigurationModule extends ConfigurationModule {
 
-	protected JSONConfigurationModule(PersistenceHelper gPh, PersistenceHelper ph,
-                                      Source source, String urlOrPath, String fileName, String moduleName) {
-		super(gPh,ph, Type.json, source, urlOrPath, fileName, moduleName);
+	protected JSONConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
+									  Source source, String urlOrPath, String fileName, String moduleName) {
+		super(context,gPh,ph, Type.json, source, urlOrPath, fileName, moduleName);
 	}
 
 	protected abstract LoadResult prepare(JsonReader reader) throws IOException, JSONException;

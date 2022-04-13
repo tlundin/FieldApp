@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
@@ -22,8 +23,8 @@ public class SpinnerConfiguration extends CSVConfigurationModule {
 	private final LoggerI o;
 	private int c=0;
 
-	public SpinnerConfiguration(Source source,PersistenceHelper globalPh,PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
-		super(globalPh, ph, source, serverOrFile, SpinnerConfiguration.NAME,"Spinner module         ");
+	public SpinnerConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
+		super(context, globalPh, ph, source, serverOrFile, SpinnerConfiguration.NAME,"Spinner module         ");
 		this.o = debugConsole;
 		
 	}

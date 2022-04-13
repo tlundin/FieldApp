@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
@@ -26,8 +27,8 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 	private int nameIndex = -1;
 	private static GroupsConfiguration singleton=null;
 
-	public GroupsConfiguration(Source source,PersistenceHelper globalPh,PersistenceHelper ph, String serverOrFile, String bundle, LoggerI debugConsole) {
-		super(globalPh,ph, source,serverOrFile, "Groups", "Group module            ");
+	public GroupsConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, String bundle, LoggerI debugConsole) {
+		super(context,globalPh,ph, source,serverOrFile, "Groups", "Group module            ");
 		o = debugConsole;
 		singleton = null;
 		o.addRow("Parsing Groups.csv file");

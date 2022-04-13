@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.blocks.AddEntryToFieldListBlock;
@@ -76,11 +77,11 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	public static LoggerI debugConsole;
 	private String imageMetaFormat=null;
 
-	public WorkFlowBundleConfiguration(Source source,PersistenceHelper globalPh,PersistenceHelper ph,
-			String urlOrPath, String bundle,LoggerI debugConsole) {
-		super(globalPh,ph, source, urlOrPath, bundle,"Workflow bundle       ");
+	public WorkFlowBundleConfiguration(Context context,String cachePath, Source source, PersistenceHelper globalPh, PersistenceHelper ph,
+									   String urlOrPath, String bundle, LoggerI debugConsole) {
+		super(context, globalPh,ph, source, urlOrPath, bundle,"Workflow bundle       ");
 		this.o=debugConsole;
-		cacheFolder = Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/cache/";
+		cacheFolder = cachePath;
 		//make debugConsole globally available, so we dont have to pass it to each subclass.
 		WorkFlowBundleConfiguration.debugConsole = debugConsole;
 		isBundle = true;

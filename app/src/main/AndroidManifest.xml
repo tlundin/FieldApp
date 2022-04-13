@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.teraim.fieldapp"
-    android:versionCode="802"
-    android:versionName="8.02">
+    android:versionCode="804"
+    android:versionName="8.04">
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -27,6 +27,7 @@
         android:allowBackup="true"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/MyAppTheme"
         tools:ignore="GoogleAppIndexingWarning">
 

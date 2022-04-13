@@ -20,6 +20,8 @@ import android.widget.ImageView;
 import android.widget.ImageView.ScaleType;
 import android.widget.RelativeLayout;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
@@ -150,8 +152,11 @@ import java.util.regex.Pattern;
 
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds=true;
-
-		Bitmap bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
+		Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR +dynImgName,options);
 		float realW = options.outWidth;
 		float realH = options.outHeight;
 		if (realW>0) {
@@ -168,7 +173,7 @@ import java.util.regex.Pattern;
 					options.inSampleSize = Tools.calculateInSampleSize(options,x,y);
 					Log.d("bel", "insample was "+Tools.calculateInSampleSize(options,x,y));
 					options.inJustDecodeBounds = false;
-					Bitmap bip = BitmapFactory.decodeFile(Constants.PIC_ROOT_DIR+dynImgName,options);
+					Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR+dynImgName,options);
 					CreateImageBlock.this.myContext.getActivity().runOnUiThread(new Runnable() {
 						public void run() {
 							if(Looper.myLooper() == Looper.getMainLooper())
@@ -193,8 +198,11 @@ import java.util.regex.Pattern;
 	private String figureOutFileToLoad(String pattern) {
 
 		String fileName = null;
-
-		File f = new File(Constants.PIC_ROOT_DIR);
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
+		File f = new File(PIC_ROOT_DIR);
 		if (f.exists() && f.isDirectory() && pattern!=null)
 
 		{

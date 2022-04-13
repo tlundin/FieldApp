@@ -1,5 +1,7 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
+
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -12,9 +14,9 @@ import java.io.IOException;
 
 public abstract class CI_ConfigurationModule extends ConfigurationModule {
 
-    protected CI_ConfigurationModule(PersistenceHelper gPh, PersistenceHelper ph, ConfigurationModule.Type type,
+    protected CI_ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, ConfigurationModule.Type type,
                                      ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(gPh,ph, type, source, urlOrPath, fileName, moduleName);
+        super(context,gPh,ph, type, source, urlOrPath, fileName, moduleName);
     }
 
     public abstract LoadResult prepare() throws IOException, Dependant_Configuration_Missing;

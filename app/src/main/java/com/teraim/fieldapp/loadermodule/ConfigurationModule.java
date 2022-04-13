@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.FileLoadedCb;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Locale;
 
 
 //Class that describes the specific load behaviour for a certain type of input data.
@@ -56,7 +58,7 @@ public abstract class ConfigurationModule {
 	//tells if this module is stored on disk or db.
 	protected boolean isDatabaseModule = false,hasSimpleVersion=true;
 
-	protected ConfigurationModule(PersistenceHelper gPh, PersistenceHelper ph, Type type, Source source, String urlOrPath, String fileName, String moduleName) {
+	protected ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, Type type, Source source, String urlOrPath, String fileName, String moduleName) {
 		this.source=source;
 		this.type=type;
 		
@@ -66,7 +68,7 @@ public abstract class ConfigurationModule {
 		this.printedLabel=moduleName;
 		this.baseBundlePath=urlOrPath;
 		fullPath = urlOrPath+fileName+"."+type.name();
-		frozenPath = Constants.VORTEX_ROOT_DIR+gPh.get(PersistenceHelper.BUNDLE_NAME)+"/cache/"+fileName;
+		frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
 		Log.d("balla","full path "+fullPath);
 		Log.d("balla","base bundle path "+baseBundlePath);
 		this.versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);

@@ -13,6 +13,8 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.ArrayVariable;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -515,10 +517,11 @@ public class DbHelper extends SQLiteOpenHelper {
 
     //Export a specific context with a specific Exporter.
     public Report export(Map<String, String> context, final Exporter exporter, String exportFileName) {
-        //Check LagID.
-        Log.i("glado",Environment.getExternalStorageDirectory()+"");
-        Log.i("glado","EXP: "+Constants.EXPORT_FILES_DIR);
-        File f = new File(Constants.EXPORT_FILES_DIR);
+        File[] externalStorageVolumes =
+                ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+        File primaryExternalStorage = externalStorageVolumes[0];
+        String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
+        File f = new File(exportFolder);
         if (f.isDirectory()) {
             Log.i("glado","It is a directory");
         } else {
@@ -584,14 +587,14 @@ public class DbHelper extends SQLiteOpenHelper {
             Report r = exporter.writeVariables(new DBColumnPicker(c));
             if (r != null && r.noOfVars > 0) {
                 final Report res;
-                if (Tools.writeToFile(Constants.EXPORT_FILES_DIR + exportFileName + "." + exporter.getType(), r.result)) {
+                if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.result)) {
                     Log.d("nils", "Exported file succesfully");
                     c.close();
                     res = r;
                 } else {
                     Log.e("nils", "Export of file failed");
                     c.close();
-                    GlobalState.getInstance().getLogger().addRow("EXPORT FILENAME: [" + Constants.EXPORT_FILES_DIR + exportFileName + "." + exporter.getType() + "]");
+                    GlobalState.getInstance().getLogger().addRow("EXPORT FILENAME: [" + exportFolder + exportFileName + "." + exporter.getType() + "]");
                     res = new Report(ExportReport.FILE_WRITE_ERROR);
                 }
                 final Activity act = (Activity) exporter.getContext();

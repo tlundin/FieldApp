@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -190,7 +191,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			File cached = gs.getCachedFileFromUrl(imgSource);
 			if (cached==null) {
 				Log.d("vortex","no cached image...trying live.");
-				String fullPicURL = Constants.VORTEX_ROOT_DIR+GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/extras/"+imgSource;
+				String fullPicURL = GlobalState.getInstance().getContext().getFilesDir()+"/"+GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/extras/"+imgSource;
 				Log.d("vortex","IMGURL: "+imgSource);
 				new DownloadImageTask()
 						.execute(fullPicURL);

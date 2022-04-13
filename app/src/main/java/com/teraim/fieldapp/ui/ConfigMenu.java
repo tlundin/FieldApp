@@ -26,6 +26,8 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Toast;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -35,6 +37,7 @@ import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class ConfigMenu extends PreferenceActivity {
 	private final SettingsFragment sf = new SettingsFragment();
@@ -248,7 +251,7 @@ public class ConfigMenu extends PreferenceActivity {
                             String bundleName = getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
                             if (!bundleName.isEmpty()) {
                                 Log.d("vortex", "Erasing cache for " + bundleName);
-                                int n = Tools.eraseFolder(Constants.VORTEX_ROOT_DIR + bundleName + "/cache/");
+                                int n = Tools.eraseFolder(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT) + "/cache/");
                                 //erase allfrozen flag
 								PersistenceHelper ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE));
 								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
@@ -271,7 +274,11 @@ public class ConfigMenu extends PreferenceActivity {
 
 			QRPref.setOnPreferenceClickListener(preference -> {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                File file = new File(Constants.PIC_ROOT_DIR,Constants.TEMP_BARCODE_IMG_NAME);
+				File[] externalStorageVolumes =
+						ContextCompat.getExternalFilesDirs(getContext(), null);
+				File primaryExternalStorage = externalStorageVolumes[0];
+				//create data folder. This will also create the ROOT folder for the Strand app.
+                File file = new File(primaryExternalStorage.getAbsolutePath() + "/pics/",Constants.TEMP_BARCODE_IMG_NAME);
                 Uri outputFileUri = Uri.fromFile(file);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
                 StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
@@ -320,7 +327,7 @@ public class ConfigMenu extends PreferenceActivity {
 			if (bundleName.isEmpty())
 				folderPref.setSummary("Application name missing");
 			else {
-				String path = Constants.VORTEX_ROOT_DIR + bundleName + "/config";
+				String path = getContext().getFilesDir() + "/"+ bundleName.toLowerCase(Locale.ROOT) + "/config";
 				File folder = new File(path);
 				StringBuilder textToDisplay = new StringBuilder("Location: " + path);
 				StringBuilder filesList = new StringBuilder("No configuration files in folder. Please add");

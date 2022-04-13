@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
@@ -15,8 +17,6 @@ import com.teraim.fieldapp.utils.Expressor;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static com.teraim.fieldapp.non_generics.Constants.PIC_ROOT_DIR;
 
 public class StartCameraBlock extends Block implements EventListener {
 
@@ -35,7 +35,10 @@ public class StartCameraBlock extends Block implements EventListener {
     public void create(WF_Context myContext) {
         o = GlobalState.getInstance().getLogger();
         String fileName = Expressor.analyze(fileNameE);
-
+        File[] externalStorageVolumes =
+                ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(),  null);
+        File primaryExternalStorage = externalStorageVolumes[0];
+        String PIC_ROOT_DIR = primaryExternalStorage+"pics/";
         Log.d("foto","foto evaluates to "+fileName);
         o.addRow("StartCameraBlock fileName will be ["+PIC_ROOT_DIR +fileName+"]");
         if (fileName!=null) {

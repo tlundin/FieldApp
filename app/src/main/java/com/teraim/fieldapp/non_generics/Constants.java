@@ -2,9 +2,12 @@ package com.teraim.fieldapp.non_generics;
 
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
@@ -31,12 +34,13 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.02f;
+    public final static float VORTEX_VERSION = 8.04f;
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
@@ -44,21 +48,13 @@ public class Constants {
     public static final String TIMESTAMP_CURRENT_SEQUENCE_NUMBER = "timestamp_seq_no";
 
     //String constants
-    //The root folder for the SD  card is in the global Environment.
-    private final static String path = Environment.getExternalStorageDirectory().getPath();
+
     //Remember to always add system root path before any app specific path!
 
     public final static String HISTORICAL_TOKEN_IN_XML = "*HISTORICAL*";
 
     public static final String HISTORICAL_TOKEN_IN_DATABASE = "H";
-    public final static String VORTEX_ROOT_DIR = path+"/vortex/";
-    public static final String EXPORT_FILES_DIR = VORTEX_ROOT_DIR + "export/";
-    public static final String PIC_ROOT_DIR = VORTEX_ROOT_DIR + "pics/";
-    public static final String OLD_PIC_ROOT_DIR = VORTEX_ROOT_DIR + "old_pics/";
-    public static final String CACHE_ROOT_DIR = "cache/";
-    private static final String GIS_FILE_DIR = "/gisdata/";
-    //Folder for backup on SD card.
-    public static final String DEFAULT_EXT_BACKUP_DIR = "";
+
     public static final String TEMP_BARCODE_IMG_NAME = "tmpbar" ;
     public static final String DEFAULT_IMG_FORMAT = "jgw";
     public static String UNDEFINED = "undefined";
@@ -109,10 +105,6 @@ public class Constants {
     public static final String STATUS_VARIABLES_GROUP_NAME = "STATUS";
 
     public static final String NO_DEFAULT_VALUE = "*NULL*";
-
-
-
-
     public static UUID getmyUUID() {
 		/*
 		String myC = getDeviceColor();
@@ -229,8 +221,8 @@ public class Constants {
     //AWS Cloud
     //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
     //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
-    public static final String SyncDataURI = "https://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
-    public static final String SynkStatusURI =      "https://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+    public static final String SyncDataURI = "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
+    public static final String SynkStatusURI =      "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
 
     //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
 
@@ -246,7 +238,7 @@ public class Constants {
 
 
 
-    public static List<ConfigurationModule> getCurrentlyKnownModules(Source source, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LoggerI debugConsole) {
+    public static List<ConfigurationModule> getCurrentlyKnownModules(Context context, Source source, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LoggerI debugConsole) {
         List<ConfigurationModule> ret = new ArrayList<>();
         //Workflow xml. Named same as bundle.
         final String pathOrURL;
@@ -257,31 +249,31 @@ public class Constants {
         else {
             Log.d("vortex","Local configuration from folder: "+server);
             if (server==null || server.isEmpty())
-                pathOrURL = VORTEX_ROOT_DIR+bundle.toLowerCase() + "/config/";
+                pathOrURL = context.getFilesDir()+"/"+bundle.toLowerCase() + "/config/";
             else
                 pathOrURL=server;
         }
         Log.d("vortex","Parthorurl is now"+pathOrURL);
-
-        ret.add(new WorkFlowBundleConfiguration(source,globalPh,ph,pathOrURL,bundle,debugConsole));
-        ret.add(new SpinnerConfiguration(source,globalPh,ph,pathOrURL,debugConsole));
-        ret.add(new GroupsConfiguration(source,globalPh,ph,pathOrURL,bundle,debugConsole));
+        String cachePath = context.getFilesDir()+"/"+bundle.toLowerCase(Locale.ROOT) + "/cache/";
+        ret.add(new WorkFlowBundleConfiguration(context,cachePath,source,globalPh,ph,pathOrURL,bundle,debugConsole));
+        ret.add(new SpinnerConfiguration(context,source,globalPh,ph,pathOrURL,debugConsole));
+        ret.add(new GroupsConfiguration(context,source,globalPh,ph,pathOrURL,bundle,debugConsole));
         //VariableConfiguration depends on the Groups Configuration.
-        ret.add(new VariablesConfiguration(source,globalPh,ph,pathOrURL,debugConsole));
+        ret.add(new VariablesConfiguration(context,source,globalPh,ph,pathOrURL,debugConsole));
 
         return ret;
     }
 
-    public static void getDBImportModules(
+    public static void getDBImportModules(Context context,
             final PersistenceHelper globalPh, final PersistenceHelper ph, final String server,
             final String bundle, final LoggerI debugConsole,final DbHelper db, final Table t, final AsyncLoadDoneCb asyncLoadDoneCb) {
         final List<ConfigurationModule> ret = new ArrayList<>();
         //Workflow xml. Named same as bundle.
         //ret.add(new GisPolygonConfiguration(globalPh,ph,VORTEX_ROOT_DIR+bundle+AIR_PHOTO_FILE_DIR,debugConsole,db));
-        ret.add(new ImportDataConfiguration(globalPh,ph,server,bundle,debugConsole,db,t));
+        //ret.add(new ImportDataConfiguration(context,globalPh,ph,server,bundle,debugConsole,db,t));
 
-        final String fileFolder = VORTEX_ROOT_DIR+bundle+GIS_FILE_DIR;
-        final String serverFolder = server+bundle.toLowerCase()+"/"+Constants.GPS_CONFIG_WEB_FOLDER+"/";
+        final String fileFolder = context.getFilesDir()+"/"+bundle+"/gisdata/";
+        final String serverFolder = server+"/"+bundle.toLowerCase()+"/"+Constants.GPS_CONFIG_WEB_FOLDER+"/";
         //dont load if no update or no connection
 
         new DownloadFileTask(new WebLoaderCb() {
@@ -290,7 +282,7 @@ public class Constants {
             public void loaded(List<String> fileNames) {
                 if (fileNames != null)
                     Log.d("vortex", "loadresult is " + fileNames.toString());
-                getAllConfigurationFileNamesFromWebOrFile(fileNames, serverFolder, fileFolder, asyncLoadDoneCb, globalPh, ph, debugConsole, db, ret, t);
+                getAllConfigurationFileNamesFromWebOrFile(context,fileNames, serverFolder, fileFolder, asyncLoadDoneCb, globalPh, ph, debugConsole, db, ret, t);
             }
         })
                 .execute(serverFolder + Constants.GPS_LIST_FILE_NAME);
@@ -298,7 +290,7 @@ public class Constants {
 
 
 
-    private static void getAllConfigurationFileNamesFromWebOrFile(List<String> fileNames,
+    private static void getAllConfigurationFileNamesFromWebOrFile(Context context,List<String> fileNames,
                                                                   String serverFolder, String fileFolder, AsyncLoadDoneCb asyncLoadDoneCb, PersistenceHelper globalPh,PersistenceHelper ph, LoggerI debugConsole,DbHelper db, List<ConfigurationModule> modules, Table t) {
 
         boolean loadFromWeb=false;
@@ -311,9 +303,9 @@ public class Constants {
         if (fileNames!=null && !fileNames.isEmpty()) {
             for (String file:fileNames) {
                 if (!loadFromWeb)
-                    modules.add(new GisObjectConfiguration(globalPh,ph,Source.file,fileFolder,file,debugConsole,db,t));
+                    modules.add(new GisObjectConfiguration(context,globalPh,ph,Source.file,fileFolder,file,debugConsole,db,t));
                 else
-                    modules.add(new GisObjectConfiguration(globalPh,ph,Source.internet,serverFolder,file,debugConsole,db,t));
+                    modules.add(new GisObjectConfiguration(context,globalPh,ph,Source.internet,serverFolder,file,debugConsole,db,t));
             }
         } else
             Log.d("vortex","found no GIS configuration files.");

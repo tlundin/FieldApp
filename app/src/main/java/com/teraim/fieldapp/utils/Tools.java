@@ -21,6 +21,8 @@ import android.util.Log;
 import android.view.Display;
 import android.view.WindowManager;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -71,7 +73,10 @@ public class Tools {
 
 
 	public static void sendMail(Activity ctx,String filename,String email) {
-		String fullName = Constants.EXPORT_FILES_DIR+"/"+filename;
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(ctx, null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String fullName = primaryExternalStorage.getAbsolutePath() + "/export/"+filename;
 
 		if (email==null)
 			return;

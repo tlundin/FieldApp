@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
@@ -19,10 +20,10 @@ public class AirPhotoMetaDataXML extends XMLConfigurationModule implements Photo
 
 
 	
-	public AirPhotoMetaDataXML(PersistenceHelper gPh, PersistenceHelper ph,
-                               Source source, String urlOrPath, String metaDataFileName,
-                               String moduleName) {
-		super(gPh, ph, source, urlOrPath, metaDataFileName, moduleName);
+	public AirPhotoMetaDataXML(Context context, PersistenceHelper gPh, PersistenceHelper ph,
+							   Source source, String urlOrPath, String metaDataFileName,
+							   String moduleName) {
+		super(context,gPh, ph, source, urlOrPath, metaDataFileName, moduleName);
 		hasSimpleVersion=false;
 	}
 

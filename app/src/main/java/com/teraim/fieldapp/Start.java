@@ -24,6 +24,7 @@ import android.view.ViewConfiguration;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.templates.LinjePortalTemplate;
@@ -44,6 +45,7 @@ import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 
@@ -64,6 +66,7 @@ public class Start extends MenuActivity {
 
     private androidx.appcompat.app.ActionBarDrawerToggle mDrawerToggle;
     private boolean loading = false;
+
 
 
     // Constants
@@ -103,7 +106,6 @@ public class Start extends MenuActivity {
 			}
 		});
 */
-
         Log.d("nils","in START onCreate");
         singleton = this;
         //This is the frame for all pages, defining the Action bar and Navigation menu.

@@ -76,7 +76,7 @@ public class SendLog extends Activity {
 
         // Make file name - file must be saved to external storage or it wont be readable by
         // the email app.
-        String path = Environment.getExternalStorageDirectory() + "/" + "vortex/";
+        String path = this.getApplicationContext().getFilesDir().getAbsolutePath();
         String fullName = path + "crashlog";
 
         // Extract to file.
