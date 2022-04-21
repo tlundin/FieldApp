@@ -146,8 +146,7 @@ public class BackupManager {
 		//File dir = new File (sdCard.getAbsolutePath() + "/vortex");
 		String backupFolder = gs.getGlobalPreferences().get(PersistenceHelper.BACKUP_LOCATION);
 		if (backupFolder==null || backupFolder.isEmpty()) {
-
-			backupFolder = primaryExternalStorage+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup";
+			backupFolder = primaryExternalStorage+"/"+gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME)+"/backup";
 			Log.e("vortex","no backup folder configured...reverting to default:\n"+backupFolder);
 			//backupFolder = Constants.DEFAULT_EXT_BACKUP_DIR;
 		}

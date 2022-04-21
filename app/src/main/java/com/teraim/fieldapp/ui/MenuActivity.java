@@ -924,7 +924,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                     if (user == null || user.length() == 0 || team == null || team.length() == 0) {
                         new AlertDialog.Builder(this)
                                 .setTitle("Sync cannot start")
-                                .setMessage("Missing team [" + team + "] or user name [" + user + "]. Please add under the Settings menu")
+                                .setMessage("Missing SyncGroup [" + team + "] or User Name [" + user + "]. Please add under the Settings menu")
                                 .setIcon(android.R.drawable.ic_dialog_alert)
                                 .setCancelable(false)
                                 .setPositiveButton(R.string.ok, (dialog, which) -> {

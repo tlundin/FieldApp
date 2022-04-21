@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.teraim.fieldapp"
-    android:versionCode="804"
-    android:versionName="8.04">
+    android:versionCode="805"
+    android:versionName="8.05">
 
     <uses-feature
         android:glEsVersion="0x00020000"
