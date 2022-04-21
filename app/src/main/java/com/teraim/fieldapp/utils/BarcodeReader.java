@@ -78,7 +78,7 @@ public class BarcodeReader implements EventListener {
             File[] externalStorageVolumes =
                     ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(),  null);
             File primaryExternalStorage = externalStorageVolumes[0];
-            String PIC_ROOT_DIR = primaryExternalStorage+"pics/";
+            String PIC_ROOT_DIR = primaryExternalStorage+"/pics/";
             Bitmap myBitmap = BitmapFactory.decodeFile(PIC_ROOT_DIR + Constants.TEMP_BARCODE_IMG_NAME,option);
             Frame frame = new Frame.Builder().setBitmap(myBitmap).build();
             SparseArray<Barcode> barcodes = detector.detect(frame);

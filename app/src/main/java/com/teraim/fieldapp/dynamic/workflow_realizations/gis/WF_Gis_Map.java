@@ -849,7 +849,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     .setMessage("You are creating your first GIS object!\nClick on the location on the map where you want to place it or its first point.")
                     .setIcon(android.R.drawable.ic_dialog_info)
                     .setCancelable(false)
-                    .setNeutralButton(ctx.getString(R.string.ok), (dialog, which) -> Toast.makeText(ctx,"Click on map to put down first coordinate",Toast.LENGTH_LONG).show())
+                    .setPositiveButton(ctx.getString(R.string.ok), (dialog, which) -> Toast.makeText(ctx,"Click on map to put down first coordinate",Toast.LENGTH_LONG).show())
                     .show();
         }
 
