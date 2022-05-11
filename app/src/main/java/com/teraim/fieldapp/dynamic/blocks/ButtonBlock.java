@@ -581,7 +581,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 										File primaryExternalStorage = externalStorageVolumes[0];
 										//create data folder. This will also create the ROOT folder for the Strand app.
 										photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/",getTarget());
-
 										// Continue only if the File was successfully created
 										if (photoFile != null) {
 											Uri photoURI = FileProvider.getUriForFile(ctx,
