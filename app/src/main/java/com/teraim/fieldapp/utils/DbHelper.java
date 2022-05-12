@@ -587,8 +587,10 @@ public class DbHelper extends SQLiteOpenHelper {
             Report r = exporter.writeVariables(new DBColumnPicker(c));
             if (r != null && r.noOfVars > 0) {
                 final Report res;
-                if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.result)) {
+                if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.getData())) {
                     Log.d("nils", "Exported file succesfully");
+                    LoggerI logger = GlobalState.getInstance().getLogger();
+                    logger.addCriticalText("Exported to folder: "+exportFolder);
                     c.close();
                     res = r;
                 } else {
@@ -613,7 +615,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     });
 
                 //final String ret = GlobalState.getInstance().getBackupManager().backupExportDataWithProgress(exportFileName + "." + exporter.getType(), r.result,exporter.getDialog(),act);
-                final String ret = GlobalState.getInstance().getBackupManager().backupExportData(exportFileName + "." + exporter.getType(), r.result);
+                final String ret = GlobalState.getInstance().getBackupManager().backupExportData(exportFileName + "." + exporter.getType(), r.getData());
                 if (act!=null)
                     act.runOnUiThread(new Runnable() {
 
