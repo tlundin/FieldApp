@@ -28,7 +28,7 @@ public abstract class Exporter {
 		public Report(ExportReport problem) {
 			er = problem;
 		}
-		public String result;
+		private String result;
 		public int noOfVars = 0;
 		final private ExportReport er;
 
@@ -36,6 +36,9 @@ public abstract class Exporter {
 			return er;
 		}
 
+		public String getData() {
+			return result;
+		}
 	}
 	
 	final GlobalState gs;

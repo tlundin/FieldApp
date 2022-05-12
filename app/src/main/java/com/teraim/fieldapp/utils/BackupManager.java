@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.ExportDialog;
 
@@ -153,6 +154,8 @@ public class BackupManager {
 		File dir = new File (backupFolder);
 
 		dir.mkdirs();
+		LoggerI logger = GlobalState.getInstance().getLogger();
+		logger.addCriticalText("Backup to folder:"+backupFolder);
 		return dir;
 	}
 
