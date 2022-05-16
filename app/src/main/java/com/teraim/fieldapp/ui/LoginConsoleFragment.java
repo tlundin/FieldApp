@@ -252,7 +252,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		if (globalPh.get(PersistenceHelper.BUNDLE_NAME).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.BUNDLE_NAME, InitialBundleName);
 		if (globalPh.get(PersistenceHelper.VERSION_CONTROL).equals(PersistenceHelper.UNDEFINED))
-			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Forced");
+			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
 		if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.SYNC_METHOD, "Internet");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))

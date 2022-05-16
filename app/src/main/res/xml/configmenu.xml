@@ -31,6 +31,10 @@
             android:summary="@string/s_summary"
             android:title="Server URL" />
         <Preference
+            android:title="@string/reload_config"
+            android:key="reload_config"
+            android:summary="@string/reload_config_d"/>
+        <Preference
             android:title="@string/scan_QR_code_h"
             android:key="scan_qr_code"
             android:summary="@string/scan_QR_code" />
@@ -57,7 +61,7 @@
             android:key="reset_cache"
             android:summary="@string/reset_cache_d"/>
         <ListPreference
-            android:defaultValue="Forced"
+            android:defaultValue="Major"
             android:entries="@array/versionArray"
             android:entryValues="@array/versionValues"
             android:key="version_control"

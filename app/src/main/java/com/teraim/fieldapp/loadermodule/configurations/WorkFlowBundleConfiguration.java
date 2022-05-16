@@ -90,6 +90,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	@Override
 	public float getFrozenVersion() {
+		Log.d("abba","getfrozen called on workbundle");
+		//return -1 if first time loaded during a day.
 		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE));
 
 	}
