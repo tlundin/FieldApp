@@ -156,18 +156,13 @@ public class Start extends MenuActivity {
     private void handleUncaughtException(Thread thread, Throwable e) {
 
         e.printStackTrace(); // not all Android versions will print the stack trace automatically
-
-        //invokeLogActivity();
-
         if(isUIThread()) {
             invokeLogActivity();
-
         }else{  //handle non UI thread throw uncaught exception
 
             new Handler(Looper.getMainLooper()).post(new Runnable() {
                 @Override
                 public void run() {
-
                     invokeLogActivity();
                 }
             });
@@ -175,11 +170,6 @@ public class Start extends MenuActivity {
 
 
     }
-
-
-
-
-
 
 
     private void invokeLogActivity(){
