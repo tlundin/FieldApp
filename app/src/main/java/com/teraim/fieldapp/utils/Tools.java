@@ -22,6 +22,7 @@ import android.view.Display;
 import android.view.WindowManager;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
@@ -71,16 +72,32 @@ import java.util.UUID;
 
 public class Tools {
 
-
+	public static void sendMail (Activity ctx,String fileName,String email)
+	{
+		Log.d("vortex","full name is "+fileName);
+		File[] externalStorageVolumes =
+				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+		File primaryExternalStorage = externalStorageVolumes[0];
+		String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
+		File exportFile = new File(exportFolder+fileName);
+		Uri exportFileURI = FileProvider.getUriForFile(
+				ctx,
+				"com.teraim.fieldapp.fileprovider", exportFile);
+		Intent intent = new Intent (Intent.ACTION_SEND);
+		intent.setType("plain/text");
+		intent.putExtra (Intent.EXTRA_EMAIL, new String[] {email});
+		intent.putExtra(Intent.EXTRA_STREAM, exportFileURI);
+		intent.putExtra (Intent.EXTRA_SUBJECT, "Export file "+Constants.getSweDate());
+		intent.putExtra (Intent.EXTRA_TEXT, "Log file attached."); // do this so some email clients don't complain about empty body.
+		intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+		ctx.startActivity (intent);
+	}
+	/*
 	public static void sendMail(Activity ctx,String filename,String email) {
 		File[] externalStorageVolumes =
 				ContextCompat.getExternalFilesDirs(ctx, null);
 		File primaryExternalStorage = externalStorageVolumes[0];
 		String fullName = primaryExternalStorage.getAbsolutePath() + "/export/"+filename;
-
-		if (email==null)
-			return;
-
 		Intent intent = new Intent (Intent.ACTION_SEND);
 		intent.setType ("plain/text");
 		intent.putExtra (Intent.EXTRA_EMAIL, new String[] {email});
@@ -89,7 +106,7 @@ public class Tools {
 		intent.putExtra (Intent.EXTRA_TEXT, "Export data attached."); // do this so some email clients don't complain about empty body.
 		ctx.startActivity (intent);
 	}
-
+*/
     public static int eraseFolder(String s) {
 		Log.d("franzon","Erasing cache folder");
 		File dir = new File(s);
