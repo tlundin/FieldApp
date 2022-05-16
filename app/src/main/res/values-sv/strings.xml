@@ -91,8 +91,12 @@
 	<string name="continue_">Fortsätt</string>
     <string name="reset_cache_d">Ta bort alla cacheade filer</string>
 	<string name="resetCache">Töm cache</string>
-    <string name="reset_cache_warn">Alla cacheade filer kommer att suddas. Vill du fortsätta?</string>
-	<string name="reset_cache_toast">filer borttagna</string>
+	<string name="reload_config_toast">App will restart and reload configuration on exit</string>
+	<string name="reset_cache_warn">Alla cacheade filer kommer att suddas. Vill du fortsätta?</string>
+	<string name="reload_config_d">Forcerad laddning av styrfiler</string>
+	<string name="reload_config">Ladda styrfiler</string>
+	<string name="reload_config_warn">"Appen kommer startas om och ladda styrfiler. Vill du fortsätta?"</string>
+	<string name="reset_cache_toast">Omladdning kommer ske vid utgång från konfigurationsmenyn</string>
     <string name="scan_QR_code_h">Skanna QR</string>
 	<string name="scan_QR_code">Om du har fått inställningar via QR kod så kan du skanna den här</string>
 	<string name="log_levels_d">Bestämmer om meddelanden visas i loggen eller inte</string>

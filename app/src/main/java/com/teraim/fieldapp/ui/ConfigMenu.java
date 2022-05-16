@@ -37,6 +37,7 @@ import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 
 public class ConfigMenu extends PreferenceActivity {
@@ -148,12 +149,14 @@ public class ConfigMenu extends PreferenceActivity {
 		}
 
 
+
 		@Override
 		public void onCreate(Bundle savedInstanceState) {
 			super.onCreate(savedInstanceState);
 			this.getPreferenceManager().setSharedPreferencesName(Constants.GLOBAL_PREFS);
 			// Load the preferences from an XML resource
 			addPreferencesFromResource(R.xml.configmenu);
+
 			//Set default values for the prefs.
 			//			getPreferenceScreen().getSharedPreferences()
 			//			.registerOnSharedPreferenceChangeListener(this);
@@ -240,6 +243,30 @@ public class ConfigMenu extends PreferenceActivity {
 
 			ListPreference logLevels = (ListPreference)findPreference(PersistenceHelper.LOG_LEVEL);
 			logLevels.setSummary(logLevels.getEntry());
+
+			Preference reload_button = findPreference("reload_config");
+			reload_button.setOnPreferenceClickListener(preference -> {
+				new AlertDialog.Builder(getActivity())
+						.setTitle(getResources().getString(R.string.reload_config))
+						.setMessage(getResources().getString(R.string.reload_config_warn))
+						.setIcon(android.R.drawable.ic_dialog_alert)
+						.setCancelable(false)
+						.setPositiveButton(R.string.ok, (dialog, which) -> {
+							String bundleName = getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
+							if (!bundleName.isEmpty()) {
+								PersistenceHelper ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE));
+								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
+								ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,-1f);
+								Toast.makeText(getActivity(), getResources().getString(R.string.reload_config_toast), Toast.LENGTH_LONG).show();
+								askForRestart();
+							}
+						})
+						.setNegativeButton(R.string.cancel, (dialog, which) -> {
+
+						})
+						.show();
+				return true;
+			});
 			Preference button = findPreference("reset_cache");
 			button.setOnPreferenceClickListener(preference -> {
                 new AlertDialog.Builder(getActivity())

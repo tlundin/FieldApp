@@ -89,11 +89,16 @@ public class GisObject {
 	}
 	
 	public String getLabel() {
-		if (label!=null)
+
+		if (label!=null) {
+			//Log.d("pex2","returning "+label);
 			return label;
-		if (foc.getLabelExpression()==null)
+		}
+		if (foc.getLabelExpression()==null) {
+			//Log.d("pex2","returning null");
 			return null;
-		//Log.d("vortex","In getLabel gisobject..analyzing: "+foc.getLabelExpression()+" with keychain "+keyChain);
+		}
+		//Log.d("pex2","In getLabel gisobject..analyzing: "+foc.getLabelExpression()+" with keychain "+keyChain);
 		label = Expressor.analyze(foc.getLabelExpression(),keyChain);
 		//@notation for id
 		if (label!=null && label.startsWith("@")) {
@@ -104,7 +109,7 @@ public class GisObject {
 		} 
 		if (label==null)
 			label = "";
-		
+		//Log.d("pex2","returning OUT"+label);
 		return label;
 	}
 	

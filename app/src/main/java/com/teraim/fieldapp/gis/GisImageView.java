@@ -821,11 +821,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 						}
 					});
 					List<GisObject> candies = new ArrayList<GisObject>();
-					for (GisObject go : candidates) {
-						//Log.d("vortex","candidate: "+go.getLabel()+" id: "+go.getId());
-						candies.add(go);
-
-					}
+					//Log.d("vortex","candidate: "+go.getLabel()+" id: "+go.getId());
+					candies.addAll(candidates);
 					candMenuVisible = true;
 					touchedBag=null;
 					myMap.showCandidates(candies);

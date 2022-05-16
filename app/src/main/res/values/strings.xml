@@ -94,6 +94,10 @@
     <string name="resetCache">Reset Cache</string>
     <string name="reset_cache_warn">"This will erase all cached images and configuration files. Are you sure?"</string>
     <string name="reset_cache_toast">files deleted from cache</string>
+    <string name="reload_config_d">Forces reload of configuration</string>
+    <string name="reload_config">Reload Config</string>
+    <string name="reload_config_warn">"This will restart the app on exit and reload all files. Are you sure?"</string>
+    <string name="reload_config_toast">App will restart and reload configuration on exit</string>
     <string name="scan_QR_code_h">Scan QR</string>
     <string name="scan_QR_code">If you have received settings via a QR code, you can scan it here</string>
     <string name="log_levels_d">Determines granularity of information shown in log</string>

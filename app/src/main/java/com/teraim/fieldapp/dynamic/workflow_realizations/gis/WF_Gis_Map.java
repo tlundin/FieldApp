@@ -1243,6 +1243,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             for (final GisObject go : candidates) {
                 button = (Button) li.inflate(R.layout.gis_candidate_button, null);
                 button.setText(go.getLabel() );
+                Log.d("pex2","LABEL: "+go.getLabel());
                 candidatesButtonL.addView(button);
                 button.setOnClickListener(v -> {
                     showCandidates(null);
