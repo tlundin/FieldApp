@@ -40,8 +40,9 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.08f;
+    public final static float VORTEX_VERSION = 8.10f;
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
+    public static final String EXPORT_SERVER = "http://ec2-52-211-251-254.eu-west-1.compute.amazonaws.com:8003";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
     public static final String TIMESTAMP_LATEST_SUCCESFUL_SYNC = "timestamp_latest_sync" ;
@@ -57,6 +58,7 @@ public class Constants {
 
     public static final String TEMP_BARCODE_IMG_NAME = "tmpbar" ;
     public static final String DEFAULT_IMG_FORMAT = "jgw";
+
     public static String UNDEFINED = "undefined";
 
     public static final String Color_Pressed="#4682B4";

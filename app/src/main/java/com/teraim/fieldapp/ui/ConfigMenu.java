@@ -59,6 +59,7 @@ public class ConfigMenu extends PreferenceActivity {
 	public static class SettingsFragment extends PreferenceFragment implements OnSharedPreferenceChangeListener {
 
 		private EditTextPreference serverPref;
+		private EditTextPreference exp_serverPref;
 		private ListPreference versionControlPref;
 		private ListPreference syncPref;
 		private EditTextPreference teamPref;
@@ -232,6 +233,10 @@ public class ConfigMenu extends PreferenceActivity {
 			serverPref = (EditTextPreference) findPreference(PersistenceHelper.SERVER_URL);
 			serverPref.setText(Tools.server(serverPref.getText()));
 			serverPref.setSummary(serverPref.getText());
+
+			exp_serverPref = (EditTextPreference) findPreference(PersistenceHelper.EXPORT_SERVER_URL);
+			exp_serverPref.setText(Tools.server(exp_serverPref.getText()));
+			exp_serverPref.setSummary(exp_serverPref.getText());
 
 			appPref = (EditTextPreference) findPreference(PersistenceHelper.BUNDLE_NAME);
 			appPref.setSummary(appPref.getText());

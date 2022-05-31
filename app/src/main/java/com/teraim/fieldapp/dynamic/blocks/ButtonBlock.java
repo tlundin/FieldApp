@@ -8,6 +8,8 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
@@ -50,6 +52,7 @@ import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.ExportDialog;
 import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.utils.BarcodeReader;
+import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.Exporter;
 import com.teraim.fieldapp.utils.Exporter.ExportReport;
 import com.teraim.fieldapp.utils.Exporter.Report;
@@ -58,24 +61,36 @@ import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.net.ssl.HttpsURLConnection;
 
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 /**
  * buttonblock
- * 
+ *
  * Class for all created Buttons
- * 
+ *
  * @author Terje
  *
  */
 public  class ButtonBlock extends Block  implements EventListener {
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = 6454431627090793561L;
 	private String exportMethod="file";
@@ -83,15 +98,16 @@ public  class ButtonBlock extends Block  implements EventListener {
 	private String exportFileName = null;
 
 	private final String onClick;
-    private final String name;
-    private final String containerId;
+	private final String name;
+	private final String containerId;
 	private Boolean validationResult = true;
 	private final Type type;
 	private android.graphics.drawable.Drawable originalBackground;
 	private final List<EvalExpr>textE;
-    private final List<EvalExpr> targetE;
-    private final List<EvalExpr> buttonContextE;
-    private List<EvalExpr> statusContextE;
+	private final List<EvalExpr> targetE;
+	private final List<EvalExpr> buttonContextE;
+	private final List<EvalExpr> imgFilterE;
+	private List<EvalExpr> statusContextE;
 
 	private WF_Context myContext;
 	private final boolean isVisible;
@@ -120,13 +136,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 	//TODO: REMOVE THIS Constructor!!
 	//Function used with buttons that need to attach customized actions after click
 	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,
-			OnclickExtra onclickExtra,DB_Context buttonContext, int dummy) {		
-		this(id,lbl,action,name,container,target,type,statusVariableS,isVisible,null,null,true,null,buttonContext.toString(),false);
+					   OnclickExtra onclickExtra,DB_Context buttonContext, int dummy) {
+		this(id,lbl,action,name,container,target,type,statusVariableS,isVisible,null,null,true,null,buttonContext.toString(),false,null);
 		extraActionOnClick = onclickExtra;
 		this.buttonContextOld = buttonContext;
 	}
 
-	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,String exportFormat,String exportMethod, boolean enabled, String buttonContextS, String statusContextS,boolean requestSync) {
+	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,String exportFormat,String exportMethod, boolean enabled, String buttonContextS, String statusContextS,boolean requestSync, String imgFilter) {
 		Log.d("NILS","In NEW for Button "+name+" with context: "+buttonContextS);
 		this.blockId=id;
 		this.textE = Expressor.preCompileExpression(lbl);
@@ -136,16 +152,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 		this.targetE=Expressor.preCompileExpression(target);
 		this.type=type.equals("toggle")?Type.toggle:Type.action;
 		this.isVisible = isVisible;
-		this.statusVar = statusVariableS;	
+		this.statusVar = statusVariableS;
 		if (statusVar!=null&&statusVar.length()==0)
 			statusVar=null;
 		this.enabled=enabled;
-
-
-
-
 		this.buttonContextE=Expressor.preCompileExpression(buttonContextS);
 		this.statusContextE=Expressor.preCompileExpression(statusContextS);
+		this.imgFilterE=Expressor.preCompileExpression(imgFilter);
 		if (statusVar!=null && statusContextE==null)
 			statusContextE=buttonContextE;
 		Log.d("blorg","button "+textE+" statusVar: "+statusVar+" status_context: "+statusContextS);
@@ -297,7 +310,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 									Log.d("vorto","found statusvar named "+statusVar);
 									statusVariable = varCache.getVariable(buttonContext.getContext(), statusVar);
 								}
-								 else
+								else
 									statusVariable = null;
 
 								Set<Rule> myRules = myContext.getRulesThatApply();
@@ -333,15 +346,15 @@ public  class ButtonBlock extends Block  implements EventListener {
 											Set<Variable> variablesToSave = myContext.getTemplate().getVariables();
 											Log.d("vortex", "Variables To save contains "+(variablesToSave==null?"null":variablesToSave.size()+" objects."));
 											if (variablesToSave!=null) {
-                                                for (Variable var : variablesToSave) {
-                                                    Log.d("vortex", "Saving " + var.getLabel());
-                                                    boolean resultOfSave = var.setValue(var.getValue());
+												for (Variable var : variablesToSave) {
+													Log.d("vortex", "Saving " + var.getLabel());
+													boolean resultOfSave = var.setValue(var.getValue());
 												/*if (resultOfSave) {
 													for (int i=0;i<100;i++)
 													Log.e("vortex","KORS I TAKET!!!!!!!!!!!!!!!!!!!!!!!!");
 												}*/
-                                                }
-                                            }
+												}
+											}
 											myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
 											mpopup.dismiss();
 											goBack();
@@ -377,13 +390,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 												bok=true;
 											}
 											else
-												if (type == Rule.Type.ERROR) {
-													indicatorId = R.drawable.btn_icon_started_with_errors;
-												}
-												else {
-													indicatorId = R.drawable.btn_icon_started;
-													bok = true;
-												}
+											if (type == Rule.Type.ERROR) {
+												indicatorId = R.drawable.btn_icon_started_with_errors;
+											}
+											else {
+												indicatorId = R.drawable.btn_icon_started;
+												bok = true;
+											}
 											if (!bok)
 												validationResult = false;
 											if (!ok || isDeveloper) {
@@ -460,113 +473,182 @@ public  class ButtonBlock extends Block  implements EventListener {
 									Log.e("export", "Export failed...no context");
 								} else {
 
-										boolean done = false;
+									boolean done = false;
 
-										if (button instanceof WF_StatusButton) {
-											WF_StatusButton statusButton = ((WF_StatusButton) button);
-											WF_StatusButton.Status status = statusButton.getStatus();
-											if (status == WF_StatusButton.Status.ready) {
-												final WF_StatusButton tmpSB = statusButton;
-												new AlertDialog.Builder(ctx)
-														.setTitle("Reset")
-														.setMessage("Are you sure you want to reset this button? Status will change back to neutral.")
-														.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-															public void onClick(DialogInterface dialog, int which) {
-																tmpSB.changeStatus(WF_StatusButton.Status.none);
-															}
-														})
-														.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-															@Override
-															public void onClick(DialogInterface dialog, int which) {
+									if (button instanceof WF_StatusButton) {
+										WF_StatusButton statusButton = ((WF_StatusButton) button);
+										WF_StatusButton.Status status = statusButton.getStatus();
+										if (status == WF_StatusButton.Status.ready) {
+											final WF_StatusButton tmpSB = statusButton;
+											new AlertDialog.Builder(ctx)
+													.setTitle("Reset")
+													.setMessage("Are you sure you want to reset this button? Status will change back to neutral.")
+													.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+														public void onClick(DialogInterface dialog, int which) {
+															tmpSB.changeStatus(WF_StatusButton.Status.none);
+														}
+													})
+													.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+														@Override
+														public void onClick(DialogInterface dialog, int which) {
 
-															}
-														})
-														.setIcon(android.R.drawable.ic_dialog_alert)
-														.show();
+														}
+													})
+													.setIcon(android.R.drawable.ic_dialog_alert)
+													.show();
 
-												done = true;
-											}
+											done = true;
 										}
-										if (!done) {
-											exportFileName = getTarget();
+									}
+									if (!done) {
+										exportFileName = getTarget();
 
-											final Exporter exporter = Exporter.getInstance(ctx, exportFormat.toLowerCase(),new ExportDialog());
-
-
-											//Run export in new thread. Create UI to update user on progress.
-                                            if (exporter!=null) {
-												((DialogFragment)exporter.getDialog()).show(((Activity) ctx).getFragmentManager(), "exportdialog");
+										final Exporter exporter = Exporter.getInstance(ctx, exportFormat.toLowerCase(),new ExportDialog());
 
 
-                                                Thread t = new Thread() {
-                                                    String msg = "";
-
-                                                    @Override
-                                                    public void run() {
-                                                        Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
-                                                        ExportReport exportResult = jRep.getReport();
-                                                        if (exportResult == ExportReport.OK) {
-                                                            msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
-
-                                                            if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
-                                                                //nothing more to do...file is already on disk.
-                                                            } else if (exportMethod.startsWith("mail")) {
-                                                                if (targetMailAdress == null) {
-                                                                    ((Activity) ctx).runOnUiThread(new Runnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            exporter.getDialog().setCheckSend(false);
-                                                                            exporter.getDialog().setSendStatus("Configuration error");
-                                                                            msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
-                                                                        }
-
-                                                                    });
-
-                                                                } else {
-                                                                    Tools.sendMail((Activity) ctx, exportFileName + "." + exporter.getType(), targetMailAdress);
-                                                                    ((Activity) ctx).runOnUiThread(new Runnable() {
-                                                                        @Override
-                                                                        public void run() {
-                                                                            exporter.getDialog().setCheckSend(true);
-                                                                            exporter.getDialog().setSendStatus("OK");
-                                                                            if (!targetMailAdress.isEmpty())
-                                                                                msg += "\nFile forwarded to " + targetMailAdress + ".";
-                                                                            else
-                                                                                msg += "\nFile forwarded by mail.";
-                                                                        }
-
-                                                                    });
-                                                                }
+										//Run export in new thread. Create UI to update user on progress.
+										if (exporter!=null) {
+											((DialogFragment)exporter.getDialog()).show(((Activity) ctx).getFragmentManager(), "exportdialog");
 
 
-                                                            }
+											Thread t = new Thread() {
+												String msg = "";
 
-                                                        } else {
-                                                            if (exportResult == ExportReport.NO_DATA)
-                                                                msg = "Nothing to export! Have you entered any values? Have you marked your export variables as 'global'? (Local variables are not exported)";
-                                                            else
-                                                                msg = "Export failed. Reason: " + exportResult;
+												@Override
+												public void run() {
+													Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
+													ExportReport exportResult = jRep.getReport();
+													if (exportResult == ExportReport.OK) {
+														msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
+														Log.d("vortex","Exportmetod: "+exportMethod);
+														if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
+															//nothing more to do...file is already on disk.
+														} else if (exportMethod.startsWith("mail")) {
+															if (targetMailAdress == null) {
+																((Activity) ctx).runOnUiThread(new Runnable() {
+																	@Override
+																	public void run() {
+																		exporter.getDialog().setCheckSend(false);
+																		exporter.getDialog().setSendStatus("Configuration error");
+																		msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
+																	}
+
+																});
+
+															} else {
+																Tools.sendMail((Activity) ctx, exportFileName + "." + exporter.getType(), targetMailAdress);
+																((Activity) ctx).runOnUiThread(new Runnable() {
+																	@Override
+																	public void run() {
+																		exporter.getDialog().setCheckSend(true);
+																		exporter.getDialog().setSendStatus("OK");
+																		if (!targetMailAdress.isEmpty())
+																			msg += "\nFile forwarded to " + targetMailAdress + ".";
+																		else
+																			msg += "\nFile forwarded by mail.";
+																	}
+
+																});
+															}
 
 
-                                                        }
+														} else if (exportMethod.startsWith("upload")) {
+															if (!Connectivity.isConnected((Activity)ctx)) {
+																o.addRow("");
+																o.addRedText("You need a network connection to be able to export.");
+																msg="No network connection";
+															} else {
+																String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
+																if (exportServerURL == PersistenceHelper.UNDEFINED) {
+																	o.addRow("");
+																	o.addRedText("Export Server URL not defined - Please configure in the Settings Menu");
+																	msg="Export Server URL not defined - Please configure in the Settings Menu";
+																} else {
+																	String exportFileEndpoint = exportServerURL + "/upload";
+																	File[] externalStorageVolumes =
+																			ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+																	File primaryExternalStorage = externalStorageVolumes[0];
+																	String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
+																	String imageFolder = primaryExternalStorage.getAbsolutePath() + "/pics/";
+																	String nameWithType = exportFileName + "." + exporter.getType();
+																	File exportFile = new File(exportFolder + nameWithType);
+																	Log.d("type", exporter.getType());
+																	RequestBody postBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
+																			.addFormDataPart(nameWithType, nameWithType, RequestBody.create(MediaType.parse("application/json; charset=utf-8"), exportFile)).build();
+																	postRequest(exportFileEndpoint, postBody, exporter);
 
-                                                        ((Activity) ctx).runOnUiThread(new Runnable() {
-                                                            @Override
-                                                            public void run() {
-                                                                {
-                                                                    if (button instanceof WF_StatusButton) {
-                                                                        ((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
-                                                                    }
-                                                                    exporter.getDialog().setOutCome(msg);
-                                                                }
-                                                            }
-                                                        });
-                                                    }
-                                                };
-                                                t.start();
-                                            } else
-                                                Log.e("vortex","Exporter null in buttonblock");
-										}
+																	File directory = new File(imageFolder);
+																	File[] imgs = directory.listFiles();
+																	Log.d("Files", "Size: " + imgs.length);
+																	String filter = null;
+																	if (imgFilterE != null)
+																		filter = Expressor.analyze(imgFilterE, buttonContext.getContext());
+																	else
+																		Log.d("vortex", "filter was null");
+																	Log.d("filter", "Filter: " + filter);
+																	ArrayList<String>imgNames = new ArrayList<>();
+																	for (int i = 0; i < imgs.length; i++) {
+																		Log.d("Files", "FileName:" + imgs[i].getName());
+																		String fileName = imgs[i].getName();
+																		if (isInFilter(fileName,filter))
+																		{
+																			imgNames.add(fileName);
+																			String imgPath = imgs[i].getPath();
+																			Log.d("vortex", "imgpath is " + imgPath);
+																			Log.d("export", "URL: " + exportServerURL);
+																			ByteArrayOutputStream stream = new ByteArrayOutputStream();
+																			BitmapFactory.Options options = new BitmapFactory.Options();
+																			options.inPreferredConfig = Bitmap.Config.RGB_565;
+																			try {
+																				// Read BitMap by file path.
+																				Bitmap bitmap = BitmapFactory.decodeFile(imgPath, options);
+																				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+																			} catch (Exception e) {
+																				Log.e("no img", "not an image");
+																				return;
+																			}
+																			byte[] byteArray = stream.toByteArray();
+
+																			RequestBody postBodyImage = new MultipartBody.Builder().setType(MultipartBody.FORM)
+																					.addFormDataPart(fileName, fileName, RequestBody.create(MediaType.parse("image/*jpg"), byteArray)).build();
+																			postRequest(exportFileEndpoint, postBodyImage, exporter);
+																		}
+
+																	}
+																	msg = msg+"\n[";
+																	for (String img:imgNames)
+																		msg = msg+img+", ";
+																	msg = msg+"]"+" exported to "+exportServerURL;
+																}
+															}
+														}
+
+													} else {
+														if (exportResult == ExportReport.NO_DATA)
+															msg = "Nothing to export! Have you entered any values? Have you marked your export variables as 'global'? (Local variables are not exported)";
+														else
+															msg = "Export failed. Reason: " + exportResult;
+
+
+													}
+
+													((Activity) ctx).runOnUiThread(new Runnable() {
+														@Override
+														public void run() {
+															{
+																if (button instanceof WF_StatusButton) {
+																	((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
+																}
+																exporter.getDialog().setOutCome(msg);
+															}
+														}
+													});
+												}
+											};
+											t.start();
+										} else
+											Log.e("vortex","Exporter null in buttonblock");
+									}
 
 								}
 							} else if (onClick.equals("Start_Camera")) {
@@ -591,6 +673,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 										}
 									}
 									if (photoFile == null) {
+										Log.e("photo","failed to take picture");
 										o.addRow("");
 										o.addRedText("Failed to take picture. Permission or memory problem. BlockId: "+ButtonBlock.this.getBlockId());
 									}
@@ -627,61 +710,61 @@ public  class ButtonBlock extends Block  implements EventListener {
 							else if (onClick.equals("backup")) {
 								boolean success = GlobalState.getInstance().getBackupManager().backupDatabase();
 								new AlertDialog.Builder(ctx)
-								.setTitle("Backup "+(success?"succesful":"failed"))
-								.setMessage(success?"A file named 'backup_"+Constants.getSweDate()+"' has been created in your backup folder.":"Failed. Please check if the backup folder you specified under the config menu exists.")
-								.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
-									}
-								})
-								.setIcon(android.R.drawable.ic_dialog_alert)
-								.show();
-							}
-							else if (onClick.equals("restore_from_backup")) {
-
-								new AlertDialog.Builder(ctx)
-								.setTitle("Warning!")
-								.setMessage("If you go ahead, you current database will be replaced by a backup file.")
-								.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
-										boolean success = GlobalState.getInstance().getBackupManager().restoreDatabase();
-										new AlertDialog.Builder(ctx)
-										.setTitle("Restore "+(success?"succesful":"failed"))
-										.setMessage(success?"Your database has been restored from backup. Please restart the app now.":"Failed. Please check that the backup file is in the staging area")
+										.setTitle("Backup "+(success?"succesful":"failed"))
+										.setMessage(success?"A file named 'backup_"+Constants.getSweDate()+"' has been created in your backup folder.":"Failed. Please check if the backup folder you specified under the config menu exists.")
 										.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
 											public void onClick(DialogInterface dialog, int which) {
 											}
 										})
 										.setIcon(android.R.drawable.ic_dialog_alert)
 										.show();
-									}
-								})
-								.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
-									}
-								})
-								.setIcon(android.R.drawable.ic_dialog_alert)
-								.show();
+							}
+							else if (onClick.equals("restore_from_backup")) {
+
+								new AlertDialog.Builder(ctx)
+										.setTitle("Warning!")
+										.setMessage("If you go ahead, you current database will be replaced by a backup file.")
+										.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+												boolean success = GlobalState.getInstance().getBackupManager().restoreDatabase();
+												new AlertDialog.Builder(ctx)
+														.setTitle("Restore "+(success?"succesful":"failed"))
+														.setMessage(success?"Your database has been restored from backup. Please restart the app now.":"Failed. Please check that the backup file is in the staging area")
+														.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+															public void onClick(DialogInterface dialog, int which) {
+															}
+														})
+														.setIcon(android.R.drawable.ic_dialog_alert)
+														.show();
+											}
+										})
+										.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+											public void onClick(DialogInterface dialog, int which) {
+											}
+										})
+										.setIcon(android.R.drawable.ic_dialog_alert)
+										.show();
 
 
 							}else if (onClick.equals("synctest")) {
 								Log.e("vortex","gets HEREE!!!!");
 
 
-							        // Pass the settings flags by inserting them in a bundle
-							        Bundle settingsBundle = new Bundle();
-							        settingsBundle.putBoolean(
-							                ContentResolver.SYNC_EXTRAS_MANUAL, true);
-							        settingsBundle.putBoolean(
-							                ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-							        /*
-							         * Request the sync for the default account, authority, and
-							         * manual sync settings
-							         */
-							        Account mAccount = GlobalState.getmAccount(ctx);
-							        final String AUTHORITY = "com.teraim.fieldapp.provider";
-							        ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
+								// Pass the settings flags by inserting them in a bundle
+								Bundle settingsBundle = new Bundle();
+								settingsBundle.putBoolean(
+										ContentResolver.SYNC_EXTRAS_MANUAL, true);
+								settingsBundle.putBoolean(
+										ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+								/*
+								 * Request the sync for the default account, authority, and
+								 * manual sync settings
+								 */
+								Account mAccount = GlobalState.getmAccount(ctx);
+								final String AUTHORITY = "com.teraim.fieldapp.provider";
+								ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
 
-							        //Also try to say hello.
+								//Also try to say hello.
 
 
 
@@ -695,6 +778,70 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 						clickOngoing = false;
 						view.setBackground(originalBackground);
+					}
+
+					private boolean isInFilter(String fileName, String filter) {
+						if (filter == null)
+							return true;
+						return fileName.contains(filter);
+					}
+
+					void postRequest(String postUrl, RequestBody postBody,Exporter exporter) {
+
+						OkHttpClient client = new OkHttpClient();
+
+						Request request = new Request.Builder()
+								.url(postUrl)
+								.post(postBody)
+								.build();
+
+						client.newCall(request).enqueue(new Callback() {
+							@Override
+							public void onFailure(Call call, IOException e) {
+								// Cancel the post on failure.
+								call.cancel();
+								Log.d("FAIL", e.getMessage());
+								final String err = e.getMessage();
+
+								// In order to access the TextView inside the UI thread, the code is executed inside runOnUiThread()
+
+								((Activity) ctx).runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										exporter.getDialog().setCheckSend(false);
+										exporter.getDialog().setSendStatus("FAILED");
+										exporter.getDialog().setOutCome("Export failed. Error: "+err);
+									}
+								});
+
+
+							}
+
+							@Override
+							public void onResponse(Call call, final Response response) throws IOException {
+								final String resp = response.body().string();
+								final int code = response.code();
+								if (code != HttpsURLConnection.HTTP_OK) {
+									((Activity) ctx).runOnUiThread(new Runnable() {
+										@Override
+										public void run() {
+											exporter.getDialog().setCheckSend(false);
+											exporter.getDialog().setSendStatus("FAILED");
+											exporter.getDialog().setOutCome("Export failed. Response: "+resp+" Return code: "+code);
+										}
+									});
+								}
+								// In order to access the TextView inside the UI thread, the code is executed inside runOnUiThread()
+								Log.d("v",resp);
+								((Activity) ctx).runOnUiThread(new Runnable() {
+									@Override
+									public void run() {
+										exporter.getDialog().setCheckSend(true);
+										exporter.getDialog().setSendStatus("OK");
+									}
+								});
+							}
+						});
 					}
 
 					//Check if a sync is required. Pop current fragment.
@@ -764,10 +911,10 @@ public  class ButtonBlock extends Block  implements EventListener {
 				button = new WF_ToggleButton(text,toggleB,isVisible,myContext);
 				myContainer.add(button);
 			}
-        } else {
+		} else {
 			o.addRow("");
 			o.addRedText("Failed to add text field block with id "+blockId+" - missing container "+myContainer);
-        }
+		}
 	}
 
 

@@ -1,8 +1,10 @@
 package com.teraim.fieldapp.dynamic.blocks;
 
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.dynamic.AsyncResumeExecutorI;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Alphanumeric_Sorter;
@@ -18,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
@@ -91,37 +95,44 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
         }
 
     }
-    public void generate(WF_Context myContext) {
+    public void generate(final WF_Context myContext, final AsyncResumeExecutorI mom) {
 
+        AsyncTask.execute(new Runnable() {
+            @Override
+            public void run() {
+                VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();
+                List<List<String>> rows = cacheMap.get(blockId);
+                Log.d("baza", "selectionField: "+selectionField+" selectionPattern: "+selectionPattern+" rows: " + (rows==null?"null":rows.size()));
 
-        VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();
-        List<List<String>> rows = cacheMap.get(blockId);
-        Log.d("baza", "selectionField: "+selectionField+" selectionPattern: "+selectionPattern+" rows: " + (rows==null?"null":rows.size()));
+                if (rows == null) {
 
-        if (rows == null) {
+                    rows = al.getTable().getRowsContaining(selectionField, selectionPattern);
+                    Log.d("baza", " rows: " + rows.size());
 
-            rows = al.getTable().getRowsContaining(selectionField, selectionPattern);
-            Log.d("baza", " rows: " + rows.size());
+                    if (associatedFiltersList!=null) {
+                        for (AddFilter f : associatedFiltersList) {
+                            rows = getRowsContaining(al, rows, f.getSelectionField(), f.getSelectionPattern());
+                            Log.d("baza", "filtered rows size: " + rows.size());
+                        }
+                    }
+                    cacheMap.put(blockId, rows);
 
-            if (associatedFiltersList!=null) {
-                for (AddFilter f : associatedFiltersList) {
-                    rows = getRowsContaining(al, rows, f.getSelectionField(), f.getSelectionPattern());
-                    Log.d("baza", "filtered rows size: " + rows.size());
                 }
+                if (rows.size() == 0) {
+                    Log.e("vortex", "Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
+                    o.addRow("");
+                    o.addRedText("Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
+                    al.getTable().printTable();
+                } else {
+                    myList.setRows(rows);
+                    Log.d("baza","try to reuse");
+
+                }
+                createVariables(myContext);
+                if (mom !=null)
+                    mom.continueExecution("draw");
             }
-            cacheMap.put(blockId, rows);
-
-        }
-        if (rows.size() == 0) {
-            Log.e("vortex", "Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
-            o.addRow("");
-            o.addRedText("Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
-            al.getTable().printTable();
-        } else {
-            myList.setRows(rows);
-            Log.d("baza","try to reuse");
-
-        }
+        });
 
     }
 

@@ -165,9 +165,9 @@ public class ProvytaNivaTemplate extends Executor implements EventListener, OnGe
 			}
 		});
 		String xContext = "år = [getCurrentYear()], ruta = [getColumnValue(ruta)], provyta = [getColumnValue(provyta)]";
-		taBild = new ButtonBlock("_tabild","Foto","Start_Workflow", "fotobutton","Field_List_panel_1",NamedVariables.WF_FOTO,"action", NamedVariables.STATUS_FOTO,true,null,null,true,xContext,null,false);
+		taBild = new ButtonBlock("_tabild","Foto","Start_Workflow", "fotobutton","Field_List_panel_1",NamedVariables.WF_FOTO,"action", NamedVariables.STATUS_FOTO,true,null,null,true,xContext,null,false,null);
 		
-		fixPunkter = new ButtonBlock("_","Fixpunkter","Start_Workflow", "fixpunktbutton","Field_List_panel_1",NamedVariables.WF_FIXPUNKTER,"action",NamedVariables.STATUS_FIXPUNKTER,true,null,null,true,xContext,null,false);
+		fixPunkter = new ButtonBlock("_","Fixpunkter","Start_Workflow", "fixpunktbutton","Field_List_panel_1",NamedVariables.WF_FIXPUNKTER,"action",NamedVariables.STATUS_FIXPUNKTER,true,null,null,true,xContext,null,false,null);
 
 		//spillning = new ButtonBlock("_s","Spillning","Start_Workflow", "spillningbutton","Field_List_panel_1",NamedVariables.WF_SPILLNING,"action","status_spillning",true,null,null,true);
 
@@ -194,7 +194,7 @@ public class ProvytaNivaTemplate extends Executor implements EventListener, OnGe
 		Map<String,String> buttonHash = al.createProvytaKeyMap();
 		//CHash buttonContext = new CHash(null,buttonHash);
 		Log.d("vortex","context for status_smaprovytor: "+buttonHash.toString());
-		smayteKnapp = new ButtonBlock("_smaprov","Småprovytor","Start_Workflow", "Småprovytor","Field_List_panel_1",(isAbo ?WF_ABO_SMA:WF_NILS_SMA),"action", (isAbo ?"STATUS:status_abo":"STATUS:status_smaprovytor"),true,null,null,true,"["+buttonHash.toString()+"]",null,false);
+		smayteKnapp = new ButtonBlock("_smaprov","Småprovytor","Start_Workflow", "Småprovytor","Field_List_panel_1",(isAbo ?WF_ABO_SMA:WF_NILS_SMA),"action", (isAbo ?"STATUS:status_abo":"STATUS:status_smaprovytor"),true,null,null,true,"["+buttonHash.toString()+"]",null,false,null);
 		
 		//new ButtonBlock("_tabild","Foto","Start_Workflow", "fotobutton","Field_List_panel_1",NamedVariables.WF_FOTO,"action", "status_foto",true,null,null,true,xContext,false);
 		/*

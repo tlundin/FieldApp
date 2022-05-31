@@ -1918,7 +1918,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//o.addRow("Parsing block: block_button...");
 		String label=null,onClick=null,myname=null,containerName=null,
 				target=null,type=null,id=null,statusVariable=null,exportMethod=null,
-				exportFormat=null,buttonContext=null,statusContext=null;
+				exportFormat=null,buttonContext=null,statusContext=null,filter=null;
 		boolean isVisible = true, enabled=false,requestSync=false;
 		parser.require(XmlPullParser.START_TAG, null,"block_button");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -1972,13 +1972,18 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				statusVariable = readText("status_variable",parser);
 			else if (name.equals("request_sync"))
 				requestSync = readText("request_sync",parser).equals("true");
+			else if (name.equals("picture_name_pattern")) {
+				filter = readText("picture_name_pattern", parser);
+				if (filter!=null && filter.isEmpty())
+					filter = null;
+			}
 			else
 				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"type",type,"name",myname,"label",label,"container_name",
 				containerName,"target",target);
 
-		return new ButtonBlock(id,label,onClick,myname,containerName,target,type,statusVariable,isVisible,exportFormat,exportMethod,enabled,buttonContext,statusContext,requestSync);
+		return new ButtonBlock(id,label,onClick,myname,containerName,target,type,statusVariable,isVisible,exportFormat,exportMethod,enabled,buttonContext,statusContext,requestSync,filter);
 	}
 
 

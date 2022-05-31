@@ -100,9 +100,11 @@ import com.teraim.fieldapp.utils.Tools;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Observable;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -461,8 +463,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	private void execute(int blockP) {
 
 		boolean notDone = true;
-		savedBlockPointer=-1;
-	    Log.d("vortex","in execute with blockP "+blockP);
+		savedBlockPointer = -1;
+		Log.d("vortex", "in execute with blockP " + blockP);
 		myContext.clearExecutedBlocks();
 		try {
 
@@ -590,14 +592,13 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					}
 
 
-
 				} else if (b instanceof BlockCreateListEntriesFromFieldList) {
-                    o.addRow("");
-                    o.addYellowText("BlockCreateListEntriesFromFieldList found " + b.getBlockId());
-                    //delay creation until filters applied.
-                    BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;
-                    bl.create(myContext);
-                    myListBlocks.put(bl.getListId(), bl);
+					o.addRow("");
+					o.addYellowText("BlockCreateListEntriesFromFieldList found " + b.getBlockId());
+					//delay creation until filters applied.
+					BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;
+					bl.create(myContext);
+					myListBlocks.put(bl.getListId(), bl);
 
 					/*
 					if(!bl.create(myContext)) {
@@ -607,11 +608,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 					}
 					*/
-                } else if (b instanceof StartCameraBlock) {
-                    o.addRow("");
-                    o.addYellowText("BlockStartCamera found " + b.getBlockId());
-                    StartCameraBlock bl = (StartCameraBlock) b;
-                    bl.create(myContext);
+				} else if (b instanceof StartCameraBlock) {
+					o.addRow("");
+					o.addYellowText("BlockStartCamera found " + b.getBlockId());
+					StartCameraBlock bl = (StartCameraBlock) b;
+					bl.create(myContext);
 				} else if (b instanceof BlockCreateTable) {
 					o.addRow("");
 					o.addYellowText("BlockCreateTable found " + b.getBlockId());
@@ -902,8 +903,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					((CreateCategoryDataSourceBlock) b).create(myContext);
 
 				} else if (b instanceof CreateGisBlock) {
-					pDialog = ProgressDialog.show(myContext.getContext(), "",
-							getResources().getString(R.string.loading_please_wait), true);
+					addLoadDialog();
 
 					//Will callback to this object after image is loaded.
 					CreateGisBlock bl = ((CreateGisBlock) b);
@@ -927,10 +927,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				} else if (b instanceof AddFilter) {
 					AddFilter bl = ((AddFilter) b);
 					if (myListBlocks.get(bl.getTarget()) != null) {
-						Log.d("baza","Added filter to "+bl.getTarget());
+						Log.d("baza", "Added filter to " + bl.getTarget());
 						myListBlocks.get(bl.getTarget()).associateFilterBlock(bl);
 					} else
-						Log.d("baza","failed to add filter");
+						Log.d("baza", "failed to add filter");
 				}
 
 				String cId = b.getBlockId();
@@ -948,13 +948,32 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			}
 
 
-			Log.d("baza", "I have lists...creating");
-			for (String key : myListBlocks.keySet()) {
-				myListBlocks.get(key).generate(myContext);
-				myListBlocks.get(key).createVariables(myContext);
+			if (!myListBlocks.keySet().isEmpty()) {
+				addLoadDialog();
+				Log.d("baza", "I have lists...creating");
+				Iterator<String> it = myListBlocks.keySet().iterator();
+				while(it.hasNext()) {
+					String lBlock = it.next();
+					if (it.hasNext()) {
+						myListBlocks.get(lBlock).generate(myContext,null);
+					} else
+						myListBlocks.get(lBlock).generate(myContext,this);
+				}
 			}
+			else
+			 drawAll();
+		} catch (Exception e) {
+			removeLoadDialog();
+			if (blocks != null) {
+				Block errorBlock = blocks.get(blockP);
+				if (errorBlock != null)
+					Tools.printErrorToLog(o, e, "id: " + errorBlock.getBlockId());
+			} else
+				Tools.printErrorToLog(o, e, "index: " + Integer.toString(blockP));
+		}
+	}
 
-
+	private void drawAll() {
 
 			//Remove loading popup if displayed.
 			removeLoadDialog();
@@ -969,17 +988,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				o.addYellowText("Now Drawing components recursively");
 				Log.d("vortex","Now Drawing components recursively");
 				//Draw all lists first.
-				for (WF_Static_List l:myContext.getLists()) 			
+				for (WF_Static_List l:myContext.getLists())
 					l.draw();
 				for (WF_Table t:myContext.getTables())
 					t.draw();
-				/*
-				WF_Gis_Map gis = myContext.getCurrentGis();
-				if (gis!=null)
-					gis.initialize();
-				 */
-				//Trgger redraw event on lists.
-				//myContext.registerEvent(new WF_Event_OnSave("fackabuudle"));
+
 				if (root!=null) 
 					myContext.drawRecursively(root);
 				//open menu if any
@@ -1011,23 +1024,20 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				}
 			}
 
-		} catch (Exception e) {
-			removeLoadDialog();
-			if(blocks != null) {
-				Block errorBlock = blocks.get(blockP);
-				if (errorBlock != null)
-					Tools.printErrorToLog(o,e,"id: "+errorBlock.getBlockId());
-			} else
-				Tools.printErrorToLog(o,e,"index: "+Integer.toString(blockP));
-		}
+
 	}
 
-
+    private void addLoadDialog() {
+		pDialog = ProgressDialog.show(myContext.getContext(), "",
+				getResources().getString(R.string.loading_please_wait), true);
+	}
 	private void removeLoadDialog() {
+		Log.d("wiz","REMOVELOAD");
 		if (pDialog!=null) {
 			pDialog.dismiss();
 			pDialog=null;
-		}
+		} else
+			Log.d("wiz","NULL");
 	}
 	private int indexOf(String jNext, List<Block> blocks) {
 
@@ -1053,10 +1063,19 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 
 	@Override
-	public void continueExecution() {
-		if (savedBlockPointer!=-1) {
-			this.execute(savedBlockPointer);
+	public void continueExecution(String fromWhere) {
+		if ("draw".equals(fromWhere))
+			this.getActivity().runOnUiThread(new Runnable() {
 
+				@Override
+				public void run() {
+					drawAll();
+				}
+			});
+
+
+		else if (savedBlockPointer!=-1) {
+			this.execute(savedBlockPointer);
 		}
 		else
 			Log.e("vortex","No saved block pointer...aborting execution");
