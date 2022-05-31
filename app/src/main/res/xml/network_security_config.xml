@@ -4,5 +4,6 @@
         <domain includeSubdomains="true">slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com</domain>
         <domain includeSubdomains="true">www.one.com</domain>
         <domain includeSubdomains="true">teraim.com</domain>
+        <domain includeSubdomains="true">compute.amazonaws.com</domain>
     </domain-config>
 </network_security_config>

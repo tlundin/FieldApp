@@ -421,7 +421,9 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
     public void addStaticVariable(final Variable var, boolean displayOut,
                             String format, boolean isVisible, boolean showHistorical) {
         this.useStatic=true;
+
         addVariable(var,displayOut,format,isVisible,showHistorical);
+
     }
 
     public static void clearStaticGlobals() {

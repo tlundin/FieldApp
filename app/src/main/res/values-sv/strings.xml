@@ -78,6 +78,7 @@
 
 	<string name="config_from_server">Lokal konfiguration</string>
 	<string name="s_summary">Enheten laddar sin konfiguration härifrån</string>
+	<string name="s_summary_e">Server dit enheten exporterar data och bilder</string>
 	<string name="s_folder_summary">Folder för konfiguration</string>
     <string name="local_config_s">Laddar konfigurationen från projektfoldern i filsystemet</string>
 	<string name="fieldpad_description">Field Pad är en app för insamling av miljödata i fält. Den konfigureras med ett antal styrfiler. En server kan användas för att synkronisera insamlat data mellan lagets medlemmar.</string>

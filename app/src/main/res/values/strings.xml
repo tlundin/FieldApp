@@ -76,6 +76,7 @@
     <string name="candidates">Candidates</string>
 
     <string name="s_summary">Location of all configuration files</string>
+    <string name="s_summary_e">Server that receives the export data</string>
     <string name="s_folder_summary">Folder for configuration files</string>
     <string name="config_from_server">Local Configuration</string>
 

@@ -121,6 +121,7 @@
         android:paddingBottom="5dp"
         android:layout_below="@+id/send"
         android:layout_centerHorizontal="true"
+        android:scrollbars = "vertical"
         android:visibility="gone" />
 
     <Button

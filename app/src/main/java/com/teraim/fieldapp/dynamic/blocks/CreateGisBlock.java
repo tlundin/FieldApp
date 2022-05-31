@@ -275,7 +275,7 @@ public class CreateGisBlock extends Block {
 						}
 
 
-						cb.continueExecution();
+						cb.continueExecution("gis");
 					} else {
 						Log.e("vortex","Failed to create map image. Will exit");
 						cb.abortExecution("Failed to create Gis page. The map image ["+cachedImgFilePath+"] could not be found" );

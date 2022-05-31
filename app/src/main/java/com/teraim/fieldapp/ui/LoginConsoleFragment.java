@@ -257,6 +257,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			globalPh.put(PersistenceHelper.SYNC_METHOD, "Internet");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
+		if (globalPh.get(PersistenceHelper.EXPORT_SERVER_URL).equals(PersistenceHelper.UNDEFINED))
+			globalPh.put(PersistenceHelper.EXPORT_SERVER_URL, Constants.EXPORT_SERVER);
 
 		folder = new File(getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/");
 		if(!folder.mkdirs())
