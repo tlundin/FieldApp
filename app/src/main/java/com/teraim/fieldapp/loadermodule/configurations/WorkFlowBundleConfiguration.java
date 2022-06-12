@@ -96,9 +96,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	}
 
-	private float getFrozenAppVersion() {
-		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP));	
-	}
+//	private float getFrozenAppVersion() {
+//		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP));
+//	}
 	
 	
 
@@ -113,8 +113,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	}
 
 	//workflows will be added to this one.
-    private final List<Workflow> bundle = new ArrayList<Workflow>();
-	int workFlowC = 0;
+    private final List<Workflow> bundle = new ArrayList<>();
+
 
 	@Override
 	protected LoadResult prepare(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -122,7 +122,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		parser.require(XmlPullParser.START_TAG, null, "bundle");
 		myApplication = parser.getAttributeValue(null, "application");
 
-		float appVersion=-1,newWorkflowVersion = -1;
+		float appVersion,newWorkflowVersion = -1;
 		try {
 			newWorkflowVersion = Float.parseFloat(parser.getAttributeValue(null, "version"));
 			appVersion = Float.parseFloat(parser.getAttributeValue(null, "app_version"));
@@ -208,16 +208,12 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	/**
 	 * Read blocks. Create respective class and return as a list.
-	 * @param parser
-	 * @return
-	 * @throws IOException
-	 * @throws XmlPullParserException
 	 */
 	private static final boolean isSum = false;
 	private static final boolean isCount = true;
 
 	private List<Block> readBlocks(XmlPullParser parser) throws IOException, XmlPullParserException {
-		List<Block> blocks=new ArrayList<Block>();
+		List<Block> blocks= new ArrayList<>();
 		parser.require(XmlPullParser.START_TAG, null,"blocks");
 		String name="";
 		try {
@@ -227,110 +223,155 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				}
 				name = parser.getName();
 
-				if (name.equals("block_start")) 
-					blocks.add(readBlockStart(parser));
-				else if (name.equals("block_define_page")) 
-					blocks.add(readPageDefineBlock(parser));				
-				else if (name.equals("block_define_container")) 
-					blocks.add(readContainerDefineBlock(parser));				
-				else if (name.equals("block_layout")) 
-					blocks.add(readBlockLayout(parser));				
-				else if (name.equals("block_button")) 
-					blocks.add(readBlockButton(parser));
-				else if (name.equals("block_add_rule")) 
-					blocks.add(readBlockAddRule(parser));
-				else if (name.equals("block_create_sort_widget"))
-					blocks.add(readBlockCreateSorting(parser));
-				//This is a dummy call. Not supported block.				
-				else if (name.equals("block_create_list_entries")) 
-					dummyWarning("block_create_list_entries",parser);
-				else if (name.equals("block_create_entry_field")) 
-					blocks.add(readBlockCreateEntryField(parser));
+				switch (name) {
+					case "block_start":
+						blocks.add(readBlockStart(parser));
+						break;
+					case "block_define_page":
+						blocks.add(readPageDefineBlock(parser));
+						break;
+					case "block_define_container":
+						blocks.add(readContainerDefineBlock(parser));
+						break;
+					case "block_layout":
+						blocks.add(readBlockLayout(parser));
+						break;
+					case "block_button":
+						blocks.add(readBlockButton(parser));
+						break;
+					case "block_add_rule":
+						blocks.add(readBlockAddRule(parser));
+						break;
+					case "block_create_sort_widget":
+						blocks.add(readBlockCreateSorting(parser));
+						break;
+					//This is a dummy call. Not supported block.
+					case "block_create_list_entries":
+						dummyWarning("block_create_list_entries", parser);
+						break;
+					case "block_create_entry_field":
+						blocks.add(readBlockCreateEntryField(parser));
+						break;
 //entryfields
-				else if (name.equals("block_add_sum_of_selected_variables_display"))
-					blocks.add(readBlockAddSelectionOrSum(parser,isSum));
-				else if (name.equals("block_add_number_of_selections_display"))
-					blocks.add(readBlockAddSelectionOrSum(parser,isCount));
-				else if (name.equals("block_create_slider_entry_field"))
-					blocks.add(readBlockCreateEntryFieldSlider(parser));
-				else if (name.equals("block_create_display_field"))
-					blocks.add(readBlockCreateDisplayField(parser));
+					case "block_add_sum_of_selected_variables_display":
+						blocks.add(readBlockAddSelectionOrSum(parser, isSum));
+						break;
+					case "block_add_number_of_selections_display":
+						blocks.add(readBlockAddSelectionOrSum(parser, isCount));
+						break;
+					case "block_create_slider_entry_field":
+						blocks.add(readBlockCreateEntryFieldSlider(parser));
+						break;
+					case "block_create_display_field":
+						blocks.add(readBlockCreateDisplayField(parser));
+						break;
 //
-
-				else if (name.equals("block_create_list_entries_from_field_list"))
-					blocks.add(readBlockCreateListEntriesFromFieldList(parser));
-				else if (name.equals("block_create_table"))
-					blocks.add(readBlockCreateTable(parser));
-				else if (name.equals("block_create_table_entries_from_field_list"))
-					blocks.add(readBlockCreateTableEntriesFromFieldList(parser));
-				else if (name.equals("block_add_variable_to_every_list_entry"))
-					blocks.add(readBlockAddVariableToEveryListEntry(parser));
-				else if (name.equals("block_add_variable_to_entry_field"))
-					blocks.add(readBlockAddVariableToEntryField(parser));
-				else if (name.equals("block_add_column_to_table")||
-						name.equals("block_add_columns_to_table"))
-					blocks.add(readBlockAddColumnsToTable(parser));
-				else if (name.equals("block_add_aggregate_column_to_table"))
-					blocks.add(readBlockAddAggregateColumnToTable(parser));
-				else if (name.equals("block_add_variable_to_table"))
-					blocks.add(readBlockAddVariableToTable(parser));
-				else if (name.equals("block_add_entry_to_field_list")) 
-					blocks.add(readBlockAddEntryToFieldList(parser));
-				else if (name.equals("block_add_variable_to_list_entry")) 
-					blocks.add(readBlockAddVariableToListEntry(parser));
-				else if (name.equals("block_conditional_continuation")) 
-					blocks.add(readBlockConditionalContinuation(parser));
-				else if (name.equals("block_jump")) 
-					blocks.add(readBlockJump(parser));
-				else if (name.equals("block_set_value"))
-					blocks.add(readBlockSetValue(parser));
-				else if (name.equals("block_add_rule"))
-					blocks.add(readBlockAddRule(parser));
-				else if (name.equals("block_define_menu_header"))
-					blocks.add(readBlockDefineMenuHeader(parser));
-				else if (name.equals("block_define_menu_entry"))
-					blocks.add(readBlockDefineMenuEntry(parser));			
-				else if (name.equals("block_create_text_field"))
-					blocks.add(readBlockCreateTextField(parser));
-				else if (name.equals("block_add_filter"))
-					blocks.add(readBlockAddFilter(parser));
-				else if (name.equals("block_create_round_chart"))
-					blocks.add(readBlockCreateChart(ChartType.round,parser));
-				else if (name.equals("block_create_bar_chart"))
-					blocks.add(readBlockCreateChart(ChartType.bar,parser));
-				else if (name.equals("block_create_category_data_source"))
-					blocks.add(readBlockCreateCategoryDataSource(parser));
-				else if (name.equals("block_create_xy_data_source"))
-					blocks.add(readBlockCreateCategoryDataSource(parser));
-				else if (name.equals("block_create_picture"))
-					blocks.add(readBlockCreatePicture(parser));
-				else if (name.equals("block_add_gis_image_view"))
-					blocks.add(readBlockAddGisView(parser));
-				else if (name.equals("block_add_gis_layer"))
-					blocks.add(readBlockAddGisLayer(parser));
-				else if (name.equals("block_add_gis_point_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Point));
-				else if (name.equals("block_add_gis_multipoint_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Multipoint));
-				else if (name.equals("block_add_gis_polygons"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Polygon));
-				else if (name.equals("block_add_gis_linestring_objects"))
-					blocks.add(readBlockAddGisPointObjects(parser,GisObjectType.Linestring));
-				else if (name.equals("block_add_gis_filter"))
-					blocks.add(readBlockAddGisFilter(parser));
-				else if (name.equals("block_delete_matching_variables"))
-					blocks.add(readBlockDeleteMatchingVariables(parser));
-				else if (name.equals("block_no_op"))
-					blocks.add(readBlockNoOp(parser));
-				else if (name.equals("block_go_sub"))
-					blocks.add(readBlockGoSub(parser));
-				else if (name.equals("block_define_coupled_variable_group"))
-					blocks.add(readBlockSliderGroup(parser));
-				else if (name.equals("block_start_camera")) {
-					blocks.add(readBlockStartCamera(parser));
-				}
-				else {			
-					skip(name,parser,o);
+					case "block_create_list_entries_from_field_list":
+						blocks.add(readBlockCreateListEntriesFromFieldList(parser));
+						break;
+					case "block_create_table":
+						blocks.add(readBlockCreateTable(parser));
+						break;
+					case "block_create_table_entries_from_field_list":
+						blocks.add(readBlockCreateTableEntriesFromFieldList(parser));
+						break;
+					case "block_add_variable_to_every_list_entry":
+						blocks.add(readBlockAddVariableToEveryListEntry(parser));
+						break;
+					case "block_add_variable_to_entry_field":
+						blocks.add(readBlockAddVariableToEntryField(parser));
+						break;
+					case "block_add_column_to_table":
+					case "block_add_columns_to_table":
+						blocks.add(readBlockAddColumnsToTable(parser));
+						break;
+					case "block_add_aggregate_column_to_table":
+						blocks.add(readBlockAddAggregateColumnToTable(parser));
+						break;
+					case "block_add_variable_to_table":
+						blocks.add(readBlockAddVariableToTable(parser));
+						break;
+					case "block_add_entry_to_field_list":
+						blocks.add(readBlockAddEntryToFieldList(parser));
+						break;
+					case "block_add_variable_to_list_entry":
+						blocks.add(readBlockAddVariableToListEntry(parser));
+						break;
+					case "block_conditional_continuation":
+						blocks.add(readBlockConditionalContinuation(parser));
+						break;
+					case "block_jump":
+						blocks.add(readBlockJump(parser));
+						break;
+					case "block_set_value":
+						blocks.add(readBlockSetValue(parser));
+						break;
+					case "block_define_menu_header":
+						blocks.add(readBlockDefineMenuHeader(parser));
+						break;
+					case "block_define_menu_entry":
+						blocks.add(readBlockDefineMenuEntry(parser));
+						break;
+					case "block_create_text_field":
+						blocks.add(readBlockCreateTextField(parser));
+						break;
+					case "block_add_filter":
+						blocks.add(readBlockAddFilter(parser));
+						break;
+					case "block_create_round_chart":
+						blocks.add(readBlockCreateChart(ChartType.round, parser));
+						break;
+					case "block_create_bar_chart":
+						blocks.add(readBlockCreateChart(ChartType.bar, parser));
+						break;
+					case "block_create_category_data_source":
+						blocks.add(readBlockCreateCategoryDataSource(parser));
+						break;
+					case "block_create_xy_data_source":
+						blocks.add(readBlockCreateCategoryDataSource(parser));
+						break;
+					case "block_create_picture":
+						blocks.add(readBlockCreatePicture(parser));
+						break;
+					case "block_add_gis_image_view":
+						blocks.add(readBlockAddGisView(parser));
+						break;
+					case "block_add_gis_layer":
+						blocks.add(readBlockAddGisLayer(parser));
+						break;
+					case "block_add_gis_point_objects":
+						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Point));
+						break;
+					case "block_add_gis_multipoint_objects":
+						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Multipoint));
+						break;
+					case "block_add_gis_polygons":
+						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Polygon));
+						break;
+					case "block_add_gis_linestring_objects":
+						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Linestring));
+						break;
+					case "block_add_gis_filter":
+						blocks.add(readBlockAddGisFilter(parser));
+						break;
+					case "block_delete_matching_variables":
+						blocks.add(readBlockDeleteMatchingVariables(parser));
+						break;
+					case "block_no_op":
+						blocks.add(readBlockNoOp(parser));
+						break;
+					case "block_go_sub":
+						blocks.add(readBlockGoSub(parser));
+						break;
+					case "block_define_coupled_variable_group":
+						blocks.add(readBlockSliderGroup(parser));
+						break;
+					case "block_start_camera":
+						blocks.add(readBlockStartCamera(parser));
+						break;
+					default:
+						skip(name, parser, o);
+						break;
 				}
 			}
 		} catch (XmlPullParserException e) {
@@ -344,7 +385,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			throw e;
 		}
 		//Check that no block has the same ID
-		Set<String> tempSet = new HashSet<String>();
+		Set<String> tempSet = new HashSet<>();
 		for (Block b:blocks)  {
 			if (!tempSet.add(b.getBlockId())) {
 				o.addRow("");
@@ -391,22 +432,27 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				groupName = readText("name",parser);
-			} else if (name.equals("function")) {
-				function = readText("function",parser);
-			} else if (name.equals("arg")) {
-				arguments = readText("arg",parser);
-			} else if (name.equals("delay")) {
-				delay = readText("delay",parser);
-			}
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					groupName = readText("name", parser);
+					break;
+				case "function":
+					function = readText("function", parser);
+					break;
+				case "arg":
+					arguments = readText("arg", parser);
+					break;
+				case "delay":
+					delay = readText("delay", parser);
+					break;
+				default:
 
-			else {
-
-				Log.e("vortex","Skipped "+name);
-				skip(name,parser);
+					Log.e("vortex", "Skipped " + name);
+					skip(name, parser);
+					break;
 			}
 		}
 
@@ -417,7 +463,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockGoSub(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_go_sub...");
-		String id=null,label=null,target=null,pattern=null;
+		String id=null,target=null;
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_go_sub");
@@ -446,7 +492,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockNoOp(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_no_operation...");
-		String id=null,label=null,target=null,pattern=null;
+		String id=null;
 		
 
 		parser.require(XmlPullParser.START_TAG, null,"block_no_op");
@@ -483,19 +529,24 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					continue;
 				}
 				String name= parser.getName();
-				if (name.equals("block_ID")) {
-					id = readText("block_ID",parser);
-				} else if (name.equals("target")) {
-					target = readText("target",parser);
-				} else if (name.equals("pattern")) {
-					pattern = readText("pattern",parser);
-				} else if (name.equals("label")) {
-					label = readText("label",parser);
-				} 
-				else {
+				switch (name) {
+					case "block_ID":
+						id = readText("block_ID", parser);
+						break;
+					case "target":
+						target = readText("target", parser);
+						break;
+					case "pattern":
+						pattern = readText("pattern", parser);
+						break;
+					case "label":
+						label = readText("label", parser);
+						break;
+					default:
 
-					Log.e("vortex","Skipped "+name);
-					skip(name,parser);
+						Log.e("vortex", "Skipped " + name);
+						skip(name, parser);
+						break;
 				}
 			}
 
@@ -516,21 +567,27 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("type")) {
-				type = readText("type",parser);
-			} else if (name.equals("selection_field")) {
-				selectionField = readText("selection_field",parser);
-			} else if (name.equals("selection_pattern")) {
-				selectionPattern = readText("selection_pattern",parser);
-			}
-			else {
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "selection_field":
+					selectionField = readText("selection_field", parser);
+					break;
+				case "selection_pattern":
+					selectionPattern = readText("selection_pattern", parser);
+					break;
+				default:
 
-				Log.e("vortex","Skipped "+name);
-				skip(name,parser);
+					Log.e("vortex", "Skipped " + name);
+					skip(name, parser);
+					break;
 			}
 		}
 
@@ -604,7 +661,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockAddGisPointObjects(XmlPullParser parser,GisObjectType type) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_add_gis_point_objects...");
-		String id=null,nName=null,target=null,label=null,coordType = null, color=null,polyType=null,fillType=null,
+		String id=null,nName=null,target=null,label=null,coordType = null, color=null,polyType=null,fillType=null,line_width="1",
 				palette = null, location=null,objContext=null,imgSource=null,refreshRate=null,radius=null,onClick=null,statusVariable = null;
 		boolean isVisible=true,isUser=true,createAllowed=false,use_image_icon_on_map=false;
 
@@ -655,8 +712,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				palette = readText("palette",parser);
 			} else if (name.equalsIgnoreCase("status_variable")) {
 				statusVariable = readText("status_variable",parser);
+			} else if (name.equalsIgnoreCase("line_width")) {
+				line_width = readText("line_width", parser);
 			}
-
 			else {
 				Log.e("vortex","Skipped "+name);
 				skip(name,parser);
@@ -668,14 +726,14 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		if (imgSource!=null&&!imgSource.isEmpty())
 			Tools.preCacheImage(baseBundlePath+"extras/",imgSource,cacheFolder,o);
 
-		return new AddGisPointObjects(id,nName,label,target,objContext,coordType,location,imgSource,use_image_icon_on_map,refreshRate,radius,isVisible,type,color,polyType,fillType,onClick,statusVariable,isUser,createAllowed,palette,o);
+		return new AddGisPointObjects(id,nName,label,target,objContext,coordType,location,imgSource,use_image_icon_on_map,refreshRate,radius,isVisible,type,color,polyType,fillType,onClick,statusVariable,isUser,createAllowed,palette,line_width,o);
 
 	}
 
 	private Block readBlockAddGisLayer(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_add_gis_layer...");
 		String id=null,nName=null,target=null,label=null;
-		boolean isVisible=true,hasWidget=true,showLabels=false;
+		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d("vortex","In block block_add_gis_layer!!");
@@ -698,7 +756,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				nName = readText("name",parser);
 			}else if (name.equalsIgnoreCase("has_widget")) {
 				hasWidget = "true".equals(readText("has_widget", parser));
-			} 
+			} else if (name.equalsIgnoreCase("is_bold")) {
+				isBold = "true".equals(readText("is_bold", parser));
+			}
 			else {
 				Log.e("vortex","Skipped "+name);
 				skip(name,parser);
@@ -706,7 +766,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
-		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels);
+		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold);
 
 	}
 
@@ -725,7 +785,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_image_view");
 		Log.d("vortex","In block block_add_gis_view!!");
-		String name="";
+		String name;
 
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -780,21 +840,29 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				nName = readText("name",parser);
-			} else if (name.equals("container_name")) {
-				container = readText("container_name",parser);
-			} else if (name.equals("source")) {
-				source = readText("source",parser);
-			} else if (name.equals("scale")) {
-				scale = readText("scale",parser);
-			} else if (name.equals("is_displayed")) {
-				isVisible = readText("is_displayed",parser).equals("true");
-			} 
-			else
-				skip(name,parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					nName = readText("name", parser);
+					break;
+				case "container_name":
+					container = readText("container_name", parser);
+					break;
+				case "source":
+					source = readText("source", parser);
+					break;
+				case "scale":
+					scale = readText("scale", parser);
+					break;
+				case "is_displayed":
+					isVisible = readText("is_displayed", parser).equals("true");
+					break;
+				default:
+					skip(name, parser);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"container_name",container,"source",source);
@@ -812,22 +880,29 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("title")) {
-				title = readText("title",parser);
-			} else if (name.equals("chart_name")) {
-				chart = readText("chart_name",parser);
-			} else if (name.equals("categories")) {
-				categories = createStringArray(readText("categories",parser));
-			} else if (name.equals("expressions")) {
-				expressions = readText("expressions",parser);
-			} else if (name.equals("category_colors")) {
-				colorNames = createStringArray(readText("category_colors",parser));
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "title":
+					title = readText("title", parser);
+					break;
+				case "chart_name":
+					chart = readText("chart_name", parser);
+					break;
+				case "categories":
+					categories = createStringArray(readText("categories", parser));
+					break;
+				case "expressions":
+					expressions = readText("expressions", parser);
+					break;
+				case "category_colors":
+					colorNames = createStringArray(readText("category_colors", parser));
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id);
@@ -837,27 +912,30 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockXYDataSource(XmlPullParser parser) throws IOException, XmlPullParserException {
 		String id=null,title=null,chart=null;
-		String[] categories=null, variableNames=null;
+		String[] categories=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_xy_data_source");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("title")) {
-				title = readText("title",parser);
-			} else if (name.equals("chart_name")) {
-				chart = readText("chart_name",parser);
-			} else if (name.equals("categories")) {
-				categories = createStringArray(readText("categories",parser));
-			} else if (name.equals("variables")) {
-				variableNames = createStringArray(readText("variables",parser));
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "title":
+					title = readText("title", parser);
+					break;
+				case "chart_name":
+					chart = readText("chart_name", parser);
+					break;
+				case "categories":
+					categories = createStringArray(readText("categories", parser));
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id);
@@ -893,40 +971,46 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				mName= readText("name",parser);
-			} else if (name.equals("label")) {
-				label = readText("label",parser);
-			} else if (name.equals("container_name")) {
-				container = readText("container_name",parser);
-			} 
-			else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible", parser).equals("false");
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					mName = readText("name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "container_name":
+					container = readText("container_name", parser);
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "text_size":
+					textSize = readText("text_size", parser);
+					break;
+				case "margins":
+					margins = readText("margins", parser);
+					break;
+				case "start_angle":
+					startAngle = readText("start_angle", parser);
+					break;
+				case "height":
+					h = readText("height", parser);
+					height = (h == null || h.length() == 0) ? -1 : (h.equalsIgnoreCase("fill") ? -2 : Integer.parseInt(h));
+					break;
+				case "width":
+					w = readText("width", parser);
+					width = (w == null || w.length() == 0) ? -1 : (w.equalsIgnoreCase("fill") ? -2 : Integer.parseInt(w));
+					break;
+				case "display_values":
+					displayValues = !readText("display_values", parser).equals("false");
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("text_size")) {
-				textSize = readText("text_size",parser);
-			}			
-			else if (name.equals("margins")) {
-				margins = readText("margins",parser);
-			}			
-			else if (name.equals("start_angle")) {
-				startAngle = readText("start_angle",parser);
-			} 
-			else if (name.equals("height")) {
-				h = readText("height",parser);
-				height = (h==null||h.length()==0)?-1:(h.equalsIgnoreCase("fill")?-2:Integer.parseInt(h));
-			}  
-			else if (name.equals("width")) {
-				w = readText("width",parser);
-				width = (w==null||w.length()==0)?-1:(w.equalsIgnoreCase("fill")?-2:Integer.parseInt(w));
-			}
-			else if (name.equals("display_values")) {
-				displayValues = !readText("display_values",parser).equals("false");
-			}			
-			else
-				skip(name,parser,o);
 
 		}
 
@@ -948,26 +1032,35 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("label")) {
-				label = readText("label",parser);
-			} else if (name.equals("bck_color")) {
-				background = readText("bck_color",parser);
-			} else if (name.equals("container_name")) {
-				container = readText("container_name",parser);
-			} else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
-			} else if (name.equals("horizontal_margin")) {
-				horizontalMargin = readText("horizontal_margin",parser);
-			} else if (name.equals("text_size")) {
-				textSize = readText("text_size",parser);
-			} else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "bck_color":
+					background = readText("bck_color", parser);
+					break;
+				case "container_name":
+					container = readText("container_name", parser);
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "horizontal_margin":
+					horizontalMargin = readText("horizontal_margin", parser);
+					break;
+				case "text_size":
+					textSize = readText("text_size", parser);
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"label",label,"container",container);
@@ -984,16 +1077,23 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("label")) {
-				label = readText("label",parser);
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				bgColor = readText("bck_color",parser);
-			} else
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					bgColor = readText("bck_color", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"label",label,"text_color",textColor,"bck_color",bgColor);
@@ -1010,18 +1110,26 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("type")) {
-				type = readText("type",parser);
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				bgColor = readText("bck_color",parser);
-			} else
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					bgColor = readText("bck_color", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"target",target,"type",type);
@@ -1037,17 +1145,24 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-				o.addRow("Parsing block: block_set_value, with id "+id);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("expression")) {
-				expression = readText("expression",parser);
-			} else if (name.equals("execution_behavior")) {
-				executionBehavior = readText("execution_behavior",parser);
-			} else
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					o.addRow("Parsing block: block_set_value, with id " + id);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "expression":
+					expression = readText("expression", parser);
+					break;
+				case "execution_behavior":
+					executionBehavior = readText("execution_behavior", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"target",target,"expression",expression,"execution_behavior",executionBehavior);
@@ -1091,18 +1206,20 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "expression":
+					expr = readText("expression", parser);
+					break;
+				case "else_block_ID":
+					elseBlockId = readText("else_block_ID", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else if (name.equals("expression")) {
-				expr = readText("expression",parser);
-			}
-			else if (name.equals("else_block_ID")) {
-				elseBlockId = readText("else_block_ID",parser);
-			} 
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"expression",expr,"else_block_ID",elseBlockId);
@@ -1123,32 +1240,38 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "target_list":
+					targetList = readText("target_list", parser);
+					break;
+				case "target_field":
+					targetField = readText("target_field", parser);
+					break;
+				case "is_displayed":
+					isDisplayed = !readText("is_displayed", parser).equals("false");
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "format":
+					format = readText("format", parser);
+					break;
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("name")) {
-				namn = readText("name",parser);
-			} else if (name.equals("target_list")) {
-				targetList = readText("target_list",parser);
-			}
-			else if (name.equals("target_field")) {
-				targetField = readText("target_field",parser);
-			} 
-			else if (name.equals("is_displayed")) {
-				isDisplayed = !readText("is_displayed",parser).equals("false");
-			} 
-			else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
-			}
-			else if (name.equals("format")) {
-				format = readText("format",parser);
-			} else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
-			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"name",namn,"target_list",targetList,"target_field",targetField,"format",format);
 		return new AddVariableToListEntry(id,namn,
@@ -1169,22 +1292,26 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "description":
+					description = readText("description", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("name")) {
-				namn = readText("name",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} 
-			else if (name.equals("label")) {
-				label = readText("label",parser);
-			}
-			else if (name.equals("description")) {
-				description = readText("description",parser);
-			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"name",namn,"target",target,"label",label,"description",description);
 		return new AddEntryToFieldListBlock(id,namn,target,label,description);
@@ -1201,30 +1328,36 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			}
-			else if (name.equals("name")) {
-				namn = readText("name",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} 
-			else if (name.equals("is_displayed")) {
-				isDisplayed = !readText("is_displayed",parser).equals("false");
-			} 
-			else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
-			}
-			else if (name.equals("format")) {
-				format = readText("format",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "is_displayed":
+					isDisplayed = !readText("is_displayed", parser).equals("false");
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "format":
+					format = readText("format", parser);
 
-			} else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
+					break;
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"name",namn,"target",target,"format",format);
 		return new AddVariableToEntryFieldBlock(id,target,namn,isDisplayed,format,isVisible,showHistorical,initialValue);
@@ -1330,48 +1463,62 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-				//check if cached object exist.
-				if (blockCache.get(id)!=null)
-					return blockCache.get(id);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					//check if cached object exist.
+					if (blockCache.get(id) != null)
+						return blockCache.get(id);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "selection_field":
+					selectionField = readText("selection_field", parser);
+					break;
+				case "selection_pattern":
+					selectionPattern = readText("selection_pattern", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "container_name":
+					containerId = readText("container_name", parser);
+					break;
+				case "label_field":
+					labelField = readText("label_field", parser);
+					break;
+				case "description_field":
+					descriptionField = readText("description_field", parser);
+					break;
+				case "type_field":
+					typeField = readText("type_field", parser);
+					break;
+				case "variator":
+					variatorColumn = readText("variator", parser);
+					break;
+				case "uri_field":
+					uriField = readText("uri_field", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					backgroundColor = readText("bck_color", parser);
+
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_format":
+					verticalFormat = readText("vertical_format", parser);
+
+
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("type")) {
-				type = readText("type",parser);
-			} else if (name.equals("selection_field")) {
-				selectionField = readText("selection_field",parser);
-			} else if (name.equals("selection_pattern")) {
-				selectionPattern = readText("selection_pattern",parser);
-			}  else if (name.equals("name")) {
-				namn = readText("name",parser);
-			} else if (name.equals("container_name")) {
-				containerId = readText("container_name",parser);
-			}  else if (name.equals("label_field")) {
-				labelField = readText("label_field",parser);
-			} else if (name.equals("description_field")) {
-				descriptionField = readText("description_field",parser);
-			} else if (name.equals("type_field")) {
-				typeField = readText("type_field",parser);
-			} else if (name.equals("variator")) {
-				variatorColumn = readText("variator",parser);
-			} else if (name.equals("uri_field")) {
-				uriField = readText("uri_field",parser);
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				backgroundColor = readText("bck_color", parser);
-
-			} else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin", parser);
-			}
-
-			else if (name.equals("vertical_format")) {
-				verticalFormat = readText("vertical_format", parser);
-
-
-
-			} else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"selection_field",selectionField,"name",namn,"container_name",
@@ -1390,16 +1537,22 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name = parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID", parser);
-			} else if (name.equals("type")) {
-				type = readText("type", parser);
-			} else if (name.equals("name")) {
-				tableName = readText("name", parser);
-			} else if (name.equals("container_name")) {
-				containerId = readText("container_name", parser);
-			} else if (name.equals("label")) {
-				label = readText("label", parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "name":
+					tableName = readText("name", parser);
+					break;
+				case "container_name":
+					containerId = readText("container_name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
 			}
 		}
 		return new BlockCreateTable(id,type,tableName,containerId,label);
@@ -1415,31 +1568,44 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "selection_field":
+					selectionField = readText("selection_field", parser);
+					break;
+				case "selection_pattern":
+					selectionPattern = readText("selection_pattern", parser);
+					break;
+				case "key_field":
+					keyField = readText("key_field", parser);
+					break;
+				case "label_field":
+					labelField = readText("label_field", parser);
+					break;
+				case "description_field":
+					descriptionField = readText("description_field", parser);
+					break;
+				case "type_field":
+					typeField = readText("type_field", parser);
+					break;
+				case "column_key_name":
+					variatorColumn = readText("column_key_name", parser);
+					break;
+				case "uri_field":
+					uriField = readText("uri_field", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("type")) {
-				type = readText("type",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			}else if (name.equals("selection_field")) {
-				selectionField = readText("selection_field",parser);
-			} else if (name.equals("selection_pattern")) {
-				selectionPattern = readText("selection_pattern", parser);
-			} else if (name.equals("key_field")) {
-				keyField = readText("key_field",parser);
-			} else if (name.equals("label_field")) {
-				labelField = readText("label_field",parser);
-			} else if (name.equals("description_field")) {
-				descriptionField = readText("description_field",parser);
-			} else if (name.equals("type_field")) {
-				typeField = readText("type_field",parser);
-			} else if (name.equals("column_key_name")) {
-				variatorColumn = readText("column_key_name",parser);
-			} else if (name.equals("uri_field")) {
-				uriField = readText("uri_field",parser);
-			} else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"selection_field",selectionField,"target",
@@ -1463,25 +1629,35 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("format")) {
-				format = readText("format",parser);
-			}else if (name.equals("name")) {
-				variableSuffix = readText("name",parser);
-			} else if (name.equals("is_displayed")) {
-				displayOut = readText("is_displayed",parser).trim().equals("true");
-			} else if (name.equals("is_visible")) {
-				isVisible = readText("is_visible",parser).trim().equals("true");
-			} else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "format":
+					format = readText("format", parser);
+					break;
+				case "name":
+					variableSuffix = readText("name", parser);
+					break;
+				case "is_displayed":
+					displayOut = readText("is_displayed", parser).trim().equals("true");
+					break;
+				case "is_visible":
+					isVisible = readText("is_visible", parser).trim().equals("true");
+					break;
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"target",target,"format",format,"name",variableSuffix);
@@ -1501,25 +1677,35 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("format")) {
-				format = readText("format",parser);
-			}else if (name.equals("name")) {
-				variableSuffix = readText("name",parser);
-			} else if (name.equals("is_displayed")) {
-				displayOut = readText("is_displayed",parser).trim().equals("true");
-			} else if (name.equals("is_visible")) {
-				isVisible = readText("is_visible",parser).trim().equals("true");
-			} else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "format":
+					format = readText("format", parser);
+					break;
+				case "name":
+					variableSuffix = readText("name", parser);
+					break;
+				case "is_displayed":
+					displayOut = readText("is_displayed", parser).trim().equals("true");
+					break;
+				case "is_visible":
+					isVisible = readText("is_visible", parser).trim().equals("true");
+					break;
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"target",target,"format",format,"name",variableSuffix);
@@ -1541,37 +1727,48 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("label")) {
-				label = readText("label",parser);
-			} else if (name.equals("expression")) {
-				formula = readText("expression",parser);
-			} else if (name.equals("name")) {
-				namn = readText("name",parser);
-			} else if (name.equals("container_name")) {
-				containerId = readText("container_name",parser);
-			}  else if (name.equals("unit")) {
-				unit = Tools.convertToUnit(readText("unit",parser));
-			} else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
-			} else if (name.equals("format")) {
-				format = readText("format",parser);
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				bgColor = readText("bck_color",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "expression":
+					formula = readText("expression", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "container_name":
+					containerId = readText("container_name", parser);
+					break;
+				case "unit":
+					unit = Tools.convertToUnit(readText("unit", parser));
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "format":
+					format = readText("format", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					bgColor = readText("bck_color", parser);
 
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_format":
+					verticalFormat = readText("vertical_format", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin", parser);
-			}
-			else if (name.equals("vertical_format")) {
-				verticalFormat = readText("vertical_format", parser);
-			}
-
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("label",label,"expression",formula,"block_ID",id,"name",namn,"container_name",containerId,"format",format);
@@ -1596,51 +1793,73 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				namn = readText("name",parser);
-			}
-			else if (name.equals("label")) {
-				label= readText("label",parser);
-			} else if (name.equals("container_name")) {
-				containerId = readText("container_name",parser);
-			}
-			else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "container_name":
+					containerId = readText("container_name", parser);
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
 
-			} else if (name.equals("max")) {
-				String mS = readText("max",parser);
-				if (mS!=null)
-					try {max = Integer.parseInt(mS); } catch (NumberFormatException e) {}
-            } else if (name.equals("min")) {
-				String mS = readText("min",parser);
-				if (mS!=null)
-					try {min = Integer.parseInt(mS); } catch (NumberFormatException e) {}
-            } else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
-			} else if (name.equals("auto_open_spinner")) {
-				autoOpenSpinner = readText("auto_open_spinner",parser).equals("true");
-            } else if (name.equals("variable_name")) {
-				variableName = readText("variable_name",parser);
-			} else if (name.equals("slider_group_name")) {
-				group = readText("slider_group_name",parser);
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				backgroundColor = readText("bck_color", parser);
+					break;
+				case "max": {
+					String mS = readText("max", parser);
+					if (mS != null)
+						try {
+							max = Integer.parseInt(mS);
+						} catch (NumberFormatException e) {
+						}
+					break;
+				}
+				case "min": {
+					String mS = readText("min", parser);
+					if (mS != null)
+						try {
+							min = Integer.parseInt(mS);
+						} catch (NumberFormatException e) {
+						}
+					break;
+				}
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				case "auto_open_spinner":
+					autoOpenSpinner = readText("auto_open_spinner", parser).equals("true");
+					break;
+				case "variable_name":
+					variableName = readText("variable_name", parser);
+					break;
+				case "slider_group_name":
+					group = readText("slider_group_name", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					backgroundColor = readText("bck_color", parser);
 
-			} else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_format":
+					verticalFormat = readText("vertical_format", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else if (name.equals("vertical_format")) {
-				verticalFormat = readText("vertical_format", parser);
-			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"variableName",variableName);
 		return new CreateSliderEntryFieldBlock(id,namn, containerId,isVisible,showHistorical,initialValue,label,variableName,group,textColor,backgroundColor,min,max,verticalFormat,verticalMargin);
@@ -1660,40 +1879,50 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				namn = readText("name",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "container_name":
+					containerId = readText("container_name", parser);
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "format":
+					format = readText("format", parser);
+					break;
+				case "show_historical":
+					showHistorical = readText("show_historical", parser).equals("true");
+					break;
+				case "initial_value":
+					initialValue = readText("initial_value", parser);
+					break;
+				case "auto_open_spinner":
+					autoOpenSpinner = readText("auto_open_spinner", parser).equals("true");
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					backgroundColor = readText("bck_color", parser);
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_format":
+					verticalFormat = readText("vertical_format", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("label")) {
-				label= readText("label",parser);
-			} else if (name.equals("container_name")) {
-				containerId = readText("container_name",parser);
-			} 
-			else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
-			} 
-			else if (name.equals("format")) {
-				format = readText("format",parser);
-			}  else if (name.equals("show_historical")) {
-				showHistorical = readText("show_historical",parser).equals("true");
-			}  else if (name.equals("initial_value")) {
-				initialValue = readText("initial_value",parser);
-			} else if (name.equals("auto_open_spinner")) {
-				autoOpenSpinner = readText("auto_open_spinner",parser).equals("true");
-			}  else if (name.equals("text_color")) {
-				textColor = readText("text_color",parser);
-			} else if (name.equals("bck_color")) {
-				backgroundColor = readText("bck_color",parser);
-			}
-			else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin", parser);
-			}
-			else if (name.equals("vertical_format")) {
-				verticalFormat = readText("vertical_format", parser);
-			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"format",format);
 		return new CreateEntryFieldBlock(id,namn, containerId,isVisible,format,showHistorical,initialValue,label,autoOpenSpinner,textColor,backgroundColor,verticalFormat,verticalMargin);
@@ -1732,36 +1961,46 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name= parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("container_name")) {
-				containerName = readText("container_name",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "container_name":
+					containerName = readText("container_name", parser);
 
-			} else if (name.equals("name")) {
-				namn = readText("name",parser);
+					break;
+				case "name":
+					namn = readText("name", parser);
 
-			} else if (name.equals("type")) {
-				type = readText("type",parser);
+					break;
+				case "type":
+					type = readText("type", parser);
 
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
+					break;
+				case "target":
+					target = readText("target", parser);
 
-			} else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible",parser).equals("false");
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
 
-			}  else if (name.equals("selection_field")) {
-				selectionField = readText("selection_field",parser);
+					break;
+				case "selection_field":
+					selectionField = readText("selection_field", parser);
 
-			}  else if (name.equals("display_field")) {
-				displayField = readText("display_field",parser);
+					break;
+				case "display_field":
+					displayField = readText("display_field", parser);
 
-			}  else if (name.equals("selection_pattern")) {
-				selectionPattern = readText("selection_pattern",parser);
+					break;
+				case "selection_pattern":
+					selectionPattern = readText("selection_pattern", parser);
 
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-
-			else 
-				skip(name,parser,o);
 
 		}
 		checkForNull("BLOCK_ID",id,"CONTAINER_NAME: ",containerName,"DISPLAY_FIELD",displayField,
@@ -1803,38 +2042,51 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name = parser.getName();
 
-			if (name.equals("block_ID")) {
-				id = readText("block_ID", parser);
-			} else if (name.equals("container_name")) {
-				containerName = readText("container_name", parser);
-			} else if (name.equals("label")) {
-				label = readText("label", parser);
-			} else if (name.equals("filter")) {
-				filter = readText("filter", parser);
-			} else if (name.equals("target")) {
-				target = readText("target", parser);
-			} else if (name.equals("unit")) {
-				postLabel = readText("unit", parser);
-			} else if (name.equals("result")) {
-				result = readText("result", parser);
-			} else if (name.equals("is_visible")) {
-				isVisible = !readText("is_visible", parser).equals("false");
-			} else if (name.equals("format")) {
-				format = readText("format", parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "container_name":
+					containerName = readText("container_name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "filter":
+					filter = readText("filter", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "unit":
+					postLabel = readText("unit", parser);
+					break;
+				case "result":
+					result = readText("result", parser);
+					break;
+				case "is_visible":
+					isVisible = !readText("is_visible", parser).equals("false");
+					break;
+				case "format":
+					format = readText("format", parser);
 
-			} else if (name.equals("text_color")) {
-				textColor = readText("text_color", parser);
-			} else if (name.equals("bck_color")) {
-				bgColor = readText("bck_color", parser);
+					break;
+				case "text_color":
+					textColor = readText("text_color", parser);
+					break;
+				case "bck_color":
+					bgColor = readText("bck_color", parser);
+					break;
+				case "vertical_margin":
+					verticalMargin = readText("vertical_margin", parser);
+					break;
+				case "vertical_format":
+					verticalFormat = readText("vertical_format", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("vertical_margin")) {
-				verticalMargin = readText("vertical_margin", parser);
-			}
-			else if (name.equals("vertical_format")) {
-				verticalFormat = readText("vertical_format", parser);
-			}
-			else
-				skip(name,parser,o);
 
 		}
 		checkForNull("block_ID",id,"label",label,"container_name",containerName,"filter",filter,
@@ -1926,59 +2178,64 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}	
 			String name = parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("on_click")) {
-				onClick = readText("on_click",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "on_click":
+					onClick = readText("on_click", parser);
+					break;
+				case "type":
+					type = readText("type", parser);
+					break;
+				case "name":
+					myname = readText("name", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				case "container_name":
+					containerName = readText("container_name", parser);
+					break;
+				case "export_format":
+					exportFormat = readText("export_format", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "enabled":
+					enabled = readText("enabled", parser).equals("true");
+					break;
+				case "is_visible":
+					isVisible = readText("is_visible", parser).equals("true");
+					break;
+				case "context":
+					buttonContext = readText("context", parser);
+					break;
+				case "export_method":
+					exportMethod = readText("export_method", parser);
+					break;
+				case "button_context":
+					buttonContext = readText("button_context", parser);
+					break;
+				case "status_context":
+					statusContext = readText("status_context", parser);
+					break;
+				case "status_variable":
+					statusVariable = readText("status_variable", parser);
+					break;
+				case "request_sync":
+					requestSync = readText("request_sync", parser).equals("true");
+					break;
+				case "picture_name_pattern":
+					filter = readText("picture_name_pattern", parser);
+					if (filter != null && filter.isEmpty())
+						filter = null;
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("type")) {
-				type = readText("type",parser);
-			}
-			else if (name.equals("name")) {
-				myname = readText("name",parser);
-			}
-			else if (name.equals("label")) {
-				label = readText("label",parser);
-			}
-			else if (name.equals("container_name")) {
-				containerName = readText("container_name",parser);		
-			}
-
-			else if (name.equals("export_format")) {
-				exportFormat = readText("export_format",parser);		
-			}
-			else if (name.equals("target")) {
-				target = readText("target",parser);
-			}
-			else if (name.equals("enabled")) {
-				enabled = readText("enabled",parser).equals("true");
-            }
-			else if (name.equals("is_visible")) {
-				isVisible = readText("is_visible",parser).equals("true");
-			} 
-			else if (name.equals("context")) {
-				buttonContext = readText("context",parser);
-			}
-			else if (name.equals("export_method")) {
-				exportMethod = readText("export_method",parser);
-			}
-			else if (name.equals("button_context")) {
-				buttonContext = readText("button_context",parser);
-			}
-			else if (name.equals("status_context")) {
-				statusContext = readText("status_context",parser);
-			}
-			else if (name.equals("status_variable"))
-				statusVariable = readText("status_variable",parser);
-			else if (name.equals("request_sync"))
-				requestSync = readText("request_sync",parser).equals("true");
-			else if (name.equals("picture_name_pattern")) {
-				filter = readText("picture_name_pattern", parser);
-				if (filter!=null && filter.isEmpty())
-					filter = null;
-			}
-			else
-				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"type",type,"name",myname,"label",label,"container_name",
 				containerName,"target",target);
@@ -2001,34 +2258,39 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	//Block Start contains the name of the worklfow and the Arguments.
 	private StartBlock readBlockStart(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_start...");
-		String workflowName=null; String args[]=null,context=null,id=null;
+		String workflowName=null; String[] args =null;
+		String context=null;
+		String id=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_start");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 			}
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("workflowname"))  {
-				workflowName = readSymbol("workflowname",parser);
-				o.addRow("");
-				o.addGreenText("Reading workflow: ["+workflowName+"]");
-				Log.d("NILS","Reading workflow: "+workflowName);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "workflowname":
+					workflowName = readSymbol("workflowname", parser);
+					o.addRow("");
+					o.addGreenText("Reading workflow: [" + workflowName + "]");
+					Log.d("NILS", "Reading workflow: " + workflowName);
 
+					break;
+				case "inputvar":
+					args = readArray("inputvar", parser);
+					o.addRow("input variables: ");
+					for (String arg : args) o.addYellowText(arg + ",");
+					break;
+				case "context":
+					context = readText("context", parser);
+
+					break;
+				default:
+					skip(name, parser, o);
+					break;
 			}
-			else if (name.equals("inputvar")) {
-				args = readArray("inputvar",parser);
-				o.addRow("input variables: ");
-				for(int i=0;i<args.length;i++)
-					o.addYellowText(args[i]+",");
-			} 
-			else if (name.equals("context")) {
-				context = readText("context",parser);
-				
-			}
-			else
-				skip(name,parser,o);
 		}
 		if (workflowName == null)  {
 			o.addRow("");
@@ -2059,20 +2321,27 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}		
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("layout")) {
-				layout = readText("layout",parser);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "layout":
+					layout = readText("layout", parser);
 
-			} else if (name.equals("align")) {
-				align = readText("align",parser);
+					break;
+				case "align":
+					align = readText("align", parser);
 
-			} else if (name.equals("label")) {
-				label = readText("label",parser);
+					break;
+				case "label":
+					label = readText("label", parser);
 
 
-			} else 
-				skip(name,parser,o);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"layout",layout,"align",align,"label",label);
@@ -2096,19 +2365,27 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}		
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("type")) {
-				pageType = readText("type",parser);				
-			} else if (name.equals("gps_on")) {
-				hasGPS = readText("gps_on",parser).equals("true");	
-			} else if (name.equals("allow_OS_page_back")) {
-				goBackAllowed = readText("allow_OS_page_back",parser).equals("true");
-			}  else if (name.equals("label")) {
-				label = readText("label",parser);
-				o.addRow("Parsing workflow "+label);
-			} else
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "type":
+					pageType = readText("type", parser);
+					break;
+				case "gps_on":
+					hasGPS = readText("gps_on", parser).equals("true");
+					break;
+				case "allow_OS_page_back":
+					goBackAllowed = readText("allow_OS_page_back", parser).equals("true");
+					break;
+				case "label":
+					label = readText("label", parser);
+					o.addRow("Parsing workflow " + label);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 		}
 		checkForNull("block_ID",id,"type",pageType,"label",label);
 		return new PageDefineBlock(id,"root", pageType,label,hasGPS,goBackAllowed);
@@ -2131,14 +2408,20 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}		
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("name")) {
-				containerName = readText("name",parser);
-			} else if (name.equals("type")) {
-				containerType = readText("type",parser);
-			} else
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "name":
+					containerName = readText("name", parser);
+					break;
+				case "type":
+					containerType = readText("type", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 		}
 		checkForNull("block_ID",id,"name",containerName,"container_type",containerType);
 		return new ContainerDefineBlock(id,containerName, containerType);
@@ -2159,22 +2442,32 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				continue;
 			}		
 			String name= parser.getName();
-			if (name.equals("block_ID")) {
-				id = readText("block_ID",parser);
-			} else if (name.equals("target")) {
-				target = readText("target",parser);
-			} else if (name.equals("condition")) {
-				condition = readText("condition",parser);
-			} else if (name.equals("action")) {
-				action = readText("action",parser);
-			} else if (name.equals("errorMsg")) {
-				errorMsg = readText("errorMsg",parser);
-			} else if (name.equals("name")) {
-				myname = readText("name",parser);
-			} else if (name.equals("scope")) {
-				myScope = readText("scope",parser);
-			} else 
-				skip(name,parser,o);
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "condition":
+					condition = readText("condition", parser);
+					break;
+				case "action":
+					action = readText("action", parser);
+					break;
+				case "errorMsg":
+					errorMsg = readText("errorMsg", parser);
+					break;
+				case "name":
+					myname = readText("name", parser);
+					break;
+				case "scope":
+					myScope = readText("scope", parser);
+					break;
+				default:
+					skip(name, parser, o);
+					break;
+			}
 
 		}
 		checkForNull("block_ID",id,"name",myname,"target",target,"condition",condition,"action",action,"errorMsg",errorMsg);

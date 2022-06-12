@@ -112,7 +112,7 @@ public class Start extends MenuActivity {
         setContentView(R.layout.naviframe);
         //This combats an issue on the target panasonic platform having to do with http reading.
         //System.setProperty("http.keepAlive", "false");
-        mDrawerMenu = new DrawerMenu(this);
+        mDrawerMenu = new  DrawerMenu(this);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
         configureToolBar();
 

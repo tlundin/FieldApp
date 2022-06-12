@@ -42,6 +42,7 @@ public class PersistenceHelper {
 	public static final String GLOBAL_AUTO_INC_COUNTER = "auto_increment_counter";
 	public static final String TIME_OF_FIRST_USE = "time_of_first_use";
 	public static final String LAYER_VISIBILITY = "Layer_Is_Visible_";
+	public static final String LAYER_BOLDNESS = "Layer_Is_Bold_";
 	public static final String ALL_MODULES_FROZEN = "All_modules_frozen_";
 	public static final String NEW_APP_VERSION = "new_app_version";
 	public static final String TIME_OF_LAST_BACKUP = "time_of_last_backup";

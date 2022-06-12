@@ -130,5 +130,6 @@
 	<string name="Scroll_down">Visa botten</string>
 	<string name="Send_error_log">Skicka logg till Teraim</string>
 	<string name="log_exit">Avbryt</string>
+	<string name="fet">Fet</string>
 
 </resources>

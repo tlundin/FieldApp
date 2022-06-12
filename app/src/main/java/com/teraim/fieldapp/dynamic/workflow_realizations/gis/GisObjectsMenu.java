@@ -495,20 +495,19 @@ public class GisObjectsMenu extends View {
 					if (fop.getShape()==PolyType.circle) {
 
 						//draw circle at rect mid.
-						canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2,(fop.getStyle()==Style.FILL? (currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP):myGis.createPaint(fop.getColor(),fop.getStyle())) );
+						canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2,(fop.getStyle()==Style.FILL? (currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP):myGis.createPaint(fop.getColor(),fop.getStyle(),2,false)) );
 						//since background is white, add a black edge.
 						//if (fop.getStyle()==Style.FILL)
 						//	canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2, currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP);
 					} else if (fop.getShape()==PolyType.rect){
 
-						canvas.drawRect(rect, myGis.createPaint(fop.getColor(),fop.getStyle()));
+						canvas.drawRect(rect, myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
 						//since background is white, add a black edge.
 						if (fop.getStyle()==Style.FILL)
 							canvas.drawRect(rect, currB.isSelected?thinWhiteEdgeP:thinBlackEdgeP);
 					} else if (fop.getShape()==PolyType.triangle) {
 
-						myGis.drawTriangle(canvas, fop.getColor(),fop.getStyle(),
-								r.width()/2-iconPadding*2,(int) (r.left+r.width()/2), (int)(r.top+r.height()/2));
+						myGis.drawTriangle(canvas,r.width()/2-iconPadding*2,(int) (r.left+r.width()/2), (int)(r.top+r.height()/2), myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
 					}
 				} else {
 					//Paint tst = new Paint();

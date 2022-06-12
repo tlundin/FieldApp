@@ -42,11 +42,11 @@ public class GisLayer {
 	private Map<String,Set<GisObject>> myObjects;
 	private boolean showLabels;
 	private Map<String, Set<GisFilter>> myFilters;
-	private boolean myVisibility;
+	private boolean myVisibility,myBoldness;
 
 
 
-	public GisLayer(WF_Gis_Map myGis, String name, String label, boolean isVisible,
+	public GisLayer(WF_Gis_Map myGis, String name, String label, boolean isVisible, boolean isBold,
 					boolean hasWidget, boolean showLabels) {
 		super();
 		this.name = name;
@@ -64,6 +64,14 @@ public class GisLayer {
 			Log.d("zaza","PERSISTED: "+persistedVisibility);
 			//a value of 1 means the layer is visible. 0 invisible.
 			myVisibility = (persistedVisibility == 1);
+		}
+		int persistedBoldness = (GlobalState.getInstance()!=null?GlobalState.getInstance().getPreferences().getI(PersistenceHelper.LAYER_BOLDNESS+getId()):-1);
+		if (persistedBoldness == -1)
+			myBoldness = isBold;
+		else {
+			Log.d("zaza","PERSISTED: "+persistedBoldness);
+			//a value of 1 means the layer is visible. 0 invisible.
+			myBoldness = (persistedBoldness == 1);
 		}
 
 	}
@@ -97,52 +105,6 @@ public class GisLayer {
 			this.hasDynamic = dynamic;
 		}
 	}
-			//If bag already exists, we merge. If not, we create new.
-			/*
-			if (existingBag!=null)
-
-
-
-			{
-				merge = true;
-				Log.d("bortex","Merging bag of type "+key);
-				//First mark if this is a merge.
-
-				int c=0;
-				while (iterator.hasNext()) {
-					GisObject go = iterator.next();
-					//Mark this object if it is visible.
-					markIfUseful(go,gisView);
-					if (go.isDefect()) {
-						Log.e("vortex","Removing DEFECT GIS OBJECT");
-						iterator.remove();
-					} 
-					if (go.isUseful()) {
-						c++;
-						existingBag.add(go);
-					}
-				}
-				Log.d("vortex", "number of objects marked as useful: "+c);
-
-			} else {
-				Log.d("bortex","Adding a new bag of type "+key);
-				myObjects.put(key, myGisObjects);
-				while (iterator.hasNext()) {
-					GisObject go = iterator.next();
-					markIfUseful(go,gisView);
-				}
-			}
-			Log.d("bortex","added "+myGisObjects.size()+" objects to layer: "+getId()+" of type "+key);
-			}
-		*/
-
-			/*
-			if (merge) {
-				Set<GisObject> l = myObjects.get(key);
-				Log.d("bortex", "CAPRIX Bag " + getId() + " now has " + l.size() + " members" + " bag obj: " + ((Object) l.toString()));
-			}
-			*/
-
 
 	public void addObjectFilter(String key, GisFilter f) {
 		Set<GisFilter> setOfFilters = myFilters.get(key);
@@ -158,15 +120,24 @@ public class GisLayer {
 	public Map<String,Set<GisObject>> getGisBags() {
 		return myObjects;
 	}
+
 	public Set<GisObject> getBagOfType(String type) {
 		if (myObjects !=  null )
 			return myObjects.get(type);
 		return null;
 	}
+
 	public Map<String,Set<GisFilter>> getFilters() {
 		if (myFilters !=  null )
 			return myFilters;
 		return null;
+	}
+
+	public void setBold(boolean isBold) {
+
+		Log.d("vortex","SetBold called with "+isBold+" on "+this.getLabel()+" Obj: "+this.toString());
+		GlobalState.getInstance().getPreferences().put(PersistenceHelper.LAYER_BOLDNESS+getId(), isBold?1:0);
+		this.myBoldness=isBold;
 	}
 
 	public void setVisible(boolean isVisible) {
@@ -205,7 +176,11 @@ public class GisLayer {
 	public boolean isVisible() {
 		//Log.d("mama","Layer "+getId()+" has visibility set to "+myVisibility);
 		return myVisibility;
+	}
 
+	public boolean isBold() {
+		//Log.d("mama","Layer "+getId()+" has visibility set to "+myVisibility);
+		return myBoldness;
 	}
 
 	public boolean showLabels() {
