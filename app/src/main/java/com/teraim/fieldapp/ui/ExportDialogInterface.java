@@ -7,6 +7,6 @@ public interface ExportDialogInterface {
     public void setBackupStatus(String msg) ;
     public void setCheckGenerate(boolean success) ;
     public void setCheckBackup(boolean success) ;
-    public void setCheckSend(boolean success) ;
+    public void setCheckSend(int status) ;
     public void setOutCome(String msg) ;
 }

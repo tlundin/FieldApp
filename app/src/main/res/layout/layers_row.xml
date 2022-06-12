@@ -19,6 +19,17 @@
         android:textColor="@color/white" />
 
     <CheckBox
+        android:id="@+id/cbFet"
+        android:textColor="@color/white"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="0dp"
+        android:layout_marginRight="10dp"
+        android:scaleX="0.60"
+        android:scaleY="0.60"
+        android:button="@drawable/custom_checkbox"
+        />
+    <CheckBox
         android:id="@+id/cbShow"
         android:textColor="@color/white"
         android:layout_width="wrap_content"

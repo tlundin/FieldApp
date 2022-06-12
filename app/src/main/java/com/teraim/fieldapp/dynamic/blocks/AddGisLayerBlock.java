@@ -19,9 +19,9 @@ public class AddGisLayerBlock extends Block {
 	private final boolean isVisible;
     private final boolean hasWidget;
     private final boolean showLabels;
-	
+	private final boolean isBold;
 	public AddGisLayerBlock(String id, String name, String label,
-			String target, boolean isVisible, boolean hasWidget, boolean showLabels) {
+			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold) {
 		super();
 		this.blockId = id;
 		this.name = name;
@@ -30,6 +30,7 @@ public class AddGisLayerBlock extends Block {
 		this.isVisible = isVisible;
 		this.hasWidget = hasWidget;
 		this.showLabels = showLabels;
+		this.isBold=isBold;
 		
 	}
 	
@@ -41,7 +42,7 @@ public class AddGisLayerBlock extends Block {
 		if (gisMap instanceof WF_Gis_Map) {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
 			if (!myGis.isZoomLevel()) {
-			final GisLayer gisLayer = new GisLayer(myGis,name,label,isVisible,hasWidget,showLabels);
+			final GisLayer gisLayer = new GisLayer(myGis,name,label,isVisible,isBold,hasWidget,showLabels);
 			myGis.addLayer(gisLayer);
 			}
 		} else {
