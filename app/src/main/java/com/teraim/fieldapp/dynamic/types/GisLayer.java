@@ -157,7 +157,7 @@ public class GisLayer {
 		for (String k:myObjects.keySet()) {
 			Set<GisObject> gos = myObjects.get(k);
 			if (gos.contains(go)) {
-				Log.d("bapp","found l "+go.getLabel()+" n "+go.getFullConfiguration().getName()+" r"+go.getFullConfiguration().getRawLabel()+" in layer "+this.getLabel()+" "+this.getId());
+				//Log.d("bapp","found l "+go.getLabel()+" n "+go.getFullConfiguration().getName()+" r"+go.getFullConfiguration().getRawLabel()+" in layer "+this.getLabel()+" "+this.getId());
 				return gos;
 			}
 		}
@@ -165,7 +165,7 @@ public class GisLayer {
 	}
 
 	public void setShowLabels(boolean show) {
-		Log.d("zaza","Showlabels called with "+show+" for layer "+this.getLabel());
+		//Log.d("zaza","Showlabels called with "+show+" for layer "+this.getLabel());
 		showLabels=show;
 	}
 

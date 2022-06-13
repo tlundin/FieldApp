@@ -82,7 +82,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private String lastCheckTimeStamp;
 	private String palette;
 	private String creator;
-	private boolean isBold;
 	private final float line_width;
 
 	public AddGisPointObjects(String id, String nName, String label,
@@ -106,7 +105,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		this.createAllowed=createAllowed;
 		this.palette = palette;
 		this.creator = "";
-		this.isBold = false;
 		this.useIconOnMap = use_image_icon_on_map;
 		this.line_width = Float.parseFloat(line_width);
 		myType = type;
@@ -548,7 +546,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	public boolean isVisible() {
 		return isVisible;
 	}
-    public boolean isBold() { return isBold; }
 	public float getRadius() {
 		return radius;
 	}
