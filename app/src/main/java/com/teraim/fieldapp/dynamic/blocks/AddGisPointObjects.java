@@ -82,12 +82,13 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private String lastCheckTimeStamp;
 	private String palette;
 	private String creator;
+	private final float line_width;
 
 	public AddGisPointObjects(String id, String nName, String label,
 							  String target, String objectContext,String coordType, String locationVars,
 							  String imgSource,boolean use_image_icon_on_map, String refreshRate, String radius, boolean isVisible,
 							  GisObjectType type, String color, String polyType, String fillType,
-							  String onClick, String statusVariable, boolean isUser, boolean createAllowed, String palette, LoggerI o) {
+							  String onClick, String statusVariable, boolean isUser, boolean createAllowed, String palette, String line_width, LoggerI o) {
 		super();
 		this.blockId = id;
 		this.nName = nName;
@@ -105,6 +106,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		this.palette = palette;
 		this.creator = "";
 		this.useIconOnMap = use_image_icon_on_map;
+		this.line_width = Float.parseFloat(line_width);
 		myType = type;
 
 		if (coordType==null||coordType=="")
@@ -544,10 +546,10 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	public boolean isVisible() {
 		return isVisible;
 	}
-
 	public float getRadius() {
 		return radius;
 	}
+	public float getLineWidth() { return line_width; }
 
 	public String getColor() {
 		return color;

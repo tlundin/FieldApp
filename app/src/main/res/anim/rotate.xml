@@ -4,4 +4,5 @@
     android:pivotX="50%"
     android:pivotY="50%"
     android:duration="1000"
+    android:repeatCount="infinite"
     android:interpolator="@android:anim/linear_interpolator" />

@@ -592,7 +592,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
                     Log.d("bortex", "team is visible! Adding layer for team "+team);
-                    final GisLayer teamLayer = new GisLayer(this, "Team", "Team", true, true, true);
+                    final GisLayer teamLayer = new GisLayer(this, "Team", "Team", true, false, true,true);
                     myLayers.add(teamLayer);
                 } //else {
                 //o = GlobalState.getInstance().getLogger();
@@ -897,9 +897,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         TextView layers_header = layersPopup.findViewById(R.id.layer_header);
         TextView labels_header = layersPopup.findViewById(R.id.labels_header);
         TextView show_header = layersPopup.findViewById(R.id.show_header);
+        TextView bold_header = layersPopup.findViewById(R.id.bold_header);
         layers_header.setText(R.string.map_background);
         labels_header.setVisibility(View.INVISIBLE);
         show_header.setVisibility(View.INVISIBLE);
+        bold_header.setVisibility(View.INVISIBLE);
 
         LayoutInflater li = LayoutInflater.from(myContext.getContext());
         @SuppressLint("InflateParams") View bg = li.inflate(R.layout.map_background_radiogroup,null);
@@ -994,7 +996,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         //if another map bg shown, swap the pref. layer
                         if (previouslyChecked !=-1) {
                             radioB = radioGroup.findViewById(previouslyChecked);
-                            String p_text = radioB.getText().toString();
                             MapGisLayer prev_layer = (MapGisLayer) getLayerFromLabel(text);
                             Log.d("banjo","persist forget "+PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName());
                             localPh.put(PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName(), -1);
@@ -1020,9 +1021,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         TextView layers_header = layersPopup.findViewById(R.id.layer_header);
         TextView labels_header = layersPopup.findViewById(R.id.labels_header);
         TextView show_header = layersPopup.findViewById(R.id.show_header);
+        TextView bold_header = layersPopup.findViewById(R.id.bold_header);
         layers_header.setText(R.string.progress);
         labels_header.setVisibility(View.GONE);
         show_header.setVisibility(View.VISIBLE);
+        bold_header.setVisibility(View.GONE);
 
         layersF.removeAllViews();
         LayoutInflater li = LayoutInflater.from(myContext.getContext());
@@ -1065,9 +1068,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         TextView layers_header = layersPopup.findViewById(R.id.layer_header);
         TextView labels_header = layersPopup.findViewById(R.id.labels_header);
         TextView show_header = layersPopup.findViewById(R.id.show_header);
+        TextView bold_header = layersPopup.findViewById(R.id.bold_header);
         layers_header.setText(R.string.layers);
         labels_header.setVisibility(View.VISIBLE);
         show_header.setVisibility(View.VISIBLE);
+        bold_header.setVisibility(View.VISIBLE);
 
         FrameLayout layersF = layersPopup.findViewById(R.id.LayersL);
         layersF.removeAllViews();
@@ -1097,6 +1102,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (layer.hasWidget()) {
                 Log.d("zaza","layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+layer.toString());
                 layersRow = li.inflate(R.layout.layers_row, null);
+                final CheckBox lFet = layersRow.findViewById(R.id.cbFet);
                 final CheckBox lShow = layersRow.findViewById(R.id.cbShow);
                 final CheckBox lLabels = layersRow.findViewById(R.id.cbLabels);
                 //Log.d("vortex","Layer "+layer.getLabel()+" has a widget");
@@ -1104,9 +1110,21 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 String fixedL = Tools.fixedLengthString(layer.getLabel(),maxLength);
                 filterNameT.setText(fixedL);
                 //Log.d("vortex","length for"+fixedL+" is "+fixedL.length());
+                lFet.setChecked(layer.isBold());
                 lShow.setChecked(layer.isVisible());
                 lLabels.setChecked(layer.showLabels());
 
+                lFet.setOnCheckedChangeListener((buttonView, isBold) -> {
+                    if (lFet.isPressed()) {
+                        layer.setBold(isBold);
+                        Log.d("vortex","layer "+layer.getLabel()+" setbold "+isBold);
+                        gisImageView.invalidate();
+                    } else {
+                        Log.d("vortex", "discarded...by system");
+                        lFet.setChecked(!isBold);
+                    }
+
+                });
 
                 lShow.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     if (lShow.isPressed()) {

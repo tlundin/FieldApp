@@ -5,11 +5,14 @@ import android.app.Dialog;
 import android.app.DialogFragment;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.teraim.fieldapp.R;
+import com.teraim.fieldapp.utils.Exporter;
 
 /**
  * Created by Terje on 2016-10-07.
@@ -105,13 +108,29 @@ public class ExportDialog extends DialogFragment implements ExportDialogInterfac
             checkBackup.setImageResource(R.drawable.warning);
     }
 
-    public void setCheckSend(boolean success) {
+    boolean animationRunning=false;
+
+    public void setCheckSend(int status) {
         checkSend.setVisibility(View.VISIBLE);
         sendHeader.setVisibility(View.VISIBLE);
-        if (success)
-            checkSend.setImageResource(R.drawable.checkmark);
-        else
-            checkSend.setImageResource(R.drawable.warning);
+        switch (status) {
+            case Exporter.SUCCESS:
+                checkSend.clearAnimation();
+                checkSend.setImageResource(R.drawable.checkmark);
+                break;
+            case Exporter.FAILED:
+                checkSend.clearAnimation();
+                checkSend.setImageResource(R.drawable.warning);
+                break;
+            case Exporter.IN_PROGRESS:
+                checkSend.setImageResource(R.drawable.spinwheel_small);
+                if (!animationRunning) {
+                    Animation a = AnimationUtils.loadAnimation(getContext(), R.anim.rotate);
+                    checkSend.startAnimation(a);
+                    animationRunning=true;
+                }
+                break;
+        }
     }
 
     public void setOutCome(String msg) {
