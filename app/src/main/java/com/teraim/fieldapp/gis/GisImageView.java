@@ -300,7 +300,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 						bag = l.getBagOfType(gisTypeToCreate.getName());
 						if (bag!= null) {
-							Log.d("vortex","found correct bag!");
+							Log.d("vortex","found a bag in layer "+ l.getLabel()+" of type "+gisTypeToCreate.getName());
 							newGisObj = createNewGisObject(gisTypeToCreate,bag);
 							if (gisTypeToCreate.getGisPolyType()==GisObjectType.Point)
 								myMap.setVisibleCreate(true,newGisObj.getLabel());
@@ -535,7 +535,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					break;
 
 			}
-			//Log.d("vortex","Adding "+ret.toString()+" to bag "+bag.toString());
+			Log.d("vortex","Adding "+ret.toString()+" to bag "+bag.toString());
 			if (ret !=null) {
 				ret.markAsUseful();
 				bag.add(ret);
@@ -795,11 +795,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			if (touchedGop!=null) {
 				//Log.d("vortex", "Gop selected now has Keychain: " + touchedGop.getKeyHash());
 				//Find the layer and bag touched.
-				if (touchedBag==null) {
+				if (touchedBag==null || touchedLayer == null) {
 					for (GisLayer layer : myMap.getLayers()) {
 						touchedBag = layer.getBagContainingGo(touchedGop);
 						if (touchedBag != null) {
-							Log.d("vortex", "setting touchedlayer");
+							Log.d("vortex", "setting touchedlayer for "+touchedGop.getKeyHash());
 							touchedLayer = layer;
 							//if longclick, open the actionbar menu.
 							if (!clickWasShort)
@@ -816,8 +816,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 				if (touchedBag != null) {
 
-
-
 					if (clickWasShort && (riktLinjeStart == null || riktLinjeEnd == null) && mostRecentGPSValueTimeStamp!=-1 && myX!=null&&myY!=null&&myX.getValue()!=null && myY.getValue()!=null) {
 						//Create a line from user to object.
 						double mX = Double.parseDouble(myX.getValue());
@@ -826,8 +824,13 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 						translateMapToRealCoordinates(new SweLocation(mX,mY),riktLinjeStart);
 						translateMapToRealCoordinates(touchedGop.getLocation(),riktLinjeEnd);
 					}
-					//if (touchedLayer == null)
-					//	Log.d("vortex","TOUCHEDLAYER WAS NULL. TouchedBag was: "+touchedBag);
+					if (touchedLayer == null) {
+						LoggerI o = getInstance().getLogger();
+						o.addRow("");
+						o.addRedText("The selected gis object with name "+touchedGop.getFullConfiguration().getName()+" is not attached to any layer");
+						Log.d("vortex","TOUCHEDLAYER WAS NULL. TouchedGop was: "+touchedGop.getKeyHash());
+					}
+
 
 					drawGop(canvas,touchedLayer,touchedGop,true);
 					//Check if directional line should be drawn.
@@ -1069,12 +1072,13 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		}
 		//will only be called from here if selected.
 		GisPointObject gop;
+		boolean isBold = (layerO==null?false:layerO.isBold());
 		//Only gets her for Gispoint, if it is selected.
 		if (go instanceof GisPointObject) {
 			gop = (GisPointObject) go;
 			if (gop.getTranslatedLocation() != null) {
 				//Log.d("vortex","Calling drawpoint in dispatchdraw for "+go.getLabel());
-				drawPoint(canvas, null, gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red", Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,layerO.isBold());
+				drawPoint(canvas, null, gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red", Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,isBold);
 			} else
 				Log.e("vortex", "NOT calling drawpoint since translatedlocation was null");
 
@@ -1090,7 +1094,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					canvas.drawPath(p, polyPaint);
 				xy = intBuffer.getIntBuf();
 				translateMapToRealCoordinates(gpo.getCoordinates().get(gpo.getCoordinates().size()-1),xy);
-				drawPoint(canvas, null,2,go.getFullConfiguration().getLineWidth(), "white", Style.STROKE, PolyType.circle, xy,1,false,layerO.isBold());
+				drawPoint(canvas, null,2,go.getFullConfiguration().getLineWidth(), "white", Style.STROKE, PolyType.circle, xy,1,false,isBold);
 			} else {
 				if (go instanceof GisPolygonObject) {
 					//check if buffered paths already exists.
@@ -1119,12 +1123,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 						gpo.addPath(p);
 					}
 					if (p!=null)
-						drawPath(p,selected,canvas,go,layerO.isBold());
+						drawPath(p,selected,canvas,go,isBold);
 				} else {
 					List<Path> paths = gpo.getPaths();
 					if (paths != null) {
 						for (Path p : paths) {
-							drawPath(p,selected,canvas,go,layerO.isBold());
+							drawPath(p,selected,canvas,go,isBold);
 						}
 					}
 				}

@@ -86,7 +86,7 @@ public class GisLayer {
 
 	public void addObjectBag(String key, Set<GisObject> myGisObjects, boolean dynamic, GisImageView gisView) {
 		boolean merge = false;
-		Log.d("bortex", "in add objbag with key " + key);
+		Log.d("bortex", "in add objbag for layer "+label+" with key " + key);
 		if (myObjects == null) {
 			//Log.d("bortex", "myObjects null...creating. Mygisobjects: " + myGisObjects + " dynamic: " + dynamic);
 			myObjects = new HashMap<String, Set<GisObject>>();
@@ -156,10 +156,10 @@ public class GisLayer {
 			return null;
 		for (String k:myObjects.keySet()) {
 			Set<GisObject> gos = myObjects.get(k);
-			for (GisObject g:gos)
-				if (go.equals(g))
-					return gos;
-
+			if (gos.contains(go)) {
+				Log.d("bapp","found l "+go.getLabel()+" n "+go.getFullConfiguration().getName()+" r"+go.getFullConfiguration().getRawLabel()+" in layer "+this.getLabel()+" "+this.getId());
+				return gos;
+			}
 		}
 		return null;
 	}
