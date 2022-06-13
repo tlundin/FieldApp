@@ -2246,7 +2246,7 @@ public class Expressor {
             public void setCheckBackup(boolean success) {
             }
             @Override
-            public void setCheckSend(boolean success) {
+            public void setCheckSend(int status) {
             }
             @Override
             public void setOutCome(String msg) {

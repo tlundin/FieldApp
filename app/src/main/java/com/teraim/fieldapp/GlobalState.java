@@ -35,10 +35,14 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
 
 
 /**
@@ -349,6 +353,19 @@ public class GlobalState {
 
     public void setSelectedGop(GisObject go) {
         selectedGop = go;
+    }
+
+    OkHttpClient http_client=null;
+    public OkHttpClient getHTTPClient() {
+        if (http_client==null) {
+            http_client = new OkHttpClient.Builder()
+                    .readTimeout(120, TimeUnit.SECONDS)
+                    .callTimeout(120, TimeUnit.SECONDS)
+                    .connectTimeout(120, TimeUnit.SECONDS)
+                    .writeTimeout(500,TimeUnit.SECONDS)
+                    .build();
+        }
+        return http_client;
     }
 
 

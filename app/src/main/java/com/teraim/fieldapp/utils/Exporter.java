@@ -10,9 +10,13 @@ import com.teraim.fieldapp.utils.DbHelper.DBColumnPicker;
 
 
 public abstract class Exporter {
-	
-	
-	public enum ExportReport {
+
+
+    public static final int FAILED = 0;
+	public static final int SUCCESS = 1;
+	public static final int IN_PROGRESS = 2;
+
+    public enum ExportReport {
 		OK,
 		NO_DATA,
 		FILE_WRITE_ERROR,

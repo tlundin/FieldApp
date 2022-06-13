@@ -65,9 +65,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -131,6 +133,16 @@ public  class ButtonBlock extends Block  implements EventListener {
 		action,
 		toggle
 	}
+
+	private class ExportEntry {
+		String name;
+		RequestBody body;
+		public ExportEntry(String name, RequestBody body) {
+			this.name=name;
+			this.body=body;
+		}
+	}
+
 
 
 	//TODO: REMOVE THIS Constructor!!
@@ -528,7 +540,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																((Activity) ctx).runOnUiThread(new Runnable() {
 																	@Override
 																	public void run() {
-																		exporter.getDialog().setCheckSend(false);
+																		exporter.getDialog().setCheckSend(Exporter.FAILED);
 																		exporter.getDialog().setSendStatus("Configuration error");
 																		msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
 																	}
@@ -540,7 +552,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																((Activity) ctx).runOnUiThread(new Runnable() {
 																	@Override
 																	public void run() {
-																		exporter.getDialog().setCheckSend(true);
+																		exporter.getDialog().setCheckSend(Exporter.SUCCESS);
 																		exporter.getDialog().setSendStatus("OK");
 																		if (!targetMailAdress.isEmpty())
 																			msg += "\nFile forwarded to " + targetMailAdress + ".";
@@ -570,13 +582,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	File primaryExternalStorage = externalStorageVolumes[0];
 																	String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
 																	String imageFolder = primaryExternalStorage.getAbsolutePath() + "/pics/";
+																	List<ExportEntry> exportList = new ArrayList<>();
 																	String nameWithType = exportFileName + "." + exporter.getType();
 																	File exportFile = new File(exportFolder + nameWithType);
 																	Log.d("type", exporter.getType());
 																	RequestBody postBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
 																			.addFormDataPart(nameWithType, nameWithType, RequestBody.create(MediaType.parse("application/json; charset=utf-8"), exportFile)).build();
-																	postRequest(exportFileEndpoint, postBody, exporter);
-
+																	exportList.add(new ExportEntry(nameWithType,postBody));
 																	File directory = new File(imageFolder);
 																	File[] imgs = directory.listFiles();
 																	Log.d("Files", "Size: " + imgs.length);
@@ -611,14 +623,86 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 																			RequestBody postBodyImage = new MultipartBody.Builder().setType(MultipartBody.FORM)
 																					.addFormDataPart(fileName, fileName, RequestBody.create(MediaType.parse("image/*jpg"), byteArray)).build();
-																			postRequest(exportFileEndpoint, postBodyImage, exporter);
+																			exportList.add(new ExportEntry(fileName, postBodyImage));
 																		}
-
 																	}
-																	msg = msg+"\n[";
-																	for (String img:imgNames)
-																		msg = msg+img+", ";
-																	msg = msg+"]"+" exported to "+exportServerURL;
+																	((Activity) ctx).runOnUiThread(new Runnable() {
+																		@Override
+																		public void run() {
+																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																		}
+																	});
+
+																	final OkHttpClient client = gs.getHTTPClient();
+																	int totalToExport = exportList.size();
+																	final Boolean[] exportFailed = {false};
+																	final AtomicInteger counter = new AtomicInteger(0);
+																	for (ExportEntry entry:exportList) {
+																		Request request = new Request.Builder()
+																				.url(exportFileEndpoint)
+																				.post(entry.body)
+																				.build();
+																		client.newCall(request).enqueue(new Callback() {
+																			@Override
+																			public void onFailure(Call call, IOException e) {
+																				// Cancel the post on failure.
+																				call.cancel();
+																				Log.d("FAIL", e.getMessage());
+																				final String err = e.getMessage();
+																				((Activity) ctx).runOnUiThread(new Runnable() {
+																					@Override
+																					public void run() {
+																						exportFailed[0] = true;
+																						exporter.getDialog().setCheckSend(Exporter.FAILED);
+																						exporter.getDialog().setSendStatus("FAILED");
+																						exporter.getDialog().setOutCome("Export failed for "+entry.name+"\n Error: "+err);
+																					}
+																				});
+																			}
+																			@Override
+																			public void onResponse(Call call, final Response response) throws IOException {
+																				final String resp = response.body().string();
+																				final int code = response.code();
+																				if (code != HttpsURLConnection.HTTP_OK) {
+																					((Activity) ctx).runOnUiThread(new Runnable() {
+																						@Override
+																						public void run() {
+																							exportFailed[0] = true;
+																							exporter.getDialog().setCheckSend(Exporter.FAILED);
+																							exporter.getDialog().setSendStatus("FAILED");
+																							exporter.getDialog().setOutCome("Export failed for "+entry.name+"\nResponse: "+resp+"\nReturn code: "+code);
+																						}
+																					});
+																				} else {
+																					((Activity) ctx).runOnUiThread(new Runnable() {
+																						@Override
+																						public void run() {
+																							if(exportFailed[0] != true) {
+																								exporter.getDialog().setSendStatus("["+counter.incrementAndGet() + "/" + totalToExport+"]");
+																								exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																								if (counter.get() == totalToExport) {
+																									exporter.getDialog().setCheckSend(Exporter.SUCCESS);
+																									StringBuilder eMsg = new StringBuilder();
+																									eMsg.append("[");
+																									for (ExportEntry e:exportList) {
+																										eMsg.append(e.name);
+																										eMsg.append(", ");
+																									}
+																									eMsg.append("] exported to "+exportServerURL);																								msg = msg + "]" + " exported to " + exportServerURL;
+																									exporter.getDialog().setOutCome(eMsg.toString());
+																									if (button instanceof WF_StatusButton) {
+																										((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
+																									}
+																								}
+																							}
+																						}
+																					});
+																				}
+																			}
+																		});
+																	}
+
+
 																}
 															}
 														}
@@ -636,9 +720,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 														@Override
 														public void run() {
 															{
-																if (button instanceof WF_StatusButton) {
-																	((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
-																}
 																exporter.getDialog().setOutCome(msg);
 															}
 														}
@@ -786,63 +867,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 						return fileName.contains(filter);
 					}
 
-					void postRequest(String postUrl, RequestBody postBody,Exporter exporter) {
 
-						OkHttpClient client = new OkHttpClient();
-
-						Request request = new Request.Builder()
-								.url(postUrl)
-								.post(postBody)
-								.build();
-
-						client.newCall(request).enqueue(new Callback() {
-							@Override
-							public void onFailure(Call call, IOException e) {
-								// Cancel the post on failure.
-								call.cancel();
-								Log.d("FAIL", e.getMessage());
-								final String err = e.getMessage();
-
-								// In order to access the TextView inside the UI thread, the code is executed inside runOnUiThread()
-
-								((Activity) ctx).runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										exporter.getDialog().setCheckSend(false);
-										exporter.getDialog().setSendStatus("FAILED");
-										exporter.getDialog().setOutCome("Export failed. Error: "+err);
-									}
-								});
-
-
-							}
-
-							@Override
-							public void onResponse(Call call, final Response response) throws IOException {
-								final String resp = response.body().string();
-								final int code = response.code();
-								if (code != HttpsURLConnection.HTTP_OK) {
-									((Activity) ctx).runOnUiThread(new Runnable() {
-										@Override
-										public void run() {
-											exporter.getDialog().setCheckSend(false);
-											exporter.getDialog().setSendStatus("FAILED");
-											exporter.getDialog().setOutCome("Export failed. Response: "+resp+" Return code: "+code);
-										}
-									});
-								}
-								// In order to access the TextView inside the UI thread, the code is executed inside runOnUiThread()
-								Log.d("v",resp);
-								((Activity) ctx).runOnUiThread(new Runnable() {
-									@Override
-									public void run() {
-										exporter.getDialog().setCheckSend(true);
-										exporter.getDialog().setSendStatus("OK");
-									}
-								});
-							}
-						});
-					}
 
 					//Check if a sync is required. Pop current fragment.
 					private void goBack() {

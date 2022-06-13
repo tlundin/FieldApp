@@ -30,36 +30,44 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/sendHeader"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
-        android:id="@+id/send" />
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:layout_below="@+id/textView3"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="22dp"
         android:id="@+id/progress" />
 
     <TextView
+        android:id="@+id/backup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/backupHeader"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
-        android:id="@+id/backup" />
+        android:layout_marginTop="22dp" />
+
+    <TextView
+        android:id="@+id/sendHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/backup"
+        android:layout_alignEnd="@+id/textView3"
+        android:layout_marginTop="25dp"
+        android:text="@string/Forwarding"
+        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/send"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/sendHeader"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="22dp" />
 
     <ImageView
         android:src="@drawable/checkmark"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/textView3"
-        android:layout_toRightOf="@+id/sendHeader"
         android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginLeft="34dp"
         android:layout_marginStart="34dp"
         android:id="@+id/checkGenerate" />
 
@@ -68,9 +76,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/sendHeader"
-        android:layout_toRightOf="@+id/sendHeader"
         android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginLeft="34dp"
         android:layout_marginStart="34dp"
         android:id="@+id/checkSend" />
 
@@ -79,23 +85,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/backupHeader"
-        android:layout_toRightOf="@+id/sendHeader"
         android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginLeft="34dp"
         android:layout_marginStart="34dp"
         android:id="@+id/checkBackup" />
-
-    <TextView
-        android:id="@+id/sendHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/backup"
-        android:layout_alignEnd="@+id/textView3"
-        android:layout_alignRight="@+id/textView3"
-        android:layout_marginTop="25dp"
-        android:text="@string/Forwarding"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
-        android:visibility="gone" />
 
     <TextView
         android:id="@+id/backupHeader"
@@ -132,7 +124,5 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/closeButton"
         android:layout_marginTop="10dp" />
-
-
 
 </RelativeLayout>
