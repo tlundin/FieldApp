@@ -523,7 +523,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     Handler GPShandler=null;
     private void monitorGPS(boolean on) {
-        Log.d("gps","MONITOR CALLED "+on);
+        //Log.d("gps","MONITOR CALLED "+on);
         if (on && GPShandler == null) {
                 GPShandler = new Handler();
                 Runnable runnable = new Runnable(){
@@ -546,7 +546,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void refreshSyncDisplay() {
-        Log.d("Egon","In refresh syncdisplay");
+        //Log.d("Egon","In refresh syncdisplay");
         int numOfUnsynchedEntries = gs.getDb().getNumberOfUnsyncedEntries();
         long numOfInsertSyncEntries = gs.getDb().getSyncRowsLeft();
         //List of people in team with data on server
@@ -1215,7 +1215,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     private boolean syncOn() {
         boolean syncOn = ContentResolver.getSyncAutomatically(mAccount, Start.AUTHORITY);
-        Log.d("sync","in syncOn. Syncon is "+syncOn);
+        //Log.d("sync","in syncOn. Syncon is "+syncOn);
         return syncOn;
     }
 
