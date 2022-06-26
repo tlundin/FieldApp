@@ -362,7 +362,7 @@ public class GlobalState {
                     .readTimeout(120, TimeUnit.SECONDS)
                     .callTimeout(120, TimeUnit.SECONDS)
                     .connectTimeout(120, TimeUnit.SECONDS)
-                    .writeTimeout(500,TimeUnit.SECONDS)
+                    .writeTimeout(120,TimeUnit.SECONDS)
                     .build();
         }
         return http_client;
