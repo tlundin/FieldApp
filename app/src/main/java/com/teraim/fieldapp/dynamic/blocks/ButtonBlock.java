@@ -15,6 +15,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 
+import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 import android.util.Log;
@@ -567,7 +568,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 														} else if (exportMethod.startsWith("upload")) {
 															if (!Connectivity.isConnected((Activity)ctx)) {
 																o.addRow("");
-																o.addRedText("You need a network connection to be able to export.");
+																o.addRedText("Export failed - no network");
 																msg="No network connection";
 															} else {
 																String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
@@ -599,6 +600,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																		Log.d("vortex", "filter was null");
 																	Log.d("filter", "Filter: " + filter);
 																	ArrayList<String>imgNames = new ArrayList<>();
+
 																	for (int i = 0; i < imgs.length; i++) {
 																		Log.d("Files", "FileName:" + imgs[i].getName());
 																		String fileName = imgs[i].getName();
@@ -626,15 +628,21 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			exportList.add(new ExportEntry(fileName, postBodyImage));
 																		}
 																	}
+																	int totalToExport = exportList.size();
 																	((Activity) ctx).runOnUiThread(new Runnable() {
 																		@Override
 																		public void run() {
+
 																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																			exporter.getDialog().setSendStatus("[0/" + totalToExport+"]. Trying to send...");
 																		}
 																	});
-
+																	try {
+																		Thread.sleep(1500);
+																	} catch (InterruptedException e) {
+																		e.printStackTrace();
+																	}
 																	final OkHttpClient client = gs.getHTTPClient();
-																	int totalToExport = exportList.size();
 																	final Boolean[] exportFailed = {false};
 																	final AtomicInteger counter = new AtomicInteger(0);
 																	for (ExportEntry entry:exportList) {
@@ -660,7 +668,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																				});
 																			}
 																			@Override
-																			public void onResponse(Call call, final Response response) throws IOException {
+																			public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
 																				final String resp = response.body().string();
 																				final int code = response.code();
 																				if (code != HttpsURLConnection.HTTP_OK) {
@@ -677,7 +685,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																					((Activity) ctx).runOnUiThread(new Runnable() {
 																						@Override
 																						public void run() {
-																							if(exportFailed[0] != true) {
+																							if(!exportFailed[0]) {
 																								exporter.getDialog().setSendStatus("["+counter.incrementAndGet() + "/" + totalToExport+"]");
 																								exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
 																								if (counter.get() == totalToExport) {
