@@ -280,11 +280,14 @@ public  class ButtonBlock extends Block  implements EventListener {
 					if(((WF_StatusButton)button).refreshStatus()) {
 						Log.d("vortex","sucessfully created statusbutton "+(button instanceof WF_StatusButton));
 					} else {
-						button=null;
+						//button=null;
 						o.addRow("");
-						if (buttonContext==null)
-							o.addRedText("Statusvariable ["+statusVar+"], has something wrong with its context. Check precompile log.");
-						o.addRedText("Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
+						if (buttonContext==null) {
+							o.addRedText("Statusvariable [" + statusVar + "], has something wrong with its context. Check precompile log.");
+							button = null;
+						}
+						Log.d("abba","buttonContext: "+buttonContext.getContext().toString());
+						//o.addRedText("Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 						Log.e("vortex", "Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 
 					}

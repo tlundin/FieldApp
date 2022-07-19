@@ -310,7 +310,7 @@ public class VariableCache {
             String mColumns = gs.getVariableConfiguration().getKeyChain(row);
             Map<String, String> tryThis = cutKeyMap(mColumns, hash);
             if (tryThis != null && tryThis.isEmpty()) {
-                Log.e("vortex", "KEY FAILLLLL!!!");
+                Log.e("vortex", "KEY FAIL for variable "+varId);
                 return null;
             }
             cache = createOrGetCache(tryThis);
