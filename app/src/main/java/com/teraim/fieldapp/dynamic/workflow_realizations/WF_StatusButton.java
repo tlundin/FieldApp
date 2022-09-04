@@ -134,7 +134,6 @@ public class WF_StatusButton extends WF_Button {
     }
 
     private void refreshButton(int id) {
-
         Drawable image = ContextCompat.getDrawable(ctx, id);
         int h = image.getIntrinsicHeight();
         int w = image.getIntrinsicWidth();

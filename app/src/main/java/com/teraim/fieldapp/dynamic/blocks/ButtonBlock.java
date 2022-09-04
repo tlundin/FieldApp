@@ -8,6 +8,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -66,7 +67,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -137,10 +141,10 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 	private class ExportEntry {
 		String name;
-		RequestBody body;
-		public ExportEntry(String name, RequestBody body) {
+		String path;
+		public ExportEntry(String name, String path) {
 			this.name=name;
-			this.body=body;
+			this.path=path;
 		}
 	}
 
@@ -518,18 +522,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 									}
 									if (!done) {
 										exportFileName = getTarget();
-
 										final Exporter exporter = Exporter.getInstance(ctx, exportFormat.toLowerCase(),new ExportDialog());
-
-
 										//Run export in new thread. Create UI to update user on progress.
 										if (exporter!=null) {
 											((DialogFragment)exporter.getDialog()).show(((Activity) ctx).getFragmentManager(), "exportdialog");
 
-
 											Thread t = new Thread() {
 												String msg = "";
-
 												@Override
 												public void run() {
 													Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
@@ -586,52 +585,34 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	File primaryExternalStorage = externalStorageVolumes[0];
 																	String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
 																	String imageFolder = primaryExternalStorage.getAbsolutePath() + "/pics/";
-																	List<ExportEntry> exportList = new ArrayList<>();
 																	String nameWithType = exportFileName + "." + exporter.getType();
 																	File exportFile = new File(exportFolder + nameWithType);
-																	Log.d("type", exporter.getType());
-																	RequestBody postBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
+																	RequestBody exportDataFileBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
 																			.addFormDataPart(nameWithType, nameWithType, RequestBody.create(MediaType.parse("application/json; charset=utf-8"), exportFile)).build();
-																	exportList.add(new ExportEntry(nameWithType,postBody));
+
 																	File directory = new File(imageFolder);
 																	File[] imgs = directory.listFiles();
 																	Log.d("Files", "Size: " + imgs.length);
 																	String filter = null;
 																	if (imgFilterE != null)
 																		filter = Expressor.analyze(imgFilterE, buttonContext.getContext());
-																	else
-																		Log.d("vortex", "filter was null");
-																	Log.d("filter", "Filter: " + filter);
-																	ArrayList<String>imgNames = new ArrayList<>();
-
+																	Set<String>imgNames = new HashSet<>();
+																	List<ExportEntry>imagesToExport = new ArrayList<>();
+																	SharedPreferences sp = gs.getPreferences().getPreferences();
+																	Set<String> alreadyExported = sp.getStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, Collections.emptySet());
+																	Log.d("Mando", "Images I know: "+alreadyExported.toString());
 																	for (int i = 0; i < imgs.length; i++) {
-																		Log.d("Files", "FileName:" + imgs[i].getName());
-																		String fileName = imgs[i].getName();
-																		if (isInFilter(fileName,filter))
-																		{
-																			imgNames.add(fileName);
+																		Log.d("Files", "Image name: " + imgs[i].getName());
+																		String imageName = imgs[i].getName();
+																		if (isInFilter(imageName, filter) && !alreadyExported.contains(imageName)) {
+																			imgNames.add(imageName);
 																			String imgPath = imgs[i].getPath();
 																			Log.d("vortex", "imgpath is " + imgPath);
-																			Log.d("export", "URL: " + exportServerURL);
-																			ByteArrayOutputStream stream = new ByteArrayOutputStream();
-																			BitmapFactory.Options options = new BitmapFactory.Options();
-																			options.inPreferredConfig = Bitmap.Config.RGB_565;
-																			try {
-																				// Read BitMap by file path.
-																				Bitmap bitmap = BitmapFactory.decodeFile(imgPath, options);
-																				bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-																			} catch (Exception e) {
-																				Log.e("no img", "not an image");
-																				return;
-																			}
-																			byte[] byteArray = stream.toByteArray();
-
-																			RequestBody postBodyImage = new MultipartBody.Builder().setType(MultipartBody.FORM)
-																					.addFormDataPart(fileName, fileName, RequestBody.create(MediaType.parse("image/*jpg"), byteArray)).build();
-																			exportList.add(new ExportEntry(fileName, postBodyImage));
-																		}
+																			imagesToExport.add(new ExportEntry(imageName, imgPath));
+																		} else
+																			Log.d("Mando","Excluded "+imageName);
 																	}
-																	int totalToExport = exportList.size();
+																	int totalToExport = imgNames.size()+1;
 																	((Activity) ctx).runOnUiThread(new Runnable() {
 																		@Override
 																		public void run() {
@@ -640,80 +621,92 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			exporter.getDialog().setSendStatus("[0/" + totalToExport+"]. Trying to send...");
 																		}
 																	});
-																	try {
-																		Thread.sleep(1500);
-																	} catch (InterruptedException e) {
-																		e.printStackTrace();
-																	}
 																	final OkHttpClient client = gs.getHTTPClient();
-																	final Boolean[] exportFailed = {false};
 																	final AtomicInteger counter = new AtomicInteger(0);
-																	for (ExportEntry entry:exportList) {
-																		Request request = new Request.Builder()
-																				.url(exportFileEndpoint)
-																				.post(entry.body)
-																				.build();
-																		client.newCall(request).enqueue(new Callback() {
-																			@Override
-																			public void onFailure(Call call, IOException e) {
-																				// Cancel the post on failure.
+
+																	final Callback cb = new Callback() {
+																		@Override
+																		public void onFailure(Call call, IOException e) {
+																			// Cancel the post on failure.
+																			Log.d("FAIL", e.getMessage());
+																			final String err = e.getMessage();
+																			((Activity) ctx).runOnUiThread(new Runnable() {
+																				@Override
+																				public void run() {
+																					exporter.getDialog().setCheckSend(Exporter.FAILED);
+																					exporter.getDialog().setSendStatus("FAILED");
+																					exporter.getDialog().setOutCome("Export failed.\n Error: "+err);
+																				}
+																			});
+																			if (call != null)
 																				call.cancel();
-																				Log.d("FAIL", e.getMessage());
-																				final String err = e.getMessage();
+																		}
+																		@Override
+																		public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
+																			counter.incrementAndGet();
+																			final String resp = response.body().string();
+																			final int code = response.code();
+																			if (code != HttpsURLConnection.HTTP_OK) {
 																				((Activity) ctx).runOnUiThread(new Runnable() {
 																					@Override
 																					public void run() {
-																						exportFailed[0] = true;
 																						exporter.getDialog().setCheckSend(Exporter.FAILED);
 																						exporter.getDialog().setSendStatus("FAILED");
-																						exporter.getDialog().setOutCome("Export failed for "+entry.name+"\n Error: "+err);
+																						exporter.getDialog().setOutCome("Export failed.\nResponse: "+resp+"\nReturn code: "+code);
 																					}
 																				});
-																			}
-																			@Override
-																			public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
-																				final String resp = response.body().string();
-																				final int code = response.code();
-																				if (code != HttpsURLConnection.HTTP_OK) {
-																					((Activity) ctx).runOnUiThread(new Runnable() {
-																						@Override
-																						public void run() {
-																							exportFailed[0] = true;
-																							exporter.getDialog().setCheckSend(Exporter.FAILED);
-																							exporter.getDialog().setSendStatus("FAILED");
-																							exporter.getDialog().setOutCome("Export failed for "+entry.name+"\nResponse: "+resp+"\nReturn code: "+code);
+																				call.cancel();
+																			} else {
+																				if (counter.get() == totalToExport) {
+																					StringBuilder eMsg = new StringBuilder();
+																					if (imagesToExport.size() == 0)
+																						eMsg.append("No new images to export.");
+																					else {
+																						eMsg.append("[");
+																						for (ExportEntry e : imagesToExport) {
+																							eMsg.append(e.name);
+																							eMsg.append(", ");
 																						}
+																						eMsg.append("] exported.");
+																					}
+
+																					Set<String> newStrSet = new HashSet<String>();
+																					newStrSet.addAll(imgNames);
+																					newStrSet.addAll(alreadyExported);
+																					sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY,newStrSet).apply();
+																					((Activity) ctx).runOnUiThread(() -> {
+																						exporter.getDialog().setSendStatus("["+ counter.get() + "/" + totalToExport+"]");
+																						exporter.getDialog().setCheckSend(Exporter.SUCCESS);
+																						exporter.getDialog().setOutCome(eMsg.toString());
+																						if (button instanceof WF_StatusButton)
+																							((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
 																					});
 																				} else {
-																					((Activity) ctx).runOnUiThread(new Runnable() {
-																						@Override
-																						public void run() {
-																							if(!exportFailed[0]) {
-																								exporter.getDialog().setSendStatus("["+counter.incrementAndGet() + "/" + totalToExport+"]");
-																								exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
-																								if (counter.get() == totalToExport) {
-																									exporter.getDialog().setCheckSend(Exporter.SUCCESS);
-																									StringBuilder eMsg = new StringBuilder();
-																									eMsg.append("[");
-																									for (ExportEntry e:exportList) {
-																										eMsg.append(e.name);
-																										eMsg.append(", ");
-																									}
-																									eMsg.append("] exported to "+exportServerURL);																								msg = msg + "]" + " exported to " + exportServerURL;
-																									exporter.getDialog().setOutCome(eMsg.toString());
-																									if (button instanceof WF_StatusButton) {
-																										((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
-																									}
-																								}
-																							}
-																						}
-																					});
+																				((Activity) ctx).runOnUiThread(() -> {
+																					exporter.getDialog().setSendStatus("["+ counter.get() + "/" + totalToExport+"]");
+																					exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																				});
+
+																					RequestBody requestBody = createBody(imagesToExport.get(counter.get()-1));
+																					if (requestBody !=null) {
+																						Request request = new Request.Builder()
+																								.url(exportFileEndpoint)
+																								.post(requestBody)
+																								.build();
+																						client.newCall(request).enqueue(this);
+																					} else {
+																						o.addRow("");
+																						o.addRedText("Failed to compress bitmap. Export failed");
+																					}
 																				}
 																			}
-																		});
-																	}
-
-
+																		}
+																	};
+																		Request request = new Request.Builder()
+																				.url(exportFileEndpoint)
+																				.post(exportDataFileBody)
+																				.build();
+																		client.newCall(request).enqueue(cb);
 																}
 															}
 														}
@@ -876,6 +869,24 @@ public  class ButtonBlock extends Block  implements EventListener {
 						if (filter == null)
 							return true;
 						return fileName.contains(filter);
+					}
+
+					private RequestBody createBody(ExportEntry img) {
+						ByteArrayOutputStream stream = new ByteArrayOutputStream();
+						BitmapFactory.Options options = new BitmapFactory.Options();
+						options.inPreferredConfig = Bitmap.Config.RGB_565;
+						try {
+							// Read BitMap by file path.
+							Bitmap bitmap = BitmapFactory.decodeFile(img.path, options);
+							bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+						} catch (Exception e) {
+							e.printStackTrace();
+							return null;
+						}
+						byte[] byteArray = stream.toByteArray();
+						RequestBody postBodyImage = new MultipartBody.Builder().setType(MultipartBody.FORM)
+								.addFormDataPart(img.name, img.name, RequestBody.create(MediaType.parse("image/*jpg"), byteArray)).build();
+						return postBodyImage;
 					}
 
 

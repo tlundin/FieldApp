@@ -57,6 +57,7 @@ public class PersistenceHelper {
 	public static final String LOG_LEVEL = "log_levels";
 	public static final String PotentiallyTimeStampToUseIfInsertDoesNotFail="potential_timestamp";
 	public static final String USERUUID_KEY = "myuuid";
+	public static final String EXPORTED_IMAGES_KEY = "images_already_exported";
 
 	private final SharedPreferences sp;
 	ArrayList<String> delta = new ArrayList<String>();
@@ -103,5 +104,8 @@ public class PersistenceHelper {
 		return sp.getLong(key, -1);
 	}
 
+	public SharedPreferences getPreferences() {
+		return sp;
+	}
 
 }
