@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -45,6 +46,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -368,7 +370,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			if (getActivity()!=null) {
 				final GlobalState gs =
 						GlobalState.createInstance(getActivity().getApplicationContext(),globalPh,ph,debugConsole,myDb, workflows, t,sd, this.logTxt,imgMetaFormat);
-
+				//SharedPreferences sp = GlobalState.getInstance().getPreferences().getPreferences();
+				//sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, new HashSet<>()).commit();
 				//check if backup required.
 				if (gs.getBackupManager().timeToBackup()) {
 					loginConsole.addRow("Backing up data");
