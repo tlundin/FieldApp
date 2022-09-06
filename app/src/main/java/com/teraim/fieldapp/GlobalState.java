@@ -360,7 +360,6 @@ public class GlobalState {
         if (http_client==null) {
             http_client = new OkHttpClient.Builder()
                     .readTimeout(120, TimeUnit.SECONDS)
-                    .callTimeout(120, TimeUnit.SECONDS)
                     .connectTimeout(120, TimeUnit.SECONDS)
                     .writeTimeout(120,TimeUnit.SECONDS)
                     .build();
