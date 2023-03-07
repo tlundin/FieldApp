@@ -15,11 +15,16 @@
     <style name="MyTitleTextStyle" parent="@style/TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">@color/white</item>
     </style>
-
+    <style name="MyButton" parent="android:Widget.Material.Button">
+        <item name="android:textSize">19sp</item>
+        <item name="android:layout_margin">0dip</item>
+        <item name="android:background">#ff0000</item>
+    </style>
     <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
+        <item name="materialButtonStyle">@style/MyButton</item>
     </style>
 
     <style name="MyAppTheme" parent="@style/AppTheme" />
@@ -39,4 +44,6 @@
     <style name="PurpleStyle" parent="@android:style/Widget.TextView">
         <item name="android:textColor">@color/purple</item>
     </style>
+
+
 </resources>
