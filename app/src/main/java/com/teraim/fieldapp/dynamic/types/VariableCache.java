@@ -499,7 +499,7 @@ public class VariableCache {
     //cache last chain to save some time.
     private Map<String,String> prevChain = null;
     private final static String uniqueKey = "uid";
-    public boolean turboRemoveOrInvalidate(String uniqueKeyValue, String spy,String vps, String variableName, boolean invalidate) {
+    public boolean turboRemoveOrInvalidate(String uniqueKeyValue, String sub, String variableName, boolean invalidate) {
 //        if (prevValue!=null && prevValue.equals(uniqueKeyValue))
         //Log.d("bascar","turbo1 "+uniqueKeyValue+" "+variableName);
         boolean success =false;
@@ -507,11 +507,11 @@ public class VariableCache {
             //Log.d("bascar","turbo2 chain: "+chain+" uniq: "+uniqueKey+" uval: "+uniqueKeyValue);
             if (chain!=null && chain.containsKey(uniqueKey) && chain.get(uniqueKey).equals(uniqueKeyValue)) {
                 //Log.d("bascar","turbo3 Varname: "+variableName+"cache:"+newcache.get(chain));
-                if (spy==null || (chain.containsKey("spy") && spy.equals(chain.get("spy")))) {
+                if (sub==null || (chain.containsKey("sub") && sub.equals(chain.get("sub")))) {
                     Variable v = newcache.get(chain).get(variableName.toLowerCase());
                     if (v != null) {
 
-                        Log.d("maggan", "Invalidated " + v.getId() + "SPY: "+spy+" UUID: "+uniqueKeyValue+". Chain eq to prevchain?" + (prevChain != null && prevChain.equals(chain)));
+                        Log.d("maggan", "Invalidated " + v.getId() + "SUB: "+sub+" UUID: "+uniqueKeyValue+". Chain eq to prevchain?" + (prevChain != null && prevChain.equals(chain)));
                         if (invalidate)
                             v.invalidate();
                         else
@@ -520,19 +520,6 @@ public class VariableCache {
                     }
                     prevChain = chain;
                 }
-                if (vps==null || (chain.containsKey("vps") && vps.equals(chain.get("vps")))) {
-                    Variable v = newcache.get(chain).get(variableName.toLowerCase());
-                    if (v != null) {
-                        Log.d("maggan", "Invalidated " + v.getId() + "VPS: "+vps+" UUID: "+uniqueKeyValue+". Chain eq to prevchain?" + (prevChain != null && prevChain.equals(chain)));
-                        if (invalidate)
-                            v.invalidate();
-                        else
-                            v.deleteValue();
-                        success=true;
-                    }
-                    prevChain = chain;
-                }
-
             }
         }
         return success;
