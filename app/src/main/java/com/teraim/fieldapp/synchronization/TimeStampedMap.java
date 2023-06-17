@@ -96,14 +96,14 @@ public class TimeStampedMap {
         }
         Map<String, ContentValues> vars;
         if (pattern==null){
-           vars = (myMap.remove(Unikey.FindKeyFromParts(uid, null,null, myMap.keySet())));
+           vars = (myMap.remove(Unikey.FindKeyFromParts(uid, null, myMap.keySet())));
            if (vars!=null) {
                Log.d("bascar", "deleteall removed something!");
                return vars.size();
            } else
                return 0;
         } else {
-            vars = myMap.get(Unikey.FindKeyFromParts(uid, null,null, myMap.keySet()));
+            vars = myMap.get(Unikey.FindKeyFromParts(uid, null, myMap.keySet()));
             int result = 0;
             for(String var:vars.keySet()) {
                 if (var.matches(pattern) ) {
@@ -140,10 +140,10 @@ public class TimeStampedMap {
     }
 
     //return key if it exists, otherwise create.
-    public Unikey getKey(String uid, String spy, String vps) {
-        Unikey key = Unikey.FindKeyFromParts(uid,spy,vps,myMap.keySet());
+    public Unikey getKey(String uid, String sub) {
+        Unikey key = Unikey.FindKeyFromParts(uid,sub,myMap.keySet());
         if (key==null)
-            key = new Unikey(uid,spy,vps);
+            key = new Unikey(uid,sub);
         //else
          //   Log.d("bascar","found existing key for "+uid);
         return key;

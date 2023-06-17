@@ -5,23 +5,18 @@ import java.util.Set;
 public class Unikey {
     private final String rep;
     private final String uid;
-    private final String spy;
-    private final String vps;
-    public Unikey(String uuid, String spy, String vps) {
+    private final String sub;
+    public Unikey(String uuid, String sub) {
         uid=uuid;
-        this.spy=spy;
-        this.vps=vps;
-        rep = generate(uuid,spy,vps);
+        this.sub=sub;
+        rep = generate(uuid,sub);
     }
 
     public String getUid() {
         return uid;
     }
-    public String getSpy() {
-        return spy;
-    }
-    public String getVps() {
-        return vps;
+    public String getSub() {
+        return sub;
     }
     private String getKey() {
         return rep;
@@ -32,18 +27,16 @@ public class Unikey {
         return rep;
     }
 
-    private static String generate(String uid, String spy, String vps) {
+    private static String generate(String uid, String sub) {
         String key=uid;
-        if (spy!=null)
-            key = key+"|"+spy;
-        if (vps != null)
-            key = key+"|"+vps;
-            return key;
+        if (sub!=null)
+            key = key+"|"+sub;
+        return key;
     }
-    public static Unikey FindKeyFromParts(String uid,String spy,String vps, Set<Unikey> lst) {
+    public static Unikey FindKeyFromParts(String uid,String sub, Set<Unikey> lst) {
         if (lst==null || uid==null)
             return null;
-        String uKey = generate(uid,spy,vps);
+        String uKey = generate(uid,sub);
         for (Unikey key:lst){
             if (key.getKey().equals(uKey))
                 return key;
