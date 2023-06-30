@@ -235,7 +235,7 @@ public class ConfigMenu extends PreferenceActivity {
 			serverPref.setSummary(serverPref.getText());
 
 			exp_serverPref = (EditTextPreference) findPreference(PersistenceHelper.EXPORT_SERVER_URL);
-			exp_serverPref.setText(Tools.server(exp_serverPref.getText()));
+			exp_serverPref.setText(exp_serverPref.getText());
 			exp_serverPref.setSummary(exp_serverPref.getText());
 
 			appPref = (EditTextPreference) findPreference(PersistenceHelper.BUNDLE_NAME);
