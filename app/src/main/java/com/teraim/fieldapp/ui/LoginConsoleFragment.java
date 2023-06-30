@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -63,6 +64,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	private TextView appTxt;
 	private float oldV = -1;
 	private final static String InitialBundleName = "Vortex";
+	private Button load_configuration;
 
 
 	@Override
@@ -71,13 +73,15 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		View view = inflater.inflate(R.layout.fragment_login_console,
 				container, false);
 		TextView versionTxt;
-		Log.e("vortex","oncreatevieww!");
+		Log.e("vortex","OnCreateView!");
         TextView log = view.findViewById(R.id.logger);
 		versionTxt = view.findViewById(R.id.versionTxt);
 
 		final ImageView logo = view.findViewById(R.id.logo);
 		final ImageView bg = view.findViewById(R.id.bgImg);
 		appTxt = view.findViewById(R.id.appTxt);
+		load_configuration = view.findViewById(R.id.load_configuration);
+
 
 		//Typeface type=Typeface.createFromAsset(getActivity().getAssets(),
 		//		"clacon.ttf");
@@ -156,13 +160,19 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
 		else
 			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,globalPh.get(PersistenceHelper.SERVER_URL),bundleName,debugConsole));
-		String loaderId = "moduleLoader";
-		boolean allFrozen = ph.getB(PersistenceHelper.ALL_MODULES_FROZEN+loaderId);
-		myLoader = new ModuleLoader(loaderId,myModules,loginConsole,globalPh,allFrozen,debugConsole,this,getActivity());
 
 		if (Constants.FreeVersion && expired())
 			showErrorMsg("The license has expired. The App still works, but you will not be able to export any data.");
-
+		load_configuration.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				String loaderId = "moduleLoader";
+				if (myLoader == null) {
+					myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
+					onResume();
+				}
+			}
+		});
 		return view;
 	}
 
@@ -187,7 +197,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		super.onResume();
 		Log.e("vortex","onresume!");
 
-		if (GlobalState.getInstance() == null ) {
+		if (GlobalState.getInstance() == null && myLoader != null ) {
 			if (!myLoader.isActive()) {
 				Intent intent = new Intent();
 				intent.setAction(MenuActivity.INITSTARTS);
@@ -230,6 +240,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		}
 		else {
 			Log.d("vortex","..Not first time");
+			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Forced");
 			return false;
 		}
 
@@ -254,7 +265,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		if (globalPh.get(PersistenceHelper.BUNDLE_NAME).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.BUNDLE_NAME, InitialBundleName);
 		if (globalPh.get(PersistenceHelper.VERSION_CONTROL).equals(PersistenceHelper.UNDEFINED))
-			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
+			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Forced");
 		if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.SYNC_METHOD, "Internet");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
