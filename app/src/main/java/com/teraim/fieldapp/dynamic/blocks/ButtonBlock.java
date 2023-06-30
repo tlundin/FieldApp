@@ -25,6 +25,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -908,37 +909,39 @@ public  class ButtonBlock extends Block  implements EventListener {
 			} else if (type == Type.toggle) {
 				final String text =this.getText();
 				o.addRow("Creating Toggle Button with text: "+text);
-				final ToggleButton toggleB = (ToggleButton)LayoutInflater.from(ctx).inflate(R.layout.toggle_button,null);
+				Log.d("cair","Creating Toggle Button with text: "+text);
+				final ToggleButton toggleB = new ToggleButton(ctx);
+				//final ToggleButton toggleB = (ToggleButton)LayoutInflater.from(ctx).inflate(R.layout.toggle_button,null);
 				//ToggleButton toggleB = new ToggleButton(ctx);
 				toggleB.setTextOn(text);
 				toggleB.setTextOff(text);
 				toggleB.setChecked(enabled);
-				LayoutParams params = new LayoutParams();
-				//params.width = LayoutParams.MATCH_PARENT;
-				//params.height = LayoutParams.WRAP_CONTENT;
-				//toggleB.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
-				//toggleB.setLayoutParams(params);
+//				LayoutParams params = new LayoutParams();
+//				params.width = LayoutParams.WRAP_CONTENT;
+//				params.height = LayoutParams.WRAP_CONTENT;
+// 				toggleB.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30);
+// 				toggleB.setLayoutParams(params);
 
-				toggleB.setOnClickListener(new OnClickListener() {
-
+				toggleB.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
 					@Override
-					public void onClick(View v) {
+					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 						if(onClick==null||onClick.trim().length()==0) {
 							o.addRow("");
 							o.addRedText("Button "+text+" has no onClick action!");
-							Log.e("nils","Button clicked ("+text+") but found no action");
+							Log.e("cair","Button clicked ("+text+") but found no action");
 						} else {
-
 							o.addRow("Togglebutton "+text+" pressed. Executing function "+onClick);
+							Log.d("cair","Togglebutton "+text+" pressed. Executing function "+onClick+" I am checked: "+isChecked);
 							String target = getTarget();
 							if (onClick.startsWith("template")) {
 								boolean result = myContext.getTemplate().execute(onClick, target);
 								if (!result) {
+									Log.d("cair","toggling!");
 									toggleB.toggle();
 								}
 							}
 							else if (onClick.equals("toggle_visible")) {
-								Log.d("nils","Executing toggle");
+								Log.d("cair","Executing toggle");
 								Drawable d = myContext.getDrawable(target);
 								if (d!=null) {
 									if(d.isVisible())
@@ -946,9 +949,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 									else
 										d.show();
 								} else {
-									Log.e("nils","Couldn't find target "+target+" for button");
+									Log.e("cair","Couldn't find target "+target+" for button");
 									for (Drawable dd:myContext.getDrawables()) {
-										Log.d("vortex",((WF_Widget)dd).getId());
+										Log.d("cair",((WF_Widget)dd).getId());
 									}
 									o.addRow("");
 									o.addRedText("Target for button missing: "+target);
@@ -958,6 +961,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 						}
 					}
 				});
+//				toggleB.setOnClickListener(new OnClickListener() {
+//
+//					@Override
+//					public void onClick(View v) {
+//
+//					}
+//				});
 				button = new WF_ToggleButton(text,toggleB,isVisible,myContext);
 				myContainer.add(button);
 			}

@@ -64,7 +64,7 @@
     <string name="General">General</string>
     <string name="appDialMsg">Enter the application name</string>
     <string name="Backup_folder_s">Leave empty to use folder named \'backup\' under project folder</string>
-    <string name="Backup_dm">Default: files will be stored under \'backup\' in your project folder.</string>
+    <string name="Backup_dm">Leave blank and reload App for default</string>
     <string name="Automatic_backup_s">Automatically backup database at regular intervals</string>
     <string name="show_author_s">Show author of data (App runs slower)</string>
     <string name="show_author_t">Show Author</string>
