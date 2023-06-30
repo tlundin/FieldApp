@@ -132,6 +132,7 @@
     <string name="Send_error_log">Send Error Log to Teraim</string>
     <string name="log_exit">Exit</string>
     <string name="fet">Bold</string>
+    <string name="ladda_styrfiler">Load configuration</string>
 
 
 </resources>
