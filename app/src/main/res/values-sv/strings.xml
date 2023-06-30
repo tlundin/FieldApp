@@ -131,5 +131,6 @@
 	<string name="Send_error_log">Skicka logg till Teraim</string>
 	<string name="log_exit">Avbryt</string>
 	<string name="fet">Fet</string>
+	<string name="ladda_styrfiler">Ladda styrfiler</string>
 
 </resources>

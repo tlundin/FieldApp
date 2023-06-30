@@ -243,7 +243,7 @@ public class ConfigMenu extends PreferenceActivity {
 			appPref.getEditText().setFilters(new InputFilter[] {filter});
 
 			EditTextPreference backupPref = (EditTextPreference) findPreference(PersistenceHelper.BACKUP_LOCATION);
-			if (backupPref.getText().isEmpty()) {
+			if (backupPref.getText() == null || backupPref.getText().isEmpty()) {
 				File[] externalStorageVolumes =
 						ContextCompat.getExternalFilesDirs(getContext(), null);
 				File primaryExternalStorage = externalStorageVolumes[0];
