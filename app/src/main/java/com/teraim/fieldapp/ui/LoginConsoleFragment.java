@@ -1,8 +1,12 @@
 package com.teraim.fieldapp.ui;
 
+import static com.teraim.fieldapp.utils.Tools.getColorResource;
+import static com.teraim.fieldapp.utils.Tools.getMajorVersion;
+
 import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -25,6 +29,7 @@ import android.widget.TextView;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
+import com.teraim.fieldapp.dynamic.templates.LineMapTemplate;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -32,6 +37,7 @@ import com.teraim.fieldapp.loadermodule.Configuration;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.ModuleLoader;
 import com.teraim.fieldapp.loadermodule.ModuleLoader.ModuleLoaderListener;
+import com.teraim.fieldapp.loadermodule.WebLoader;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
@@ -155,21 +161,55 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			public void progress(int bytesRead) {
 			}
 		});
-
+		String server = globalPh.get(PersistenceHelper.SERVER_URL);
 		if (globalPh.getB("local_config"))
 			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
 		else
-			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,globalPh.get(PersistenceHelper.SERVER_URL),bundleName,debugConsole));
+			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,server,bundleName,debugConsole));
 
 		if (Constants.FreeVersion && expired())
 			showErrorMsg("The license has expired. The App still works, but you will not be able to export any data.");
+		//If all modules are already in memory, thaw them by default. Also create a button to allow the user to load new configuration.
+
+
+		myLoader = new ModuleLoader("moduleLoader", myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader"), debugConsole, LoginConsoleFragment.this, getActivity());
+//		String url = server + bundleName.toLowerCase() + "/" + bundleName+".xml";
+//		Thread thread = new Thread(new Runnable() {
+//
+//			@Override
+//			public void run() {
+//				try {
+//					String version = getMajorVersion(url);
+//					Log.d("VEXXOR",version);
+//					load_configuration.setText(load_configuration.getText()+" ["+version+"]");
+//				} catch (Exception e) {
+//					e.printStackTrace();
+//				}
+//			}
+//		});
+//		thread.start();
 		load_configuration.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				String loaderId = "moduleLoader";
-				if (myLoader == null) {
-					myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
-					onResume();
+				if (myLoader == null ) {
+					new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
+							.setTitle(getResources().getString(R.string.ladda_styrfiler))
+							.setMessage(getResources().getString(R.string.ladda_descr))
+							.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+								public void onClick(DialogInterface dialog, int which) {
+									String loaderId = "moduleLoader";
+									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",null);
+									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "dbLoader",null);
+									ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,null);
+									GlobalState.destroyInstance();
+									myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
+									onResume();
+								}
+							})
+							.setNegativeButton("Cancel",null)
+							.setCancelable(false)
+							.setIcon(android.R.drawable.ic_dialog_alert)
+							.show();
 				}
 			}
 		});
@@ -204,6 +244,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 				LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
 				Log.d("vortex", "Loading In Memory Modules");
 				myLoader.loadModules(null,false);
+				Log.d("XEROX","EEE myloader "+myLoader.hashCode()+" isA"+myLoader.isActive());
 				loginConsole.draw();
 				Log.d("vortex", "loginConsole object " + loginConsole);
 			} else
@@ -240,7 +281,6 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		}
 		else {
 			Log.d("vortex","..Not first time");
-			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Forced");
 			return false;
 		}
 
@@ -265,7 +305,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		if (globalPh.get(PersistenceHelper.BUNDLE_NAME).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.BUNDLE_NAME, InitialBundleName);
 		if (globalPh.get(PersistenceHelper.VERSION_CONTROL).equals(PersistenceHelper.UNDEFINED))
-			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Forced");
+			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
 		if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.SYNC_METHOD, "Internet");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
@@ -337,7 +377,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 
 				Table t = (Table) m.getEssence();
 				myDb = new DbHelper(getActivity().getApplicationContext(), t, globalPh, ph, bundleName);
-                boolean majorVersionControl = "major".equals(globalPh.get(PersistenceHelper.VERSION_CONTROL));
+                boolean majorVersionControl = "Major".equals(globalPh.get(PersistenceHelper.VERSION_CONTROL));
 				if (socketBroken && allFrozen || (majorVersionControl && allFrozen && !majorVersionChange)) {
 					//no need to load.
 					Log.d("baloo","no need to load...socket broken or no majorchange and allfrozen");
@@ -455,6 +495,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 				loginConsole.addRedText("Found no workflow 'Main'. Exiting..");
 			}
 		}
+		myLoader=null;
 
 
 	}

@@ -274,7 +274,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
                     if (linjeStatus.getValue().equals(Constants.STATUS_INITIAL)) {
                         if (myL == null) {
                             new AlertDialog.Builder(LineMapTemplate.this.getActivity())
-                                    .setTitle("Din position är okänd!")
+                                    .setTitle(getResources().getString(R.string.ladda_styrfiler))
                                     .setMessage("Eftersom GPSen ännu inte hittat din position, så kan du inte gå linjen.")
                                     .setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                                         public void onClick(DialogInterface dialog, int which) {

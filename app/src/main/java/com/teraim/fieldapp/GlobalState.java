@@ -157,6 +157,10 @@ public class GlobalState {
             userUUID = uid;
     }
 
+    public static void destroyInstance() {
+        singleton = null;
+    }
+
     public String getUserUUID() {
         return userUUID;
     }
