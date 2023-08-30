@@ -40,6 +40,7 @@ import com.teraim.fieldapp.utils.DbHelper.Selection;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -47,6 +48,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -1300,6 +1302,27 @@ public class Tools {
 		}
 		Log.e("plax","Color "+colorName+" not known...returning default");
 		return ctx.getColor(defaultColor);
+	}
+
+	public static String getMajorVersion(String urlString) {
+		String ss = null;
+		try {
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new URL(urlString).openStream())));
+			String _a = reader.readLine();
+			if (_a != null) {
+				String vs = reader.readLine();
+				Log.d("VEXXOR",vs);
+				int _av = vs.indexOf("app_version");
+				int _s = vs.indexOf('\"',_av)+1;
+				int _e = vs.indexOf('\"',_s);
+				Log.d("VEXXOR","_av "+_av+"_s "+_s+"_e "+_e);
+				ss = vs.substring(_s,_e);
+			}
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return ss;
 	}
 
 }

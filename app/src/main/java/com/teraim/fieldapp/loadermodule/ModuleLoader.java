@@ -102,7 +102,7 @@ public class ModuleLoader implements FileLoadedCb{
             boolean forced = module.versionControl.equals("Forced") || (!majorVersionIsKnown && !detailed);
 
             //All already loaded and no major update?
-            Log.d("beboop","allfrozen: "+allFrozen+" majorupdated: "+majorVersionUpdated);
+            Log.d("beboop","method: "+module.versionControl+" allfrozen: "+allFrozen+" majorupdated: "+majorVersionUpdated+" module: "+module.getLabel());
 
             if (!forced && !detailed && allFrozen && !majorVersionUpdated) {
                 Log.d("beboop","allfrozen and major not updated and not forced and not detailed");
@@ -134,7 +134,6 @@ public class ModuleLoader implements FileLoadedCb{
                     module.load(this);
                 } else {
                     //module is frozen, but majorVersion not yet known.
-
                     onFileLoaded(new LoadResult(module, ErrorCode.sameold));
                 }
             }
@@ -191,7 +190,6 @@ public class ModuleLoader implements FileLoadedCb{
                     debug.addCriticalText("*****");
                 case sameold:
                     if (module.isBundle) {
-
                         majorVersionUpdated = false;
                     }
 

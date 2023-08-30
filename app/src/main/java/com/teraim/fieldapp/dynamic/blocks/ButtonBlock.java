@@ -758,6 +758,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 													"com.teraim.fieldapp.fileprovider",
 													photoFile);
 											intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+											Log.d("photo","storing image to "+photoFile);
 											((Activity) ctx).startActivityForResult(intent, Constants.TAKE_PICTURE);
 										}
 									}
@@ -791,7 +792,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 								}
 								//wait for image to be captured.
 								myContext.registerEventListener(new BarcodeReader(myContext,getTarget()), Event.EventType.onActivityResult);
-
 							}
 
 
