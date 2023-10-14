@@ -241,7 +241,7 @@ public class Expressor {
             return null;
         }
         o = WorkFlowBundleConfiguration.debugConsole;
-        Log.d("franco","Precompiling: "+expression);
+        //Log.d("franco","Precompiling: "+expression);
         List<Token> result = tokenize(expression);
         //printTokens(result);
         List<EvalExpr> endResult = new ArrayList<>();
@@ -265,7 +265,7 @@ public class Expressor {
                 //	sb.append(e);
                 //o.addRow("");
                 //o.addRow("Precompiled: "+sb);
-                Log.d("franco","Precompiled: "+endResult.toString());
+                //Log.d("franco","Precompiled: "+endResult.toString());
                 return endResult;
             }
 
@@ -504,7 +504,7 @@ public class Expressor {
 
 
     private static List<Token> tokenize(String formula) {
-        System.out.println("Tokenize this: "+formula);
+        //System.out.println("Tokenize this: "+formula);
         List<Token> result= new ArrayList<>();
         char c;
         StringBuilder currToken=new StringBuilder();
@@ -2275,7 +2275,7 @@ public class Expressor {
             if (e == null)
                 e = ef.next();
             if (e == null) {
-                System.out.println("continue on null");
+                //System.out.println("continue on null");
                 continue;
             }
 

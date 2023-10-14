@@ -257,13 +257,13 @@ public class WF_SorterWidget extends WF_Widget {
 
 					for (String txt:txts)
 						if (txt !=null && txt.trim().length()>0) {
-							toggleB = (ToggleButton)LayoutInflater.from(ctx.getContext()).inflate(R.layout.toggle_button,null);
+							toggleB = new ToggleButton(ctx.getContext());
 							toggleB.setTextOn(txt);
 							toggleB.setTextOff(txt);
 							toggleB.setChecked(false);
 							toggleB.setOnCheckedChangeListener(dl);
 							buttonPanel.addView(toggleB);
-							//Log.d("nils","Added button "+txt+" length "+txt.length());
+							Log.d("cair","Added toggle button "+txt+" length "+txt.length());
 						}
 
 

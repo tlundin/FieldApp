@@ -235,7 +235,7 @@ public class ConfigMenu extends PreferenceActivity {
 			serverPref.setSummary(serverPref.getText());
 
 			exp_serverPref = (EditTextPreference) findPreference(PersistenceHelper.EXPORT_SERVER_URL);
-			exp_serverPref.setText(Tools.server(exp_serverPref.getText()));
+			exp_serverPref.setText(exp_serverPref.getText());
 			exp_serverPref.setSummary(exp_serverPref.getText());
 
 			appPref = (EditTextPreference) findPreference(PersistenceHelper.BUNDLE_NAME);
@@ -243,35 +243,40 @@ public class ConfigMenu extends PreferenceActivity {
 			appPref.getEditText().setFilters(new InputFilter[] {filter});
 
 			EditTextPreference backupPref = (EditTextPreference) findPreference(PersistenceHelper.BACKUP_LOCATION);
+			if (backupPref.getText() == null || backupPref.getText().isEmpty()) {
+				File[] externalStorageVolumes =
+						ContextCompat.getExternalFilesDirs(getContext(), null);
+				File primaryExternalStorage = externalStorageVolumes[0];
+				backupPref.setText(primaryExternalStorage+"/"+appPref.getText()+"/backup");
+			}
 			backupPref.setSummary(backupPref.getText());
-			//backupPref.setSummary(backupPref.getSummary());
 
 			ListPreference logLevels = (ListPreference)findPreference(PersistenceHelper.LOG_LEVEL);
 			logLevels.setSummary(logLevels.getEntry());
 
-			Preference reload_button = findPreference("reload_config");
-			reload_button.setOnPreferenceClickListener(preference -> {
-				new AlertDialog.Builder(getActivity())
-						.setTitle(getResources().getString(R.string.reload_config))
-						.setMessage(getResources().getString(R.string.reload_config_warn))
-						.setIcon(android.R.drawable.ic_dialog_alert)
-						.setCancelable(false)
-						.setPositiveButton(R.string.ok, (dialog, which) -> {
-							String bundleName = getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
-							if (!bundleName.isEmpty()) {
-								PersistenceHelper ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE));
-								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
-								ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,-1f);
-								Toast.makeText(getActivity(), getResources().getString(R.string.reload_config_toast), Toast.LENGTH_LONG).show();
-								askForRestart();
-							}
-						})
-						.setNegativeButton(R.string.cancel, (dialog, which) -> {
-
-						})
-						.show();
-				return true;
-			});
+//			Preference reload_button = findPreference("reload_config");
+//			reload_button.setOnPreferenceClickListener(preference -> {
+//				new AlertDialog.Builder(getActivity())
+//						.setTitle(getResources().getString(R.string.reload_config))
+//						.setMessage(getResources().getString(R.string.reload_config_warn))
+//						.setIcon(android.R.drawable.ic_dialog_alert)
+//						.setCancelable(false)
+//						.setPositiveButton(R.string.ok, (dialog, which) -> {
+//							String bundleName = getActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
+//							if (!bundleName.isEmpty()) {
+//								PersistenceHelper ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE));
+//								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
+//								ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,-1f);
+//								Toast.makeText(getActivity(), getResources().getString(R.string.reload_config_toast), Toast.LENGTH_LONG).show();
+//								askForRestart();
+//							}
+//						})
+//						.setNegativeButton(R.string.cancel, (dialog, which) -> {
+//
+//						})
+//						.show();
+//				return true;
+//			});
 			Preference button = findPreference("reset_cache");
 			button.setOnPreferenceClickListener(preference -> {
                 new AlertDialog.Builder(getActivity())

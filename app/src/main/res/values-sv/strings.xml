@@ -65,7 +65,7 @@
 	<string name="General">Allmänt</string>
 	<string name="appDialMsg">Appens namn</string>
 	<string name="Backup_folder_s">Om inget värde anges så används foldern \'backup\' under Appens hem</string>
-	<string name="Backup_dm"> Default: folder \'backup\' i Appens hemfolder</string>
+	<string name="Backup_dm"> För default: lämna fältet blankt och ladda om Appen</string>
 	<string name="Automatic_backup_s">Slå på eller av säkerhetskopiering</string>
 	<string name="show_author_s">Visa vem som gjort en inmatning (programmet går långsammare)</string>
 	<string name="show_author_t">Visa inmatare</string>
@@ -131,5 +131,6 @@
 	<string name="Send_error_log">Skicka logg till Teraim</string>
 	<string name="log_exit">Avbryt</string>
 	<string name="fet">Fet</string>
-
+	<string name="ladda_styrfiler">Ladda senaste styrfiler</string>
+	<string name="ladda_descr">Om du fortsätter så kommer Appen försöka hämta de senaste styrfilerna från nätet och ersätta de du har på plattan.</string>
 </resources>
