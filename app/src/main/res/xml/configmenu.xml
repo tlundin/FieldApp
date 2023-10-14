@@ -37,10 +37,10 @@
             android:key="export_server_location"
             android:summary="@string/s_summary_e"
             android:title="Export Server URL" />
-        <Preference
-            android:title="@string/reload_config"
-            android:key="reload_config"
-            android:summary="@string/reload_config_d"/>
+<!--        <Preference-->
+<!--            android:title="@string/reload_config"-->
+<!--            android:key="reload_config"-->
+<!--            android:summary="@string/reload_config_d"/>-->
         <Preference
             android:title="@string/scan_QR_code_h"
             android:key="scan_qr_code"

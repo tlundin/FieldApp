@@ -41,7 +41,6 @@ public class GeoJSONExporter extends Exporter {
 		LoggerI o = GlobalState.getInstance().getLogger();
         StringWriter sw = new StringWriter();
 		writer = new JsonWriter(sw);
-		String sub = "spy";
 		try {
 			if (cp!=null && cp.moveToFirst()) {
 				writer.setIndent("  ");
@@ -70,7 +69,7 @@ public class GeoJSONExporter extends Exporter {
 
 				Map<String, String> gisObjM;
 				do {
-					String uid=null,spy=null;
+					String uid=null,sub=null;
 					currentHash = cp.getKeyColumnValues();
 					if (currentHash==null) {
 						o.addRow("");
@@ -81,14 +80,9 @@ public class GeoJSONExporter extends Exporter {
 					uid = currentHash.get("uid");
 					rutMap.put(uid,currentHash.get(NamedVariables.AreaTerm));
 
-					spy = currentHash.get(sub);
-					Log.d("SPY","Current HASH "+currentHash.toString());
+					sub = currentHash.get("sub");
+					Log.d("SUB","Current HASH "+currentHash.toString());
 
-					if (spy==null) {
-						spy = currentHash.get("vps");
-						if (spy != null)
-							sub="vps";
-					}
 
 					//Log.d("botox","CURRENT_HASH: "+currentHash);
 					if (uid==null) {
@@ -98,24 +92,24 @@ public class GeoJSONExporter extends Exporter {
 					else {
 						if (gisObjects==null)
 							gisObjects = new HashMap<String,Map<String,Map<String,String>>>();
-						//Find maps per spy.
+						//Find maps per sub.
 						Map<String, Map<String, String>> gisObjH = gisObjects.get(uid);
 						if (gisObjH==null) {
-							//No spys at all? Create new sub.
+							//No subs at all? Create new sub.
 							gisObjH = new HashMap<String, Map<String, String>>();
 							gisObjects.put(uid,gisObjH);
 						}
-						//Find correct "spy" for this uid. if spy doesnt exist, create.
-						gisObjM = gisObjH.get(spy);
+						//Find correct "sub" for this uid. if sub doesnt exist, create.
+						gisObjM = gisObjH.get(sub);
 						if (gisObjM==null) {
 							gisObjM = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
-							gisObjH.put(spy, gisObjM);
-							if (spy == null)
+							gisObjH.put(sub, gisObjM);
+							if (sub == null)
 								gisObjM.put("GISTYP", currentHash.get(GisConstants.TYPE_COLUMN));
 							//Log.d("vortex","keyhash: "+currentHash.toString());
 						}
 
-						//Hack for multiple SPY1 variables.
+						//Hack for multiple sub1 variables.
 						List<String> row;
 						if (cp.getVariable()!=null) {
 							String name = cp.getVariable().name;
@@ -163,7 +157,7 @@ public class GeoJSONExporter extends Exporter {
 					final int sz = gisObjects.keySet().size();
 					int curr = 0;
 					for (final String keyUID:gisObjects.keySet()) {
-						//Log.d("vortex", "Spy sets under " + keyUID);
+						//Log.d("vortex", "sub sets under " + keyUID);
 						final int cf = curr++;
 						if (ctx != null)
 							((Activity)ctx).runOnUiThread(new Runnable() {
@@ -338,9 +332,9 @@ public class GeoJSONExporter extends Exporter {
 							write(mKey, gisObjM.get(mKey));
 							//Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
 						}
-						//Check if there are other spy than default.
+						//Check if there are other sub than default.
 						if (gisObjH != null && !gisObjH.isEmpty()) {
-							writer.name(sub);
+							writer.name("sub");
 							writer.beginArray();
 							for (String key : gisObjH.keySet()) {
 								if (key == null) {
@@ -351,7 +345,7 @@ public class GeoJSONExporter extends Exporter {
 								gisObjM = gisObjH.get(key);
 								if (gisObjM != null) {
 									writer.beginObject();
-									write(sub.toUpperCase(Locale.ROOT), key);
+									write("sub".toUpperCase(Locale.ROOT), key);
 									for (String mKey : gisObjM.keySet()) {
 										write(mKey, gisObjM.get(mKey));
 										//Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));

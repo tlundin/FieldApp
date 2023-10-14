@@ -67,7 +67,6 @@ import java.util.regex.Pattern;
 		this.source=source;
 		this.scale = scale;
 		this.isVisible = isVisible;
-		
 	}
 
 
@@ -75,7 +74,7 @@ import java.util.regex.Pattern;
 		this.myContext = myContext;
 		o = GlobalState.getInstance().getLogger();
 		WF_Container myContainer = (WF_Container)myContext.getContainer(container);
-		Log.d("vortex","Source name is "+source);
+		Log.d("botox","Source name is "+source);
 		if (myContainer != null && sourceE!=null) {
 			dynImgName = Expressor.analyze(sourceE);
 			Log.d("botox","my image name before: "+dynImgName);
@@ -166,22 +165,22 @@ import java.util.regex.Pattern;
 					Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
 					Point size = new Point();
 					display.getSize(size);
-					Log.d("bel","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
+					Log.d("botox","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
 
 					int x = size.x/2;
 					int y = size.y/3;
 					options.inSampleSize = Tools.calculateInSampleSize(options,x,y);
-					Log.d("bel", "insample was "+Tools.calculateInSampleSize(options,x,y));
+					Log.d("botox", "insample was "+Tools.calculateInSampleSize(options,x,y));
 					options.inJustDecodeBounds = false;
 					Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR+dynImgName,options);
 					CreateImageBlock.this.myContext.getActivity().runOnUiThread(new Runnable() {
 						public void run() {
 							if(Looper.myLooper() == Looper.getMainLooper())
-								Log.d("bel","In UI thread");
+								Log.d("botox","In UI thread");
 							if (bip!=null)
 								img.setImageBitmap(bip);
 							else
-								Log.d("nils","Could not decode image "+dynImgName);
+								Log.d("botox","Could not decode image "+dynImgName);
 						}
 					});
 
@@ -191,7 +190,7 @@ import java.util.regex.Pattern;
 
 		}
 		else {
-			Log.d("nils","Did not find picture "+dynImgName);
+			Log.d("botox","Did not find picture "+dynImgName);
 		}
 	}
 
@@ -278,7 +277,7 @@ import java.util.regex.Pattern;
 
 	@Override
 	public void onEvent(Event e) {
-		Log.d("vortex","Img was taken");
+		Log.d("botox","Img was taken");
 		String fileName = this.figureOutFileToLoad(dynImgName);
 		if (fileName!=null)
 			dynImgName=fileName;

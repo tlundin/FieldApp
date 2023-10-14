@@ -95,11 +95,11 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 		*/
 
 		if (wf!=null) {
-			Log.d("vortex","Executing workflow!!");
+			Log.d("cair","Executing workflow!!");
 			run();
 
 		} else
-			Log.d("vortex","No workflow found in oncreate default!!!!");
+			Log.d("cair","No workflow found in oncreate default!!!!");
 
 		popupShow = AnimationUtils.loadAnimation(getActivity(), R.anim.popup_show);
 		popupShow.setAnimationListener(this);
@@ -133,13 +133,13 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 	public boolean execute(String function, String target) {
 		if(animationRunning)
 			return false;
-		Log.d("vortex","Called execute with target "+target);
+		Log.d("cair","Called execute with target "+target);
 		if (function.equals("template_pop_up_filters") ) {
 
 			Boolean popupVis = popupVisible.get(target);
 			if (popupVis==null || !popupVis) {
 				if (filterPop==null) {
-					Log.d("vortex","creating!");
+					Log.d("cair","creating!");
 					filterPop= (LinearLayout) inflater.inflate(R.layout.filter_menu_pop, null);
 
 				}
@@ -156,20 +156,20 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 					frame.addView(filterPop);
 					filterPop.startAnimation(popupShow);
 				}
-				Log.d("vortex", "animation started!");
+				Log.d("cair", "animation started!");
 				popupVisible.put(target,true);
 			} else {
-				Log.d("vortex","deleting!");
+				Log.d("cair","deleting!");
 				popupVisible.remove(target);
 
 				if (popupVisible.isEmpty()) {
 					filterPop.startAnimation(popupHide);
-					Log.d("vortex","empty! closing!");
+					Log.d("cair","empty! closing!");
 					closePopIfUp();
 				}
 				else {
 					View targetO;
-					Log.d("vortex","removing!");
+					Log.d("cair","removing!");
 					if (target.equals("filter_C1"))
 						targetO=filterC1o;
 					else if (target.equals("filter_C2"))
@@ -200,7 +200,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 			filterWasRemoved=true;
 		}
 		//need to review togglestate for columns.
-		Log.d("vortex","show edited...adding filter: "+toggleStateH);
+		Log.d("cair","show edited...adding filter: "+toggleStateH);
 		fieldList.draw();
 		//Need to do uncollapse at this point in time.
 //		if (filterWasRemoved)
@@ -220,7 +220,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 
 	public void onAnimationStart(Animation animation) {
 		if (animation.equals(popupShow)) {
-			Log.d("vortex","popshoe!");
+			Log.d("cair","popshoe!");
 			filterPop.setVisibility(View.VISIBLE);
 		}
 		animationRunning = true;

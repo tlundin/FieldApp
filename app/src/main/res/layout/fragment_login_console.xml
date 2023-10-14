@@ -7,8 +7,7 @@
         android:id="@+id/bgImg"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
+        android:layout_centerInParent="true"
         android:background="@color/primary_light"
         android:scaleType="centerCrop" />
 
@@ -74,8 +73,14 @@
         android:src="@drawable/teraim_small_w"
         android:layout_alignParentRight="true"
         android:layout_above="@+id/appTxt" />
-
-
+    <Button
+        android:id="@+id/load_configuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_margin="16dp"
+        android:layout_above="@+id/appTxt"
+        android:text="@string/ladda_styrfiler" />
     <TextView
         android:id="@+id/licenseTxt"
         android:layout_width="match_parent"
@@ -87,6 +92,7 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         />
+
 
 
 
