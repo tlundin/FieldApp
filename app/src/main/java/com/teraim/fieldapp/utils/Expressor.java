@@ -237,7 +237,6 @@ public class Expressor {
 
     public static List<EvalExpr> preCompileExpression(String expression) {
         if (expression==null) {
-            Log.e("vortex","Precompile expression returns immediately on null string input");
             return null;
         }
         o = WorkFlowBundleConfiguration.debugConsole;
