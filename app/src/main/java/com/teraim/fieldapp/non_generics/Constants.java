@@ -40,7 +40,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.23f;
+    public final static float VORTEX_VERSION = 8.28f;
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
     public static final String EXPORT_SERVER = "http://ec2-52-211-251-254.eu-west-1.compute.amazonaws.com:8003";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
@@ -223,8 +223,8 @@ public class Constants {
     //AWS Cloud
     //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
     //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
-    public static final String SyncDataURI = "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ";
-    public static final String SynkStatusURI =      "http://slu2022-env-1.eba-zjdbjqz9.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
+    public static final String SyncDataURI = "https://synkserver.net/synkserv/SynkServ";
+    public static final String SynkStatusURI =      "https://synkserver.net/synkserv/SynkServ?action=get_team_status&team=";
 
     //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
 

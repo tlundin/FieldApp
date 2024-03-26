@@ -320,7 +320,7 @@ public class GeoJSONExporter extends Exporter {
 						writer.name("properties");
 						writer.beginObject();
 						//Add the UUID
-						write(GisConstants.FixedGid, keyUID);
+						write(GisConstants.FixedGid, "{"+keyUID+"}");
 						String ruta = rutMap.get(keyUID);
 						String author = authorMap.get(keyUID);
 						if (ruta!=null)

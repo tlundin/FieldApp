@@ -221,14 +221,12 @@ public class Start extends MenuActivity {
             android.Manifest.permission.BLUETOOTH,
             android.Manifest.permission.BLUETOOTH_ADMIN,
             android.Manifest.permission.ACCESS_FINE_LOCATION,
-            android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
             android.Manifest.permission.INTERNET,
             android.Manifest.permission.ACCESS_COARSE_LOCATION,
             android.Manifest.permission.ACCESS_NETWORK_STATE,
             android.Manifest.permission.VIBRATE,
             android.Manifest.permission.READ_SYNC_SETTINGS,
-            android.Manifest.permission.WRITE_SYNC_SETTINGS,
-            android.Manifest.permission.READ_EXTERNAL_STORAGE
+            android.Manifest.permission.WRITE_SYNC_SETTINGS
     };
     private final static int PERMISSION_ALL = 1;
 
