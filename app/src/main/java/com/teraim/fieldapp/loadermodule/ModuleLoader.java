@@ -14,6 +14,7 @@ import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.util.List;
+import java.util.Random;
 
 import static com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode.Unsupported;
 import static com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode.thawed;
@@ -103,11 +104,14 @@ public class ModuleLoader implements FileLoadedCb{
 
             //All already loaded and no major update?
             Log.d("beboop","method: "+module.versionControl+" allfrozen: "+allFrozen+" majorupdated: "+majorVersionUpdated+" module: "+module.getLabel());
-
-            if (!forced && !detailed && allFrozen && !majorVersionUpdated) {
-                Log.d("beboop","allfrozen and major not updated and not forced and not detailed");
+            if (allFrozen) {
+                Log.d("Terje", "Calling onFileloaded for " + module.getLabel());
                 onFileLoaded(new LoadResult(module, ErrorCode.sameold));
             }
+//            if (!forced && !detailed && allFrozen && !majorVersionUpdated) {
+//                Log.d("beboop","allfrozen and major not updated and not forced and not detailed");
+//                onFileLoaded(new LoadResult(module, ErrorCode.sameold));
+//            }
             //Supposed to load from web, but no connection?
             else if ((socketBroken || (module.source == ConfigurationModule.Source.internet) && !Connectivity.isConnected(ctx))) {
                 majorVersionUpdated=false;
@@ -373,18 +377,12 @@ public class ModuleLoader implements FileLoadedCb{
             }
         }
         Log.d("vortex","Falling out of onFileLoaded");
-
-
     }
 
     private void failAndExitLoad(ConfigurationModule module, LoadResult res) {
         debug.addCriticalText(res.errCode.name());
         debug.addCriticalText(res.errorMessage);
-
-
         frontPageLog.addRedText(module.getLabel()+" [" + res.errCode.name() + "]. Check log for details");
-        //printError(res);
-
         //Need to enable the settings menu.
         caller.loadFail(loaderId);
     }

@@ -8,11 +8,11 @@ android {
             storePassword 'TerjePavek_2'
         }
     }
-    compileSdkVersion 31
+    compileSdkVersion 33
     defaultConfig {
         applicationId "com.teraim.fieldapp"
         minSdkVersion 24
-        targetSdkVersion 31
+        targetSdkVersion 33
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -24,6 +24,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
+    namespace 'com.teraim.fieldapp'
 }
 
 dependencies {
