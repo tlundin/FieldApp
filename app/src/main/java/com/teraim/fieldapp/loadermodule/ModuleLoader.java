@@ -313,7 +313,7 @@ public class ModuleLoader implements FileLoadedCb{
                         }
                     } else if (module.isRequired() && !module.frozenFileExists()) {
                         new AlertDialog.Builder(ModuleLoader.this.ctx).setTitle("Error")
-                                .setMessage("Load aborted. Failed to load "+module.getFileName())
+                                .setMessage("Load aborted. Failed to load required module "+module.getFileName())
                                 .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         failAndExitLoad(module,res);

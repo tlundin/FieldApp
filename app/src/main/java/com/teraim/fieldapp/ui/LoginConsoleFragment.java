@@ -192,24 +192,38 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			@Override
 			public void onClick(View v) {
 				if (myLoader == null ) {
-					new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
-							.setTitle(getResources().getString(R.string.ladda_styrfiler))
-							.setMessage(getResources().getString(R.string.ladda_descr))
-							.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-								public void onClick(DialogInterface dialog, int which) {
-									String loaderId = "moduleLoader";
-									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",null);
-									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "dbLoader",null);
-									ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,null);
-									GlobalState.destroyInstance();
-									myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
-									onResume();
-								}
-							})
-							.setNegativeButton("Cancel",null)
-							.setCancelable(false)
-							.setIcon(android.R.drawable.ic_dialog_alert)
-							.show();
+					if (!Connectivity.isConnected(getContext())) {
+						new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
+								.setTitle("No connection - cannot reload configuration")
+								.setMessage("Please try again when you are connected")
+								.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int which) {
+
+									}
+								})
+								.setCancelable(true)
+								.setIcon(android.R.drawable.ic_dialog_alert)
+								.show();
+					} else {
+						new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
+								.setTitle(getResources().getString(R.string.ladda_styrfiler))
+								.setMessage(getResources().getString(R.string.ladda_descr))
+								.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+									public void onClick(DialogInterface dialog, int which) {
+										String loaderId = "moduleLoader";
+										ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader", null);
+										ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "dbLoader", null);
+										ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE, null);
+										GlobalState.destroyInstance();
+										myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
+										onResume();
+									}
+								})
+								.setNegativeButton("Cancel", null)
+								.setCancelable(false)
+								.setIcon(android.R.drawable.ic_dialog_alert)
+								.show();
+					}
 				}
 			}
 		});
@@ -227,10 +241,6 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		return (diff > Constants.MS_MONTH);
 
 	}
-
-
-
-
 
 	@Override
 	public void onResume() {
@@ -251,9 +261,6 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 				Log.e("vortex","Loader is active...discarding onResume");
 		}
 	}
-
-
-
 
 	@Override
 	public void onStop() {
