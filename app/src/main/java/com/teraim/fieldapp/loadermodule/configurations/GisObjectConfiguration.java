@@ -138,7 +138,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             }
             else if (tag.equals(JsonToken.BEGIN_OBJECT)) {
                 reader.beginObject();
-
                 Map<String,String>keyChain = new HashMap<String,String>();
                 Map<String,String> attributes = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
                 String mType=null;
@@ -157,12 +156,12 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                         }
                         break;
                     }
-                    //Log.d("murphy",reader.toString());
+                    //Log.d("morphy",reader.toString());
                     String nName = reader.nextName();
                     switch (nName) {
                         case "type":
                             //This type attribute is discarded
-                            //Log.d("murphy","hasType");
+                            //Log.d("morphy","hasType");
                             this.getAttribute(reader);
                             featureF = true;
                             break;
@@ -178,6 +177,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                             //Log.d("vortex",attributes.toString());
                             //end attributes
                             reader.endObject();
+                            //Log.d("morphy",reader.toString());
                             String uuid = attributes.remove(GisConstants.FixedGid);
                             //Log.d("vortex","FixedGid: "+uuid);
                             String rutaId = attributes.remove(GisConstants.RutaID);
@@ -224,7 +224,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                             propF=true;
                             break;
                         case "geometry":
-                            //Log.d("murphy","hasGeo");
+                            //Log.d("morphy","hasGeo");
                             geometryF = true;
                             //Coordinates.
                             reader.beginObject();
@@ -275,7 +275,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                         coordinatesF = true;
 
                                         //Always start with an array [
-                                        //Log.d("morphy", "bA1");
+                                        //Log.d("morphy", reader.toString());
+
                                         reader.beginArray();
                                         //If single point, next must be number.
                                         if (reader.peek() == JsonToken.NUMBER) {
@@ -296,24 +297,25 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                             } else {
                                                 int id = 1;
                                                 //Log.d("morphy", "bA3");
+
                                                 reader.beginArray();
                                                 //If polygon next is a number.
                                                 //"coordinates": [
                                                 //[ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
                                                 //[100.0, 1.0], [100.0, 0.0] ]
                                                 //]
-                                                //Log.d("murphy",reader.toString());
+                                                //Log.d("morphy",reader.toString());
                                                 if (reader.peek() == JsonToken.NUMBER) {
                                                     boolean stillMore = true;
                                                     while (stillMore) {
-                                                        //Log.d("murphy", "poly");
+                                                        //Log.d("morphy", "poly");
                                                         polygonSet.put(id + "", readAllLocations(reader));
                                                         id++;
                                                         reader.endArray();
                                                         if  (reader.peek() != JsonToken.BEGIN_ARRAY) {
                                                             stillMore=false;
                                                         } else {
-                                                            Log.d("murphy","found another poly");
+                                                            //Log.d("morphy","found another poly");
                                                             reader.beginArray();
                                                         }
 
@@ -333,10 +335,10 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                                             if  (reader.peek() != JsonToken.BEGIN_ARRAY) {
                                                                 stillMore=false;
                                                             } else {
-                                                                //Log.d("murphy","found another multi or another poly.");
+                                                                //Log.d("morphy","found another multi or another poly.");
                                                                 reader.beginArray();
                                                                 if (reader.peek() == JsonToken.BEGIN_ARRAY) {
-                                                                    Log.d("murphy","found another multi");
+                                                                    //Log.d("morphy","found another multi");
                                                                     reader.beginArray();
                                                                 }
 
@@ -442,7 +444,12 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             }
         } catch (MalformedJsonException je) {
             Tools.printErrorToLog(o, je,null);
-            throw(je);
+            return new LoadResult(this,ErrorCode.IOError);
+        } catch (Exception e) {
+            o.addRow("");
+            o.addCriticalText("Fel i styrfil "+fileName);
+            Tools.printErrorToLog(o,e,null);
+            return new LoadResult(this,ErrorCode.IOError);
         }
         return null;
     }
