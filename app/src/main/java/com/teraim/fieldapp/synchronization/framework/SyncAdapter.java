@@ -259,8 +259,12 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-            }
-
+            } else
+                try {
+                    mClient.send(Message.obtain(null, SyncService.MSG_SYNC_RUN_ENDED));
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
         LOCKED = false;
     }
 

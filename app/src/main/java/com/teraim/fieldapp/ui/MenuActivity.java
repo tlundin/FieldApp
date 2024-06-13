@@ -564,12 +564,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         boolean sync_on = syncOn();
 
         String synkStatusTitle;
-        Log.d("sync","numInsertSyncE: "+numOfInsertSyncEntries);
+
         if (fullySynced) {
             syncState = R.drawable.insync;
             synkStatusTitle="";
-        } else
-            synkStatusTitle = "U: "+numOfUnsynchedEntries+" I: "+numOfInsertSyncEntries;
+        } else {
+            synkStatusTitle = "" + numOfUnsynchedEntries;
+            if (numOfInsertSyncEntries > 0)
+                syncState = R.drawable.syncactive;
+            else
+                syncState = R.drawable.syncon;
+        }
         if (!sync_on)
             syncState = R.drawable.syncoff;
 
@@ -593,7 +598,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         View customView = mPopupWindow.getContentView();
 
-        //Last time I succesfully synced.
+        //Last time I succesfully synced with my team.
         final String team = GlobalState.getInstance().getMyTeam();
         long timestamp = GlobalState.getInstance().getDb().getTimestampOfLatestSuccesfulSync(team);
         TextView time_last_succesful_sync = customView.findViewById(R.id.sync_time_since_last_sync);

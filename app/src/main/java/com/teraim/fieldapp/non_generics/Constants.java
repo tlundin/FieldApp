@@ -40,9 +40,14 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.32f;
-    public static final String DEFAULT_SERVER_URI = "https://rlo.slu.se/rloresources/";
-    public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
+    public final static float VORTEX_VERSION = 8.33f;
+
+    public final static String DEFAULT_APP = "Vortex";
+    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
+
+    //public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
+
+    public static final String EXPORT_SERVER = "";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
     public static final String TIMESTAMP_LATEST_SUCCESFUL_SYNC = "timestamp_latest_sync" ;
