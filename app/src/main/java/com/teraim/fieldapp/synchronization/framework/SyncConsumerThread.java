@@ -3,6 +3,8 @@ package com.teraim.fieldapp.synchronization.framework;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Handler;
+import android.os.Message;
+import android.os.RemoteException;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
@@ -39,7 +41,7 @@ public class SyncConsumerThread extends Thread {
                         nSyncEntriesTotal += ses.length;
                         dbHelper.insertSyncEntries(syncReport, ses, gs.getLogger());
                         syncReport.currentRow++;
-                        //Log.d("sync","map now has "+syncReport.getTimeStampedMap().size() +" entries");
+                        Log.d("sync","map now has "+syncReport.getTimeStampedMap().size() +" entries");
                     } else {
                         Log.e("sync", "Corrupted row in sync data");
                     }
@@ -51,14 +53,18 @@ public class SyncConsumerThread extends Thread {
                 Log.d("sync", "Deleting entries in table_sync with id less than or equal to " + id);
                 dbHelper.deleteConsumedSyncEntries(id);
                 //send a message to refresh any ui currently drawn
-                Intent intent = new Intent();
-                intent.setAction(Executor.REDRAW_PAGE);
-                if (gs!=null)
-                    gs.sendSyncEvent(intent);
+
+
             } else
                 Log.e("sync","No changes in syncreport, not calling insertifmax");
            // mCaller.handleMessage(Message.obtain(null, SyncService.MSG_SYNC_DATA_CONSUMED));
         }
+        Intent intent = new Intent();
+        intent.setAction(Executor.REDRAW_PAGE);
+        if (gs!=null)
+            gs.sendSyncEvent(intent);
+        mCaller.handleMessage(Message.obtain(null, SyncService.MSG_SYNC_RUN_ENDED));
+
     }
 };
 

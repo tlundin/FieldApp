@@ -41,7 +41,7 @@ public class Constants {
 
 
     public final static float VORTEX_VERSION = 8.32f;
-    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
+    public static final String DEFAULT_SERVER_URI = "https://rlo.slu.se/rloresources/";
     public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";

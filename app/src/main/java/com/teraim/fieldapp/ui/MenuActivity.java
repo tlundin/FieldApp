@@ -375,8 +375,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                     if (gs!=null) {
                         gs.getDb().saveTimeStampOfLatestSuccesfulSync(gs.getMyTeam());
                         menuActivity.syncState = R.drawable.syncon;
-                        menuActivity.getTeamSyncStatusFromServer();
                     }
+                    menuActivity.getTeamSyncStatusFromServer();
                     break;
                 case MSG_SYNC_ERROR_STATE:
                     menuActivity.syncState = R.drawable.syncerr;
@@ -412,12 +412,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                     }
                     break;
-                //case MSG_SYNC_DATA_CONSUMED:
+
                 //   Log.d("sync", "MSG -->SYNC_DATA_CONSUMED");
                 //   syncConsumerThread = null;
                 //   break;
             }
-            menuActivity.refreshSyncDisplay();
+            menuActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    menuActivity.refreshSyncDisplay();
+                }
+            });
 
         }
 
@@ -559,12 +564,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         boolean sync_on = syncOn();
 
         String synkStatusTitle;
-
+        Log.d("sync","numInsertSyncE: "+numOfInsertSyncEntries);
         if (fullySynced) {
             syncState = R.drawable.insync;
             synkStatusTitle="";
         } else
-            synkStatusTitle = numOfUnsynchedEntries+((numOfInsertSyncEntries>0)?"/"+numOfInsertSyncEntries:"");
+            synkStatusTitle = "U: "+numOfUnsynchedEntries+" I: "+numOfInsertSyncEntries;
         if (!sync_on)
             syncState = R.drawable.syncoff;
 
@@ -654,10 +659,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 break;
         }
         TextView synk_status_display = customView.findViewById(R.id.synk_status_display);
-        if (syncState == R.drawable.syncactive)
-            synk_status_display.setText(synkStatusTitle);
-        else
-            synk_status_display.setText(synkStatusText);
+        synk_status_display.setText(synkStatusText);
 
 
     }
