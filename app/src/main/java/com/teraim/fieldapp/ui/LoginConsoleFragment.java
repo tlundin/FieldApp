@@ -69,7 +69,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	private DbHelper myDb;
 	private TextView appTxt;
 	private float oldV = -1;
-	private final static String InitialBundleName = "Vortex";
+	private final static String InitialBundleName = Constants.DEFAULT_APP;
 	private Button load_configuration;
 
 

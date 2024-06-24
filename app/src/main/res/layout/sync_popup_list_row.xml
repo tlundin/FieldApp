@@ -9,26 +9,26 @@
 
     <TextView
         android:id="@+id/sync_row_user"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
+        android:layout_weight="40"
         android:padding="3dp"
+        android:gravity="left"
         android:text="- Anders"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/sync_row_unsynced"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="right"
+        android:layout_weight="40"
         android:text="3 min" />
 
     <TextView
         android:id="@+id/sync_row_unsync_date"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_weight="40"
         android:gravity="right"
         android:text="3 min" />
 </LinearLayout>
