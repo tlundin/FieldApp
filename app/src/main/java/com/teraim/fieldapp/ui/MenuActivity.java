@@ -375,8 +375,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                     if (gs!=null) {
                         gs.getDb().saveTimeStampOfLatestSuccesfulSync(gs.getMyTeam());
                         menuActivity.syncState = R.drawable.syncon;
-                        menuActivity.getTeamSyncStatusFromServer();
                     }
+                    menuActivity.getTeamSyncStatusFromServer();
                     break;
                 case MSG_SYNC_ERROR_STATE:
                     menuActivity.syncState = R.drawable.syncerr;
@@ -412,12 +412,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                     }
                     break;
-                //case MSG_SYNC_DATA_CONSUMED:
+
                 //   Log.d("sync", "MSG -->SYNC_DATA_CONSUMED");
                 //   syncConsumerThread = null;
                 //   break;
             }
-            menuActivity.refreshSyncDisplay();
+            menuActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    menuActivity.refreshSyncDisplay();
+                }
+            });
 
         }
 
@@ -563,8 +568,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         if (fullySynced) {
             syncState = R.drawable.insync;
             synkStatusTitle="";
-        } else
-            synkStatusTitle = numOfUnsynchedEntries+((numOfInsertSyncEntries>0)?"/"+numOfInsertSyncEntries:"");
+        } else {
+            synkStatusTitle = "" + numOfUnsynchedEntries;
+            if (numOfInsertSyncEntries > 0)
+                syncState = R.drawable.syncactive;
+            else
+                syncState = R.drawable.syncon;
+        }
         if (!sync_on)
             syncState = R.drawable.syncoff;
 
@@ -588,7 +598,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         View customView = mPopupWindow.getContentView();
 
-        //Last time I succesfully synced.
+        //Last time I succesfully synced with my team.
         final String team = GlobalState.getInstance().getMyTeam();
         long timestamp = GlobalState.getInstance().getDb().getTimestampOfLatestSuccesfulSync(team);
         TextView time_last_succesful_sync = customView.findViewById(R.id.sync_time_since_last_sync);
@@ -654,10 +664,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 break;
         }
         TextView synk_status_display = customView.findViewById(R.id.synk_status_display);
-        if (syncState == R.drawable.syncactive)
-            synk_status_display.setText(synkStatusTitle);
-        else
-            synk_status_display.setText(synkStatusText);
+        synk_status_display.setText(synkStatusText);
 
 
     }

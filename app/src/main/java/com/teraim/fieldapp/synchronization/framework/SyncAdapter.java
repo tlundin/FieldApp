@@ -113,27 +113,25 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account accounts, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
-        //Log.d("sync", "************onPerformSync [" + mUser + "]");
+        Log.d("sync", "************onPerformSync [" + mUser + "]");
 
         if (LOCKED) {
             Log.e("sync", "Locked...exit");
             return;
-        }
-
-        else if (USER_STOPPED_SYNC) {
+        } else if (USER_STOPPED_SYNC) {
             Log.e("sync", "User has stopped the sync...exit");
             return;
         }
 
         LOCKED = true;
-        boolean hasMoreToDo=false, hasDataToInsert=false;
+        boolean hasMoreToDo = true, hasDataToInsert = false;
 
         //Initiate sync, check that client is alive.
         try {
             mClient.send(Message.obtain(null, SyncService.MSG_SYNC_RUN_STARTED));
         } catch (RemoteException e) {
             e.printStackTrace();
-            Log.d("sync","client not responding..exit");
+            Log.d("sync", "client not responding..exit");
             syncResult.hasHardError();
             return;
         }
@@ -142,101 +140,106 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
         //Set up a HTTP session with the server.
         //Send and receive data. Update timestamps.
-        URLConnection conn=null;
-        ObjectInputStream in=null;
-        ObjectOutputStream out=null;
+        URLConnection conn = null;
+        ObjectInputStream in = null;
+        ObjectOutputStream out = null;
 
-        try {
-            //send data
+        while (hasMoreToDo && errorCode == SyncService.NO_ERROR && !USER_STOPPED_SYNC) {
+
+            hasMoreToDo = false;
+
             try {
-                //get my Sync Entries
-                StampedData dataOut = getMyUnsavedEntries();
-                //establish session
-                conn = getSyncConnection();
-                //create pipe (-->server)
-                out = new ObjectOutputStream(conn.getOutputStream());
-                //header (username, uuid, team)
-                sendHeader(out);
-                //send data ([] of sync entries or EndofStream if empty)
-                out.writeObject(dataOut.data);
-                //timestamp -1 means that no data was sent
-                if (dataOut.timestamp != -1) {
-                    updateCounter(dataOut.timestamp, Constants.TIMESTAMP_SYNC_SEND);
-                    hasMoreToDo = dataOut.hasMore;
-                } else
-                    Log.d("sync", "No data was sent.");
-
-            } catch (SyncFailedException e) {
-                Log.d("sync", "Sync failed exception during send");
-                errorCode = SyncService.ERR_SYNC_ERROR;
-                e.printStackTrace();
-            } catch (IOException e) {
-                Log.d("sync", "IO exception during send.");
-                errorCode = SyncService.ERR_SEND_FAILED;
-                e.printStackTrace();
-            }
-            //receive data if no error
-            if (errorCode == SyncService.NO_ERROR) {
-                Object reply;
-
+                //send data
                 try {
+                    //get my Sync Entries
+                    StampedData dataOut = getMyUnsavedEntries();
+                    //establish session
+                    conn = getSyncConnection();
+                    //create pipe (-->server)
+                    out = new ObjectOutputStream(conn.getOutputStream());
+                    //header (username, uuid, team)
+                    sendHeader(out);
+                    //send data ([] of sync entries or EndofStream if empty)
+                    out.writeObject(dataOut.data);
+                    //timestamp -1 means that no data was sent
+                    if (dataOut.timestamp != -1) {
+                        updateCounter(dataOut.timestamp, Constants.TIMESTAMP_SYNC_SEND);
+                        hasMoreToDo = dataOut.hasMore;
+                    } else
+                        Log.d("sync", "No data was sent.");
 
-                    //write timestamp of earliest entry to read.
-                    out.writeObject(mTimestamp_receive);
-                    //create pipe (Server-->me)
-                    in = new ObjectInputStream(conn.getInputStream());
-
-                    int numberOfEntriesFromServer = Integer.parseInt((String) in.readObject());
-
-                    if (numberOfEntriesFromServer == 0) {
-                        Log.d("sync", "No new data");
-                    } else {
-                        //receive data
-                        ContentValues[] dataToInsert = new ContentValues[numberOfEntriesFromServer];
-                        for (int i = 0; i < numberOfEntriesFromServer; i++) {
-                            reply = in.readObject();
-                            ContentValues cv = new ContentValues();
-                            cv.put("data", (byte[]) reply);
-                            dataToInsert[i] = cv;
-                        }
-
-                        //insert to temporary table
-                        int rowsInserted = mContentResolver.bulkInsert(SYNC_DATA_URI,dataToInsert);
-                        //Log.d("sync","Rows inserted: "+rowsInserted+" rows received: "+numberOfEntriesFromServer);
-                        hasDataToInsert = rowsInserted>0;
-
-                    }
-                    //new timestamp = timestamp to read from next time.
-                    Long newTimestamp = (Long) in.readObject();
-                    //Log.d("sync", "Timestamp server --> me: " + newTimestamp);
-
-                    updateCounter(newTimestamp,Constants.TIMESTAMP_SYNC_RECEIVE);
-                    mTimestamp_receive=newTimestamp;
-                    hasMoreToDo = hasMoreToDo || numberOfEntriesFromServer == MaxSyncableRowsServer;
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (SyncFailedException e) {
+                    Log.d("sync", "Sync failed exception during send");
                     errorCode = SyncService.ERR_SYNC_ERROR;
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    Log.d("sync", "IO exception during send.");
+                    errorCode = SyncService.ERR_SEND_FAILED;
+                    e.printStackTrace();
+                }
+                //receive data if no error
+                if (errorCode == SyncService.NO_ERROR) {
+                    Object reply;
+
+                    try {
+
+                        //write timestamp of earliest entry to read.
+                        out.writeObject(mTimestamp_receive);
+                        //create pipe (Server-->me)
+                        in = new ObjectInputStream(conn.getInputStream());
+
+                        int numberOfEntriesFromServer = Integer.parseInt((String) in.readObject());
+
+                        if (numberOfEntriesFromServer == 0) {
+                            Log.d("sync", "No new data");
+                        } else {
+                            //receive data
+                            ContentValues[] dataToInsert = new ContentValues[numberOfEntriesFromServer];
+                            for (int i = 0; i < numberOfEntriesFromServer; i++) {
+                                reply = in.readObject();
+                                ContentValues cv = new ContentValues();
+                                cv.put("data", (byte[]) reply);
+                                dataToInsert[i] = cv;
+                            }
+
+                            //insert to temporary table
+                            int rowsInserted = mContentResolver.bulkInsert(SYNC_DATA_URI, dataToInsert);
+                            Log.d("sync", "Rows inserted: " + rowsInserted + " rows received: " + numberOfEntriesFromServer);
+                            if (!hasDataToInsert && rowsInserted > 0)
+                                hasDataToInsert = true;
+
+                        }
+                        //new timestamp = timestamp to read from next time.
+                        Long newTimestamp = (Long) in.readObject();
+                        Log.d("sync", "Timestamp server --> me: " + newTimestamp);
+
+                        updateCounter(newTimestamp, Constants.TIMESTAMP_SYNC_RECEIVE);
+                        mTimestamp_receive = newTimestamp;
+                        hasMoreToDo = hasMoreToDo || numberOfEntriesFromServer == MaxSyncableRowsServer;
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        errorCode = SyncService.ERR_SYNC_ERROR;
+                    }
+
                 }
 
-            }
-
-        } finally {
-            try {
-                if (out != null) {
-                    out.close();
+            } finally {
+                try {
+                    if (out != null) {
+                        out.close();
+                    }
+                    if (in != null)
+                        in.close();
+                } catch (IOException io) {
+                    io.printStackTrace();
                 }
-                if (in != null)
-                    in.close();
-            } catch (IOException io) {
-                io.printStackTrace();
             }
         }
-
-        if (hasMoreToDo) {
-            //Log.d("sync","has more to send or read. Request new sync.");
-            syncResult.fullSyncRequested = true;
-        }
+//        if (hasMoreToDo) {
+//            Log.d("sync","has more to send or read. Request new sync at time "+Tools.getCurrentTime());
+//            syncResult.fullSyncRequested = true;
+//        }
 
         //if any error, inform the client
         if (errorCode != SyncService.NO_ERROR) {
@@ -250,20 +253,18 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         } else
             //Check if there are unprocessed rows in sync table.
             if (hasDataToInsert) {
-                //Log.d("sync", "sync data exists to insert");
+                Log.d("sync", "sync data exists to insert");
                 try {
                     mClient.send(Message.obtain(null, SyncService.MSG_SYNC_DATA_READY_FOR_INSERT));
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-            } else {
+            } else
                 try {
                     mClient.send(Message.obtain(null, SyncService.MSG_SYNC_RUN_ENDED));
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
-            }
-
         LOCKED = false;
     }
 

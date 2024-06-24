@@ -1546,7 +1546,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     //Log.d("vortex","added to tsmap: "+uid);
                     tsMap.add(tsMap.getKey(uid,sub),variableName, cv);
                     if (!variableCache.turboRemoveOrInvalidate(uid, sub, variableName, true))
-                    resetCache = true;
+                        resetCache = true;
                 } else {
                     //Log.e("bascar", "Inserting RAW" + s.getChange());
                     db().insert(TABLE_VARIABLES, // table
