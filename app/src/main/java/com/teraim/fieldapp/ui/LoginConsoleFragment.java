@@ -215,6 +215,9 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 										ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "dbLoader", null);
 										ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE, null);
 										GlobalState.destroyInstance();
+										logTxt="";
+										myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,server,bundleName,debugConsole));
+										Log.d("perl","My modules: "+myModules.getAll().toString());
 										myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
 										onResume();
 									}
@@ -363,7 +366,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		Log.d("vortex","Arrives to loadsucc with ID: "+loaderId);
 		ph.put(PersistenceHelper.ALL_MODULES_FROZEN+loaderId,true);
 		Log.d("baza","logtxt incoming: "+logText.toString());
-		this.logTxt = TextUtils.concat(this.logTxt,logText);
+		this.logTxt = logText; // TextUtils.concat(this.logTxt,logText);
 		Log.d("baza","logtxt now "+this.logTxt.toString());
 		//If load successful, create database and import data into it. 
 		if (loaderId.equals("moduleLoader")) {
@@ -440,7 +443,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 					loginConsole.addRow(getString(R.string.done_loading));
 					loginConsole.draw();
 				}
-
+				//Log.d("log",debugConsole.getLogText().toString());
 				start(gs);
 
 			} else {

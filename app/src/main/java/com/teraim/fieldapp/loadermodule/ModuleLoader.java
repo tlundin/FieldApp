@@ -91,6 +91,7 @@ public class ModuleLoader implements FileLoadedCb{
             }
         } else {
             module = myModules.next();
+            Log.d("perl","module now "+(module==null?"null":module.getLabel()));
         }
         if (module != null) {
             debug.addRow("");
