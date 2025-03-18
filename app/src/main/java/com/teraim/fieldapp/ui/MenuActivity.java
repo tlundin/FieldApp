@@ -167,7 +167,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             gs = GlobalState.getInstance();
                             //check current state of synk server.
                             //This determines the sync status.
-                            toggleSyncOnOff(syncOn());
+                            //toggleSyncOnOff(syncOn());
 
                             if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("Internet"))
                                 getTeamSyncStatusFromServer();
@@ -239,7 +239,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         LocalBroadcastManager.getInstance(this).registerReceiver(brr, filter);
 
         //Register to sync framework
-        initializeSynchronisation();
+        //initializeSynchronisation();
 
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         // Inflate the sync popup
@@ -979,8 +979,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void stopSync() {
-        ContentResolver.cancelSync(mAccount, Start.AUTHORITY);
-        ContentResolver.setSyncAutomatically(mAccount, Start.AUTHORITY, false);
+        //ContentResolver.cancelSync(mAccount, Start.AUTHORITY);
+        //ContentResolver.setSyncAutomatically(mAccount, Start.AUTHORITY, false);
 
         syncState = R.drawable.syncoff;
         Message reply = Message.obtain(null, SyncService.MSG_USER_STOPPED_SYNC);
