@@ -8,11 +8,11 @@ android {
             storePassword 'TerjePavek_2'
         }
     }
-    compileSdkVersion 33
+    compileSdkVersion 34
     defaultConfig {
         applicationId "com.teraim.fieldapp"
         minSdkVersion 24
-        targetSdkVersion 33
+        targetSdkVersion 34
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
