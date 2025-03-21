@@ -280,6 +280,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	 * First time? If so, create subfolders.
 	 */
 	private boolean initIfFirstTime() {
+		globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
 		//If testFile doesnt exist it will be created and found next time.
 		Log.d("vortex","Checking if this is first time use of Vortex...");
 		boolean first = (globalPh.get(PersistenceHelper.FIRST_TIME_KEY).equals(PersistenceHelper.UNDEFINED));
@@ -317,7 +318,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		if (globalPh.get(PersistenceHelper.VERSION_CONTROL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
 		if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals(PersistenceHelper.UNDEFINED))
-			globalPh.put(PersistenceHelper.SYNC_METHOD, "Internet");
+			globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
 		if (globalPh.get(PersistenceHelper.EXPORT_SERVER_URL).equals(PersistenceHelper.UNDEFINED))
