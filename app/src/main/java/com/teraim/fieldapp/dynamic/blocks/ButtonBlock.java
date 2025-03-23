@@ -69,9 +69,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -90,11 +88,8 @@ import okhttp3.Response;
 
 /**
  * buttonblock
- *
  * Class for all created Buttons
- *
  * @author Terje
- *
  */
 public  class ButtonBlock extends Block  implements EventListener {
 	/**
@@ -309,39 +304,39 @@ public  class ButtonBlock extends Block  implements EventListener {
 						if (clickOngoing)
 							return;
 						else
-							clickOngoing=true;
+							clickOngoing = true;
 						originalBackground = view.getBackground();
 						view.setBackgroundColor(Color.parseColor(Constants.Color_Pressed));
 						//ACtion = workflow to execute.
 						//Commence!
-						if (extraActionOnClick!=null) {
+						if (extraActionOnClick != null) {
 							extraActionOnClick.onClick();
 						}
 
 						if (onClick.startsWith("template"))
-							myContext.getTemplate().execute(onClick,getTarget());
+							myContext.getTemplate().execute(onClick, getTarget());
 						else {
 
 
-							if (onClick.equals("Go_Back")) {
+							if (onClick.equals("Go_Back") || onClick.equals("go_back_export")) {
+
 								final Variable statusVariable;
 								String statusVar = myContext.getStatusVariable();
 
 								if (statusVar != null) {
-									Log.d("vorto","found statusvar named "+statusVar);
+									Log.d("vorto", "found statusvar named " + statusVar);
 									statusVariable = varCache.getVariable(buttonContext.getContext(), statusVar);
-								}
-								else
+								} else
 									statusVariable = null;
 
 								Set<Rule> myRules = myContext.getRulesThatApply();
-								boolean showPop=false;
+								boolean showPop = false;
 
 								View popUpView = null; // inflating popup layout
 
-								if (myRules != null && myRules.size()>0) {
-									Log.d("nils","I have "+myRules.size()+" rules!");
-									validationResult  = null;
+								if (myRules != null && myRules.size() > 0) {
+									Log.d("nils", "I have " + myRules.size() + " rules!");
+									validationResult = null;
 									//We have rules. Each rule adds a line in the popup.
 									popUpView = inflater.inflate(R.layout.rules_popup, null);
 									mpopup = new PopupWindow(popUpView, LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, true); //Creation of popup
@@ -349,37 +344,33 @@ public  class ButtonBlock extends Block  implements EventListener {
 									LinearLayout frame = popUpView.findViewById(R.id.pop);
 									Button avsluta = popUpView.findViewById(R.id.avsluta);
 									Button korrigera = popUpView.findViewById(R.id.korrigera);
+									if (onClick.equals("go_back_export"))
+										avsluta.setText(ctx.getString(R.string.export_and_finalize));
 									avsluta.setOnClickListener(new OnClickListener() {
 
 										@Override
 										public void onClick(View v) {
-											if (statusVariable!=null) {
-												statusVariable.setValue(validationResult?"3":"2");
-												Log.e("vortex","SETTING STATUSVAR: "+statusVariable.getId()+" key: "+statusVariable.getKeyChain()+ "Value: "+statusVariable.getValue());
-												//Save value of all variables to database in current flow.
-
+											if (onClick.equals("go_back_export"))
+												displayExportDialog();
+											else {
+												if (statusVariable != null) {
+													statusVariable.setValue(validationResult ? "3" : "2");
+													Log.e("vortex", "SETTING STATUSVAR: " + statusVariable.getId() + " key: " + statusVariable.getKeyChain() + "Value: " + statusVariable.getValue());
+													//Save value of all variables to database in current flow.
+												} else
+													Log.d("nils", "Found no status variable");
 											}
-
-
-											else
-												Log.d("nils","Found no status variable");
-
 											Set<Variable> variablesToSave = myContext.getTemplate().getVariables();
-											Log.d("vortex", "Variables To save contains "+(variablesToSave==null?"null":variablesToSave.size()+" objects."));
-											if (variablesToSave!=null) {
+											Log.d("vortex", "Variables To save contains " + (variablesToSave == null ? "null" : variablesToSave.size() + " objects."));
+											if (variablesToSave != null) {
 												for (Variable var : variablesToSave) {
 													Log.d("vortex", "Saving " + var.getLabel());
 													boolean resultOfSave = var.setValue(var.getValue());
-												/*if (resultOfSave) {
-													for (int i=0;i<100;i++)
-													Log.e("vortex","KORS I TAKET!!!!!!!!!!!!!!!!!!!!!!!!");
-												}*/
 												}
 											}
 											myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
 											mpopup.dismiss();
 											goBack();
-
 										}
 									});
 
@@ -391,47 +382,46 @@ public  class ButtonBlock extends Block  implements EventListener {
 										}
 									});
 									LinearLayout row;
-									TextView header,body;
+									TextView header, body;
 									ImageView indicator;
 									//Assume correct.
 									validationResult = true;
 									boolean isDeveloper = gs.getGlobalPreferences().getB(PersistenceHelper.DEVELOPER_SWITCH);
 
-									for (Rule r:myRules) {
-										Boolean ok=false;
+									for (Rule r : myRules) {
+										Boolean ok = false;
 
 										ok = r.execute();
 
-										if (ok!=null) {
+										if (ok != null) {
 											Rule.Type type = r.getType();
-											int indicatorId=0;
+											int indicatorId = 0;
 											boolean bok = false;
 											if (ok) {
 												indicatorId = R.drawable.btn_icon_ready;
-												bok=true;
-											}
-											else
-											if (type == Rule.Type.ERROR) {
+												bok = true;
+											} else if (type == Rule.Type.ERROR) {
 												indicatorId = R.drawable.btn_icon_started_with_errors;
-											}
-											else {
+											} else {
 												indicatorId = R.drawable.btn_icon_started;
 												bok = true;
 											}
-											if (!bok)
+											if (!bok) {
 												validationResult = false;
-											if (!ok || isDeveloper) {
-												showPop=true;
-												row = (LinearLayout)inflater.inflate(R.layout.rule_row, null);
+												avsluta.setEnabled(false);
+											}
+											//if (!ok || isDeveloper) {
+												showPop = true;
+												row = (LinearLayout) inflater.inflate(R.layout.rule_row, null);
 												header = row.findViewById(R.id.header);
 												body = row.findViewById(R.id.body);
 												indicator = row.findViewById(R.id.indicator);
 												indicator.setImageResource(indicatorId);
-												Log.d("nils"," Rule header "+r.getRuleHeader()+" rule body: "+r.getRuleText());
+												Log.d("nils", " Rule header " + r.getRuleHeader() + " rule body: " + r.getRuleText());
 												header.setText(r.getRuleHeader());
 												body.setText(r.getRuleText());
 												frame.addView(row);
-											}
+											//}
 										}
 									}
 
@@ -441,50 +431,47 @@ public  class ButtonBlock extends Block  implements EventListener {
 									mpopup.showAtLocation(popUpView, Gravity.TOP, 0, 0);    // Displaying popup
 								else {
 									//no rules? Then validation is always ok.
-									Log.d("nils","No rules found - exiting");
-									if (statusVariable!=null) {
-										statusVariable.setValue(WF_StatusButton.Status.ready.ordinal()+"");
+									Log.d("nils", "No rules found - exiting");
+									if (statusVariable != null) {
+										statusVariable.setValue(WF_StatusButton.Status.ready.ordinal() + "");
 										//Log.e("grogg","PSETTING STATUSVAR: "+statusVariable.getId()+" key: "+statusVariable.getKeyChain()+ "Value: "+statusVariable.getValue());
 										myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
 
-									}
-									else
-										Log.d("nils","Found no status variable");
+									} else
+										Log.d("nils", "Found no status variable");
 									Set<Variable> variablesToSave = myContext.getTemplate().getVariables();
-									Log.d("nils", "Variables To save contains "+variablesToSave.size()+" objects.");
-									for (Variable var:variablesToSave) {
-										Log.d("nils","Saving "+var.getLabel());
+									Log.d("nils", "Variables To save contains " + variablesToSave.size() + " objects.");
+									for (Variable var : variablesToSave) {
+										Log.d("nils", "Saving " + var.getLabel());
 										var.setValue(var.getValue());
 									}
 									goBack();
 								}
-							}
-							else if (onClick.equals("Start_Local_Workflow")) {
+							} else if (onClick.equals("Start_Local_Workflow")) {
 
-							}
-							else if (onClick.equals("Start_Workflow")) {
+							} else if (onClick.equals("Start_Workflow")) {
 								String target = getTarget();
 								Workflow wf = gs.getWorkflow(target);
-								if (buttonContext!=null) {
-									Log.d("vortex","Will use buttoncontext: "+buttonContext);
+								if (buttonContext != null) {
+									Log.d("vortex", "Will use buttoncontext: " + buttonContext);
 									gs.setDBContext(buttonContext);
 								}
 								if (wf == null) {
-									Log.e("NILS","Cannot find workflow ["+target+"] referenced by button "+getName());
+									Log.e("NILS", "Cannot find workflow [" + target + "] referenced by button " + getName());
 									o.addRow("");
-									o.addRow("Cannot find workflow ["+target+"] referenced by button "+getName());
+									o.addRow("Cannot find workflow [" + target + "] referenced by button " + getName());
 								} else {
 									o.addRow("");
-									o.addRow("Action button pressed. Executing wf: "+target+" with statusvar "+statusVar);
-									Log.d("Vortex","Action button pressed. Executing wf: "+target+" with statusvar "+statusVar);
+									o.addRow("Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
+									Log.d("Vortex", "Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
 									//If the template called is empty, mark this flow as "caller" to make it possible to refresh its ui after call ends.
 									String calledTemplate = wf.getTemplate();
-									Log.d("vortex","template: "+calledTemplate);
-									if (calledTemplate==null) {
-										Log.d("vortex","call to empty template flow. setcaller.");
+									Log.d("vortex", "template: " + calledTemplate);
+									if (calledTemplate == null) {
+										Log.d("vortex", "call to empty template flow. setcaller.");
 										myContext.setCaller();
 									}
-									Start.singleton.changePage(wf,statusVar);
+									Start.singleton.changePage(wf, statusVar);
 
 								}
 
@@ -522,352 +509,350 @@ public  class ButtonBlock extends Block  implements EventListener {
 										}
 									}
 									if (!done) {
-										exportFileName = getTarget();
-										final Exporter exporter = Exporter.getInstance(ctx, exportFormat.toLowerCase(),new ExportDialog());
-										//Run export in new thread. Create UI to update user on progress.
-										if (exporter!=null) {
-											((DialogFragment)exporter.getDialog()).show(((Activity) ctx).getFragmentManager(), "exportdialog");
+										displayExportDialog();
 
-											Thread t = new Thread() {
-												String msg = "";
-												@Override
-												public void run() {
-													Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
-													ExportReport exportResult = jRep.getReport();
-													if (exportResult == ExportReport.OK) {
-														msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
-														Log.d("vortex","Exportmetod: "+exportMethod);
-														if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
-															//nothing more to do...file is already on disk.
-														} else if (exportMethod.startsWith("mail")) {
-															if (targetMailAdress == null) {
-																((Activity) ctx).runOnUiThread(new Runnable() {
-																	@Override
-																	public void run() {
-																		exporter.getDialog().setCheckSend(Exporter.FAILED);
-																		exporter.getDialog().setSendStatus("Configuration error");
-																		msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
-																	}
-
-																});
-
-															} else {
-																Tools.sendMail((Activity) ctx, exportFileName + "." + exporter.getType(), targetMailAdress);
-																((Activity) ctx).runOnUiThread(new Runnable() {
-																	@Override
-																	public void run() {
-																		exporter.getDialog().setCheckSend(Exporter.SUCCESS);
-																		exporter.getDialog().setSendStatus("OK");
-																		if (!targetMailAdress.isEmpty())
-																			msg += "\nFile forwarded to " + targetMailAdress + ".";
-																		else
-																			msg += "\nFile forwarded by mail.";
-																	}
-
-																});
-															}
-
-
-														} else if (exportMethod.startsWith("upload")) {
-															if (!Connectivity.isConnected((Activity)ctx)) {
-																o.addRow("");
-																o.addRedText("Export failed - no network");
-																msg="No network connection";
-															} else {
-																String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
-																if (exportServerURL == PersistenceHelper.UNDEFINED) {
-																	o.addRow("");
-																	o.addRedText("Export Server URL not defined - Please configure in the Settings Menu");
-																	msg="Export Server URL not defined - Please configure in the Settings Menu";
-																} else {
-																	String exportFileEndpoint = exportServerURL + "/upload";
-																	File[] externalStorageVolumes =
-																			ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
-																	File primaryExternalStorage = externalStorageVolumes[0];
-																	String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
-																	String imageFolder = primaryExternalStorage.getAbsolutePath() + "/pics/";
-																	String nameWithType = exportFileName + "." + exporter.getType();
-																	File exportFile = new File(exportFolder + nameWithType);
-																	RequestBody exportDataFileBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
-																			.addFormDataPart(nameWithType, nameWithType, RequestBody.create(MediaType.parse("application/json; charset=utf-8"), exportFile)).build();
-
-																	File directory = new File(imageFolder);
-																	File[] imgs = directory.listFiles();
-																	Log.d("Files", "Size: " + imgs.length);
-																	String filter = null;
-																	if (imgFilterE != null)
-																		filter = Expressor.analyze(imgFilterE, buttonContext.getContext());
-																	Set<String>imgNames = new HashSet<>();
-																	List<ExportEntry>imagesToExport = new ArrayList<>();
-																	SharedPreferences sp = gs.getPreferences().getPreferences();
-																	Set<String> alreadyExported = sp.getStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, Collections.emptySet());
-																	Set<String> newSetAfterExport = new HashSet<String>();
-																	newSetAfterExport.addAll(alreadyExported);
-																	Log.d("Mando", "Images I know: "+alreadyExported.toString());
-																	for (int i = 0; i < imgs.length; i++) {
-																		Log.d("Files", "Image name: " + imgs[i].getName());
-																		String imageName = imgs[i].getName();
-																		if (isInFilter(imageName, filter) && !alreadyExported.contains(imageName)) {
-																			imgNames.add(imageName);
-																			String imgPath = imgs[i].getPath();
-																			Log.d("vortex", "imgpath is " + imgPath);
-																			imagesToExport.add(new ExportEntry(imageName, imgPath));
-																		} else
-																			Log.d("Mando","Excluded "+imageName);
-																	}
-																	int totalToExport = imgNames.size()+1;
-																	((Activity) ctx).runOnUiThread(new Runnable() {
-																		@Override
-																		public void run() {
-
-																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
-																			exporter.getDialog().setSendStatus("[0/" + totalToExport+"]. Waiting for response...");
-																		}
-																	});
-																	final OkHttpClient client = gs.getHTTPClient();
-																	final AtomicInteger counter = new AtomicInteger(0);
-
-																	final Callback cb = new Callback() {
-																		@Override
-																		public void onFailure(Call call, IOException e) {
-																			// Cancel the post on failure.
-																			Log.d("FAIL", e.getMessage());
-																			final String err = e.getMessage();
-																			((Activity) ctx).runOnUiThread(new Runnable() {
-																				@Override
-																				public void run() {
-																					exporter.getDialog().setCheckSend(Exporter.FAILED);
-																					exporter.getDialog().setSendStatus("FAILED");
-																					if ("timeout".equals(err) && counter.get() > 0) {
-																						exporter.getDialog().setOutCome("Network Timeout. ["+(counter.get()-1)+"] images exported. Please retry to send the remaining images");
-																					} else
-																						exporter.getDialog().setOutCome("Export failed.\n Error: "+err);
-																				}
-																			});
-																			if (call != null)
-																				call.cancel();
-																		}
-																		@Override
-																		public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
-																			counter.incrementAndGet();
-																			final String resp = response.body().string();
-																			final int code = response.code();
-																			if (code != HttpsURLConnection.HTTP_OK) {
-																				((Activity) ctx).runOnUiThread(new Runnable() {
-																					@Override
-																					public void run() {
-																						exporter.getDialog().setCheckSend(Exporter.FAILED);
-																						exporter.getDialog().setSendStatus("FAILED");
-																						exporter.getDialog().setOutCome("Export failed.\nResponse: "+resp+"\nReturn code: "+code);
-																					}
-																				});
-																				call.cancel();
-																			} else {
-																				String exportedImgName="";
-																				if (counter.get()>=2) {
-																					exportedImgName=imagesToExport.get(counter.get() - 2).name;
-																					newSetAfterExport.add(exportedImgName);
-																					sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, newSetAfterExport).commit();
-																				}
-																				if (counter.get() == totalToExport) {
-																					StringBuilder eMsg = new StringBuilder();
-																					if (imagesToExport.size() == 0)
-																						eMsg.append("No new images to export.");
-																					else
-																						eMsg.append("All files exported.");
-
-																					((Activity) ctx).runOnUiThread(() -> {
-																						exporter.getDialog().setSendStatus("["+ counter.get() + "/" + totalToExport+"]");
-																						exporter.getDialog().setCheckSend(Exporter.SUCCESS);
-																						exporter.getDialog().setOutCome(eMsg.toString());
-																						if (button instanceof WF_StatusButton)
-																							((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
-																					});
-																				} else {
-																					String finalExportedImgName = exportedImgName;
-																					((Activity) ctx).runOnUiThread(() -> {
-																					exporter.getDialog().setSendStatus("["+ counter.get() + "/" + totalToExport+"]");
-																					exporter.getDialog().setOutCome(finalExportedImgName);
-																					exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
-																				});
-
-																				RequestBody requestBody = createBody(imagesToExport.get(counter.get()-1));
-																				if (requestBody !=null) {
-																					Request request = new Request.Builder()
-																							.url(exportFileEndpoint)
-																							.post(requestBody)
-																							.build();
-																					client.newCall(request).enqueue(this);
-																				} else {
-																					o.addRow("");
-																					o.addRedText("Failed to compress bitmap. Export failed");
-																				}
-																				}
-																			}
-																		}
-																	};
-																		Request request = new Request.Builder()
-																				.url(exportFileEndpoint)
-																				.post(exportDataFileBody)
-																				.build();
-																		client.newCall(request).enqueue(cb);
-																}
-															}
-														}
-
-													} else {
-														if (exportResult == ExportReport.NO_DATA)
-															msg = "Nothing to export! Have you entered any values? Have you marked your export variables as 'global'? (Local variables are not exported)";
-														else
-															msg = "Export failed. Reason: " + exportResult;
-
-
-													}
-
-													((Activity) ctx).runOnUiThread(new Runnable() {
-														@Override
-														public void run() {
-															{
-																exporter.getDialog().setOutCome(msg);
-															}
-														}
-													});
-												}
-											};
-											t.start();
-										} else
-											Log.e("vortex","Exporter null in buttonblock");
 									}
-
 								}
-							} else if (onClick.equals("Start_Camera")) {
-								if (getTarget()!=null) {
+								} else if (onClick.equals("Start_Camera")) {
+									if (getTarget() != null) {
+										Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+										File photoFile = null;
+										if (intent.resolveActivity(ctx.getPackageManager()) != null) {
+											// Create the File where the photo should go
+
+											File[] externalStorageVolumes =
+													ContextCompat.getExternalFilesDirs(ctx, null);
+											File primaryExternalStorage = externalStorageVolumes[0];
+											//create data folder. This will also create the ROOT folder for the Strand app.
+											photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/", getTarget());
+											// Continue only if the File was successfully created
+											if (photoFile != null) {
+												Uri photoURI = FileProvider.getUriForFile(ctx,
+														"com.teraim.fieldapp.fileprovider",
+														photoFile);
+												intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+												Log.d("photo", "storing image to " + photoFile);
+												((Activity) ctx).startActivityForResult(intent, Constants.TAKE_PICTURE);
+											}
+										}
+										if (photoFile == null) {
+											Log.e("photo", "failed to take picture");
+											o.addRow("");
+											o.addRedText("Failed to take picture. Permission or memory problem. BlockId: " + ButtonBlock.this.getBlockId());
+										}
+									} else {
+										o.addRow("");
+										o.addRedText("No target (filename) specified for camera action button. BlockId: " + ButtonBlock.this.getBlockId());
+									}
+								} else if (onClick.equals("barcode")) {
 									Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-									File photoFile=null;
+									File photoFile;
 									if (intent.resolveActivity(ctx.getPackageManager()) != null) {
 										// Create the File where the photo should go
-
 										File[] externalStorageVolumes =
 												ContextCompat.getExternalFilesDirs(ctx, null);
 										File primaryExternalStorage = externalStorageVolumes[0];
 										//create data folder. This will also create the ROOT folder for the Strand app.
-										photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/",getTarget());
+										photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/", Constants.TEMP_BARCODE_IMG_NAME);
 										// Continue only if the File was successfully created
 										if (photoFile != null) {
 											Uri photoURI = FileProvider.getUriForFile(ctx,
 													"com.teraim.fieldapp.fileprovider",
 													photoFile);
 											intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-											Log.d("photo","storing image to "+photoFile);
 											((Activity) ctx).startActivityForResult(intent, Constants.TAKE_PICTURE);
 										}
 									}
-									if (photoFile == null) {
-										Log.e("photo","failed to take picture");
-										o.addRow("");
-										o.addRedText("Failed to take picture. Permission or memory problem. BlockId: "+ButtonBlock.this.getBlockId());
-									}
+									//wait for image to be captured.
+									myContext.registerEventListener(new BarcodeReader(myContext, getTarget()), Event.EventType.onActivityResult);
+								} else if (onClick.equals("backup")) {
+									boolean success = GlobalState.getInstance().getBackupManager().backupDatabase();
+									new AlertDialog.Builder(ctx)
+											.setTitle("Backup " + (success ? "succesful" : "failed"))
+											.setMessage(success ? "A file named 'backup_" + Constants.getSweDate() + "' has been created in your backup folder." : "Failed. Please check if the backup folder you specified under the config menu exists.")
+											.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+												public void onClick(DialogInterface dialog, int which) {
+												}
+											})
+											.setIcon(android.R.drawable.ic_dialog_alert)
+											.show();
+								} else if (onClick.equals("restore_from_backup")) {
+
+									new AlertDialog.Builder(ctx)
+											.setTitle("Warning!")
+											.setMessage("If you go ahead, you current database will be replaced by a backup file.")
+											.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+												public void onClick(DialogInterface dialog, int which) {
+													boolean success = GlobalState.getInstance().getBackupManager().restoreDatabase();
+													new AlertDialog.Builder(ctx)
+															.setTitle("Restore " + (success ? "succesful" : "failed"))
+															.setMessage(success ? "Your database has been restored from backup. Please restart the app now." : "Failed. Please check that the backup file is in the staging area")
+															.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+																public void onClick(DialogInterface dialog, int which) {
+																}
+															})
+															.setIcon(android.R.drawable.ic_dialog_alert)
+															.show();
+												}
+											})
+											.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+												public void onClick(DialogInterface dialog, int which) {
+												}
+											})
+											.setIcon(android.R.drawable.ic_dialog_alert)
+											.show();
+
+
+								} else if (onClick.equals("synctest")) {
+									Log.e("vortex", "gets HEREE!!!!");
+
+
+									// Pass the settings flags by inserting them in a bundle
+									Bundle settingsBundle = new Bundle();
+									settingsBundle.putBoolean(
+											ContentResolver.SYNC_EXTRAS_MANUAL, true);
+									settingsBundle.putBoolean(
+											ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+									/*
+									 * Request the sync for the default account, authority, and
+									 * manual sync settings
+									 */
+									Account mAccount = GlobalState.getmAccount(ctx);
+									final String AUTHORITY = "com.teraim.fieldapp.provider";
+									ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
+
+									//Also try to say hello.
+
+
 								} else {
 									o.addRow("");
-									o.addRedText("No target (filename) specified for camera action button. BlockId: "+ButtonBlock.this.getBlockId());
+									o.addRedText("Action button had no associated action!");
 								}
-							} else if (onClick.equals("barcode")) {
-								Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-								File photoFile;
-								if (intent.resolveActivity(ctx.getPackageManager()) != null) {
-									// Create the File where the photo should go
-									File[] externalStorageVolumes =
-											ContextCompat.getExternalFilesDirs(ctx, null);
-									File primaryExternalStorage = externalStorageVolumes[0];
-									//create data folder. This will also create the ROOT folder for the Strand app.
-									photoFile = new File(primaryExternalStorage.getAbsolutePath() + "/pics/",Constants.TEMP_BARCODE_IMG_NAME);
-									// Continue only if the File was successfully created
-									if (photoFile != null) {
-										Uri photoURI = FileProvider.getUriForFile(ctx,
-												"com.teraim.fieldapp.fileprovider",
-												photoFile);
-										intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-										((Activity) ctx).startActivityForResult(intent, Constants.TAKE_PICTURE);
-									}
-								}
-								//wait for image to be captured.
-								myContext.registerEventListener(new BarcodeReader(myContext,getTarget()), Event.EventType.onActivityResult);
 							}
 
+							clickOngoing = false;
+							view.setBackground(originalBackground);
+						}
+						private void displayExportDialog() {
+							exportFileName = getTarget();
+							final Exporter exporter = Exporter.getInstance(ctx, exportFormat.toLowerCase(), new ExportDialog());
+							//Run export in new thread. Create UI to update user on progress.
+							if (exporter != null) {
+								((DialogFragment) exporter.getDialog()).show(((Activity) ctx).getFragmentManager(), "exportdialog");
+
+								Thread t = new Thread() {
+									String msg = "";
+
+									@Override
+									public void run() {
+										Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
+										ExportReport exportResult = jRep.getReport();
+										if (exportResult == ExportReport.OK) {
+											msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
+											Log.d("vortex", "Exportmetod: " + exportMethod);
+											if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
+												//nothing more to do...file is already on disk.
+											} else if (exportMethod.startsWith("mail")) {
+												if (targetMailAdress == null) {
+													((Activity) ctx).runOnUiThread(new Runnable() {
+														@Override
+														public void run() {
+															exporter.getDialog().setCheckSend(Exporter.FAILED);
+															exporter.getDialog().setSendStatus("Configuration error");
+															msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
+														}
+
+													});
+
+												} else {
+													Tools.sendMail((Activity) ctx, exportFileName + "." + exporter.getType(), targetMailAdress);
+													((Activity) ctx).runOnUiThread(new Runnable() {
+														@Override
+														public void run() {
+															exporter.getDialog().setCheckSend(Exporter.SUCCESS);
+															exporter.getDialog().setSendStatus("OK");
+															if (!targetMailAdress.isEmpty())
+																msg += "\nFile forwarded to " + targetMailAdress + ".";
+															else
+																msg += "\nFile forwarded by mail.";
+														}
+
+													});
+												}
 
 
-							else if (onClick.equals("backup")) {
-								boolean success = GlobalState.getInstance().getBackupManager().backupDatabase();
-								new AlertDialog.Builder(ctx)
-										.setTitle("Backup "+(success?"succesful":"failed"))
-										.setMessage(success?"A file named 'backup_"+Constants.getSweDate()+"' has been created in your backup folder.":"Failed. Please check if the backup folder you specified under the config menu exists.")
-										.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-											public void onClick(DialogInterface dialog, int which) {
-											}
-										})
-										.setIcon(android.R.drawable.ic_dialog_alert)
-										.show();
-							}
-							else if (onClick.equals("restore_from_backup")) {
+											} else if (exportMethod.startsWith("upload")) {
 
-								new AlertDialog.Builder(ctx)
-										.setTitle("Warning!")
-										.setMessage("If you go ahead, you current database will be replaced by a backup file.")
-										.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-											public void onClick(DialogInterface dialog, int which) {
-												boolean success = GlobalState.getInstance().getBackupManager().restoreDatabase();
-												new AlertDialog.Builder(ctx)
-														.setTitle("Restore "+(success?"succesful":"failed"))
-														.setMessage(success?"Your database has been restored from backup. Please restart the app now.":"Failed. Please check that the backup file is in the staging area")
-														.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-															public void onClick(DialogInterface dialog, int which) {
+												if (!Connectivity.isConnected((Activity) ctx)) {
+													o.addRow("");
+													o.addRedText("Export failed - no network");
+													msg = "No network connection";
+												} else {
+													String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
+													if (exportServerURL == PersistenceHelper.UNDEFINED) {
+														o.addRow("");
+														o.addRedText("Export Server URL not defined - Please configure in the Settings Menu");
+														msg = "Export Server URL not defined - Please configure in the Settings Menu";
+													} else {
+														String exportFileEndpoint = exportServerURL + "/upload";
+														File[] externalStorageVolumes =
+																ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
+														File primaryExternalStorage = externalStorageVolumes[0];
+														String exportFolder = primaryExternalStorage.getAbsolutePath() + "/export/";
+														String imageFolder = primaryExternalStorage.getAbsolutePath() + "/pics/";
+														String nameWithType = exportFileName + "." + exporter.getType();
+														File exportFile = new File(exportFolder + nameWithType);
+														RequestBody exportDataFileBody = new MultipartBody.Builder().setType(MultipartBody.FORM)
+																.addFormDataPart(nameWithType, nameWithType, RequestBody.create(MediaType.parse("application/json; charset=utf-8"), exportFile)).build();
+
+														File directory = new File(imageFolder);
+														File[] imgs = directory.listFiles();
+														Log.d("Files", "Size: " + imgs.length);
+														String filter = null;
+														if (imgFilterE != null)
+															filter = Expressor.analyze(imgFilterE, buttonContext.getContext());
+														Set<String> imgNames = new HashSet<>();
+														List<ExportEntry> imagesToExport = new ArrayList<>();
+														SharedPreferences sp = gs.getPreferences().getPreferences();
+														Set<String> alreadyExported = sp.getStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, Collections.emptySet());
+														Set<String> newSetAfterExport = new HashSet<String>();
+														newSetAfterExport.addAll(alreadyExported);
+														Log.d("Mando", "Images I know: " + alreadyExported.toString());
+														for (int i = 0; i < imgs.length; i++) {
+															Log.d("Files", "Image name: " + imgs[i].getName());
+															String imageName = imgs[i].getName();
+															if (isInFilter(imageName, filter) && !alreadyExported.contains(imageName)) {
+																imgNames.add(imageName);
+																String imgPath = imgs[i].getPath();
+																Log.d("vortex", "imgpath is " + imgPath);
+																imagesToExport.add(new ExportEntry(imageName, imgPath));
+															} else
+																Log.d("Mando", "Excluded " + imageName);
+														}
+														int totalToExport = imgNames.size() + 1;
+														((Activity) ctx).runOnUiThread(new Runnable() {
+															@Override
+															public void run() {
+
+																exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																exporter.getDialog().setSendStatus("[0/" + totalToExport + "]. Waiting for response...");
 															}
-														})
-														.setIcon(android.R.drawable.ic_dialog_alert)
-														.show();
+														});
+														final OkHttpClient client = gs.getHTTPClient();
+														final AtomicInteger counter = new AtomicInteger(0);
+
+														final Callback cb = new Callback() {
+															@Override
+															public void onFailure(Call call, IOException e) {
+																// Cancel the post on failure.
+																Log.d("FAIL", e.getMessage());
+																final String err = e.getMessage();
+																((Activity) ctx).runOnUiThread(new Runnable() {
+																	@Override
+																	public void run() {
+																		exporter.getDialog().setCheckSend(Exporter.FAILED);
+																		exporter.getDialog().setSendStatus("FAILED");
+																		if ("timeout".equals(err) && counter.get() > 0) {
+																			exporter.getDialog().setOutCome("Network Timeout. [" + (counter.get() - 1) + "] images exported. Please retry to send the remaining images");
+																		} else
+																			exporter.getDialog().setOutCome("Export failed.\n Error: " + err);
+																	}
+																});
+																if (call != null)
+																	call.cancel();
+															}
+
+															@Override
+															public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
+																counter.incrementAndGet();
+																final String resp = response.body().string();
+																final int code = response.code();
+																if (code != HttpsURLConnection.HTTP_OK) {
+																	((Activity) ctx).runOnUiThread(new Runnable() {
+																		@Override
+																		public void run() {
+																			exporter.getDialog().setCheckSend(Exporter.FAILED);
+																			exporter.getDialog().setSendStatus("FAILED");
+																			exporter.getDialog().setOutCome("Export failed.\nResponse: " + resp + "\nReturn code: " + code);
+																		}
+																	});
+																	call.cancel();
+																} else {
+																	String exportedImgName = "";
+																	if (counter.get() >= 2) {
+																		exportedImgName = imagesToExport.get(counter.get() - 2).name;
+																		newSetAfterExport.add(exportedImgName);
+																		sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, newSetAfterExport).commit();
+																	}
+																	if (counter.get() == totalToExport) {
+																		StringBuilder eMsg = new StringBuilder();
+																		if (imagesToExport.size() == 0)
+																			eMsg.append("No new images to export.");
+																		else
+																			eMsg.append("All files exported.");
+
+																		((Activity) ctx).runOnUiThread(() -> {
+																			exporter.getDialog().setSendStatus("[" + counter.get() + "/" + totalToExport + "]");
+																			exporter.getDialog().setCheckSend(Exporter.SUCCESS);
+																			exporter.getDialog().setOutCome(eMsg.toString());
+																			if (button instanceof WF_StatusButton)
+																				((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
+																		});
+																	} else {
+																		String finalExportedImgName = exportedImgName;
+																		((Activity) ctx).runOnUiThread(() -> {
+																			exporter.getDialog().setSendStatus("[" + counter.get() + "/" + totalToExport + "]");
+																			exporter.getDialog().setOutCome(finalExportedImgName);
+																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
+																		});
+
+																		RequestBody requestBody = createBody(imagesToExport.get(counter.get() - 1));
+																		if (requestBody != null) {
+																			Request request = new Request.Builder()
+																					.url(exportFileEndpoint)
+																					.post(requestBody)
+																					.build();
+																			client.newCall(request).enqueue(this);
+																		} else {
+																			o.addRow("");
+																			o.addRedText("Failed to compress bitmap. Export failed");
+																		}
+																	}
+																}
+															}
+														};
+														Request request = new Request.Builder()
+																.url(exportFileEndpoint)
+																.post(exportDataFileBody)
+																.build();
+														client.newCall(request).enqueue(cb);
+													}
+												}
 											}
-										})
-										.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-											public void onClick(DialogInterface dialog, int which) {
+										} else {
+											if (exportResult == ExportReport.NO_DATA)
+												msg = "Nothing to export! Have you entered any values? Have you marked your export variables as 'global'? (Local variables are not exported)";
+											else
+												msg = "Export failed. Reason: " + exportResult;
+										}
+
+										((Activity) ctx).runOnUiThread(new Runnable() {
+											@Override
+											public void run() {
+												{
+													exporter.getDialog().setOutCome(msg);
+												}
 											}
-										})
-										.setIcon(android.R.drawable.ic_dialog_alert)
-										.show();
-
-
-							}else if (onClick.equals("synctest")) {
-								Log.e("vortex","gets HEREE!!!!");
-
-
-								// Pass the settings flags by inserting them in a bundle
-								Bundle settingsBundle = new Bundle();
-								settingsBundle.putBoolean(
-										ContentResolver.SYNC_EXTRAS_MANUAL, true);
-								settingsBundle.putBoolean(
-										ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-								/*
-								 * Request the sync for the default account, authority, and
-								 * manual sync settings
-								 */
-								Account mAccount = GlobalState.getmAccount(ctx);
-								final String AUTHORITY = "com.teraim.fieldapp.provider";
-								ContentResolver.requestSync(mAccount, AUTHORITY, settingsBundle);
-
-								//Also try to say hello.
-
-
-
-
-							}
-							else {
-								o.addRow("");
-								o.addRedText("Action button had no associated action!");
-							}
+										});
+									}
+								};
+								t.start();
+							} else
+								Log.e("vortex", "Exporter null in buttonblock");
 						}
 
-						clickOngoing = false;
-						view.setBackground(originalBackground);
-					}
+
+
 
 					private boolean isInFilter(String fileName, String filter) {
 						if (filter == null)

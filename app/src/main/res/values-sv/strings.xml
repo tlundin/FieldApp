@@ -116,8 +116,9 @@
 	<string name="loading_please_wait">Laddar…</string>
 	<string name="warning_exit">Du går nu ut från sidan</string>
 	<string name="image_failed_to_load">Bilden saknas och kan därför inte laddas: </string>
-	<string name="save_and_exit">Spara och avsluta</string>
-	<string name="back_to_page">Tillbaka till sidan</string>
+	<string name="export_and_finalize">Exportera och avsluta</string>
+	<string name="save_and_exit">Spara och gå ut</string>
+	<string name="back_to_page">Tillbaka</string>
 	<string name="continue_edit">Ändra</string>
 	<string name="refresh_team">Uppdatera</string>
 	<string name="my_data">Mitt Data</string>

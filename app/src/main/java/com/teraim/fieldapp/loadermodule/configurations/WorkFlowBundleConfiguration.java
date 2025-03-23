@@ -142,7 +142,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			if (minVersion!=null) {
 				try {
 					float verf = Float.parseFloat(minVersion);
-					if (Constants.VORTEX_VERSION<verf)
+					if (Float.parseFloat(Constants.VORTEX_VERSION)<verf)
 						return new LoadResult(this,ErrorCode.Unsupported,minVersion);
 
 				} catch (NumberFormatException e) {
