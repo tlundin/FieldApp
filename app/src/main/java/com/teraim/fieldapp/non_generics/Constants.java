@@ -40,14 +40,14 @@ import java.util.UUID;
 public class Constants {
 
 
-    public final static float VORTEX_VERSION = 8.34f;
+    public static final String VORTEX_VERSION = "9.03";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
 
     //public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
 
-    public static final String EXPORT_SERVER = "";
+    public static final String EXPORT_SERVER = "http://34.246.133.54:8003/";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
     public static final String TIMESTAMP_LATEST_SUCCESFUL_SYNC = "timestamp_latest_sync" ;
@@ -74,9 +74,7 @@ public class Constants {
 
     public static final String SYNC_ID = "SYNX";
 
-    //NILS uid
-    private static final UUID RED_UID = UUID.fromString("58500d27-6fd9-47c9-bf6b-d0969ce78bb3");
-    private static final UUID BLUE_UID = UUID.fromString("ce8ec829-30e3-469b-886e-6cf8f1168e98");
+    private static final UUID BLUE_UID = null;
 
 
     //Static methods

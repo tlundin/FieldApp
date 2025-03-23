@@ -411,40 +411,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 */
 
-/*
-    public boolean fixdoublets() {
-            Log.d("markus", "repairing...");
-            String colYear = getDatabaseColumnName(YEAR);
-            String colUid = getDatabaseColumnName("uid");
-            //check for sure that his db() hasnt been repaired already.
-            Cursor cursor = null;
-            try {
-                cursor = db().rawQuery("select value from variabler where author = ?", new String[]{"repair_june"});
-                if (cursor.getCount() != 0) {
-                    Log.d("markus", "duplicate call");
-                } else {
 
-                    //remove duplicates.
-
-                    db().execSQL("delete from variabler where id not in ("
-                            + " select min(id) as id from variabler group by " + colUid + ", timestamp "
-                            + " union all "
-                            + " select id from variabler where timestamp is null )"
-                    );
-
-                    //block further calls
-                    db().execSQL("insert into variabler (author) values ('repair_june')");
-
-                   return true;
-                }
-            } catch (SQLException e) {
-                Log.e("markus", "exception");
-            } finally {
-                cursor.close();
-            }
-        return false;
-    }
-*/
 
     private boolean staticColumn(String col) {
         for (String staticCol : VAR_COLS) {

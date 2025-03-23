@@ -156,12 +156,12 @@ public class JSONExporter extends Exporter {
 		Log.d("nils","Exporting database");
 		write("date",DateFormat.getInstance().format(now));
 		write("time",DateFormat.getTimeInstance().format(now));
-		write("programversion",Float.toString(globalPh.getF(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM)));
-		write("workflow bundle version",""+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE));
+		write("programversion",globalPh.get(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM));
+        write("workflow bundle version",""+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE));
 		write("Artlista version",""+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_GROUP_CONFIG_FILE));
 		write("Variable Definition version",""+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_VARPATTERN_FILE));
-		write("Author",""+globalPh.get(PersistenceHelper.USER_ID_KEY));
-		write("Team",""+globalPh.get(PersistenceHelper.LAG_ID_KEY));
+		write("Author",globalPh.get(PersistenceHelper.USER_ID_KEY));
+		write("Team",globalPh.get(PersistenceHelper.LAG_ID_KEY));
 		Log.d("nils",writer.toString());
 		
 	}

@@ -203,7 +203,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 					mState = State.waiting_for_confirmation;
 					lock=true;
 					
-					float myAppVersion = gs.getPreferences().getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
+					String myAppVersion = gs.getPreferences().get(PersistenceHelper.CURRENT_VERSION_OF_APP);
 					float mySoftwareVersion = gs.getGlobalPreferences().getF(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM);
 
 					Log.d("vortex","myBundleV "+myAppVersion+" msgVer "+sp.getAppVersion()+" swVer: "+mySoftwareVersion+" msgVer: "+sp.getSoftwareVersion());
@@ -227,7 +227,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 						mPartner = sp.getPartner();
 					}
 					boolean err=false;
-					if (myAppVersion!=sp.getAppVersion() ||
+					if (!(myAppVersion.equals(sp.getAppVersion())) ||
 							mySoftwareVersion!=sp.getSoftwareVersion()) {
 						err=true;
 						versionText.append(debugTxt);
