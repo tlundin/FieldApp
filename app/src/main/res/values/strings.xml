@@ -117,8 +117,9 @@
     <string name="loading_please_wait">Loading. Please wait...</string>
     <string name="warning_exit">This will exit the page</string>
     <string name="image_failed_to_load">GisImageView failed to load. File not found: </string>
-    <string name="save_and_exit">Save and exit</string>
-    <string name="back_to_page">Back to page</string>
+    <string name="export_and_finalize">Export and finalize</string>
+    <string name="save_and_exit">Save and Exit</string>
+    <string name="back_to_page">Back</string>
     <string name="continue_edit">Edit</string>
     <string name="refresh_team">Refresh</string>
     <string name="my_data">My Data</string>
