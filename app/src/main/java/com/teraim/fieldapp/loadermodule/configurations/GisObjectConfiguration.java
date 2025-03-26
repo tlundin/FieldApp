@@ -547,7 +547,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
         for (String key:attr.keySet()) {
             //check for status variables before insert.
             //Log.d("fenris","key: "+key+" value: "+attr.get(key));
-            if (key.equalsIgnoreCase(NamedVariables.PYSTATUS)) {
+            if (key.equalsIgnoreCase(NamedVariables.PYSTATUS) || key.equalsIgnoreCase(NamedVariables.TRAKTSTATUS)) {
                 String statusVariableName= Constants.STATUS_VARIABLES_GROUP_NAME+":"+"status_"+myType.toLowerCase();
                 Log.d("fenris","status variable found, setting "+statusVariableName);
                 myDb.fastInsert(go.getKeyHash(), statusVariableName, attr.get(key));

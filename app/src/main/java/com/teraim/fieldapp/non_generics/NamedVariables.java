@@ -63,7 +63,7 @@ public class NamedVariables {
 
 	public static final String GIS_TYPE = "GISTYP";
 	public static final String PYSTATUS = "PYSTATUS";
-
+	public static final String TRAKTSTATUS = "TRAKTSTATUS";
 
 	public static String number_of_selections = "number_of_selections";
 
