@@ -13,6 +13,7 @@ import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.Variable.DataType;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
+import com.teraim.fieldapp.dynamic.workflow_realizations.WF_StatusButton;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
 import com.teraim.fieldapp.log.LoggerI;
@@ -1617,7 +1618,6 @@ public class Expressor {
                 case getAppName:
                     return GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
                 case getStatusVariableValues:
-
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
                         //Gets the status from all buttons on the page.
                         String statusVariableName = (String) evalArgs.get(0);
@@ -1641,11 +1641,11 @@ public class Expressor {
                                     empty = false;
                                     String varValue = cp.getVariable().value;
                                     Log.d("vortex", "VALUE: " + varValue);
-                                    if (combinedStatus == null && varValue.equals(Constants.STATUS_AVSLUTAD_OK)) {
-                                        combinedStatus = Constants.STATUS_AVSLUTAD_OK;
+                                    if (combinedStatus == null && Integer.valueOf(varValue) >= WF_StatusButton.Status.ready.ordinal()) {
+                                        combinedStatus = Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD;
                                     } else if (varValue.equals(Constants.STATUS_STARTAD_MED_FEL)) {
                                         //Here we can exit. We know the value.
-                                        return 2;
+                                        return Constants.STATUS_STARTAD_MED_FEL;
                                     } else if (varValue.equals(Constants.STATUS_STARTAD_MEN_INTE_KLAR)) {
                                         //Continue and check that there is no error state down the line.
                                         combinedStatus = Constants.STATUS_STARTAD_MEN_INTE_KLAR;
@@ -1666,7 +1666,7 @@ public class Expressor {
                         }
 
                         if (combinedStatus != null) {
-                            if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_OK)) {
+                            if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
                                 Log.d("vortex","found one that is not done!");
                                 combinedStatus = Constants.STATUS_STARTAD_MEN_INTE_KLAR;
                             }

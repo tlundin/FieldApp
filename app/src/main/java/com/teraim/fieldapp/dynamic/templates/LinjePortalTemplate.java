@@ -191,7 +191,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 						linjeStatus.setValue(Constants.STATUS_INITIAL);
 						center = null;
 					}
-				} else if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_OK)) {
+				} else if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
 					Log.d("nils", "Linjestatus is Avslutad");
 				}
 			} else {
@@ -309,7 +309,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 					if (startSpinnerL.getParent() != null)
 						((ViewGroup) startSpinnerL.getParent()).removeView(startSpinnerL);
 					if (!linjeStatus.getValue().equals(Constants.STATUS_STARTAD_MEN_INTE_KLAR)) {
-						if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_OK)) {
+						if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
 							new AlertDialog.Builder(v.getContext()).setTitle("Linjen markerad avslutad!")
 									.setMessage("Vill du göra om linjen?")
 									.setPositiveButton("Ja", new DialogInterface.OnClickListener() {
@@ -480,7 +480,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 	private void setEnded() {
 		startB.setBackgroundResource(android.R.drawable.btn_default);
 		startB.setText("STARTA");
-		linjeStatus.setValue(Constants.STATUS_AVSLUTAD_OK);
+		linjeStatus.setValue(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD);
 		fieldListB.setVisibility(View.INVISIBLE);
 		myContext.registerEvent(new WF_Event_OnSave(LinjePortalId));
 	}
