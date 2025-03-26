@@ -140,7 +140,9 @@ public class GisObject {
 		if (statusVariableId==null || statusVariableValue==null)
 			return null;
 		if (statusVariableId.equals("STATUS:status_trakt")) {
+
 			int statusValue = Integer.parseInt(statusVariableValue);
+			Log.d("fenris","traktstatus value was "+statusVariableValue+" statval is "+statusValue);
 			if (statusVariableValue.equals(Constants.STATUS_HIGH_PRIORITY))
 					return "red";
 			else if (statusVariableValue.equals(Constants.STATUS_INITIAL))
