@@ -441,13 +441,13 @@ public class FotoTemplate extends Executor {
 		boolean hasOne = hasN||hasS||hasE||hasW||hasSma;
 		
 		if (hasOne && hasFjarr)
-			myStatusVariable.setValue("2");
+			myStatusVariable.setValue(Constants.STATUS_STARTAD_MED_FEL);
 		else if ((hasAll&&!hasFjarr)||(hasFjarr&&!hasAll))
-			myStatusVariable.setValue("3");
+			myStatusVariable.setValue(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD);
 		else if (!hasOne && !hasFjarr)
-			myStatusVariable.setValue("0");
+			myStatusVariable.setValue(Constants.STATUS_INITIAL);
 		else if (hasOne || hasFjarr)
-			myStatusVariable.setValue("1");
+			myStatusVariable.setValue(Constants.STATUS_STARTAD_MEN_INTE_KLAR);
 		Log.d("vortex","mystatus: "+myStatusVariable.getValue()+" hasAll: "+hasAll+" hasFjarr: "+hasFjarr+" hasone: "+hasOne);
 		super.onStop();
 	}
