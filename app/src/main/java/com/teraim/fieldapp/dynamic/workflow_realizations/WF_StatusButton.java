@@ -61,13 +61,20 @@ public class WF_StatusButton extends WF_Button {
             case 3:
                 s=Status.ready;
                 break;
+            case 4:
+                s=Status.ready_exported;
+                break;
+            case 5:
+            case 100:
+                s=Status.ready_in_db;
+                break;
 
         }
         return s;
     }
 
     public boolean refreshStatus() {
-        DB_Context statusContext=null;
+        DB_Context statusContext;
         if (hash==null) {
             Log.d("vortex","hash null in statusrefresh...will try currenthash");
             statusContext=myContext.getHash();
@@ -109,7 +116,9 @@ public class WF_StatusButton extends WF_Button {
         none,
         started,
         started_with_errors,
-        ready
+        ready,
+        ready_exported,
+        ready_in_db
     }
 
     
@@ -156,7 +165,12 @@ public class WF_StatusButton extends WF_Button {
             case ready:
                 id = R.drawable.btn_icon_ready;
                 break ;
-
+            case ready_in_db:
+                id = R.drawable.btn_icon_ready_in_db;
+                break;
+            case ready_exported:
+                id = R.drawable.btn_icon_ready_exported;
+                break;
         }
         return id;
     }
@@ -175,6 +189,12 @@ public class WF_StatusButton extends WF_Button {
             case ready:
                 id = R.layout.button_status_ready;
                 break ;
+            case ready_in_db:
+                id = R.layout.button_status_ready_in_db;
+                break;
+            case ready_exported:
+                id = R.layout.button_status_ready_exported;
+                break;
         }
         return id;
     }

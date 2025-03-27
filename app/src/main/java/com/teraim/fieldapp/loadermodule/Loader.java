@@ -8,6 +8,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.teraim.fieldapp.FileLoadedCb;
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
 import com.teraim.fieldapp.loadermodule.configurations.CI_ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.configurations.Dependant_Configuration_Missing;
@@ -20,6 +21,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringReader;
 import java.lang.ref.WeakReference;
 

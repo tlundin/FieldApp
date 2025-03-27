@@ -695,7 +695,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 									//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
-									String statusColor = colorShiftOnStatus(gop.getStatusVariableValue());
+									String statusColor = gop.getStatusColor();
 									if (statusColor != null)
 										color = statusColor;
 
@@ -1042,25 +1042,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		candMenuVisible=false;
 	}
 
-	private static String colorShiftOnStatus(String statusValue) {
-		String color=null;
-		if (statusValue!=null ) {
-
-			switch (statusValue) {
-				case "1":
-					color = "yellow";
-					break;
-				case "2":
-					color = "red";
-					break;
-				case "3":
-					color = "green";
-					break;
-			}
-		}
-		return color;
-	}
-
 	private void drawGop(Canvas canvas, GisLayer layerO, GisObject go, boolean selected) {
 
 		boolean beingDrawn = false;
@@ -1152,14 +1133,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
-			String color = colorShiftOnStatus(go.getStatusVariableValue());
-			if (color == null)
-				color = go.getColor();
 			// strokeWidth: 0 changed to display-aware
 			float linew = go.getFullConfiguration().getLineWidth();
 			canvas.drawPath(p,
 					createPaint(
-							color,
+							go.getStatusColor(),
 							Paint.Style.STROKE,
 							(int) ((isBold?linew+2:linew) * getResources().getDisplayMetrics().density) ));
 		}
@@ -1427,15 +1405,17 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					})
 					.show();
 		} else {
+			/*
 			if (gop.getStatusVariableId()!=null) {
 				Map<String, String> keyHash = gop.getKeyHash();
 				if (keyHash!=null)
 					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
 				Log.d("grogg","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
+
 				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
 				if (statusVariable!=null) {
 					String valS = statusVariable.getValue();
-					if (valS == null || valS.equals("0")) {
+					if (valS == null || valS.equals(Constants.STATUS_INITIAL)) {
 						statusVariable.setValue("1");
 						gop.setStatusVariableValue("1");
 						myMap.registerEvent(new WF_Event_OnSave("Gis"));
@@ -1454,7 +1434,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 			} else
 				Log.e("grogg",gop.getStatusVariableId()+" is null");
-
+			*/
 			Start.singleton.changePage(wf,gop.getStatusVariableId());
 
 		}

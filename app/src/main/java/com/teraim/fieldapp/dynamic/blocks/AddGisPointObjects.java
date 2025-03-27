@@ -372,15 +372,15 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 						while (pickerStatusVars.next()) {
 							String value = pickerStatusVars.getVariable().value;
 							String name = pickerStatusVars.getVariable().name;
-							//Log.d("vortex","STATUSVAR: "+name+" value: "+value);
+							Log.d("fenris","STATUSVAR: "+name+" value: "+value);
 							//Store status var name & value for per uuid.
 							if (statusVarM == null)
 								statusVarM = new HashMap<String, Pair<String, String>>();
 							statusVarM.put(pickerStatusVars.getKeyColumnValues().get("uid"), new Pair<>(name, value));
 						}
 
-					} //else
-					//	Log.d("gaya","PICKERSTATUSVARS NULL FOR "+statusVariable);
+					} else
+						Log.d("fenris","PICKERSTATUSVARS NULL FOR "+statusVariable);
 
 					Pair<String,String> statusVarP=null;
 					do {

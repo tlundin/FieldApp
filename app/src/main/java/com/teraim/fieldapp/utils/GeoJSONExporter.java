@@ -386,9 +386,7 @@ public class GeoJSONExporter extends Exporter {
 			}else
 				Log.e("vortex","EMPTY!!!");
 		} catch (Exception e) {
-
 			Tools.printErrorToLog(GlobalState.getInstance().getLogger(), e, null);
-
 			cp.close();
 		} finally {
 			cp.close();

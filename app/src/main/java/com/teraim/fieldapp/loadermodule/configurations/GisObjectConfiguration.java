@@ -6,6 +6,7 @@ import android.util.JsonToken;
 import android.util.Log;
 import android.util.MalformedJsonException;
 
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Table;
@@ -16,6 +17,7 @@ import com.teraim.fieldapp.loadermodule.JSONConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
 import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -543,8 +545,25 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
         Map<String, String> attr = go.getAttributes();
 
         for (String key:attr.keySet()) {
-
-            if (!myDb.fastHistoricalInsert(go.getKeyHash(),key,attr.get(key))) {
+            //check for status variables before insert.
+            //Log.d("fenris","key: "+key+" value: "+attr.get(key));
+            if (key.equalsIgnoreCase(NamedVariables.PYSTATUS) || key.equalsIgnoreCase(NamedVariables.TRAKTSTATUS)) {
+                String statusVariableName= Constants.STATUS_VARIABLES_GROUP_NAME+":"+"status_"+myType.toLowerCase();
+                Log.d("fenris","status variable found, setting "+statusVariableName);
+                myDb.fastInsert(go.getKeyHash(), statusVariableName, attr.get(key));
+                /*
+                DbHelper.DBColumnPicker cp = myDb.getLastVariableInstance(myDb.createSelection(go.getKeyHash(), statusVariableName));
+                if (cp != null) {
+                    while (cp.next()) {
+                        Log.d("fenris", "picker return for " + cp.getVariable().name + " is\n" + cp.getKeyColumnValues());
+                        String varValue = cp.getVariable().value;
+                        Log.d("fenris", "VALUE: " + varValue);
+                    }
+                    cp.close();
+                }
+                */
+            }
+            else if (!myDb.fastHistoricalInsert(go.getKeyHash(),key,attr.get(key))) {
                 o.addRow("");
                 o.addRedText("Row: "+counter+". Insert failed for "+key+". Hash: "+go.getKeyHash().toString());
             }
