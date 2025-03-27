@@ -11,6 +11,12 @@ import android.provider.Settings;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
@@ -30,15 +36,17 @@ import com.teraim.fieldapp.synchronization.ConnectionManager;
 import com.teraim.fieldapp.synchronization.SyncMessage;
 import com.teraim.fieldapp.ui.DrawerMenu;
 import com.teraim.fieldapp.utils.BackupManager;
+import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -148,13 +156,15 @@ public class GlobalState {
         if (imgMetaFormat != null)
             this.imgMetaFormat = imgMetaFormat;
 
-         String uid = globalPh.get(PersistenceHelper.USERUUID_KEY);
-        if(PersistenceHelper.UNDEFINED.equals(uid)) {
-            Log.d("uuid","GENERATING userUUID");
+        String uid = globalPh.get(PersistenceHelper.USERUUID_KEY);
+        if (PersistenceHelper.UNDEFINED.equals(uid)) {
+            Log.d("uuid", "GENERATING userUUID");
             userUUID = Tools.generateUUID();
-            globalPh.put(PersistenceHelper.USERUUID_KEY,userUUID);
+            globalPh.put(PersistenceHelper.USERUUID_KEY, userUUID);
         } else
             userUUID = uid;
+
+        Log.d("fenris", "userUUID is " + userUUID);
     }
 
     public static void destroyInstance() {
@@ -169,6 +179,9 @@ public class GlobalState {
             mAccount = CreateSyncAccount(ctx);
         return mAccount;
     }
+
+    private boolean callInProgress = false;
+
 
     public String getMyTeam() {
         return globalPh.get(PersistenceHelper.LAG_ID_KEY);
