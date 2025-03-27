@@ -1279,6 +1279,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
     public boolean isNotExcluded(String status) {
-        return standardFilterM.get(status);
+        Boolean b = standardFilterM.get(status);
+        if (b == null) {
+            //Log.d("vortex", "something is fishy");
+            return true;
+        }
+        return b.booleanValue();
     }
 }

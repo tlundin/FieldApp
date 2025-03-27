@@ -354,7 +354,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 												displayExportDialog();
 											else {
 												if (statusVariable != null) {
-													statusVariable.setValue(validationResult ? "3" : "2");
+													statusVariable.setValue(validationResult ? String.valueOf(WF_StatusButton.Status.ready) :
+															String.valueOf(WF_StatusButton.Status.started_with_errors));
 													Log.e("vortex", "SETTING STATUSVAR: " + statusVariable.getId() + " key: " + statusVariable.getKeyChain() + "Value: " + statusVariable.getValue());
 													//Save value of all variables to database in current flow.
 												} else
@@ -408,7 +409,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 											}
 											if (!bok) {
 												validationResult = false;
-												avsluta.setEnabled(false);
 											}
 											//if (!ok || isDeveloper) {
 												showPop = true;
@@ -423,6 +423,12 @@ public  class ButtonBlock extends Block  implements EventListener {
 												frame.addView(row);
 											//}
 										}
+									}
+									if (validationResult == false) {
+										if (button instanceof WF_StatusButton) {
+											((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.started_with_errors);
+										}
+										avsluta.setEnabled(false);
 									}
 
 								}
@@ -795,8 +801,10 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			exporter.getDialog().setSendStatus("[" + counter.get() + "/" + totalToExport + "]");
 																			exporter.getDialog().setCheckSend(Exporter.SUCCESS);
 																			exporter.getDialog().setOutCome(eMsg.toString());
-																			if (button instanceof WF_StatusButton)
-																				((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready);
+																			if (button instanceof WF_StatusButton) {
+																				Log.d("fenris","status set to ready_exported");
+																				((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready_exported);
+																			}
 																		});
 																	} else {
 																		String finalExportedImgName = exportedImgName;

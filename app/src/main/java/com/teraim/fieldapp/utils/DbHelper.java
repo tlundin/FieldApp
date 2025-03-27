@@ -2224,6 +2224,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
         for (String k : key.keySet())
             valuez.put(getDatabaseColumnName(k), key.get(k));
+        valuez.put(getDatabaseColumnName("år"), Constants.getYear());
         valuez.put("var", varId);
         valuez.put("value", value);
         valuez.put("lag", globalPh.get(PersistenceHelper.LAG_ID_KEY));
@@ -2245,7 +2246,6 @@ public class DbHelper extends SQLiteOpenHelper {
         return true;
 
     }
-
 
     public boolean fastHistoricalInsert(Map<String, String> keys,
                                         String varId, String value) {
@@ -2316,6 +2316,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public DBColumnPicker getLastVariableInstance(Selection s) {
+        Log.d("fenris sa:",print(s.selectionArgs));
+        Log.d("fenris selection",s.selection);
         Cursor c = db().query(TABLE_VARIABLES, null, s.selection,
                 s.selectionArgs, null, null, "timestamp DESC", "1");
         return new DBColumnPicker(c);

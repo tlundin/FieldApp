@@ -93,8 +93,8 @@
             android:layout_height="match_parent"
             android:animateLayoutChanges="true"
             android:background="@drawable/object_menu_pop_bg"
-            android:minWidth="150dp"
             android:orientation="vertical"
+            android:minWidth="150dp"
             android:padding="5dp">
 
             <ImageButton
@@ -103,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
                 android:maxWidth="100dp"
-                android:scaleType="fitCenter"
+                android:scaleType="fitXY"
                 android:src="@drawable/car"
                 android:textColor="@color/white"
                 android:textSize="20sp"

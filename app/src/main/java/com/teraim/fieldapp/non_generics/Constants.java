@@ -4,17 +4,13 @@ package com.teraim.fieldapp.non_generics;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Log;
-
-import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule.Source;
 import com.teraim.fieldapp.loadermodule.configurations.GisObjectConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GroupsConfiguration;
-import com.teraim.fieldapp.loadermodule.configurations.ImportDataConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
@@ -40,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.03";
+    public static final String VORTEX_VERSION = "9.11";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
@@ -91,11 +87,13 @@ public class Constants {
 
     public static final int KEY_LENGTH = 10;
     public static final String SLU_URL = "https://arbetsplats.slu.se/sites/srh/Landskapsanalys/Faltportal/default.aspx";
+    public static final String STATUS_HIGH_PRIORITY = "-1";
     public static final String STATUS_INITIAL = "0";
     public static final String STATUS_STARTAD_MEN_INTE_KLAR = "1";
     public static final String STATUS_STARTAD_MED_FEL = "2";
-    public static final String STATUS_AVSLUTAD_OK = "3";
-    public static final String STATUS_DISABLED = "4";
+    public static final String STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD = "3";
+    public static final String STATUS_AVSLUTAD_EXPORTERAD = "4";
+    public static final String STATUS_AVSLUTAD_I_DB = "100";
     public static final int MAX_NILS_LINJER = 12;
     public static final String NORR = "NORR";
     public static final String SYD = "SYD";
