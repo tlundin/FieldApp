@@ -38,6 +38,10 @@ import com.teraim.fieldapp.ui.MenuActivity.UIProvider;
 import com.teraim.fieldapp.utils.Exporter.ExportReport;
 import com.teraim.fieldapp.utils.Exporter.Report;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -1327,7 +1331,7 @@ public class DbHelper extends SQLiteOpenHelper {
             for (String key : keySet.keySet()) {
                 key = getDatabaseColumnName(key);
 
-                    selection += key + "= ? and ";
+                selection += key + "= ? and ";
 
             }
         }
@@ -1545,22 +1549,22 @@ public class DbHelper extends SQLiteOpenHelper {
 
                 Unikey ukey = Unikey.FindKeyFromParts(uid,sub,tsMap.getKeySet());
                 tsMap.delete(ukey, variableName);
-                    try {
-                        //Log.d("bascar","not found in sync cache buffer (TS): "+variableName);
-                        int aff = delete(sKeys, s.getTimeStamp(), team);
-                        if (aff == 0) {
-                            changes.refused++;
-                            changes.failedDeletes++;
-                        } else {
-                            changes.deletes++;
-                            if (!variableCache.turboRemoveOrInvalidate(uid, sub,variableName, false))
-                                resetCache = true;
-                        }
-                    } catch (SQLException e) {
-                        Log.e("vortex", "Delete failed due to exception in statement");
+                try {
+                    //Log.d("bascar","not found in sync cache buffer (TS): "+variableName);
+                    int aff = delete(sKeys, s.getTimeStamp(), team);
+                    if (aff == 0) {
                         changes.refused++;
                         changes.failedDeletes++;
+                    } else {
+                        changes.deletes++;
+                        if (!variableCache.turboRemoveOrInvalidate(uid, sub,variableName, false))
+                            resetCache = true;
                     }
+                } catch (SQLException e) {
+                    Log.e("vortex", "Delete failed due to exception in statement");
+                    changes.refused++;
+                    changes.failedDeletes++;
+                }
 
             }
 
@@ -1619,7 +1623,7 @@ public class DbHelper extends SQLiteOpenHelper {
         endTransactionSuccess();
 
         if (resetCache)
-         variableCache.reset();
+            variableCache.reset();
 
         return changes;
     }
@@ -2054,8 +2058,8 @@ public class DbHelper extends SQLiteOpenHelper {
             Long timestamp = getSendTimestamp(team);
             //Log.d("biff","Time difference from now to my last sync is "+(System.currentTimeMillis()-timestamp)+". Timestamp: "+timestamp+" team: "+team+" tsglobal: "+timestamp2+" app: "+globalPh.get(PersistenceHelper.BUNDLE_NAME));
 
- //           Cursor c = db().query(TABLE_AUDIT, null,
- //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
+            //           Cursor c = db().query(TABLE_AUDIT, null,
+            //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             Cursor c = db().query(TABLE_AUDIT, null,
                     "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             ret = c.getCount();
@@ -2213,6 +2217,82 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d("nils", "Deleted " + rows + " rows of history");
         } catch (SQLiteException e) {
             Log.d("nils", "not a nils db");
+            return false;
+        }
+        return true;
+    }
+
+    public boolean insertTeamPositions(String jsonResponse) {
+
+        if (jsonResponse == null) {
+            Log.d("fenris","Json null in insertTeamPosition");
+            return false;
+        }
+        try {
+            // 1. Parse the string into a JSONArray
+            JSONArray jsonArray = new JSONArray(jsonResponse);
+
+            // 2. Iterate through the array (in this case, it has only one element)
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                // 3. Get the JSONObject at the current index
+                JSONObject userObject = jsonArray.getJSONObject(i);
+
+                // 4. Extract top-level elements
+                String name = userObject.getString("name");
+                String uuid = userObject.getString("uuid");
+                long timestampMillis = userObject.getLong("timestamp"); // Assuming it's epoch milliseconds
+
+                // 5. Get the nested "position" JSONObject
+                JSONObject positionObject = userObject.getJSONObject("position");
+
+                // 6. Extract elements from the "position" object
+                double easting = positionObject.getDouble("easting");
+                double northing = positionObject.getDouble("northing");
+
+                // --- Now you have all the variables ---
+                Log.d("fenris","--- User " + (i + 1) + " ---");
+                Log.d("fenris","UUID: " + uuid);
+                Log.d("fenris","Name: " + name);
+                Log.d("fenris","Timestamp (ms): " + timestampMillis);
+                Log.d("fenris","Position:");
+                Log.d("fenris","  Easting: " + easting);
+                Log.d("fenris","  Northing: " + northing);
+                Log.d("fenris","--------------------");
+                if (name.equals(globalPh.get(PersistenceHelper.USER_ID_KEY))) {
+                    Log.d("fenris","skip own position");
+                    continue;
+                }
+                valuez.clear();
+                valuez.put(getDatabaseColumnName("år"), Constants.getYear());
+                valuez.put("var", "GPS_X");
+                valuez.put("value", easting);
+                valuez.put("lag", globalPh.get(PersistenceHelper.LAG_ID_KEY));
+                valuez.put("timestamp", timestampMillis);
+                valuez.put("author", name);
+                try {
+                    db().insert(TABLE_VARIABLES, // table
+
+                            null, //nullColumnHack
+                            valuez
+                    );
+
+                    valuez.put("var", "GPS_Y");
+                    valuez.put("value", northing);
+                    db().insert(TABLE_VARIABLES, // table
+
+                            null, //nullColumnHack
+                            valuez
+                    );
+                } catch (SQLiteException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            } // End of loop
+        } catch (JSONException e) {
+            // Handle potential parsing errors (invalid JSON, missing keys, etc.)
+            System.err.println("Error parsing JSON string: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
         return true;

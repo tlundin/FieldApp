@@ -38,6 +38,10 @@ import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper.Selection;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -59,6 +63,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -663,7 +670,7 @@ public class Tools {
 			//Log.d("vortex","isnumeric yes");
 			return true;
 		} else {
-			System.out.println("isNumeric returns false...not a string: "+num.getClass()+" "+num);
+			Log.d("fenris","isNumeric returns false...not a string: "+num.getClass()+" "+num);
 			return false;
 		}
 	}
@@ -707,7 +714,7 @@ public class Tools {
 
 	public static String generateUUID(){
         final String uuid = UUID.randomUUID().toString().replace("-", "");
-        System.out.println("uuid = " + uuid);
+        Log.d("fenris","uuid = " + uuid);
         return uuid;
     }
 	public static String[] generateList(Variable variable) {
@@ -1325,4 +1332,6 @@ public class Tools {
 		return ss;
 	}
 
+
 }
+
