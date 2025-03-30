@@ -291,7 +291,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         timer.schedule(new TimerTask() {
 
             synchronized public void run() {
-                Log.d("fenris","runs with "+locationUpdateInterval+"s intervals");
+                //Log.d("fenris","runs with "+locationUpdateInterval+"s intervals");
 
                 try {
                     sendAndReceiveTeamPositions();
@@ -304,7 +304,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void sendAndReceiveTeamPositions() throws JSONException {
-        Log.d("fenris", "send and receive team positions");
+        //Log.d("fenris", "send and receive team positions");
         boolean updateMyPosition = true;
         //block multiple calls.
         if (!callInProgress  && Connectivity.isConnected(this)) {
@@ -317,7 +317,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             String team = gs.getMyTeam();
             String project = globalPh.get(PersistenceHelper.BUNDLE_NAME);
             String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
-            long timestamp = gs.getDb().getReceiveTimestamp(team);
             RequestQueue queue = Volley.newRequestQueue(this);
             if(updateMyPosition) {
                 JSONObject jsonBody = new JSONObject();
@@ -329,24 +328,15 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 jsonBody.put("name", GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
                 jsonBody.put("timestamp", latestSignal.time);      // Add the timestamp string
                 jsonBody.put("position", positionObject); // Add the nested position object
-
                 final String requestBody = jsonBody.toString();
-
-                Log.d("fenris", "TIMESTAMP_LAST_SYNC_FROM_TEAM_TO_ME: " + timestamp);
-
-                //connected...lets call the sync server.
-
                 final String SendMyPoisition = Constants.SynkStatusURI + "/position";
-                //team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
-                //final TextView mTextView = (TextView) findViewById(R.id.text);
-
 
                 StringRequest postMyPositionRequest = new StringRequest(Request.Method.POST, SendMyPoisition,
                         new Response.Listener<String>() {
                             @Override
                             public void onResponse(String response) {
                                 // Display the first 500 characters of the response string.
-                                Log.d("fenris", "Response is: " + response);
+                                //Log.d("fenris", "Response is: " + response);
 
                             }
 
@@ -378,7 +368,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                         String responseString = "";
                         if (response != null) {
                             responseString = String.valueOf(response.statusCode);
-                            Log.d("vortex", "post response " + responseString);
+                            //Log.d("vortex", "post response " + responseString);
                         }
                         return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
                     }
@@ -392,24 +382,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             @Override
                             public void onResponse(String response) {
                                 // Display the first 500 characters of the response string.
-                                Log.d("fenris", "Response is: " + response);
-                                gs.getDb().insertTeamPositions(response);
+                                //Log.d("fenris", "Response is: " + response);
+                                gs.insertTeamPositions(response);
                                 callInProgress = false;
-                                /*
-                                syncGroup = new SyncGroup(response);
-
-                                //request a new sync if the team has data.
-                                if (syncGroup.getTeam() != null && !syncGroup.getTeam().isEmpty()) {
-                                    Bundle bundle = new Bundle();
-                                    bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
-                                    bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
-                                    ContentResolver.requestSync(mAccount, Start.AUTHORITY, bundle);
-
-                                }
-                                callInProgress = false;
-                                refreshSyncDisplay();
-
-                                 */
                             }
                         }, new Response.ErrorListener() {
                     @Override
@@ -1433,7 +1408,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             @Override
                             public void onResponse(String response) {
                                 // Display the first 500 characters of the response string.
-                                Log.d("fenris", "Response is: " + response);
+                                //Log.d("fenris", "Response is: " + response);
                                 /*
                                 syncGroup = new SyncGroup(response);
 

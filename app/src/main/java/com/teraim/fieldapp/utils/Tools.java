@@ -158,6 +158,7 @@ public class Tools {
 
     public static String getTimeStampDetails(long timestamp, boolean minimal) {
 		//Divide by 1000
+		timestamp=System.currentTimeMillis()-timestamp;
 		long inSecs = timestamp/1000;
 		long inHours = Math.round(inSecs/3600);
 		long days = inHours / 24;
@@ -178,8 +179,32 @@ public class Tools {
 
 	}
 
+	public static String setColorFromTime(long timestamp) {
+		long age = System.currentTimeMillis() - timestamp;
+		return isOverAnHourOld(age) ? isOverAnHourColor :
+				isOverHalfAnHourOld(age) ? isOverHalfAnHourColor :
+						isOverAQuarterOld(age) ? isOverAQuarterColor :
+								isFreshColor;
+	}
 
-    public enum Unit {
+	private static final long AnHour = 3600 * 1000;
+	private static final long HalfAnHour = AnHour/2;
+	private static final long QuarterOfAnHour = AnHour/4;
+
+	private static boolean isOverAnHourOld(long latestUpdate) { return latestUpdate > AnHour; }
+	private static boolean isOverHalfAnHourOld(long latestUpdate) {
+		return latestUpdate > HalfAnHour;
+	}
+	private static boolean isOverAQuarterOld(long latestUpdate) {
+		return latestUpdate > QuarterOfAnHour;
+	}
+
+	private final static String isFreshColor = "#7CFC00";
+	private final static String isOverAnHourColor = "#D3D3D3";
+	private final static String isOverHalfAnHourColor = "#050FF5";
+	private final static String isOverAQuarterColor = "#FFFA0A";
+
+	public enum Unit {
 		percentage,
 		dm,
 		m,
