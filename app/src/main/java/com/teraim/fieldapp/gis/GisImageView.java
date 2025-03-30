@@ -18,8 +18,10 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
+import com.teraim.fieldapp.dynamic.types.ArrayVariable;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -28,6 +30,7 @@ import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.DynamicGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
@@ -378,7 +381,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					Log.e("bortex","no team members found");
 				else {
 					Log.d("bortex", "found " + teamMembers.size()+" team members");
-					layer.addObjectBag("Team", teamMembers, false, this);
+					layer.addObjectBag("Team", teamMembers, true, this);
 				}
 
 			}
@@ -645,6 +648,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				pYR = this.getImageHeight()/photoMetaData.getHeight();
 				Map<String, Set<GisObject>> bags = layerO.getGisBags();
 				Map<String, Set<GisFilter>> filterMap = layerO.getFilters();
+				boolean isTeamLayer = layerO.getId().equals("Team");
+
 
 				if (bags!=null && !bags.isEmpty()) {
 
@@ -662,13 +667,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								}
 								if (go instanceof GisPointObject) {
 									GisPointObject gop = (GisPointObject) go;
+									String color = gop.getColor();
 									//Log.d("baha",gop.getId());
+									int[] xy = intBuffer.getIntBuf();
+									boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
 									if (gop.isDynamic()) {
 										//Log.d("Glapp","found dynamic object");
-										int[] xy = intBuffer.getIntBuf();
-										boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
 										if (!inside) {
-											//Log.d("Glapp","outside "+gop.getLocation().getX()+" "+gop.getLocation().getY());
+											//Log.d("Glapp",gop.getLabel()+" outside "+gop.getLocation());
+
 											if (gop.equals(userGop)) {
 												myMap.showCenterButton(false);
 												userGop = null;
@@ -676,20 +683,27 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 											//This object should not be drawn.
 											continue;
 										} else {
-
-											//Log.d("inside","inside. Label :"+gop.getLabel());
 											if (gop.isUser()) {
 												userGop = gop;
 												myMap.showCenterButton(true);
+												gop.setTranslatedLocation(xy);
 											}
-											gop.setTranslatedLocation(xy);
+
+
 										}
-
-
+									} else {
+										if (isTeamLayer) {
+											GlobalState.TeamPosition myPos = getInstance().getTeamPositions().get(gop.getFullConfiguration().getRawLabel());
+											if (myPos != null) {
+												//Log.d("fenris", "Name " + gop.getFullConfiguration().getRawLabel() + " Latest update: E " + myPos.getPosition().getX()+" N "+myPos.getPosition().getY() + " timestamp: " + myPos.timestamp() + "");
+												gop.setLabel(gop.getFullConfiguration().getRawLabel() + "[" + Tools.getTimeStampDetails(myPos.timestamp(), true) + "]");
+												gop.setTranslatedLocation(xy);
+												color = Tools.setColorFromTime(myPos.timestamp());
+											}
+										}
 									}
 									Bitmap bitmap = gop.getIcon();
 									float radius = gop.getRadius();
-									String color = gop.getColor();
 									Style style = gop.getStyle();
 									PolyType polyType = gop.getShape();
 
@@ -723,7 +737,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 												Log.d("vortex", "Filter turned off!");
 										}
 									}
-									int[] xy = gop.getTranslatedLocation();
+									xy = gop.getTranslatedLocation();
 									if (xy == null && gop.getCoordinates() != null && !gop.getCoordinates().isEmpty()) {
 										xy = intBuffer.getIntBuf();
 										translateMapToRealCoordinates(gop.getCoordinates().get(0), xy);
@@ -731,16 +745,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 										xy = gop.getTranslatedLocation();
 									}
 									if (xy != null) {
-										//Log.d("vortex","drawing "+gop.getLabel());
+										Log.d("maga","drawing "+gop.getLabel());
 										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
 										if (layerO.showLabels()) {
 											drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);
 										}
 									}
-									/*
-
-
-									 */
 
 								} else if (go instanceof GisPathObject) {
 									if (go instanceof GisMultiPointObject) {
@@ -900,11 +910,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		final String team = getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
 		final String user = getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
 		if(team ==null || team.length()==0) {
-			Log.d("vortex","no team but team is set to show. alarm!");
+			Log.d("vortex","no team found");
 			return null;
 		}
 
-		Map<String,DbHelper.LocationAndTimeStamp> myTeam = getInstance().getDb().getTeamMembers(team,user);
+		Map<String,GlobalState.TeamPosition> myTeam = getInstance().getTeamPositions();
 		if (myTeam==null)
 			return null;
 
@@ -915,117 +925,115 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				Log.e("vortex","skipping nameless team member");
 				continue;
 			}
-			final DbHelper.LocationAndTimeStamp l = myTeam.get(name);
-
-			//create a key for the workflow.
-			final Map<String,String> tmp = new HashMap<>();
-			tmp.put(DbHelper.YEAR,Constants.getYear());
-			tmp.put("team",team);
-			tmp.put("inventerare",name);
-			if (l != null) {
-				tmp.put("timestamp", Tools.getTimeStampDetails(l.getMostRecentTimeStamp(), false) + "");
-				tmp.put("location", l.location + "");
-
-
-				//Log.d("bortex","Location "+l);
-
-				GisPointObject member = new StaticGisPoint(new FullGisObjectConfiguration() {
-					@Override
-					public float getLineWidth() {
-						return 2.0f;
-					}
-
-					@Override
-					public float getRadius() {
-						return 4.0f;
-					}
-
-					@Override
-					public String getColor() {
-						return l.isOverAnHourOld() ? isOverAnHourColor :
-								l.isOverHalfAnHourOld() ? isOverHalfAnHourColor :
-										l.isOverAQuarterOld() ? isOverAQuarterColor :
-												isFreshColor;
-					}
-
-					@Override
-					public GisObjectType getGisPolyType() {
-						return GisObjectType.Point;
-					}
-
-					@Override
-					public Bitmap getIcon() {
-						return null;//BitmapFactory.decodeResource(getResources(), R.drawable.boy);
-					}
-
-					@Override
-					public Style getStyle() {
-						return Style.FILL_AND_STROKE;
-					}
-
-					@Override
-					public PolyType getShape() {
-						return PolyType.circle;
-					}
-
-					@Override
-					public String getClickFlow() {
-						return "wf_teammember";
-					}
-
-					@Override
-					public DB_Context getObjectKeyHash() {
-						return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", tmp);
-					}
-
-					@Override
-					public String getStatusVariable() {
-						return null;
-					}
-
-					@Override
-					public boolean isUser() {
-						return false;
-					}
-
-					@Override
-					public String getName() {
-						return name;
-					}
-
-					@Override
-					public String getRawLabel() {
-						return name;
-					}
-
-					@Override
-					public String getCreator() {
-						return "";
-					}
-
-					@Override
-					public boolean useIconOnMap() {
-						return true;
-					}
-
-					@Override
-					public boolean isVisible() {
-						return true;
-					}
-
-					@Override
-					public List<Expressor.EvalExpr> getLabelExpression() {
-						return Expressor.preCompileExpression(name);
-					}
-				}, tmp, l.location, null, null);
-				member.setLabel(name + "[" + Tools.getTimeStampDetails(l.getMostRecentTimeStamp(), true) + "]");
-				GisLayer.markIfUseful(member, this);
-
-				if (ret == null)
-					ret = new HashSet<>();
-				ret.add(member);
+			GlobalState.TeamPosition myP = myTeam.get(name);
+			if (myP.getUuid().equals(getInstance().getGlobalPreferences().get(PersistenceHelper.USERUUID_KEY))) {
+				Log.d("vortex","skipping myself");
+				continue;
 			}
+			//create a key for the workflow.
+			final Map<String,String> keychain = new HashMap<>();
+			keychain.put(DbHelper.YEAR,Constants.getYear());
+			keychain.put("lag",team);
+			keychain.put("author",name);
+			//keychain.put("timestamp", Tools.getTimeStampDetails(l.getMostRecentTimeStamp(), false) + "");
+			//keychain.put("location", l.location + "");
+			Log.d("fenris","Adding team member: "+name+" with keychain: "+keychain);
+
+			GisPointObject member = new StaticGisPoint(new FullGisObjectConfiguration() {
+				@Override
+				public float getLineWidth() {
+					return 2.0f;
+				}
+
+				@Override
+				public float getRadius() {
+					return 4.0f;
+				}
+
+				@Override
+				public String getColor() {
+					//not used
+					return "black";
+				}
+
+				@Override
+				public GisObjectType getGisPolyType() {
+					return GisObjectType.Point;
+				}
+
+				@Override
+				public Bitmap getIcon() {
+					return null;//BitmapFactory.decodeResource(getResources(), R.drawable.boy);
+				}
+
+				@Override
+				public Style getStyle() {
+					return Style.FILL_AND_STROKE;
+				}
+
+				@Override
+				public PolyType getShape() {
+					return PolyType.circle;
+				}
+
+				@Override
+				public String getClickFlow() {
+					return "wf_teammember";
+				}
+
+				@Override
+				public DB_Context getObjectKeyHash() {
+					return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", keychain);
+				}
+
+				@Override
+				public String getStatusVariable() {
+					return null;
+				}
+
+				@Override
+				public boolean isUser() {
+					return false;
+				}
+
+				@Override
+				public String getName() {
+					return name;
+				}
+
+				@Override
+				public String getRawLabel() {
+					return name;
+				}
+
+				@Override
+				public String getCreator() {
+					return "";
+				}
+
+				@Override
+				public boolean useIconOnMap() {
+					return true;
+				}
+
+				@Override
+				public boolean isVisible() {
+					return true;
+				}
+
+				@Override
+				public List<Expressor.EvalExpr> getLabelExpression() {
+					return Expressor.preCompileExpression(name);
+				}
+			}, keychain, myP.getPosition(), null, null);
+			member.setLabel(name + "[" + Tools.getTimeStampDetails(myP.timestamp(),  true) + "]");
+			GisLayer.markIfUseful(member, this);
+
+			if (ret == null)
+				ret = new HashSet<>();
+			ret.add(member);
 		}
+
 		return ret;
 	}
 

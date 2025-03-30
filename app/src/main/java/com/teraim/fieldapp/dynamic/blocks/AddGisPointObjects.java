@@ -358,7 +358,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
                 v1 =  new ArrayVariable(locationVar1, "myLocationX", completeVariableDefinitionForL1, objectKeyHash.getContext(), gs, "value", v1Val, true, null);
                 v2 = new ArrayVariable(locationVar1, "myLocationY", completeVariableDefinitionForL2, objectKeyHash.getContext(), gs, "value", v2Val, true, null);
                 if (v1!=null && v2!=null) {
-                    myGisObjects.add(new DynamicGisPoint(this, v1.getKeyChain(), v1, v2, null, null));
+                    myGisObjects.add(new DynamicGisPoint(this, v1.getKeyChain(), v1, v2, null, null,true));
                 }
 			} else {
 				if (!hasV1Value && !dynamic) {
@@ -420,7 +420,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 									v2 = new ArrayVariable(locationVar1, "myLocationY", completeVariableDefinitionForL2, objectKeyHash.getContext(), gs, "value", v2Val, true, null);
 									//v2 = GlobalState.getInstance().getVariableCache().getCheckedVariable(pickerLocation1.getKeyColumnValues(),storedVar2.name,value,true);
 									if (v1!=null && v2!=null) {
-										myGisObjects.add(new DynamicGisPoint(this, map1, v1, v2, statusVarP.first, statusVarP.second));
+										myGisObjects.add(new DynamicGisPoint(this, map1, v1, v2, statusVarP.first, statusVarP.second,true));
 									}
 									else {
 										Log.e("Glapp","cannot create dyna 2 gis obj. One or both vars is null: "+v1+","+v2);

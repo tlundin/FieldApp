@@ -269,15 +269,19 @@ public class Start extends MenuActivity {
 
                 //Start the login fragment.
                 android.app.FragmentManager fm = getFragmentManager();
+                /*
                 for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
                     fm.popBackStack();
                 }
+
+                 */
                 //	private ArrayList<String> rutItems;
                 //	private ArrayList<String> wfItems;
                 LoginConsoleFragment loginFragment = new LoginConsoleFragment();
-                Log.d("vortex", "LoginFragment on stack!");
+                Log.d("blax", "LoginFragment on stack!");
                 fm.beginTransaction()
                         .replace(R.id.content_frame, loginFragment)
+                        .addToBackStack("loginFragment")
                         .commit();
 
             } else {
@@ -324,14 +328,6 @@ public class Start extends MenuActivity {
         return super.onOptionsItemSelected(item);
     }
 
-
-
-
-    //
-
-
-
-
     @Override
     public void setTitle(CharSequence title) {
 
@@ -342,7 +338,6 @@ public class Start extends MenuActivity {
             getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
         }
     }
-
 
     private Fragment emptyFragmentToExecute = null ;
 
@@ -393,17 +388,19 @@ public class Start extends MenuActivity {
 
 
             if (template==null) {
+
                 emptyFragmentToExecute = wf.createFragment("EmptyTemplate");
                 emptyFragmentToExecute.setArguments(args);
                 FragmentTransaction ft = getFragmentManager()
                         .beginTransaction();
-                //Log.i("vortex", "Adding fragment");
+                Log.i("blax", "Adding fragment");
                 //ft.add(R.id.lowerContainer, fragment, "AddedFragment");
 
                 ft.add(emptyFragmentToExecute,"EmptyTemplate");
-                Log.i("vortex", "Committing Empty transaction");
+                Log.i("arpppa", "Committing Empty transaction");
                 ft.commitAllowingStateLoss();
                 Log.i("vortex", "Committed transaction");
+
             } else {
                 fragmentToExecute = wf.createFragment(template);
                 fragmentToExecute.setArguments(args);
@@ -424,11 +421,14 @@ public class Start extends MenuActivity {
         setTitle(label);
 
         //If previous was an empty fragment, clean it
+/*
         if (emptyFragmentToExecute!=null) {
             Log.d("blax","removing empty fragment");
             ft.remove(emptyFragmentToExecute);
             emptyFragmentToExecute=null;
         }
+*/
+
         //mDrawerLayout.closeDrawer(mDrawerList);
 
     }
@@ -509,6 +509,9 @@ public class Start extends MenuActivity {
                     Workflow wf = wfCtx.getWorkflow();
                     Log.d("vortex","gets here wf is "+wf);
                     if (wf!=null) {
+                        if (map)
+                            wfCtx.upOneMapLevel();
+                        /*
                         if (!wf.isBackAllowed()) {
                             new AlertDialog.Builder(this).setTitle(R.string.warning)
                                     .setMessage(R.string.warning_exit)
@@ -533,6 +536,7 @@ public class Start extends MenuActivity {
 
                             Log.d("vortex","back was allowed");
                         }
+                        */
                     }
                 }
 
