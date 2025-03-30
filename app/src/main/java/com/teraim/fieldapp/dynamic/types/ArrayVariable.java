@@ -23,4 +23,5 @@ public class ArrayVariable extends Variable {
 		myDb.insertVariableSnap(this,value, isSynchronized);
 	}
 
+
 }

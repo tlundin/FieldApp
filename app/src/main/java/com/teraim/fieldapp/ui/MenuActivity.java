@@ -43,10 +43,13 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.NetworkResponse;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.GlobalState;
@@ -62,12 +65,14 @@ import com.teraim.fieldapp.synchronization.framework.SyncService;
 import com.teraim.fieldapp.utils.BackupManager;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
+import com.teraim.fieldapp.utils.Tools;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -75,13 +80,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import static com.teraim.fieldapp.gis.TrackerListener.GPS_State.GPS_State_C;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_DATA_READY_FOR_INSERT;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_ERROR_STATE;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_RUN_ENDED;
 import static com.teraim.fieldapp.synchronization.framework.SyncService.MSG_SYNC_RUN_STARTED;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * Parent class for Activities having a menu row.
@@ -169,9 +179,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             //This determines the sync status.
                             //toggleSyncOnOff(syncOn());
 
-                            if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("Internet"))
-                                getTeamSyncStatusFromServer();
-
+                            //getTeamSyncStatusFromServer();
+                            getTeamUpdates(Constants.LOCATION_UPDATE_INTERVAL);
 
                         }
 
@@ -275,6 +284,128 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
     }
+
+    private void getTeamUpdates(int locationUpdateInterval) {
+        Timer timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+
+            synchronized public void run() {
+                //Log.d("fenris","runs with "+locationUpdateInterval+"s intervals");
+
+                try {
+                    sendAndReceiveTeamPositions();
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+        }, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(locationUpdateInterval));
+    }
+
+    private void sendAndReceiveTeamPositions() throws JSONException {
+        //Log.d("fenris", "send and receive team positions");
+        boolean updateMyPosition = true;
+        //block multiple calls.
+        if (!callInProgress  && Connectivity.isConnected(this)) {
+
+            if (latestSignal==null || latestSignal.state==GPS_State.State.disabled) {
+                Log.d("fenris", "no gps signal available");
+                updateMyPosition=false;
+            }
+            callInProgress = true;
+            String team = gs.getMyTeam();
+            String project = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+            String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
+            RequestQueue queue = Volley.newRequestQueue(this);
+            if(updateMyPosition) {
+                JSONObject jsonBody = new JSONObject();
+                JSONObject positionObject = new JSONObject();
+                positionObject.put("easting", latestSignal.x);   // Use the API's expected key "easting"
+                positionObject.put("northing", latestSignal.y);  // Use the API's expected key "northing"
+                // 3. Add fields to the main JSON object
+                jsonBody.put("uuid", gs.getUserUUID());
+                jsonBody.put("name", GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
+                jsonBody.put("timestamp", latestSignal.time);      // Add the timestamp string
+                jsonBody.put("position", positionObject); // Add the nested position object
+                final String requestBody = jsonBody.toString();
+                final String SendMyPoisition = Constants.SynkStatusURI + "/position";
+
+                StringRequest postMyPositionRequest = new StringRequest(Request.Method.POST, SendMyPoisition,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                // Display the first 500 characters of the response string.
+                                //Log.d("fenris", "Response is: " + response);
+
+                            }
+
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
+                        error.printStackTrace();
+                        callInProgress = false;
+                    }
+                }) {
+                    @Override
+                    public String getBodyContentType() {
+                        return "application/json; charset=utf-8";
+                    }
+
+                    @Override
+                    public byte[] getBody() throws AuthFailureError {
+                        try {
+                            return requestBody == null ? null : requestBody.getBytes("utf-8");
+                        } catch (UnsupportedEncodingException uee) {
+                            Log.d("fenris", String.format("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8"));
+                            return null;
+                        }
+                    }
+
+                    @Override
+                    protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                        String responseString = "";
+                        if (response != null) {
+                            responseString = String.valueOf(response.statusCode);
+                            //Log.d("vortex", "post response " + responseString);
+                        }
+                        return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
+                    }
+                };
+
+                queue.add(postMyPositionRequest);
+            }
+            final String GetPoisitions = Constants.SynkStatusURI + "/positions";
+                StringRequest getTeamStatusRequest = new StringRequest(Request.Method.GET, GetPoisitions,
+                        new Response.Listener<String>() {
+                            @Override
+                            public void onResponse(String response) {
+                                // Display the first 500 characters of the response string.
+                                //Log.d("fenris", "Response is: " + response);
+                                gs.insertTeamPositions(response);
+                                callInProgress = false;
+                            }
+                        }, new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
+                        callInProgress = false;
+                    }
+                });
+
+                queue.add(getTeamStatusRequest);
+
+            } else {
+                if (callInProgress)
+                    Log.d("fenris", "blocked call to getteamstatus (call in progress)");
+                else {
+                    Log.d("fenris", "no connection");
+                    callInProgress = false;
+                }
+            }
+    }
+
 
     @Override
     public void onDestroy() {
@@ -1255,7 +1386,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private boolean callInProgress = false;
 
     private void getTeamSyncStatusFromServer() {
-        Log.d("vortex", "update team sync state called");
+        Log.d("fenris", "update team sync state called");
         //block multiple calls.
         if (!callInProgress) {
             callInProgress = true;
@@ -1264,11 +1395,11 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
             long timestamp = gs.getDb().getReceiveTimestamp(team);
 
-            Log.d("vortex", "TIMESTAMP_LAST_SYNC_FROM_TEAM_TO_ME: " + timestamp);
+            Log.d("fenris", "TIMESTAMP_LAST_SYNC_FROM_TEAM_TO_ME: " + timestamp);
             if (Connectivity.isConnected(this)) {
                 //connected...lets call the sync server.
-                final String SyncServerStatusCall = Constants.SynkStatusURI +
-                        team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
+                final String SyncServerStatusCall = Constants.SynkStatusURI;
+                        //team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
                 //final TextView mTextView = (TextView) findViewById(R.id.text);
                 RequestQueue queue = Volley.newRequestQueue(this);
 
@@ -1277,8 +1408,10 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                             @Override
                             public void onResponse(String response) {
                                 // Display the first 500 characters of the response string.
-                                Log.d("vortex", "Response is: " + response);
+                                //Log.d("fenris", "Response is: " + response);
+                                /*
                                 syncGroup = new SyncGroup(response);
+
                                 //request a new sync if the team has data.
                                 if (syncGroup.getTeam() != null && !syncGroup.getTeam().isEmpty()) {
                                     Bundle bundle = new Bundle();
@@ -1289,11 +1422,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                                 }
                                 callInProgress = false;
                                 refreshSyncDisplay();
+
+                                 */
                             }
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("vortex", "Got an error when attempting to contact the sync server: " + error.getMessage());
+                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
                         callInProgress = false;
                     }
                 });
@@ -1301,12 +1436,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                 queue.add(stringRequest);
             } else {
-                Log.d("vortex", "no connection");
+                Log.d("fenris", "no connection");
                 syncState=R.drawable.syncerr;
                 callInProgress = false;
             }
         } else
-            Log.d("vortex", "blocked call to getteamstatus");
+            Log.d("fenris", "blocked call to getteamstatus");
     }
 
 

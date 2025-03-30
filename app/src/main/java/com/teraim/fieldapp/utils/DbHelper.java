@@ -38,6 +38,10 @@ import com.teraim.fieldapp.ui.MenuActivity.UIProvider;
 import com.teraim.fieldapp.utils.Exporter.ExportReport;
 import com.teraim.fieldapp.utils.Exporter.Report;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -1327,7 +1331,7 @@ public class DbHelper extends SQLiteOpenHelper {
             for (String key : keySet.keySet()) {
                 key = getDatabaseColumnName(key);
 
-                    selection += key + "= ? and ";
+                selection += key + "= ? and ";
 
             }
         }
@@ -1545,22 +1549,22 @@ public class DbHelper extends SQLiteOpenHelper {
 
                 Unikey ukey = Unikey.FindKeyFromParts(uid,sub,tsMap.getKeySet());
                 tsMap.delete(ukey, variableName);
-                    try {
-                        //Log.d("bascar","not found in sync cache buffer (TS): "+variableName);
-                        int aff = delete(sKeys, s.getTimeStamp(), team);
-                        if (aff == 0) {
-                            changes.refused++;
-                            changes.failedDeletes++;
-                        } else {
-                            changes.deletes++;
-                            if (!variableCache.turboRemoveOrInvalidate(uid, sub,variableName, false))
-                                resetCache = true;
-                        }
-                    } catch (SQLException e) {
-                        Log.e("vortex", "Delete failed due to exception in statement");
+                try {
+                    //Log.d("bascar","not found in sync cache buffer (TS): "+variableName);
+                    int aff = delete(sKeys, s.getTimeStamp(), team);
+                    if (aff == 0) {
                         changes.refused++;
                         changes.failedDeletes++;
+                    } else {
+                        changes.deletes++;
+                        if (!variableCache.turboRemoveOrInvalidate(uid, sub,variableName, false))
+                            resetCache = true;
                     }
+                } catch (SQLException e) {
+                    Log.e("vortex", "Delete failed due to exception in statement");
+                    changes.refused++;
+                    changes.failedDeletes++;
+                }
 
             }
 
@@ -1619,7 +1623,7 @@ public class DbHelper extends SQLiteOpenHelper {
         endTransactionSuccess();
 
         if (resetCache)
-         variableCache.reset();
+            variableCache.reset();
 
         return changes;
     }
@@ -2054,8 +2058,8 @@ public class DbHelper extends SQLiteOpenHelper {
             Long timestamp = getSendTimestamp(team);
             //Log.d("biff","Time difference from now to my last sync is "+(System.currentTimeMillis()-timestamp)+". Timestamp: "+timestamp+" team: "+team+" tsglobal: "+timestamp2+" app: "+globalPh.get(PersistenceHelper.BUNDLE_NAME));
 
- //           Cursor c = db().query(TABLE_AUDIT, null,
- //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
+            //           Cursor c = db().query(TABLE_AUDIT, null,
+            //                   "timestamp > ? AND " + DbHelper.LAG + " = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             Cursor c = db().query(TABLE_AUDIT, null,
                     "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), team}, null, null, "timestamp asc", null);
             ret = c.getCount();
@@ -2217,6 +2221,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         return true;
     }
+
 
     public boolean fastInsert(Map<String, String> key, String varId, String value) {
         valuez.clear();
