@@ -38,6 +38,10 @@ import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper.Selection;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -59,6 +63,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -151,6 +158,7 @@ public class Tools {
 
     public static String getTimeStampDetails(long timestamp, boolean minimal) {
 		//Divide by 1000
+		timestamp=System.currentTimeMillis()-timestamp;
 		long inSecs = timestamp/1000;
 		long inHours = Math.round(inSecs/3600);
 		long days = inHours / 24;
@@ -171,8 +179,32 @@ public class Tools {
 
 	}
 
+	public static String setColorFromTime(long timestamp) {
+		long age = System.currentTimeMillis() - timestamp;
+		return isOverAnHourOld(age) ? isOverAnHourColor :
+				isOverHalfAnHourOld(age) ? isOverHalfAnHourColor :
+						isOverAQuarterOld(age) ? isOverAQuarterColor :
+								isFreshColor;
+	}
 
-    public enum Unit {
+	private static final long AnHour = 3600 * 1000;
+	private static final long HalfAnHour = AnHour/2;
+	private static final long QuarterOfAnHour = AnHour/4;
+
+	private static boolean isOverAnHourOld(long latestUpdate) { return latestUpdate > AnHour; }
+	private static boolean isOverHalfAnHourOld(long latestUpdate) {
+		return latestUpdate > HalfAnHour;
+	}
+	private static boolean isOverAQuarterOld(long latestUpdate) {
+		return latestUpdate > QuarterOfAnHour;
+	}
+
+	private final static String isFreshColor = "#7CFC00";
+	private final static String isOverAnHourColor = "#D3D3D3";
+	private final static String isOverHalfAnHourColor = "#050FF5";
+	private final static String isOverAQuarterColor = "#FFFA0A";
+
+	public enum Unit {
 		percentage,
 		dm,
 		m,
@@ -663,7 +695,7 @@ public class Tools {
 			//Log.d("vortex","isnumeric yes");
 			return true;
 		} else {
-			System.out.println("isNumeric returns false...not a string: "+num.getClass()+" "+num);
+			Log.d("fenris","isNumeric returns false...not a string: "+num.getClass()+" "+num);
 			return false;
 		}
 	}
@@ -707,7 +739,7 @@ public class Tools {
 
 	public static String generateUUID(){
         final String uuid = UUID.randomUUID().toString().replace("-", "");
-        System.out.println("uuid = " + uuid);
+        Log.d("fenris","uuid = " + uuid);
         return uuid;
     }
 	public static String[] generateList(Variable variable) {
@@ -1325,4 +1357,6 @@ public class Tools {
 		return ss;
 	}
 
+
 }
+

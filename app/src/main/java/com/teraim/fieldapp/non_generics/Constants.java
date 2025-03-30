@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.11";
+    public static final String VORTEX_VERSION = "9.13";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
@@ -59,6 +59,8 @@ public class Constants {
 
     public static final String TEMP_BARCODE_IMG_NAME = "tmpbar" ;
     public static final String DEFAULT_IMG_FORMAT = "jgw";
+    //Update interval in seconds for location updates.
+    public static final int LOCATION_UPDATE_INTERVAL = 10;
 
     public static String UNDEFINED = "undefined";
 
@@ -225,7 +227,7 @@ public class Constants {
     //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
     //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
     public static final String SyncDataURI = "https://synkserver.net/synkserv/SynkServ";
-    public static final String SynkStatusURI =      "https://synkserver.net/synkserv/SynkServ?action=get_team_status&team=";
+    public static final String SynkStatusURI =      "https://synkserver.net";
 
     //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
 

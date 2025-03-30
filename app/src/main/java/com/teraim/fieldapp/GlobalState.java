@@ -4,6 +4,7 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
+import android.icu.text.Transliterator;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -11,9 +12,17 @@ import android.provider.Settings;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
+import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
+import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -30,15 +39,23 @@ import com.teraim.fieldapp.synchronization.ConnectionManager;
 import com.teraim.fieldapp.synchronization.SyncMessage;
 import com.teraim.fieldapp.ui.DrawerMenu;
 import com.teraim.fieldapp.utils.BackupManager;
+import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -148,13 +165,15 @@ public class GlobalState {
         if (imgMetaFormat != null)
             this.imgMetaFormat = imgMetaFormat;
 
-         String uid = globalPh.get(PersistenceHelper.USERUUID_KEY);
-        if(PersistenceHelper.UNDEFINED.equals(uid)) {
-            Log.d("uuid","GENERATING userUUID");
+        String uid = globalPh.get(PersistenceHelper.USERUUID_KEY);
+        if (PersistenceHelper.UNDEFINED.equals(uid)) {
+            Log.d("uuid", "GENERATING userUUID");
             userUUID = Tools.generateUUID();
-            globalPh.put(PersistenceHelper.USERUUID_KEY,userUUID);
+            globalPh.put(PersistenceHelper.USERUUID_KEY, userUUID);
         } else
             userUUID = uid;
+
+        Log.d("fenris", "userUUID is " + userUUID);
     }
 
     public static void destroyInstance() {
@@ -170,9 +189,104 @@ public class GlobalState {
         return mAccount;
     }
 
+    private boolean callInProgress = false;
+
+
     public String getMyTeam() {
         return globalPh.get(PersistenceHelper.LAG_ID_KEY);
     }
+
+    public boolean insertTeamPositions(String jsonResponse) {
+
+        if (jsonResponse == null) {
+            Log.d("fenris","Json null in insertTeamPosition");
+            return false;
+        }
+        try {
+            teamPositions.clear();
+            // 1. Parse the string into a JSONArray
+            JSONArray jsonArray = new JSONArray(jsonResponse);
+
+            // 2. Iterate through the array (in this case, it has only one element)
+            for (int i = 0; i < jsonArray.length(); i++) {
+
+                // 3. Get the JSONObject at the current index
+                JSONObject userObject = jsonArray.getJSONObject(i);
+
+                // 4. Extract top-level elements
+                String name = userObject.getString("name");
+                String uuid = userObject.getString("uuid");
+                long timestampMillis = userObject.getLong("timestamp"); // Assuming it's epoch milliseconds
+
+                // 5. Get the nested "position" JSONObject
+                JSONObject positionObject = userObject.getJSONObject("position");
+
+                // 6. Extract elements from the "position" object
+                double easting = positionObject.getDouble("easting");
+                double northing = positionObject.getDouble("northing");
+
+                // --- Now you have all the variables ---
+/*
+                Log.d("fenris","--- User " + (i + 1) + " ---");
+                Log.d("fenris","UUID: " + uuid);
+                Log.d("fenris","Name: " + name);
+                Log.d("fenris","Timestamp (ms): " + timestampMillis);
+                Log.d("fenris","Position:");
+                Log.d("fenris","  Easting: " + easting);
+                Log.d("fenris","  Northing: " + northing);
+                Log.d("fenris","--------------------");
+*/
+                if (name.equals(globalPh.get(PersistenceHelper.USER_ID_KEY))) {
+                    //Log.d("fenris","skip own position");
+                    continue;
+                }
+
+                teamPositions.put(name,new TeamPosition(name, uuid, timestampMillis, easting, northing));
+
+            } // End of loop
+        } catch (JSONException e) {
+            // Handle potential parsing errors (invalid JSON, missing keys, etc.)
+            System.err.println("Error parsing JSON string: " + e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    public class TeamPosition {
+        private String name;
+        private String uuid;
+        private long timestampMillis;
+        private double easting;
+        private double northing;
+
+        public TeamPosition(String name, String uuid, long timestampMillis, double easting, double northing) {
+            this.name = name;
+            this.uuid = uuid;
+            this.timestampMillis = timestampMillis;
+            this.easting = easting;
+            this.northing = northing;
+        }
+
+        public long timestamp() {
+            return timestampMillis;
+        }
+
+        public Location getPosition() {
+            return new SweLocation(easting,northing);
+        }
+
+        public String getUuid() {
+            return uuid;
+        }
+    }
+
+    Map<String, TeamPosition> teamPositions = new HashMap();
+
+    public Map<String, TeamPosition> getTeamPositions() {
+        return teamPositions;
+    }
+
     /*Validation
      *
      */
