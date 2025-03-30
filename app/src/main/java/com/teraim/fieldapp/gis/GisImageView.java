@@ -745,7 +745,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 										xy = gop.getTranslatedLocation();
 									}
 									if (xy != null) {
-										Log.d("maga","drawing "+gop.getLabel());
+										//Log.d("maga","drawing "+gop.getLabel());
 										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
 										if (layerO.showLabels()) {
 											drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);

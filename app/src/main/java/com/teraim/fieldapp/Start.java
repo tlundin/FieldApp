@@ -281,7 +281,6 @@ public class Start extends MenuActivity {
                 Log.d("blax", "LoginFragment on stack!");
                 fm.beginTransaction()
                         .replace(R.id.content_frame, loginFragment)
-                        .addToBackStack("loginFragment")
                         .commit();
 
             } else {
@@ -393,13 +392,11 @@ public class Start extends MenuActivity {
                 emptyFragmentToExecute.setArguments(args);
                 FragmentTransaction ft = getFragmentManager()
                         .beginTransaction();
-                Log.i("blax", "Adding fragment");
+                //Log.i("blax", "Adding fragment");
                 //ft.add(R.id.lowerContainer, fragment, "AddedFragment");
 
                 ft.add(emptyFragmentToExecute,"EmptyTemplate");
-                Log.i("arpppa", "Committing Empty transaction");
                 ft.commitAllowingStateLoss();
-                Log.i("vortex", "Committed transaction");
 
             } else {
                 fragmentToExecute = wf.createFragment(template);
