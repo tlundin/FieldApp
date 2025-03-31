@@ -154,19 +154,21 @@ public class ModuleLoader implements FileLoadedCb{
 
 
 
-
+    int nextT=0;
     @Override
     public void onUpdate(Integer ...args) {
         Start.singleton.runOnUiThread(new Runnable() {
 
             @Override
             public void run() {
-
+                frontPageLog.addText(module.getLabel()+": "+ticks[nextT]);
+                nextT=(nextT+1)%ticks.length;
+/*
                 if (args.length==1)
                     frontPageLog.addText(module.getLabel()+": "+args[0].toString());
                 else
                     frontPageLog.addText(module.getLabel()+": "+args[0].toString()+"/"+args[1].toString());
-
+*/
             }
         });
 
@@ -174,7 +176,7 @@ public class ModuleLoader implements FileLoadedCb{
 
 
     int n=0;
-    String[] ticks = new String[] { "/","-", "\\", "|", "/", "-", "|"};
+    String[] ticks = new String[] { "/","─","\\", "|", "/","─","\\","|" };
     boolean somethingChanged=false;
 
     @Override

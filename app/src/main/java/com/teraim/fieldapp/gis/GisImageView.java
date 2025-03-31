@@ -4,6 +4,7 @@ import static com.teraim.fieldapp.GlobalState.getInstance;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -19,6 +20,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.ArrayVariable;
@@ -154,12 +156,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
         Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
 		selectedPaint.setColor(Color.BLACK);
-		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
         Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
 		btnTxt.setColor(Color.WHITE);
-		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+
 		btnTxt.setTextAlign(Paint.Align.CENTER);
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
@@ -667,6 +669,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								}
 								if (go instanceof GisPointObject) {
 									GisPointObject gop = (GisPointObject) go;
+									Bitmap bitmap = gop.getIcon();
 									String color = gop.getColor();
 									//Log.d("baha",gop.getId());
 									int[] xy = intBuffer.getIntBuf();
@@ -698,11 +701,14 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 												//Log.d("fenris", "Name " + gop.getFullConfiguration().getRawLabel() + " Latest update: E " + myPos.getPosition().getX()+" N "+myPos.getPosition().getY() + " timestamp: " + myPos.timestamp() + "");
 												gop.setLabel(gop.getFullConfiguration().getRawLabel() + "[" + Tools.getTimeStampDetails(myPos.timestamp(), true) + "]");
 												gop.setTranslatedLocation(xy);
-												color = Tools.setColorFromTime(myPos.timestamp());
+												//color = Tools.setColorFromTime(myPos.timestamp());
+												boolean anHourOld = Tools.isOverAnHourOld(System.currentTimeMillis() - myPos.timestamp());
+												int bitmapId = anHourOld ? R.drawable.person_away : R.drawable.person_active;
+												bitmap = BitmapFactory.decodeResource(getResources(), bitmapId);
 											}
-										}
+										} else
+											bitmap = gop.getIcon();
 									}
-									Bitmap bitmap = gop.getIcon();
 									float radius = gop.getRadius();
 									Style style = gop.getStyle();
 									PolyType polyType = gop.getShape();
@@ -747,8 +753,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									if (xy != null) {
 										//Log.d("maga","drawing "+gop.getLabel());
 										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
+
 										if (layerO.showLabels()) {
-											drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);
+											if (bitmap!=null && gop.getFullConfiguration().useIconOnMap())
+												drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint,20);
+											else
+												drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);
 										}
 									}
 
@@ -963,7 +973,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 				@Override
 				public Bitmap getIcon() {
-					return null;//BitmapFactory.decodeResource(getResources(), R.drawable.boy);
+					return BitmapFactory.decodeResource(getResources(), R.drawable.person_active);
 				}
 
 				@Override
@@ -1184,8 +1194,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	 * Draws a Label above the object location at the distance given by offSet
 	 */
 	private final Map<int[],Rect> rectBuffer = new HashMap<>();
-
 	private void drawGopLabel(Canvas canvas, int[] xy, String mLabel, Paint bgPaint, Paint txtPaint) {
+		drawGopLabel(canvas, xy, mLabel, bgPaint, txtPaint,GisImageView.LabelOffset);
+	}
+	private void drawGopLabel(Canvas canvas, int[] xy, String mLabel, Paint bgPaint, Paint txtPaint, int offset) {
 		Rect bounds = rectBuffer.get(xy);
 		if (bounds== null) {
 			bounds = new Rect();
@@ -1194,7 +1206,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		mLabel=mLabel==null?"":mLabel; //prevent null exception if label is null.
 		txtPaint.getTextBounds(mLabel, 0, mLabel.length(), bounds);
 		int textH = bounds.height()/2;
-		bounds.offset(xy[0] -bounds.width()/2, xy[1] -(bounds.height()/2+(int) (float) GisImageView.LabelOffset));
+		bounds.offset(xy[0] -bounds.width()/2, xy[1] - (bounds.height()/2+(int) (float) offset));
 		bounds.set(bounds.left-2,bounds.top-2,bounds.right+2,bounds.bottom+2);
 		//txtPaint.setTextAlign(Paint.Align.CENTER);
 		canvas.drawRect(bounds, bgPaint);
