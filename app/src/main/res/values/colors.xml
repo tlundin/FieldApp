@@ -29,6 +29,6 @@
     <color name="mixed_owner_bg">#996515</color>
     <color name="master_owner_bg">#ffb6c1</color>
     <color name="client_owner_bg">#e5e5ff</color>
-
+    <color name="semi_transparent_white">#C0FFFFFF</color>
 
 </resources>

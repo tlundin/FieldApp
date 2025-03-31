@@ -136,6 +136,7 @@ public class WF_StatusButton extends WF_Button {
             Log.d("vortex", "Button status changes to " + status);
             //Variable statusVariable = GlobalState.getInstance().getVariableCache().getVariable(statusVariableHash,statusVariableName);
             statusVariable.setValue(status.ordinal() + "");
+            Log.d("maga",status.ordinal()+"");
             int id = getIdFromStatus(status);
             refreshButton(id);
         } else
@@ -165,11 +166,11 @@ public class WF_StatusButton extends WF_Button {
             case ready:
                 id = R.drawable.btn_icon_ready;
                 break ;
-            case ready_in_db:
-                id = R.drawable.btn_icon_ready_in_db;
-                break;
             case ready_exported:
                 id = R.drawable.btn_icon_ready_exported;
+                break;
+            case ready_in_db:
+                id = R.drawable.btn_icon_ready_in_db;
                 break;
         }
         return id;

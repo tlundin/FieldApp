@@ -191,7 +191,7 @@ public class Tools {
 	private static final long HalfAnHour = AnHour/2;
 	private static final long QuarterOfAnHour = AnHour/4;
 
-	private static boolean isOverAnHourOld(long latestUpdate) { return latestUpdate > AnHour; }
+	public static boolean isOverAnHourOld(long latestUpdate) { return latestUpdate > AnHour; }
 	private static boolean isOverHalfAnHourOld(long latestUpdate) {
 		return latestUpdate > HalfAnHour;
 	}
