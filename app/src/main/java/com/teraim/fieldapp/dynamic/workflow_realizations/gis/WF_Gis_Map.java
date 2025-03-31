@@ -9,8 +9,10 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -57,7 +59,14 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.gis.GisImageView;
+import com.teraim.fieldapp.loadermodule.Configuration;
+import com.teraim.fieldapp.loadermodule.ConfigurationModule;
+import com.teraim.fieldapp.loadermodule.ModuleLoader;
+import com.teraim.fieldapp.log.Logger;
+import com.teraim.fieldapp.log.PlainLogger;
 import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
+import com.teraim.fieldapp.ui.LoginConsoleFragment;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -103,6 +112,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final GisObjectsMenu gisObjectMenu;
     private final View gisObjectsPopUp;
     private final View layersPopup;
+    private final View refreshPopup;
     private boolean gisObjMenuOpen=false;
     private boolean animationRunning=false;
     private final Map<String,List<FullGisObjectConfiguration>> myGisObjectTypes;
@@ -121,6 +131,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final ToggleButton filterB;
     private final ToggleButton layerB;
     private final ToggleButton mapB;
+    final ImageButton refreshB;
     private final static String[] statusValues = new String[] {"0","1","2","3"};
     private final Map<String,Boolean> standardFilterM = new HashMap<>();
 
@@ -185,6 +196,9 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final CreateGisBlock myDaddy;
     private final PhotoMeta photoMeta;
 
+    private void dismissPopup() {
+        refreshPopup.setVisibility(View.GONE);
+    }
 
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
@@ -215,6 +229,20 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         gisObjectsPopUp = li.inflate(R.layout.gis_object_menu_pop,null);
 
         layersPopup = li.inflate(R.layout.layers_menu_pop,null);
+
+        refreshPopup = li.inflate(R.layout.refresh_pop,null);
+
+        TextView refreshTextView = refreshPopup.findViewById(R.id.refresh_txt);
+
+        Button dismissButton = refreshPopup.findViewById(R.id.dismiss_button);
+        if (dismissButton != null) {
+            dismissButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismissPopup(); // Call helper method to dismiss
+                }
+            });
+        }
 
         gisObjectMenu = gisObjectsPopUp.findViewById(R.id.gisObjectsMenu);
         NudgeView nudgeMenu = createMenuL.findViewById(R.id.gisNudgeButtonMenu);
@@ -271,6 +299,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         });
         gisObjectsPopUp.setVisibility(View.GONE);
         layersPopup.setVisibility(View.GONE);
+        refreshPopup.setVisibility(View.GONE);
+        mapView.addView(refreshPopup);
         mapView.addView(gisObjectsPopUp);
         mapView.addView(layersPopup);
         //LinearLayout filtersL = (LinearLayout)mapView.findViewById(R.id.FiltersL);
@@ -300,6 +330,40 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
 
+        refreshB = mapView.findViewById(R.id.menuR);
+        refreshB.setOnClickListener(v -> {
+            Log.d("vortex","refresh clicked");
+            Constants.getDBImportModules(gs.getContext(),globalPh, localPh, globalPh.get(PersistenceHelper.SERVER_URL), globalPh.get(PersistenceHelper.BUNDLE_NAME), gs.getLogger(), gs.getDb(), gs.getVariableConfiguration().getTable(), new AsyncLoadDoneCb() {
+                public void onLoadSuccesful(List<ConfigurationModule> modules) {
+                    Configuration dbModules = new Configuration(modules);
+                    if (modules != null) {
+                        PlainLogger refreshOut = new PlainLogger(gs.getContext(), "Refresh");
+                        refreshOut.setOutputView(refreshTextView);
+                        refreshPopup.setVisibility(View.VISIBLE);
+                        refreshB.setClickable(false);
+                        ModuleLoader myDBLoader = new ModuleLoader("_map", dbModules, refreshOut, globalPh, false, gs.getLogger(), new ModuleLoader.ModuleLoaderListener() {
+                            @Override
+                            public void loadSuccess(String loaderId, boolean majorVersionChange, CharSequence loadText, boolean socketBroken) {
+                                Log.d("vortex"," DB updated");
+                                myContext.refreshGisObjects();
+                                gisImageView.redraw();
+                                refreshPopup.setVisibility(View.GONE);
+                                refreshB.setClickable(true);
+                            }
+
+                            @Override
+                            public void loadFail(String loaderId) {
+                                Log.d("vortex"," fail");
+                                refreshB.setClickable(true);
+                            }
+                        }, gs.getContext().getApplicationContext());
+                        myDBLoader.loadModules(false, false);
+                    } else
+                        Log.e("vortex", "null returned from getDBImportModules");
+                }
+            });
+            gisImageView.redraw();
+                });
 
         layerB = layersPopup.findViewById(R.id.btn_Layers);
 
