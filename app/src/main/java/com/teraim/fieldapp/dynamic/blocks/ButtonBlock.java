@@ -354,8 +354,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 												displayExportDialog();
 											else {
 												if (statusVariable != null) {
-													statusVariable.setValue(validationResult ? String.valueOf(WF_StatusButton.Status.ready) :
-															String.valueOf(WF_StatusButton.Status.started_with_errors));
+													statusVariable.setValue(validationResult ? Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD :
+															Constants.STATUS_STARTAD_MED_FEL);
 													Log.e("vortex", "SETTING STATUSVAR: " + statusVariable.getId() + " key: " + statusVariable.getKeyChain() + "Value: " + statusVariable.getValue());
 													//Save value of all variables to database in current flow.
 												} else
