@@ -51,7 +51,7 @@ import java.util.Arrays;
  * @author Terje
  *
  */
-public class Start extends MenuActivity implements FragmentManager.OnBackStackChangedListener {
+public class Start extends MenuActivity {
 
     public static boolean alive = false;
 
@@ -103,7 +103,6 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
 			}
 		});
 */
-        getFragmentManager().addOnBackStackChangedListener(this);
         Log.d("nils","in START onCreate");
         singleton = this;
         //This is the frame for all pages, defining the Action bar and Navigation menu.
@@ -272,14 +271,14 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
                 //	private ArrayList<String> rutItems;
                 //	private ArrayList<String> wfItems;
                 LoginConsoleFragment loginFragment = new LoginConsoleFragment();
-                Log.d("gipp", "LoginFragment on stack!");
+                //Don't add loginfragment to backstack.
                 fm.beginTransaction()
                         .replace(R.id.content_frame, loginFragment)
                         .addToBackStack("login")
                         .commit();
 
             } else {
-                Log.d("vortex", "Globalstate is not null!");
+                Log.d("vortex", "No need to run initial load - globalstate exists");
 
             }
         }
@@ -299,17 +298,6 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
         Log.d("nils","In oncofigChanged");
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
-/*
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				mDrawerLayout.openDrawer(GravityCompat.START);
-				return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-*/
 
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass event to ActionBarDrawerToggle, if it returns
@@ -427,7 +415,6 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("vortex","IN ONACTIVITY RESULT ");
-
         Log.d("vortex","request code "+requestCode+" result code "+resultCode);
 
         Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
@@ -462,13 +449,13 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            Log.d("vortex","gets here key back");
+            //Log.d("vortex","gets here key back");
 
             if (mPopupWindow!=null) {
-                Log.d("vortex", "popup is not null");
+                //Log.d("vortex", "popup is not null");
                 if (mPopupWindow.isShowing()) {
 
-                    Log.d("vortex", "closed popup, exiting");
+                    //Log.d("vortex", "closed popup, exiting");
                     mPopupWindow.dismiss();
                     return true;
                 }
@@ -477,7 +464,7 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
             if (currentContentFrameFragment instanceof Executor) {
 
                 final WF_Context wfCtx = ((Executor) currentContentFrameFragment).getCurrentContext();
-                Log.d("gipp", "current context: " + wfCtx);
+                //Log.d("gipp", "current context: " + wfCtx);
                 wfCtx.printD();
                 boolean map = false;
 
@@ -485,21 +472,19 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
                     if (wfCtx.getCurrentGis() != null) {
                         map = true;
                         if (wfCtx.getCurrentGis().wasShowingPopup()) {
-                            Log.d("gipp", "closed popup, exiting");
+                            //Log.d("gipp", "closed popup, exiting");
                             return true;
                         }
                     }
                     Workflow wf = wfCtx.getWorkflow();
-                    Log.d("gipp", "gets here wf is " + wf.getLabel());
+                    //Log.d("gipp", "gets here wf is " + wf.getLabel());
                     if (wf != null) {
                         if (map) {
-                            Log.d("gipp", "gets here too");
+                            //Log.d("gipp", "gets here too");
                             wfCtx.upOneMapLevel();
                         }
                     }
                 }
-                //Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
-                //FragmentManager fm = getFragmentManager();
                 setTitle("");
             }
         }
@@ -582,6 +567,8 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
         }
     }
 
+
+    /*
     @Override
     public void onBackStackChanged() {
         String TAG = "gipp";
@@ -614,4 +601,6 @@ public class Start extends MenuActivity implements FragmentManager.OnBackStackCh
         Log.d(TAG,"--------------------------"); // Separator
 
     }
+    */
+
 }
