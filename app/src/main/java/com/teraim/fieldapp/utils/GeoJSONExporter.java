@@ -163,7 +163,7 @@ public class GeoJSONExporter extends Exporter {
 							((Activity)ctx).runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
-									eDialog.setGenerateStatus("Writing: ("+(cf)+"/"+sz+")");
+									eDialog.setGenerateStatus("Writing: ("+(cf+1)+"/"+sz+")");
 								}
 							});
 						Map<String, Map<String, String>> gisObjH = gisObjects.get(keyUID);

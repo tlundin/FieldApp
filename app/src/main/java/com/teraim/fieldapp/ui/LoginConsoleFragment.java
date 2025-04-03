@@ -70,7 +70,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	private TextView appTxt;
 	private float oldV = -1;
 	private final static String InitialBundleName = Constants.DEFAULT_APP;
-	private Button load_configuration;
+
 
 
 	@Override
@@ -82,11 +82,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		Log.e("vortex","OnCreateView!");
         TextView log = view.findViewById(R.id.logger);
 		versionTxt = view.findViewById(R.id.versionTxt);
-
-		final ImageView logo = view.findViewById(R.id.logo);
-		final ImageView bg = view.findViewById(R.id.bgImg);
 		appTxt = view.findViewById(R.id.appTxt);
-		load_configuration = view.findViewById(R.id.load_configuration);
+
 
 
 		//Typeface type=Typeface.createFromAsset(getActivity().getAssets(),
@@ -134,33 +131,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		loginConsole = new PlainLogger(getActivity(),"INITIAL");
 		loginConsole.setOutputView(log);
 
-		Tools.onLoadCacheImage(appBaseUrl,"bg_image.jpg", appRootFolderPath+"cache/", new Tools.WebLoaderCb() {
-			@Override
-			public void loaded(Boolean result) {
-				if (result) {
-					Bitmap bm = BitmapFactory.decodeFile(appRootFolderPath+"cache/bg_image.jpg", new BitmapFactory.Options());
-					if (bm!=null)
-						bg.setImageBitmap(bm);
-				}
-			}
 
-			@Override
-			public void progress(int bytesRead) {
-			}
-		});
-		Tools.onLoadCacheImage(appBaseUrl,"logo.png", appRootFolderPath+"cache/", new Tools.WebLoaderCb() {
-			@Override
-			public void loaded(Boolean result) {
-				if (result) {
-					Bitmap bm = BitmapFactory.decodeFile(appRootFolderPath+"cache/logo.png", new BitmapFactory.Options());
-					if (bm!=null)
-						logo.setImageBitmap(bm);
-				}
-			}
-			@Override
-			public void progress(int bytesRead) {
-			}
-		});
 		String server = globalPh.get(PersistenceHelper.SERVER_URL);
 		if (globalPh.getB("local_config"))
 			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
@@ -173,63 +144,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 
 
 		myLoader = new ModuleLoader("moduleLoader", myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader"), debugConsole, LoginConsoleFragment.this, getActivity());
-//		String url = server + bundleName.toLowerCase() + "/" + bundleName+".xml";
-//		Thread thread = new Thread(new Runnable() {
-//
-//			@Override
-//			public void run() {
-//				try {
-//					String version = getMajorVersion(url);
-//					Log.d("VEXXOR",version);
-//					load_configuration.setText(load_configuration.getText()+" ["+version+"]");
-//				} catch (Exception e) {
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//		thread.start();
-		load_configuration.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				if (myLoader == null ) {
-					if (!Connectivity.isConnected(getContext())) {
-						new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
-								.setTitle("No connection - cannot reload configuration")
-								.setMessage("Please try again when you are connected")
-								.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
 
-									}
-								})
-								.setCancelable(true)
-								.setIcon(android.R.drawable.ic_dialog_alert)
-								.show();
-					} else {
-						new AlertDialog.Builder(LoginConsoleFragment.this.getActivity())
-								.setTitle(getResources().getString(R.string.ladda_styrfiler))
-								.setMessage(getResources().getString(R.string.ladda_descr))
-								.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
-									public void onClick(DialogInterface dialog, int which) {
-										String loaderId = "moduleLoader";
-										ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader", null);
-										ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "dbLoader", null);
-										ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE, null);
-										GlobalState.destroyInstance();
-										logTxt="";
-										myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,server,bundleName,debugConsole));
-										Log.d("perl","My modules: "+myModules.getAll().toString());
-										myLoader = new ModuleLoader(loaderId, myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + loaderId), debugConsole, LoginConsoleFragment.this, getActivity());
-										onResume();
-									}
-								})
-								.setNegativeButton("Cancel", null)
-								.setCancelable(false)
-								.setIcon(android.R.drawable.ic_dialog_alert)
-								.show();
-					}
-				}
-			}
-		});
+
 		return view;
 	}
 

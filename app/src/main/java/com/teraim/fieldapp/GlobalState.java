@@ -253,6 +253,35 @@ public class GlobalState {
         return true;
     }
 
+    public void insertServerStatus(String jsonString) {
+        try {
+            // 1. Create a JSONObject from the string
+            JSONObject jsonObject = new JSONObject(jsonString);
+
+            // 2. Get the integer value associated with the key "version"
+            int version = jsonObject.getInt("version");
+
+            // 3. Print the result
+            //Log.d("fenris","Parsed version: " + version);
+            int storedVersion = globalPh.getI(PersistenceHelper.SERVER_VERSION_KEY);
+            if (version != storedVersion) {
+                //Log.d("fenris", "New version found: " + version + " stored version: " + storedVersion);
+                globalPh.put(PersistenceHelper.SERVER_VERSION_KEY, version);
+                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, true);
+            } else {
+                //Log.d("fenris", "Version not changed");
+            }
+
+        } catch (JSONException e) {
+            System.err.println("Error parsing JSON: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public boolean serverHasNewVersion() {
+        return globalPh.getB(PersistenceHelper.SERVER_PENDING_UPDATE);
+    }
+
     public class TeamPosition {
         private String name;
         private String uuid;
