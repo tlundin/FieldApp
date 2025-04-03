@@ -10,7 +10,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
@@ -25,10 +24,8 @@ import android.view.ViewConfiguration;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.dynamic.Executor;
-import com.teraim.fieldapp.dynamic.templates.LinjePortalTemplate;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
@@ -46,12 +43,8 @@ import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
-import java.io.File;
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.HashSet;
-
-import kotlin.collections.EmptySet;
 
 
 /**
@@ -278,13 +271,14 @@ public class Start extends MenuActivity {
                 //	private ArrayList<String> rutItems;
                 //	private ArrayList<String> wfItems;
                 LoginConsoleFragment loginFragment = new LoginConsoleFragment();
-                Log.d("blax", "LoginFragment on stack!");
+                //Don't add loginfragment to backstack.
                 fm.beginTransaction()
                         .replace(R.id.content_frame, loginFragment)
+                        .addToBackStack("login")
                         .commit();
 
             } else {
-                Log.d("vortex", "Globalstate is not null!");
+                Log.d("vortex", "No need to run initial load - globalstate exists");
 
             }
         }
@@ -304,17 +298,6 @@ public class Start extends MenuActivity {
         Log.d("nils","In oncofigChanged");
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
-/*
-	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-			case android.R.id.home:
-				mDrawerLayout.openDrawer(GravityCompat.START);
-				return true;
-		}
-		return super.onOptionsItemSelected(item);
-	}
-*/
 
     public boolean onOptionsItemSelected(MenuItem item) {
         // Pass event to ActionBarDrawerToggle, if it returns
@@ -338,8 +321,6 @@ public class Start extends MenuActivity {
         }
     }
 
-    private Fragment emptyFragmentToExecute = null ;
-
     //execute workflow.
     public void changePage(Workflow wf, String statusVar) {
         if (wf==null) {
@@ -349,7 +330,7 @@ public class Start extends MenuActivity {
         }
         GlobalState gs = GlobalState.getInstance();
         if (gs == null) {
-            Log.e("vortex","Global State is null in change pange. App needs to restart");
+            Log.e("vortex","Global State is null in change page. App needs to restart");
             Tools.restart(this);
         }
 
@@ -364,7 +345,7 @@ public class Start extends MenuActivity {
             template = "DefaultTemplate";
 
         //Set context.
-        Log.d("vortex","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"]");
+        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"]");
         DB_Context cHash = DB_Context.evaluate(wf.getContext());
 
         //if Ok err is null.
@@ -387,36 +368,32 @@ public class Start extends MenuActivity {
 
 
             if (template==null) {
-
-                emptyFragmentToExecute = wf.createFragment("EmptyTemplate");
-                emptyFragmentToExecute.setArguments(args);
-                FragmentTransaction ft = getFragmentManager()
-                        .beginTransaction();
-                //Log.i("blax", "Adding fragment");
-                //ft.add(R.id.lowerContainer, fragment, "AddedFragment");
-
-                ft.add(emptyFragmentToExecute,"EmptyTemplate");
-                ft.commitAllowingStateLoss();
-
-            } else {
-                fragmentToExecute = wf.createFragment(template);
-                fragmentToExecute.setArguments(args);
-                changePage(fragmentToExecute,label);
+                template = "EmptyTemplate";
+                label = "Start";
             }
+
+
+            fragmentToExecute = wf.createFragment(template);
+            fragmentToExecute.setArguments(args);
+
+            changePage(fragmentToExecute,label);
+
             //show error message.
         } else
             showErrorMsg(cHash);
     }
     public void changePage(Fragment newPage, String label) {
         FragmentManager fragmentManager = getFragmentManager();
+
         FragmentTransaction ft = fragmentManager.beginTransaction();
 
         ft
                 .replace(R.id.content_frame, newPage)
-                .addToBackStack("TROLL")
+                .addToBackStack(label)
                 .commit();
         setTitle(label);
 
+        //Log.d("gipp","Backstack: "+fragmentManager.getBackStackEntryCount()+" list "+fragmentManager.getFragments().toString());
         //If previous was an empty fragment, clean it
 /*
         if (emptyFragmentToExecute!=null) {
@@ -438,7 +415,6 @@ public class Start extends MenuActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("vortex","IN ONACTIVITY RESULT ");
-
         Log.d("vortex","request code "+requestCode+" result code "+resultCode);
 
         Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
@@ -457,9 +433,6 @@ public class Start extends MenuActivity {
             histT.cancel(true);
         }
 
-
-
-
         if (GlobalState.getInstance()!=null) {
 
             //kill tracker
@@ -468,22 +441,21 @@ public class Start extends MenuActivity {
             GlobalState.destroy();
         }
 
-
-
         super.onDestroy();
     }
+
 
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            Log.d("vortex","gets here key back");
+            //Log.d("vortex","gets here key back");
 
             if (mPopupWindow!=null) {
-                Log.d("vortex", "popup is not null");
+                //Log.d("vortex", "popup is not null");
                 if (mPopupWindow.isShowing()) {
 
-                    Log.d("vortex", "closed popup, exiting");
+                    //Log.d("vortex", "closed popup, exiting");
                     mPopupWindow.dismiss();
                     return true;
                 }
@@ -492,76 +464,36 @@ public class Start extends MenuActivity {
             if (currentContentFrameFragment instanceof Executor) {
 
                 final WF_Context wfCtx = ((Executor) currentContentFrameFragment).getCurrentContext();
-                Log.d("vortex", "current context: " + wfCtx.toString());
+                //Log.d("gipp", "current context: " + wfCtx);
+                wfCtx.printD();
                 boolean map = false;
 
-                if (wfCtx!=null) {
-                    if (wfCtx.getCurrentGis()!=null) {
-                        map=true;
+                if (wfCtx != null) {
+                    if (wfCtx.getCurrentGis() != null) {
+                        map = true;
                         if (wfCtx.getCurrentGis().wasShowingPopup()) {
-                            Log.d("vortex","closed popup, exiting");
+                            //Log.d("gipp", "closed popup, exiting");
                             return true;
                         }
                     }
                     Workflow wf = wfCtx.getWorkflow();
-                    Log.d("vortex","gets here wf is "+wf);
-                    if (wf!=null) {
-                        if (map)
+                    //Log.d("gipp", "gets here wf is " + wf.getLabel());
+                    if (wf != null) {
+                        if (map) {
+                            //Log.d("gipp", "gets here too");
                             wfCtx.upOneMapLevel();
-                        /*
-                        if (!wf.isBackAllowed()) {
-                            new AlertDialog.Builder(this).setTitle(R.string.warning)
-                                    .setMessage(R.string.warning_exit)
-                                    .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-
-                                            wfCtx.upOneMapLevel();
-                                            Log.d("vortex","mapLayer is now "+wfCtx.getMapLayer());
-                                            getFragmentManager().popBackStackImmediate();
-                                            //GlobalState.getInstance().setCurrentWorkflowContext(null);
-                                        }})
-                                    .setNegativeButton(R.string.cancel,new DialogInterface.OnClickListener() {
-                                        public void onClick(DialogInterface dialog, int which) {
-
-                                        }})
-                                    .setCancelable(false)
-                                    .setIcon(android.R.drawable.ic_dialog_alert)
-                                    .show();
-                        } else {
-                            if (map)
-                                wfCtx.upOneMapLevel();
-
-                            Log.d("vortex","back was allowed");
                         }
-                        */
                     }
                 }
-
-                if (currentContentFrameFragment instanceof LinjePortalTemplate) {
-                    final LinjePortalTemplate lp = (LinjePortalTemplate)getFragmentManager().findFragmentById(R.id.content_frame);
-                    if (lp.isRunning()) {
-                        new AlertDialog.Builder(this).setTitle("Linjemätning pågår!")
-                                .setMessage("Vill du verkligen gå ut från sidan?")
-                                .setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        getFragmentManager().popBackStackImmediate();
-                                    }})
-                                .setNegativeButton(R.string.no,new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-
-                                    }})
-                                .setCancelable(false)
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .show();
-                    }
-                }
+                setTitle("");
             }
-            setTitle("");
-
         }
 
         return super.onKeyDown(keyCode, event);
     }
+
+
+
 
     private void showErrorMsg(DB_Context context) {
 
@@ -636,12 +568,39 @@ public class Start extends MenuActivity {
     }
 
 
+    /*
+    @Override
+    public void onBackStackChanged() {
+        String TAG = "gipp";
+        FragmentManager fm = getFragmentManager();
+        Fragment currentFragment = fm.findFragmentById(R.id.content_frame); // Use your container ID
+        if (currentFragment != null) {
+            Log.d("gipp", "Current fragment is: " + currentFragment.getClass().getSimpleName());
+        } else
+            Log.d("gipp", "Current fragment is null");
 
+        // 2. Get Back Stack Info
+        int backStackCount = fm.getBackStackEntryCount();
+        Log.i(TAG, "Back Stack Count: " + backStackCount);
 
+        if (backStackCount > 0) {
+            // Top entry (represents the transaction that led TO the current state)
+            FragmentManager.BackStackEntry topEntry = fm.getBackStackEntryAt(backStackCount - 1);
+            Log.i(TAG, "Top BackStack Entry (will be popped): Name='" + topEntry.getName() + "', ID=" + topEntry.getId());
 
+            if (backStackCount > 1) {
+                // Entry below the top (often represents the state TO BE restored after back press)
+                FragmentManager.BackStackEntry previousEntry = fm.getBackStackEntryAt(backStackCount - 2);
+                Log.i(TAG, "Previous BackStack Entry (likely visible after back): Name='" + previousEntry.getName() + "', ID=" + previousEntry.getId());
+            } else {
+                Log.i(TAG, "Previous BackStack Entry: None (stack size is 1)");
+            }
+        } else {
+            Log.i(TAG, "Top BackStack Entry: None (stack is empty)");
+        }
+        Log.d(TAG,"--------------------------"); // Separator
 
-
-
-
+    }
+    */
 
 }

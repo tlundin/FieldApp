@@ -132,6 +132,6 @@
 	<string name="Send_error_log">Skicka logg till Teraim</string>
 	<string name="log_exit">Avbryt</string>
 	<string name="fet">Fet</string>
-	<string name="ladda_styrfiler">Ladda senaste styrfiler</string>
-	<string name="ladda_descr">Om du fortsätter så kommer Appen försöka hämta de senaste styrfilerna från nätet och ersätta de du har på plattan.</string>
+	<string name="ladda_styrfiler">Ladda om styrfiler</string>
+	<string name="ladda_descr">Om du fortsätter så kommer Appen starta om och ersätta alla styrfiler </string>
 </resources>

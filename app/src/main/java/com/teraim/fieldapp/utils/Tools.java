@@ -915,7 +915,7 @@ public class Tools {
 
 
 	public static void restart(Activity context) {
-		Log.d("vortex","restarting...");
+		Log.d("gipp","restarting...");
 		if (GlobalState.getInstance()!=null)
 			GlobalState.destroy();
 		android.app.FragmentManager fm = context.getFragmentManager();

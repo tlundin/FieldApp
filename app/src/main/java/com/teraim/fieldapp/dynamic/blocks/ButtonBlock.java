@@ -798,7 +798,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			eMsg.append("All files exported.");
 
 																		((Activity) ctx).runOnUiThread(() -> {
-																			exporter.getDialog().setSendStatus("[" + counter.get() + "/" + totalToExport + "]");
+																			exporter.getDialog().setSendStatus("[" + (counter.get()) + "/" + totalToExport + "]");
 																			exporter.getDialog().setCheckSend(Exporter.SUCCESS);
 																			exporter.getDialog().setOutCome(eMsg.toString());
 																			if (button instanceof WF_StatusButton) {
@@ -809,7 +809,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	} else {
 																		String finalExportedImgName = exportedImgName;
 																		((Activity) ctx).runOnUiThread(() -> {
-																			exporter.getDialog().setSendStatus("[" + counter.get() + "/" + totalToExport + "]");
+																			exporter.getDialog().setSendStatus("[" + (counter.get()) + "/" + totalToExport + "]");
 																			exporter.getDialog().setOutCome(finalExportedImgName);
 																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
 																		});

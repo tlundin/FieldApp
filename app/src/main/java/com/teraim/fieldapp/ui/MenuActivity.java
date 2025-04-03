@@ -310,7 +310,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         if (!callInProgress  && Connectivity.isConnected(this)) {
 
             if (latestSignal==null || latestSignal.state==GPS_State.State.disabled) {
-                Log.d("fenris", "no gps signal available");
+                //Log.d("fenris", "no gps signal available");
                 updateMyPosition=false;
             }
             callInProgress = true;
@@ -377,33 +377,54 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 queue.add(postMyPositionRequest);
             }
             final String GetPoisitions = Constants.SynkStatusURI + "/positions";
-                StringRequest getTeamStatusRequest = new StringRequest(Request.Method.GET, GetPoisitions,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                // Display the first 500 characters of the response string.
-                                //Log.d("fenris", "Response is: " + response);
-                                gs.insertTeamPositions(response);
-                                callInProgress = false;
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
-                        callInProgress = false;
-                    }
-                });
-
-                queue.add(getTeamStatusRequest);
-
-            } else {
-                if (callInProgress)
-                    Log.d("fenris", "blocked call to getteamstatus (call in progress)");
-                else {
-                    Log.d("fenris", "no connection");
+            StringRequest getTeamStatusRequest = new StringRequest(Request.Method.GET, GetPoisitions,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            // Display the first 500 characters of the response string.
+                            //Log.d("fenris", "Response is: " + response);
+                            gs.insertTeamPositions(response);
+                            callInProgress = false;
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
                     callInProgress = false;
                 }
+            });
+
+            queue.add(getTeamStatusRequest);
+
+            final String GetServerStatus = Constants.SynkStatusURI + "/server";
+            StringRequest getServerStatusRequest = new StringRequest(Request.Method.GET, GetServerStatus,
+                    new Response.Listener<String>() {
+                        @Override
+                        public void onResponse(String response) {
+                            // Display the first 500 characters of the response string.
+                            //Log.d("fenris", "Response is: " + response);
+                            //Log.d("fenris", "Response is: " + response);
+                            gs.insertServerStatus(response);
+                            callInProgress = false;
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("fenris", "Got an error when attempting to contact the export server: " + error.getMessage());
+                    callInProgress = false;
+                }
+            });
+
+            queue.add(getServerStatusRequest);
+
+        } else {
+            if (callInProgress)
+                Log.d("fenris", "blocked call to getteamstatus (call in progress)");
+            else {
+                Log.d("fenris", "no connection");
+                callInProgress = false;
             }
+        }
     }
 
 
@@ -614,27 +635,27 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             }
             //Init done succesfully? Show all items.
         } else if (GlobalState.getInstance() != null && initDone) {
-                if (latestSignal.state == GPS_State.State.disabled) {
-                    mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
-                    monitorGPS(false);
-                }
-                else if (latestSignal.state == GPS_State.State.enabled) {
+            if (latestSignal.state == GPS_State.State.disabled) {
+                mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
+                monitorGPS(false);
+            }
+            else if (latestSignal.state == GPS_State.State.enabled) {
+                mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_none);
+                mnu[MENU_ITEM_GPS_QUALITY].setVisible(true);
+                monitorGPS(true);
+            }
+            else {
+                GPSQuality GPSq = calculateGPSKQI();
+                if (GPSq == GPSQuality.green) {
+                    mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_ready);
+                } else if (GPSq == GPSQuality.yellow)
+                    mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started);
+                else if (GPSq == GPSQuality.red)
+                    mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started_with_errors);
+                else if (GPSq == GPSQuality.old)
                     mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_none);
-                    mnu[MENU_ITEM_GPS_QUALITY].setVisible(true);
-                    monitorGPS(true);
-                }
-                else {
-                    GPSQuality GPSq = calculateGPSKQI();
-                    if (GPSq == GPSQuality.green) {
-                        mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_ready);
-                    } else if (GPSq == GPSQuality.yellow)
-                        mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started);
-                    else if (GPSq == GPSQuality.red)
-                        mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_started_with_errors);
-                    else if (GPSq == GPSQuality.old)
-                        mnu[MENU_ITEM_GPS_QUALITY].setIcon(R.drawable.btn_icon_none);
-                    mnu[MENU_ITEM_GPS_QUALITY].setTitle(Math.round(latestSignal.accuracy) + "");
-                }
+                mnu[MENU_ITEM_GPS_QUALITY].setTitle(Math.round(latestSignal.accuracy) + "");
+            }
 
 
 
@@ -661,14 +682,14 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private void monitorGPS(boolean on) {
         //Log.d("gps","MONITOR CALLED "+on);
         if (on && GPShandler == null) {
-                GPShandler = new Handler();
-                Runnable runnable = new Runnable(){
-                    public void run() {
-                            GPShandler=null;
-                            refreshStatusRow();
-                        }
-                };
-                GPShandler.postDelayed(runnable, 5000);
+            GPShandler = new Handler();
+            Runnable runnable = new Runnable(){
+                public void run() {
+                    GPShandler=null;
+                    refreshStatusRow();
+                }
+            };
+            GPShandler.postDelayed(runnable, 5000);
         }
     }
 
@@ -1366,20 +1387,20 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
     private GPSQuality calculateGPSKQI() {
-            int timeAcc = 100;
-            if (previousSignal != null)
-                timeAcc = Math.round((System.currentTimeMillis() - previousSignal.time) / 1000);
+        int timeAcc = 100;
+        if (previousSignal != null)
+            timeAcc = Math.round((System.currentTimeMillis() - previousSignal.time) / 1000);
 
-            if (timeAcc >= 5) {
-                Log.d("GPS", "time acc: " + timeAcc);
-                return GPSQuality.old;
-            }
-            if (latestSignal.accuracy <= 6)
-                return GPSQuality.green;
-            else if (latestSignal.accuracy <= 10)
-                return GPSQuality.yellow;
-            else
-                return GPSQuality.red;
+        if (timeAcc >= 5) {
+            Log.d("GPS", "time acc: " + timeAcc);
+            return GPSQuality.old;
+        }
+        if (latestSignal.accuracy <= 6)
+            return GPSQuality.green;
+        else if (latestSignal.accuracy <= 10)
+            return GPSQuality.yellow;
+        else
+            return GPSQuality.red;
     }
 
 
@@ -1399,7 +1420,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             if (Connectivity.isConnected(this)) {
                 //connected...lets call the sync server.
                 final String SyncServerStatusCall = Constants.SynkStatusURI;
-                        //team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
+                //team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
                 //final TextView mTextView = (TextView) findViewById(R.id.text);
                 RequestQueue queue = Volley.newRequestQueue(this);
 
