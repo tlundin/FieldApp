@@ -24,6 +24,7 @@ public interface FullGisObjectConfiguration extends GisObjectBaseAttributes {
 	
 	float getRadius();
 	String getColor();
+	String getBorderColor();
 	GisObjectType getGisPolyType();
 	Bitmap getIcon();
 	Paint.Style getStyle();

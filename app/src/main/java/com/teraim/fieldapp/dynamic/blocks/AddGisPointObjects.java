@@ -56,6 +56,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private final boolean useIconOnMap;
 	private final String nName;
 	private final String target;
+	private final String border_color;
 	private String coordType;
 	private final String locationVariables;
 	private final String imgSource;
@@ -87,7 +88,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	public AddGisPointObjects(String id, String nName, String label,
 							  String target, String objectContext,String coordType, String locationVars,
 							  String imgSource,boolean use_image_icon_on_map, String refreshRate, String radius, boolean isVisible,
-							  GisObjectType type, String color, String polyType, String fillType,
+							  GisObjectType type, String color, String border_color,String polyType, String fillType,
 							  String onClick, String statusVariable, boolean isUser, boolean createAllowed, String palette, String line_width, LoggerI o) {
 		super();
 		this.blockId = id;
@@ -100,6 +101,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		this.refreshRate=refreshRate;
 		this.onClick = onClick;
 		this.color=color;
+		this.border_color=border_color;
 		this.statusVariable=statusVariable;
 		this.isUser=isUser;
 		this.createAllowed=createAllowed;
@@ -553,6 +555,11 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 
 	public String getColor() {
 		return color;
+	}
+
+	public String getBorderColor() {
+		return "black";
+		//return border_color;
 	}
 
 	public Bitmap getIcon() {

@@ -671,6 +671,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									GisPointObject gop = (GisPointObject) go;
 									Bitmap bitmap = gop.getIcon();
 									String color = gop.getColor();
+									String borderColor = gop.getBorderColor();
 									//Log.d("baha",gop.getId());
 									int[] xy = intBuffer.getIntBuf();
 									boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
@@ -752,7 +753,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									}
 									if (xy != null) {
 										//Log.d("maga","drawing "+gop.getLabel());
-										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
+										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, borderColor,style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
 
 										if (layerO.showLabels()) {
 											if (bitmap!=null && gop.getFullConfiguration().useIconOnMap())
@@ -967,6 +968,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 
 				@Override
+				public String getBorderColor() {
+					return "black";
+				}
+
+				@Override
 				public GisObjectType getGisPolyType() {
 					return GisObjectType.Point;
 				}
@@ -1077,7 +1083,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			gop = (GisPointObject) go;
 			if (gop.getTranslatedLocation() != null) {
 				//Log.d("vortex","Calling drawpoint in dispatchdraw for "+go.getLabel());
-				drawPoint(canvas, null, gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red", Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,isBold);
+				drawPoint(canvas, null, gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red",null, Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,isBold);
 			} else
 				Log.e("vortex", "NOT calling drawpoint since translatedlocation was null");
 
@@ -1093,7 +1099,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					canvas.drawPath(p, polyPaint);
 				xy = intBuffer.getIntBuf();
 				translateMapToRealCoordinates(gpo.getCoordinates().get(gpo.getCoordinates().size()-1),xy);
-				drawPoint(canvas, null,2,go.getFullConfiguration().getLineWidth(), "white", Style.STROKE, PolyType.circle, xy,1,false,isBold);
+				drawPoint(canvas, null,2,go.getFullConfiguration().getLineWidth(), "white", null,Style.STROKE, PolyType.circle, xy,1,false,isBold);
 			} else {
 				if (go instanceof GisPolygonObject) {
 					//check if buffered paths already exists.
@@ -1214,7 +1220,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	}
 
-	private void drawPoint(Canvas canvas, Bitmap bitmap, float radius, float linew, String color, Style style, PolyType type, int[] xy, float adjustedScale, boolean useIconOnMap, boolean isBold) {
+	private void drawPoint(Canvas canvas, Bitmap bitmap, float radius, float linew, String color, String border_color,Style style, PolyType type, int[] xy, float adjustedScale, boolean useIconOnMap, boolean isBold) {
 
 		Rect r;
 		//Log.d("bortex","in drawpoint type "+type.name()+" bitmap: "+bitmap);
@@ -1227,17 +1233,31 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			canvas.drawBitmap(bitmap, null, r, null);
 		} //circular?
 
-		else if (type == PolyType.circle) {
-			canvas.drawCircle(xy[0], xy[1],radius, createPaint(color,style,linew,isBold));
-		}
-		//no...square.
-		else if (type == PolyType.rect) {
-			//Log.d("vortex","rect!");
-			int diam = (int)(radius/2);
-			canvas.drawRect(xy[0]-diam, xy[1]-diam, xy[0]+diam, xy[1]+diam, createPaint(color,style,linew,isBold));
-		}
-		else if (type == PolyType.triangle) {
-			drawTriangle(canvas, radius,xy[0], xy[1],createPaint(color,style,linew,isBold));
+		else {
+			int translBw=(int)(linew * getResources().getDisplayMetrics().density);
+			Paint borderPaint = createPaint(border_color, Paint.Style.STROKE, (int) (linew * getResources().getDisplayMetrics().density));
+			if (type == PolyType.circle) {
+				canvas.drawCircle(xy[0], xy[1], radius, createPaint(color, style, linew, isBold));
+				if (border_color!=null)
+					canvas.drawCircle(xy[0], xy[1], radius+translBw, borderPaint);
+			}
+			//no...square.
+			else if (type == PolyType.rect) {
+				//Log.d("vortex","rect!");
+				int diam = (int) (radius / 2);
+				int left = xy[0] - diam;
+				int right = xy[0] + diam;
+				int top = xy[1] - diam;
+				int bottom = xy[1] + diam;
+				canvas.drawRect(left, top, right, bottom, createPaint(color, style, linew, isBold));
+				if (border_color!=null)
+					canvas.drawRect(left-translBw, top-translBw, right+translBw, bottom+translBw, borderPaint);
+
+			} else if (type == PolyType.triangle) {
+				drawTriangle(canvas, radius, xy[0], xy[1], createPaint(color, style, linew, isBold));
+				if (border_color!=null)
+					drawTriangle(canvas,radius+translBw,xy[0], xy[1], borderPaint);
+			}
 		}
 	}
 
