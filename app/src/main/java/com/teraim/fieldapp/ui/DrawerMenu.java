@@ -38,10 +38,11 @@ public class DrawerMenu {
 	}
 
 	private class DrawerItemClickListener implements ListView.OnItemClickListener {
-		private boolean firstTimeClick=true;
+		//private boolean firstTimeClick=true;
 
 		@Override
 		public void onItemClick(AdapterView parent, View view, int position, long id) {
+			/*
 			if (firstTimeClick) {
 				// Create new fragment and transaction
 				Fragment newFragment = new BackgroundFragment();
@@ -54,7 +55,7 @@ public class DrawerMenu {
 				firstTimeClick=false;
 
 			}
-
+			*/
 			if (items.get(position).getViewType()!=RowType.HEADER_ITEM.ordinal()) {				
 				selectItem(position);
 			} else {

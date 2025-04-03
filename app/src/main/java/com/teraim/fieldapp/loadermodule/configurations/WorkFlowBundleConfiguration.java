@@ -661,7 +661,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockAddGisPointObjects(XmlPullParser parser,GisObjectType type) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_add_gis_point_objects...");
-		String id=null,nName=null,target=null,label=null,coordType = null, color=null,polyType=null,fillType=null,line_width="1",
+		String id=null,nName=null,target=null,label=null,coordType = null, color=null,border_color=null,polyType=null,fillType=null,line_width="1",
 				palette = null, location=null,objContext=null,imgSource=null,refreshRate=null,radius=null,onClick=null,statusVariable = null;
 		boolean isVisible=true,isUser=true,createAllowed=false,use_image_icon_on_map=false;
 
@@ -680,6 +680,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				label = readText("label",parser);
 			} else if (name.equals("color")) {
 				color = readText("color",parser);
+			} else if (name.equals("border_color")) {
+				color = readText("border_color",parser);
 			} else if (name.equals("paint_style")) {
 				fillType = readText("paint_style",parser);
 			} else if (name.equals("poly_type")) {
@@ -726,7 +728,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		if (imgSource!=null&&!imgSource.isEmpty())
 			Tools.preCacheImage(baseBundlePath+"extras/",imgSource,cacheFolder,o);
 
-		return new AddGisPointObjects(id,nName,label,target,objContext,coordType,location,imgSource,use_image_icon_on_map,refreshRate,radius,isVisible,type,color,polyType,fillType,onClick,statusVariable,isUser,createAllowed,palette,line_width,o);
+		return new AddGisPointObjects(id,nName,label,target,objContext,coordType,location,imgSource,use_image_icon_on_map,refreshRate,radius,isVisible,type,color,border_color,polyType,fillType,onClick,statusVariable,isUser,createAllowed,palette,line_width,o);
 
 	}
 

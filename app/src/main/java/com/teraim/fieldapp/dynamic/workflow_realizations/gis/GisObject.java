@@ -136,6 +136,10 @@ public class GisObject {
 	public String getColor() {
 		return foc.getColor();
 	}
+
+	public String getBorderColor() {
+		return foc.getBorderColor();
+	}
 	public String getStatusColor() {
 		if (statusVariableId==null || statusVariableValue==null)
 			return null;

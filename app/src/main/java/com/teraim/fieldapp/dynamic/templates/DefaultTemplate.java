@@ -48,7 +48,7 @@ public class DefaultTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","I'm in the onPause method");
+		Log.d("nils","Default template - I'm in the onPause method");
 	}
 
 

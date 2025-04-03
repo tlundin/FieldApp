@@ -31,7 +31,7 @@ public class DefaultNoScrollTemplate extends Executor {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("nils","In onCreate");
+		Log.d("nils","In onCreate - DefaultNoScroll");
 
 		
 	}
@@ -39,7 +39,7 @@ public class DefaultNoScrollTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","I'm in the onPause method");
+		Log.d("nils","NoScroll template - I'm in the onPause method");
 	}
 	
 	
@@ -74,7 +74,7 @@ public class DefaultNoScrollTemplate extends Executor {
 		} else {
 			//If view exists, we are moving backwards in the stack. GIS objects need to drop their cached values.
 			if (myContext!=null && myContext.getCurrentGis()!=null) {
-				Log.d("vortex","Clearing gis cache in onCreateView");
+				Log.d("gipp","Clearing gis cache in onCreateView");
 				myContext.getCurrentGis().clearLayerCaches();
 				myContext.getCurrentGis().getGis().initializeAndSiftGisObjects();
 			}
