@@ -31,6 +31,7 @@ public class DrawerMenu {
 	private int currentIndex=0;
 	private SparseArray<Integer> index;
 	private List<Workflow> workflowsL;
+	private boolean open = false;
 
 	public DrawerMenu(Activity a) {
 		frameActivity=a;
@@ -86,6 +87,9 @@ public class DrawerMenu {
 				Log.e("vortex","Could not find any entry for menu position "+position);
 		}
 	}
+	public boolean isDrawerOpen() {
+		return open;
+	}
 	private void createMenu() {
 		//drawer items
 		//different if already created?
@@ -111,15 +115,17 @@ public class DrawerMenu {
 			/** Called when a drawer has settled in a completely closed state. */
 			public void onDrawerClosed(View view) {
 				super.onDrawerClosed(view);
-
+				open = false;
 			}
+
+
 
 			/** Called when a drawer has settled in a completely open state. */
 			public void onDrawerOpened(View drawerView) {
 				//createDrawerMenu(wfs);
 				//mAdapter.notifyDataSetChanged();				
 				super.onDrawerOpened(drawerView);
-
+				open=true;
 			}
 
 		};

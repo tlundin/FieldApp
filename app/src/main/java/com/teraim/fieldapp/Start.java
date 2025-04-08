@@ -460,11 +460,44 @@ public class Start extends MenuActivity {
                     return true;
                 }
             }
+            if (getDrawerMenu().isDrawerOpen()) {
+                getDrawerMenu().closeDrawer();
+                return true;
+            }
             Fragment currentContentFrameFragment = getFragmentManager().findFragmentById(R.id.content_frame);
-            if (currentContentFrameFragment instanceof Executor) {
+            int x = getFragmentManager().getBackStackEntryCount();
+            Log.d("gipp", "backstack count: " + x);
+            if (currentContentFrameFragment == null) {
+                Log.d("gipp", "current fragment is null");
+                return false;
+            } else
+                Log.d("gipp", "current content fragment: "+currentContentFrameFragment.getClass().getName());
+            if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.EmptyTemplate")) {
+                String dialogText = getString(R.string.exit_app);
+                new AlertDialog.Builder(this)
+                        .setTitle("Exit")
+                        .setMessage(dialogText)
+                        .setIcon(android.R.drawable.ic_menu_close_clear_cancel)
+                        .setCancelable(false)
+                        .setPositiveButton(R.string.ok,new Dialog.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                finishAndRemoveTask();
+                            }
+                        })
+                        .setNegativeButton(R.string.cancel, new Dialog.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        })
 
+                        .show();
+            }
+
+
+            if (currentContentFrameFragment instanceof Executor) {
                 final WF_Context wfCtx = ((Executor) currentContentFrameFragment).getCurrentContext();
-                //Log.d("gipp", "current context: " + wfCtx);
+                Log.d("gipp", "current context: " + wfCtx);
                 wfCtx.printD();
                 boolean map = false;
 
@@ -484,8 +517,10 @@ public class Start extends MenuActivity {
                             wfCtx.upOneMapLevel();
                         }
                     }
+                    setTitle("");
                 }
-                setTitle("");
+
+
             }
         }
 

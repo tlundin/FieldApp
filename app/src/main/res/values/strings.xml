@@ -135,5 +135,5 @@
     <string name="fet">Bold</string>
     <string name="ladda_styrfiler">Download latest configuration</string>
     <string name="ladda_descr">If you continue, the App will restart and replace all your existing configuration files with the latest versions.</string>
-
+    <string name="exit_app">This will exit the application</string>
 </resources>

@@ -4,7 +4,6 @@ import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.content.Context;
 import android.content.Intent;
-import android.icu.text.Transliterator;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -12,12 +11,6 @@ import android.provider.Settings;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -26,7 +19,9 @@ import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.types.Workflow;
+import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
+import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnNewVersion;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.expr.Aritmetic;
 import com.teraim.fieldapp.expr.Parser;
@@ -39,7 +34,6 @@ import com.teraim.fieldapp.synchronization.ConnectionManager;
 import com.teraim.fieldapp.synchronization.SyncMessage;
 import com.teraim.fieldapp.ui.DrawerMenu;
 import com.teraim.fieldapp.utils.BackupManager;
-import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -49,13 +43,10 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -268,6 +259,8 @@ public class GlobalState {
                 //Log.d("fenris", "New version found: " + version + " stored version: " + storedVersion);
                 globalPh.put(PersistenceHelper.SERVER_VERSION_KEY, version);
                 globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, true);
+                if (gisMap != null)
+                    gisMap.onEvent(new WF_Event_OnNewVersion("server_update"));
             } else {
                 //Log.d("fenris", "Version not changed");
             }
@@ -471,6 +464,10 @@ public class GlobalState {
 		return currentContext;
 	}
 */
+    EventListener gisMap = null;
+    public void registerUpdateListener(EventListener map) {
+        this.gisMap = map;
+    }
 
     public void setDBContext(DB_Context context) {
         myVariableCache.setCurrentContext(context);
