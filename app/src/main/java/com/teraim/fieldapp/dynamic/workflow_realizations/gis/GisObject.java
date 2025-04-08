@@ -147,17 +147,17 @@ public class GisObject {
 		//Log.d("fenris","statvar "+statusVariableId+" value was "+statusVariableValue+" statval is "+statusValue);
 		if (statusVariableId.equals("STATUS:status_trakter")) {
 			if (statusVariableValue.equals(Constants.STATUS_HIGH_PRIORITY))
-					return "red";
+					return "#9900ff";
 			else if (statusVariableValue.equals(Constants.STATUS_INITIAL))
 				return foc.getColor();
 			else if (statusValue>0 && statusValue<=30)
-				return "#FF5733";
+				return "#ff9600";
 			else if (statusValue>30 && statusValue<=70)
-				return "#CD853F";
+				return "#a6fc00";
 			else if (statusValue>70 && statusValue<100)
-				return "green";
+				return "#6aa84f";
 			else if (statusValue==100)
-				return "blue";
+				return "#4a86e8";
 			else
 				return foc.getColor();
 		}

@@ -343,7 +343,7 @@ public class WF_Context {
 		return currentGis;
 	}
 	
-	
+	public boolean hasMap() { return currentGis!=null; }
 	public boolean hasGPSTracker() {
 		return hasGPSTracker;
 	}

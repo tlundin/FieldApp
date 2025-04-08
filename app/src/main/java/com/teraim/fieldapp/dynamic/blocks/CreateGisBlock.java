@@ -266,6 +266,8 @@ public class CreateGisBlock extends Block {
 						myContext.registerEventListener(gis, EventType.onSave);
 						myContext.registerEventListener(gis, EventType.onFlowExecuted);
 						myContext.addDrawable(name,gis);
+						//listen for updates from the server.
+						gs.registerUpdateListener(gis);
 
 						avstRL.setVisibility(View.INVISIBLE);
 
