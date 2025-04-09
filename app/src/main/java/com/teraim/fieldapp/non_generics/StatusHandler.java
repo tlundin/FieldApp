@@ -83,7 +83,7 @@ public class StatusHandler {
 		Variable provytaS = gs.getVariableCache().getVariable(pyKeyMap, 
 				"STATUS:status_provyta");
 		if (provytaS!=null)
-			provytaS.setValue(done?Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD :Constants.STATUS_INITIAL);
+			provytaS.setValue(done?Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD :Constants.STATUS_INITIAL);
 
 	}
 
@@ -96,7 +96,7 @@ public class StatusHandler {
 		Variable rutaS = gs.getVariableCache().getVariable(rutaKeyMap, 
 				"STATUS:status_ruta");
 		if (rutaS!=null)
-			rutaS.setValue(k.allDone()?Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD :Constants.STATUS_INITIAL);
+			rutaS.setValue(k.allDone()?Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD :Constants.STATUS_INITIAL);
 	}
 
 	public Kvot getStatusSmaProv() {	
@@ -158,7 +158,7 @@ public class StatusHandler {
 		int ret = 0;
 		if (statusL != null) {		
 			for (String val:statusL) {
-				if (val.equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD))
+				if (val.equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD))
 					ret++;
 			}
 		}
