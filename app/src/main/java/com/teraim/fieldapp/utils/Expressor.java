@@ -1642,7 +1642,7 @@ public class Expressor {
                                     String varValue = cp.getVariable().value;
                                     Log.d("vortex", "VALUE: " + varValue);
                                     if (combinedStatus == null && Integer.valueOf(varValue) >= WF_StatusButton.Status.ready.ordinal()) {
-                                        combinedStatus = Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD;
+                                        combinedStatus = Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD;
                                     } else if (varValue.equals(Constants.STATUS_STARTAD_MED_FEL)) {
                                         //Here we can exit. We know the value.
                                         return Constants.STATUS_STARTAD_MED_FEL;
@@ -1666,7 +1666,7 @@ public class Expressor {
                         }
 
                         if (combinedStatus != null) {
-                            if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
+                            if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                                 Log.d("vortex","found one that is not done!");
                                 combinedStatus = Constants.STATUS_STARTAD_MEN_INTE_KLAR;
                             }

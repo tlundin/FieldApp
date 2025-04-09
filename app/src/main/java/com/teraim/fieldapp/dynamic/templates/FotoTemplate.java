@@ -443,7 +443,7 @@ public class FotoTemplate extends Executor {
 		if (hasOne && hasFjarr)
 			myStatusVariable.setValue(Constants.STATUS_STARTAD_MED_FEL);
 		else if ((hasAll&&!hasFjarr)||(hasFjarr&&!hasAll))
-			myStatusVariable.setValue(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD);
+			myStatusVariable.setValue(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD);
 		else if (!hasOne && !hasFjarr)
 			myStatusVariable.setValue(Constants.STATUS_INITIAL);
 		else if (hasOne || hasFjarr)
