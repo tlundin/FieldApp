@@ -164,7 +164,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	@Override
 	public void onResume() {
 		super.onResume();
-		Log.e("vortex","onresume!");
+		Log.e("gipp","loginfragment onresume!");
 
 		if (GlobalState.getInstance() == null && myLoader != null ) {
 			if (!myLoader.isActive()) {
