@@ -242,8 +242,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			} else {
 				myContext.setWorkflow(wf);
 
-
-
 					Log.d("GPS","tracker created");
 					Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
 					myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
@@ -286,6 +284,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (myContext.hasGPSTracker())
 				startLocationUpdates(createLocationRequest(), locationCallback);
 			resetContext();
+			//make sure the correct map is updated.
+			if (myContext.hasMap())
+				gs.registerUpdateListener(myContext.getCurrentGis());
 		}
 
 		super.onResume();

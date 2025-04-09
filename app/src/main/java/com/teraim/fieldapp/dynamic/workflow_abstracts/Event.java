@@ -7,7 +7,10 @@ public abstract class Event {
 		onClick,
 		onRedraw,
 		onBluetoothMessageReceived,
-		onActivityResult, onContextChange, onFlowExecuted
+		onActivityResult,
+		onContextChange,
+		onFlowExecuted,
+		onNewMapData
 	}
 	
 	private final String generatorId;
