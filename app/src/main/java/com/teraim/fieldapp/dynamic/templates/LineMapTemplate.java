@@ -162,7 +162,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
 
             } else if (linjeStatus.getValue().equals(Constants.STATUS_STARTAD_MEN_INTE_KLAR)) {
                 startDataCollection();
-            } else if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
+            } else if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                 setEnded();
             }
         } else {
@@ -252,7 +252,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
             public void onClick(View v) {
                 Log.d("vortex", "gets click. Linjestatus: " + linjeStatus.getValue());
                 if (!linjeStatus.getValue().equals(Constants.STATUS_STARTAD_MEN_INTE_KLAR)) {
-                    if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD)) {
+                    if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                         new AlertDialog.Builder(v.getContext()).setTitle("Linjen markerad avslutad!")
                                 .setMessage("Vill du göra om linjen?")
                                 .setPositiveButton("Ja", new DialogInterface.OnClickListener() {
@@ -374,7 +374,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
     private void setEnded() {
         startB.setBackgroundResource(android.R.drawable.btn_default);
         startB.setText("Gör om");
-        linjeStatus.setValue(Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD);
+        linjeStatus.setValue(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD);
         fieldListB.setVisibility(View.INVISIBLE);
 
     }
