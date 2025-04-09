@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.22";
+    public static final String VORTEX_VERSION = "9.23";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
@@ -93,9 +93,9 @@ public class Constants {
     public static final String STATUS_INITIAL = "0";
     public static final String STATUS_STARTAD_MEN_INTE_KLAR = "1";
     public static final String STATUS_STARTAD_MED_FEL = "2";
-    public static final String STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD = "3";
+    public static final String STATUS_AVSLUTAD_EXPORT_MISSLYCKAD = "3";
     public static final String STATUS_AVSLUTAD_EXPORTERAD = "4";
-    public static final String STATUS_AVSLUTAD_I_DB = "100";
+    public static final String STATUS_KLAR_I_DB = "100";
     public static final int MAX_NILS_LINJER = 12;
     public static final String NORR = "NORR";
     public static final String SYD = "SYD";

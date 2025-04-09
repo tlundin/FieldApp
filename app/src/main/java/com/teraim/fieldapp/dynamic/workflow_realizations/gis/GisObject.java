@@ -163,13 +163,15 @@ public class GisObject {
 		}
 		switch (statusVariableValue) {
 			case Constants.STATUS_STARTAD_MED_FEL:
-				return "red";
-			case Constants.STATUS_AVSLUTAD_MEN_INTE_EXPORTERAD:
-				return "yellow";
+				return "#ff0000";
+			case Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD:
+				return "#fca005";
 			case Constants.STATUS_STARTAD_MEN_INTE_KLAR:
 				return "black";
 			case Constants.STATUS_AVSLUTAD_EXPORTERAD:
-				return "blue";
+				return "#38761d";
+			case Constants.STATUS_KLAR_I_DB:
+				return "#4a86e8";
 
 		}
 		return foc.getColor();
