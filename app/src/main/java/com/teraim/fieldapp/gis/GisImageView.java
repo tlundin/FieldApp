@@ -672,7 +672,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									Bitmap bitmap = gop.getIcon();
 									String color = gop.getColor();
 									String borderColor = gop.getBorderColor();
-									//Log.d("baha",gop.getId());
 									int[] xy = intBuffer.getIntBuf();
 									boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
 									if (gop.isDynamic()) {
@@ -733,7 +732,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 													gop.setCachedFilterResult(filter, result);
 												}
 												if (gop.getCachedFilterResult(filter)) {
-													Log.d("vortex", "FILTER MATCH FOR FILTER: " + filter.getLabel());
+													//Log.d("vortex", "FILTER MATCH FOR FILTER: " + filter.getLabel());
 													bitmap = filter.getBitmap();
 													radius = filter.getRadius();
 													//color = filter.getColor();
@@ -931,7 +930,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		for (String name:myTeam.keySet()) {
 
-			Log.d("bortex","Adding Team member "+name);
+			//Log.d("bortex","Adding Team member "+name);
 			if (name==null || name.isEmpty()) {
 				Log.e("vortex","skipping nameless team member");
 				continue;
@@ -1409,7 +1408,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		String key = style==null?color+strokeWidth:color+strokeWidth+style.name();
 		Paint p = paintCache.get(key);
 		if (p!=null) {
-			Log.d("gimli","returns cached paint for "+key+" color: "+color+" cached color: "+p.getColor());
+			//Log.d("gimli","returns cached paint for "+key+" color: "+color+" cached color: "+p.getColor());
 			return p;
 		}
 		//If no cached object, create.
