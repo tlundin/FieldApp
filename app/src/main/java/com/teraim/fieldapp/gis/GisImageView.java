@@ -969,7 +969,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 				@Override
 				public String getBorderColor() {
-					return "black";
+					return "red";
 				}
 
 				@Override
@@ -1226,7 +1226,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		//Log.d("bortex","in drawpoint type "+type.name()+" bitmap: "+bitmap);
 		//Log.d("arriba","useI"+useIconOnMap+" bm: "+(bitmap!=null));
 		if (useIconOnMap && bitmap!=null ) {
-
 			r = new Rect();
 			//Log.d("vortex","bitmap! "+gop.getLabel());
 			r.set(xy[0]-16, xy[1]-16, xy[0]+16, xy[1]+16);
@@ -1234,11 +1233,16 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		} //circular?
 
 		else {
-			int translBw=(int)(linew * getResources().getDisplayMetrics().density);
-			Paint borderPaint = createPaint(border_color, Paint.Style.STROKE, (int) (linew * getResources().getDisplayMetrics().density));
+			boolean hasBorder = (border_color!=null);
+			int translBw=0;
+			Paint borderPaint=null;
+			if (hasBorder) {
+                translBw = (int) (linew * getResources().getDisplayMetrics().density);
+                borderPaint = createPaint(border_color, Style.STROKE, (int) (linew * getResources().getDisplayMetrics().density));
+            }
 			if (type == PolyType.circle) {
 				canvas.drawCircle(xy[0], xy[1], radius, createPaint(color, style, linew, isBold));
-				if (border_color!=null)
+				if (hasBorder)
 					canvas.drawCircle(xy[0], xy[1], radius+translBw, borderPaint);
 			}
 			//no...square.
@@ -1250,12 +1254,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				int top = xy[1] - diam;
 				int bottom = xy[1] + diam;
 				canvas.drawRect(left, top, right, bottom, createPaint(color, style, linew, isBold));
-				if (border_color!=null)
+				if (hasBorder)
 					canvas.drawRect(left-translBw, top-translBw, right+translBw, bottom+translBw, borderPaint);
 
 			} else if (type == PolyType.triangle) {
 				drawTriangle(canvas, radius, xy[0], xy[1], createPaint(color, style, linew, isBold));
-				if (border_color!=null)
+				if (hasBorder)
 					drawTriangle(canvas,radius+translBw,xy[0], xy[1], borderPaint);
 			}
 		}
@@ -1405,7 +1409,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		String key = style==null?color+strokeWidth:color+strokeWidth+style.name();
 		Paint p = paintCache.get(key);
 		if (p!=null) {
-			//Log.d("vortex","returns cached paint for "+key);
+			Log.d("gimli","returns cached paint for "+key+" color: "+color+" cached color: "+p.getColor());
 			return p;
 		}
 		//If no cached object, create.
