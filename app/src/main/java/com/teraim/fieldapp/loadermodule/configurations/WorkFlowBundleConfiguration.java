@@ -681,7 +681,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			} else if (name.equals("color")) {
 				color = readText("color",parser);
 			} else if (name.equals("border_color")) {
-				color = readText("border_color",parser);
+				border_color = readText("border_color",parser);
 			} else if (name.equals("paint_style")) {
 				fillType = readText("paint_style",parser);
 			} else if (name.equals("poly_type")) {
