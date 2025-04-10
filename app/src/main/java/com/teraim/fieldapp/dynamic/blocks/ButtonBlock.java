@@ -410,7 +410,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 											if (!bok) {
 												validationResult = false;
 											}
-											//if (!ok || isDeveloper) {
+											if (!ok || isDeveloper) {
 												showPop = true;
 												row = (LinearLayout) inflater.inflate(R.layout.rule_row, null);
 												header = row.findViewById(R.id.header);
@@ -421,7 +421,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 												header.setText(r.getRuleHeader());
 												body.setText(r.getRuleText());
 												frame.addView(row);
-											//}
+											}
 										}
 									}
 									if (validationResult == false) {
