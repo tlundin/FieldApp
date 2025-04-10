@@ -33,7 +33,7 @@ dependencies {
     implementation files('libs/achartengine-1.2.0.jar')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'com.google.android.material:material:1.12.0'
     implementation 'com.google.android.gms:play-services-vision:20.1.2'
 //    implementation 'com.google.android.gms:play-services:12.0.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

@@ -31,7 +31,7 @@
             android:summary="@string/s_summary"
             android:title="Server URL" />
         <EditTextPreference
-            android:defaultValue="http://ec2-52-211-251-254.eu-west-1.compute.amazonaws.com:8003"
+            android:defaultValue="https://synkserver.net"
             android:dialogMessage="Export Server URL"
             android:dialogTitle="EXPORT"
             android:key="export_server_location"

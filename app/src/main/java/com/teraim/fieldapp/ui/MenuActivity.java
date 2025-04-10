@@ -395,8 +395,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             });
 
             queue.add(getTeamStatusRequest);
-
-            final String GetServerStatus = Constants.SynkStatusURI + "/server";
+            final String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
+            final String GetServerStatus = exportServerURL + "/server";
             StringRequest getServerStatusRequest = new StringRequest(Request.Method.GET, GetServerStatus,
                     new Response.Listener<String>() {
                         @Override
