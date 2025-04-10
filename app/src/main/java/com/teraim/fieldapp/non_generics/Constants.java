@@ -36,14 +36,14 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.23";
+    public static final String VORTEX_VERSION = "9.24";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
 
     //public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
 
-    public static final String EXPORT_SERVER = "https://synkserver.net/";
+    public static final String DEFAULT_EXPORT_SERVER = "https://synkserver.net/";
     public static final String TIMESTAMP_SYNC_RECEIVE = "timestamp_receive";
     public static final String TIMESTAMP_SYNC_SEND = "timestamp_send";
     public static final String TIMESTAMP_LATEST_SUCCESFUL_SYNC = "timestamp_latest_sync" ;
