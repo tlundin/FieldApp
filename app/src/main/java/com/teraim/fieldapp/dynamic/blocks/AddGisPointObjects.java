@@ -558,8 +558,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	}
 
 	public String getBorderColor() {
-		return "black";
-		//return border_color;
+		//return "black";
+		return border_color;
 	}
 
 	public Bitmap getIcon() {
