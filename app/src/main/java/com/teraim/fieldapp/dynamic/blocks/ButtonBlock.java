@@ -344,10 +344,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 									LinearLayout frame = popUpView.findViewById(R.id.pop);
 									Button avsluta = popUpView.findViewById(R.id.avsluta);
 									Button korrigera = popUpView.findViewById(R.id.korrigera);
-									if (onClick.equals("go_back_export"))
+									if (onClick.equals("go_back_export")) {
+										showPop = true;
 										avsluta.setText(ctx.getString(R.string.export_and_finalize));
+									}
 									avsluta.setOnClickListener(new OnClickListener() {
-
 										@Override
 										public void onClick(View v) {
 											if (onClick.equals("go_back_export"))
