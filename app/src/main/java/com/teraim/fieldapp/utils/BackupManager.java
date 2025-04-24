@@ -87,11 +87,12 @@ public class BackupManager {
 	 */
 	public boolean backupDatabase(String backupFileName) {
 		String appName = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
+		LoggerI logger = GlobalState.getInstance().getLogger();
 		Log.d("vortex","starting backup for "+ctx.getDatabasePath(appName));
+		logger.addCriticalText("Starting backup");
+		logger.draw();
 		File dbFile = ctx.getDatabasePath(appName);
-
 		try {
-			
 			File dir = createOrFindBackupStorageDir();
 			
 			if (dir == null) {
@@ -119,6 +120,7 @@ public class BackupManager {
 			output.flush();
 			output.close();
 			fis.close();
+
 		} catch (FileNotFoundException e) {
 			Log.e("vortex","backup failed");
 			e.printStackTrace();
@@ -130,6 +132,8 @@ public class BackupManager {
 		}
 		Log.d("vortex","backup done");
 		gs.getPreferences().put(PersistenceHelper.TIME_OF_LAST_BACKUP,System.currentTimeMillis());
+		logger.addCriticalText("Backup done");
+		logger.draw();
 		return true;
 	}
 	

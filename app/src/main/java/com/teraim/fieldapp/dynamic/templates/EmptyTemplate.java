@@ -22,6 +22,7 @@ import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
+import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -30,6 +31,7 @@ public class EmptyTemplate extends Executor {
 
 
 	private ViewGroup my_root;
+	private TextView versionTxt;
 
 	@Override
 	public boolean execute(String function, String target) {
@@ -44,19 +46,21 @@ public class EmptyTemplate extends Executor {
 
 	View view;
 	ImageView bg,logo;
-	TextView appTxt;
+	TextView appName, appVersion;
 	Button load_configuration_button;
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
 		Log.d("gipp","on create view EmptyTemplate wf is "+wf.getLabel());
-        view = inflater.inflate(R.layout.template_empty, container, false);
+		view = inflater.inflate(R.layout.template_empty, container, false);
 		my_root = view.findViewById(R.id.myRoot);
 
 		if (myContext != null )
 			myContext.addContainers(getContainers());
 		
         load_configuration_button = my_root.findViewById(R.id.buttonLoadConfig);
-        appTxt = view.findViewById(R.id.textViewAppValue);
+        appName = view.findViewById(R.id.textViewAppValue);
+		appVersion = view.findViewById(R.id.textViewVersionValue);
+		versionTxt = view.findViewById(R.id.textViewAppVersion);
 		bg = view.findViewById(R.id.bgImg);
 		logo = view.findViewById(R.id.logo);
 
@@ -66,8 +70,11 @@ public class EmptyTemplate extends Executor {
 			run();
 		}
 		PersistenceHelper globalPh = GlobalState.getInstance().getGlobalPreferences();
+		PersistenceHelper ph = GlobalState.getInstance().getPreferences();
 		String serverURL = globalPh.get(PersistenceHelper.SERVER_URL);
 		String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+		float currentVersionF = ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
+		String currentVersion = String.valueOf(currentVersionF);
 		String appBaseUrl = serverURL+bundleName.toLowerCase(Locale.ROOT)+"/";
 		String appRootFolderPath = getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/";
 
@@ -100,16 +107,18 @@ public class EmptyTemplate extends Executor {
 			public void progress(int bytesRead) {
 			}
 		});
-		appTxt.setText(bundleName);
+		appName.setText(bundleName);
 		return view;
 	}
 
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		
-		GlobalState gs = GlobalState.getInstance();
-		//v.setBackgroundColor(Color.BLUE);
+		PersistenceHelper globalPh = GlobalState.getInstance().getGlobalPreferences();
+		PersistenceHelper ph = GlobalState.getInstance().getPreferences();
+		float currentVersionF = ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
+		String currentVersion = String.valueOf(currentVersionF);
+
 		load_configuration_button.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -145,15 +154,14 @@ public class EmptyTemplate extends Executor {
 								.show();
 					}
 				}
-			
 		});
+		appVersion.setText(currentVersion);
+		versionTxt.setText(Constants.VORTEX_VERSION);
 	}
 
 	protected List<WF_Container> getContainers() {
 		ArrayList<WF_Container> ret = new ArrayList<WF_Container>();
 		ret.add(new WF_Container("root",my_root,null));
-//		ret.add(new WF_Container("pie",my_pie,null));
-
 		return ret;
 	}
 
