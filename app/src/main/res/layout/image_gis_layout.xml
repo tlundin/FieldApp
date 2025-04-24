@@ -156,8 +156,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/start"
                 android:textColor="@color/primary_text"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                />
 
             <Button
                 android:id="@+id/unlockB"
@@ -165,8 +164,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/cancel"
                 android:textColor="@color/primary_text"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                 />
 
             <TextSwitcher
                 android:id="@+id/avstTS"
