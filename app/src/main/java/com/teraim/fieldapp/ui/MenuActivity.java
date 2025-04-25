@@ -8,10 +8,13 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -20,6 +23,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
 
+import androidx.appcompat.widget.AppCompatImageButton;
 import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +38,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
@@ -874,6 +879,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 final Dialog dialog = new Dialog(this);
                 dialog.setContentView(R.layout.log_dialog_popup);
                 dialog.setTitle("Session Log");
+                if (dialog.getWindow() != null) {
+                    dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                            android.view.ViewGroup.LayoutParams.MATCH_PARENT);
+                    // Optional: Remove default dialog padding/background dimming if needed
+                     dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                     dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
+                }
                 final TextView tv = dialog.findViewById(R.id.logger);
                 final ScrollView sv = dialog.findViewById(R.id.logScroll);
                 Typeface type = Typeface.createFromAsset(getAssets(),
@@ -905,23 +917,47 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 });
                 Button scrollD = dialog.findViewById(R.id.scrollDown);
                 scrollD.setOnClickListener(v -> sv.post(() -> sv.fullScroll(ScrollView.FOCUS_DOWN)));
-                Button print = dialog.findViewById(R.id.printdb);
-                Button printLog = dialog.findViewById(R.id.printlog);
+                Button printDBButton = dialog.findViewById(R.id.printdb);
                 Button crashLog = dialog.findViewById(R.id.crashlog);
-
-                print.setOnClickListener(v -> {
+                AppCompatImageButton closeButton = dialog.findViewById(R.id.button_close);
+                closeButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        // Dismiss the dialog when the button is clicked
+                        if (dialog.isShowing()) {
+                            dialog.dismiss();
+                        }
+                    }
+                });
+                printDBButton.setOnClickListener(v -> {
                     if (gs != null)
                         BackupManager.getInstance(gs).backupDatabase("dump");
                 });
 
-                crashLog.setOnClickListener(new OnClickListener() {
+                crashLog.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String crashme = null;
-                        crashme.charAt(0);
+                        new AlertDialog.Builder(MenuActivity.this) // Use context here
+                                .setTitle("Confirm Action")
+                                .setMessage("Are you sure? This will crash the application.")
+                                .setIcon(android.R.drawable.ic_dialog_alert) // Optional warning icon
+                                .setPositiveButton("Yes, Crash Now", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // User confirmed - > Execute the crash code
+                                        String crashme = null;
+                                        // This line will cause a NullPointerException
+                                        System.out.println("Crashing deliberately: " + crashme.charAt(0));
+                                    }
+                                })
+                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int whichButton) {
+                                        // User cancelled - Do nothing, dialog dismisses automatically
+                                    }
+                                })
+                                .show();
                     }
                 });
-
+/*
 
                 printLog.setOnClickListener(new OnClickListener() {
                     @Override
@@ -949,7 +985,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                     }
                 });
-
+*/
 
 
                 break;
