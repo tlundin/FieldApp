@@ -109,13 +109,16 @@ public class Start extends MenuActivity {
         setContentView(R.layout.naviframe);
         //This combats an issue on the target panasonic platform having to do with http reading.
         //System.setProperty("http.keepAlive", "false");
-        mDrawerMenu = new  DrawerMenu(this);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        ActionBar actionbar = getSupportActionBar();
+        assert actionbar != null;
+        actionbar.setHomeAsUpIndicator(R.drawable.ic_round_menu_24px);
+        actionbar.setDisplayHomeAsUpEnabled(true);
+        mDrawerMenu = new  DrawerMenu(this,toolbar);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
-        configureToolBar();
 
-
-
-        // Create a Sync account
+        // Create a Sync account - REMOVED 2025
         // mAccount = CreateSyncAccount(this);
 
         //Determine if program should start or first reload its configuration.
@@ -135,15 +138,7 @@ public class Start extends MenuActivity {
         super.onCreate(savedInstanceState);
     }
 
-    private void configureToolBar() {
-        //getActionBar().setDisplayHomeAsUpEnabled(true);
-        //getActionBar().setHomeButtonEnabled(true);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        ActionBar actionbar = getSupportActionBar();
-        actionbar.setHomeAsUpIndicator(R.drawable.ic_round_menu_24px);
-        actionbar.setDisplayHomeAsUpEnabled(true);
-    }
+
 
 
     private boolean isUIThread(){
