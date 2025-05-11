@@ -26,8 +26,8 @@ public class SendLog extends Activity {
         Button button1,button2;
 
         super.onCreate(savedInstanceState);
-        requestWindowFeature (Window.FEATURE_NO_TITLE); // make a dialog without a titlebar
-        setFinishOnTouchOutside (false); // prevent users from dismissing the dialog by tapping outside
+        //requestWindowFeature (Window.FEATURE_NO_TITLE); // make a dialog without a titlebar
+        //setFinishOnTouchOutside (false); // prevent users from dismissing the dialog by tapping outside
         setContentView (R.layout.send_log);
 
         button1 = findViewById(R.id.button1);
@@ -36,9 +36,9 @@ public class SendLog extends Activity {
 
             @Override
             public void onClick(View arg0) {
+                Log.d("abla","button1 clicked");
                 sendLogFile();
                finish();
-
             }
 
         });
@@ -49,12 +49,11 @@ public class SendLog extends Activity {
 
             @Override
             public void onClick(View arg0) {
-
                 finish();
-
             }
 
         });
+        Log.d("abla","survived create");
 
 
 
@@ -77,7 +76,7 @@ public class SendLog extends Activity {
         // Make file name - file must be saved to external storage or it wont be readable by
         // the email app.
         String path = this.getApplicationContext().getFilesDir().getAbsolutePath();
-        String fullName = path + "crashlog";
+        String fullName = path + "/crashlog";
 
         // Extract to file.
         File file = new File (fullName);
@@ -105,6 +104,7 @@ public class SendLog extends Activity {
             writer.write ("App name: " + myIntent.getStringExtra("app_name")+ "\n");
             writer.write ("User name: " + myIntent.getStringExtra("user_name")+ "\n");
             writer.write ("Team name: " + myIntent.getStringExtra("team_name")+ "\n");
+            writer.write( "Free memory: " + Runtime.getRuntime().freeMemory()+"\n");
 
             char[] buffer = new char[10000];
             do

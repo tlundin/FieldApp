@@ -237,6 +237,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
 		if (globalPh.get(PersistenceHelper.LOG_LEVEL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
+		if (globalPh.get(PersistenceHelper.SERVER_URL).equals(PersistenceHelper.UNDEFINED))
+			globalPh.put(PersistenceHelper.SERVER_URL, Constants.DEFAULT_SERVER_URI);
 		if (globalPh.get(PersistenceHelper.EXPORT_SERVER_URL).equals(PersistenceHelper.UNDEFINED))
 			globalPh.put(PersistenceHelper.EXPORT_SERVER_URL, Constants.DEFAULT_EXPORT_SERVER);
 
