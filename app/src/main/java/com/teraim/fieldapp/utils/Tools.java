@@ -1292,13 +1292,7 @@ public class Tools {
 	public static String server(String serverUrl) {
 		assert serverUrl != null;
 		if (!serverUrl.matches("^(https?)://.*$"))
-			if (serverUrl.length() < 4)
-				serverUrl = Constants.DEFAULT_SERVER_URI;
-			else {
-				serverUrl = "https://" + serverUrl;
-
-
-			}
+			serverUrl = "https://" + serverUrl;
 		if (!serverUrl.endsWith("/"))
 			serverUrl += "/";
 		return serverUrl;

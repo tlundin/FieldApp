@@ -155,9 +155,9 @@ public class GisObject {
 			else if (statusValue>30 && statusValue<=70)
 				return "#a6fc00";
 			else if (statusValue>70 && statusValue<100)
-				return "#6aa84f";
+				return "#008500";
 			else if (statusValue==100)
-				return "#4a86e8";
+				return "#00FFFF";
 			else
 				return foc.getColor();
 		}
@@ -169,9 +169,9 @@ public class GisObject {
 			case Constants.STATUS_STARTAD_MEN_INTE_KLAR:
 				return "black";
 			case Constants.STATUS_AVSLUTAD_EXPORTERAD:
-				return "#38761d";
+				return "#008500";
 			case Constants.STATUS_KLAR_I_DB:
-				return "#4a86e8";
+				return "#00FFFF";
 
 		}
 		return foc.getColor();

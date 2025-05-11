@@ -31,5 +31,7 @@
     <color name="master_owner_bg">#ffb6c1</color>
     <color name="client_owner_bg">#e5e5ff</color>
     <color name="semi_transparent_white">#C0FFFFFF</color>
-
+    <color name="navigation_header_text_color">#A0A0A0</color>
+    <color name="navigation_item_text_color">#000000</color>
+    <color name="navigation_item_text_color_selected">?attr/colorPrimary</color>
 </resources>
