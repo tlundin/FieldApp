@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.28";
+    public static final String VORTEX_VERSION = "9.29";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
