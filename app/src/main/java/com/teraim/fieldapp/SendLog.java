@@ -100,7 +100,7 @@ public class SendLog extends Activity {
             writer.write ("Android version: " +  Build.VERSION.SDK_INT + "\n");
             writer.write ("Device: " + model + "\n");
             writer.write ("App version: " + (info == null ? "(null)" : info.versionCode) + "\n");
-            writer.write ("Vortex Version: " + myIntent.getFloatExtra("program_version",-1)+ "\n");
+            writer.write ("Vortex Version: " + myIntent.getStringExtra("program_version")+ "\n");
             writer.write ("App name: " + myIntent.getStringExtra("app_name")+ "\n");
             writer.write ("User name: " + myIntent.getStringExtra("user_name")+ "\n");
             writer.write ("Team name: " + myIntent.getStringExtra("team_name")+ "\n");
