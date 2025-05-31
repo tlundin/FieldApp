@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="929"
-    android:versionName="9.29">
+    android:versionCode="930"
+    android:versionName="9.30">
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -74,9 +74,8 @@
         </activity>
         <activity
             android:name="com.teraim.fieldapp.SendLog"
-            android:theme="@android:style/Theme.Dialog"
+            android:theme="@style/Theme.Material3.DayNight.Dialog.Alert"
             android:exported="true"
-            android:textAppearance="@android:style/TextAppearance.Large"
             android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="com.teraim.fieldapp.SEND_LOG" />
