@@ -237,8 +237,6 @@ public class WF_Table extends WF_List  {
 
     private class AggregateColumn implements EventListener {
 
-
-
 		AggregateColumn(String label, Expressor.EvalExpr expressionE, String format, AggregateFunction aggregationFunction, boolean isLogical) {
 			myCells=new ArrayList<View>();
 			myRows = new ArrayList<WF_Table_Row>();

@@ -10,6 +10,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 
 public class BlockCreateTableEntriesFromFieldList extends Block {
@@ -19,8 +20,7 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
     private String selectionPattern=null;
     private String variatorColumn=null;
 	String typeField=null,keyField = null;
-	private static final Map <String,List<List<String>>> cacheMap=new HashMap <String,List<List<String>>>();
-
+	private static final Map <String,List<List<String>>> cacheMap=new WeakHashMap<String,List<List<String>>>();
 
 	public BlockCreateTableEntriesFromFieldList(String id, String type,String target,
 			String selectionField,String selectionPattern,
