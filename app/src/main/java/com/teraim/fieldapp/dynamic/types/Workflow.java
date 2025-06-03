@@ -1,6 +1,6 @@
 package com.teraim.fieldapp.dynamic.types;
 
-import android.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.blocks.Block;

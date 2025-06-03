@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
+public abstract class WF_List<Listable> extends WF_Widget implements Sortable,Filterable {
 
 	private final List<Listable> list = new  ArrayList<>(); //Instantiated in constructor
 	private final List<Filter> myFilters=new ArrayList<>();

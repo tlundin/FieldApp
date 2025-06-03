@@ -3,6 +3,7 @@ package com.teraim.fieldapp.dynamic.blocks;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 import com.teraim.fieldapp.utils.Expressor;
@@ -48,7 +49,7 @@ public class BlockAddAggregateColumnToTable extends Block {
 
 
 	public void create(WF_Context myContext) {
-		WF_Table myTable = myContext.getTable(target);
+		PageWithTable myTable = (PageWithTable) myContext.getTemplate();
 		o = GlobalState.getInstance().getLogger();
 		if (myTable==null) {
 			Log.e("vortex","Did not find target table "+target+" in BlockAddAggregateColumnToTable, create");

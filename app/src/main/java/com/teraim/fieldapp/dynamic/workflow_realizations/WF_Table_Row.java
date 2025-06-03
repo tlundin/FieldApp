@@ -40,7 +40,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 
 	}
 	//Add the Entry (row header)
-	//Note that the row here could be any row belonging to the entry. 
+	//Note that the row here could be any row belonging to the entry.
 	public void addEntryField(List<String> row) {
 		myRow=row;
 		String label = getLabel();
@@ -49,10 +49,14 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 			label="*null*";
 		}
 		//Headertext is not there for header row..
+
 		if (headerT!=null)
 			headerT.setText(label);
 		else
 			headerT.setVisibility(View.GONE);
+
+
+
 	}
 
 
@@ -160,26 +164,27 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 
 
 	//Add a Vortex Cell.
-	public void addCell(String colHeader, String colKey, Map<String,String> columnKeyHash, String type, int width) {
+	public void addCell(String colHeader, String colKey, Map<String,String> columnKeyHash, String type, int width, WF_Cell.CellType cellType) {
 
 		if (myColumns==null)
 			myColumns = new ArrayList<WF_Cell>();
 			WF_Cell widget;
-			if ("simple".equals(type))
-				widget = new WF_Simple_Cell_Widget(columnKeyHash,getLabel(), al.getDescription(myRow),
-						myContext, this.getId()+colKey,true);
-				
+			if ("simple".equals(type)) {
+				View simpleCellL = LayoutInflater.from(myContext.getContext()).inflate(R.layout.cell_field_simple, null);
+				widget = new WF_Simple_Cell_Widget(columnKeyHash, getLabel(), al.getDescription(myRow),
+						myContext, this.getId() + colKey, true, cellType);
+			}
 			else {
 				widget = new WF_Cell_Widget(columnKeyHash, getLabel(), al.getDescription(myRow),
-						myContext, this.getId() + colKey, true);
+						myContext, this.getId() + colKey, true,cellType);
 
 			if (width!=-1)
 				widget.getWidget().setMinimumWidth(width);
 
 
 			}
-			
-			
+
+
 			//TODO:ADD FORMAT! NULL BELOW
 			//SHOW HISTORICAL IS TRUE!
 			//Variable v= al.getVariableUsingKey(columnKeyHash, this.getKey());
@@ -219,7 +224,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 	public List<WF_Cell> getCells() {
 		return myColumns;
 	}
-	
+
 	@Override
 	public String getKey() {
 		return getLabel();
