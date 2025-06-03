@@ -22,6 +22,9 @@ public class EventBroker {
 
 	}
 
+	public List<EventListener> getEventListeners(EventType et) {
+		return eventListeners.get(et);
+	}
 	public void registerEventListener(EventType et,EventListener el) {
 
 		List<EventListener> els = eventListeners.get(et);

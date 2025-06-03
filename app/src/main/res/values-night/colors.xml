@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="my_dark_divider_color">#1FFFFFFF</color>
+    <color name="my_dark_on_surface_color">#DEFFFFFF</color>
+</resources>

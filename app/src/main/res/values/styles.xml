@@ -12,7 +12,8 @@
         <item name="titleTextAppearance">@style/MyTitleTextStyle</item>
     </style>
     <style name="MyTitleTextStyle" parent="@style/TextAppearance.MaterialComponents.Headline6">
-        <item name="android:textColor">@color/white</item> </style>
+        <item name="android:textColor">@color/white</item>
+    </style>
 
     <style name="MyButton" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/button_background_light_gray</item>
@@ -23,16 +24,25 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
+
+    <style name="RightSlideAnimation">
+        <item name="android:windowEnterAnimation">@anim/slide_in_right</item>
+        <item name="android:windowExitAnimation">@anim/slide_out_right</item>
+    </style>
+
+    <!-- Ensure @color/my_light_on_surface_color is defined as a dark color in res/values/colors.xml -->
+    <!-- and you can have a different definition for it in res/values-night/colors.xml if needed, -->
+    <!-- or rely on Material Components defaults for colorOnSurface in dark theme -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
         <item name="colorSecondary">@color/accent</item>
         <item name="colorOnSecondary">@color/black</item>
-        <item name="dividerColor">@color/primary_dark_translucent</item>
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-
         <item name="materialButtonStyle">@style/MyButton</item>
+        <item name="dividerColor">@color/my_light_divider_color</item>
+        <item name="colorOnSurface">@color/my_light_on_surface_color</item>
     </style>
 
     <style name="GreenStyle" parent="@android:style/Widget.TextView">
@@ -53,29 +63,41 @@
 
     <style name="NavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
         <item name="itemTextAppearance">@style/NavigationViewItemTextAppearance</item>
-        <item name="itemTextColor">@color/navigation_item_text_color</item>
+        <!-- MODIFIED: Use a theme attribute for adaptive text color -->
+        <item name="itemTextColor">?attr/colorOnSurface</item>
+        <!-- Alternatively, if you want slightly less emphasis: -->
+        <!-- <item name="itemTextColor">?attr/colorOnSurfaceVariant</item> -->
         <item name="itemBackground">@drawable/navigation_item_background</item>
     </style>
 
     <style name="NavigationViewItemTextAppearance" parent="TextAppearance.MaterialComponents.Body2">
         <item name="android:textSize">14sp</item>
+        <!-- This style does not set android:textColor, so it will respect itemTextColor from NavigationViewStyle -->
     </style>
 
+    <!-- This selector is for itemTextColor if you want different colors for checked/unchecked states.
+         If you use this, NavigationViewStyle's itemTextColor should point to this selector:
+         <item name="itemTextColor">@color/navigation_item_text_color_selector</item>
+         And then @color/navigation_item_text_color (for unchecked) and
+         @color/navigation_item_text_color_selected (for checked) need to be defined
+         with appropriate light/dark theme values in your colors.xml files.
+    -->
     <color name="navigation_item_text_color_selector">
-        <selector>
+        <selector xmlns:android="http://schemas.android.com/apk/res/android">
             <item android:state_checked="true" android:color="@color/navigation_item_text_color_selected" />
-            <item android:color="@color/navigation_item_text_color" />
+            <item android:color="@color/navigation_item_text_color" /> <!-- This is the default/unchecked color -->
         </selector>
     </color>
 
     <drawable name="navigation_item_background">
-        <selector>
+        <selector xmlns:android="http://schemas.android.com/apk/res/android">
             <item android:state_checked="true">
                 <shape>
-                    <solid android:color="#E0E0E0" /> <corners android:radius="4dp"/> </shape>
+                    <solid android:color="#E0E0E0" /> <!-- This is a light grey, ensure it contrasts with selected text color -->
+                    <corners android:radius="4dp"/>
+                </shape>
             </item>
             <item android:drawable="@android:color/transparent" />
         </selector>
     </drawable>
-
 </resources>

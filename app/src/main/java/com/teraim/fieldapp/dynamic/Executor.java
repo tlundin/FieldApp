@@ -3,7 +3,7 @@ package com.teraim.fieldapp.dynamic;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -993,8 +993,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				//Draw all lists first.
 				for (WF_Static_List l:myContext.getLists())
 					l.draw();
-				for (WF_Table t:myContext.getTables())
-					t.draw();
 
 				if (root!=null) 
 					myContext.drawRecursively(root);

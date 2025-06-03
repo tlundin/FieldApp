@@ -3,9 +3,8 @@ package com.teraim.fieldapp;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.Fragment;
+import androidx.fragment.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -24,6 +23,7 @@ import android.view.ViewConfiguration;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
@@ -89,19 +89,18 @@ public class Start extends MenuActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState); // <<-- MOVE THIS TO THE TOP
 
         // Setup handler for uncaught exceptions.
-
-		Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
-		{
-			@Override
-			public void uncaughtException (Thread thread, Throwable e)
-			{
-				Log.e("vortex","Uncaught Exception detected in thread {"+thread+"} Exce: "+ e);
-				//e.printStackTrace();
-				handleUncaughtException (thread, e);
-			}
-		});
+        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
+        {
+            @Override
+            public void uncaughtException (Thread thread, Throwable e)
+            {
+                Log.e("vortex","Uncaught Exception detected in thread {"+thread+"} Exce: "+ e);
+                handleUncaughtException (thread, e);
+            }
+        });
 
         Log.d("nils","in START onCreate");
         singleton = this;
@@ -122,8 +121,14 @@ public class Start extends MenuActivity {
         // mAccount = CreateSyncAccount(this);
 
         //Determine if program should start or first reload its configuration.
-        if (!loading)
+        // Now that super.onCreate() has been called, FragmentManager will be ready.
+        if (!loading) {
+            // Consider passing savedInstanceState to checkStatics if you want to
+            // avoid re-adding fragments on configuration changes.
+            // For now, this direct call should work after moving super.onCreate().
             checkStatics();
+        }
+
 
         try {
             ViewConfiguration config = ViewConfiguration.get(this);
@@ -135,7 +140,7 @@ public class Start extends MenuActivity {
         } catch (Exception ex) {
             // Ignore
         }
-        super.onCreate(savedInstanceState);
+        // super.onCreate(savedInstanceState); // Already called at the top
     }
 
 
@@ -256,7 +261,7 @@ public class Start extends MenuActivity {
 
 
                 //Start the login fragment.
-                android.app.FragmentManager fm = getFragmentManager();
+                androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
                 /*
                 for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
                     fm.popBackStack();
@@ -378,7 +383,7 @@ public class Start extends MenuActivity {
             showErrorMsg(cHash);
     }
     public void changePage(Fragment newPage, String label) {
-        FragmentManager fragmentManager = getFragmentManager();
+        androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
 
         FragmentTransaction ft = fragmentManager.beginTransaction();
 
@@ -388,17 +393,6 @@ public class Start extends MenuActivity {
                 .commit();
         setTitle(label);
 
-        //Log.d("gipp","Backstack: "+fragmentManager.getBackStackEntryCount()+" list "+fragmentManager.getFragments().toString());
-        //If previous was an empty fragment, clean it
-/*
-        if (emptyFragmentToExecute!=null) {
-            Log.d("blax","removing empty fragment");
-            ft.remove(emptyFragmentToExecute);
-            emptyFragmentToExecute=null;
-        }
-*/
-
-        //mDrawerLayout.closeDrawer(mDrawerList);
 
     }
 
@@ -411,8 +405,8 @@ public class Start extends MenuActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("vortex","IN ONACTIVITY RESULT ");
         Log.d("vortex","request code "+requestCode+" result code "+resultCode);
-
-        Fragment f = getFragmentManager().findFragmentById(R.id.content_frame);
+        androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+        Fragment f = fm.findFragmentById(R.id.content_frame);
         if (f instanceof Executor)
             ((Executor) f).getCurrentContext().registerEvent(new WF_Event_OnActivityResult("Start", EventType.onActivityResult));
 
@@ -459,8 +453,9 @@ public class Start extends MenuActivity {
                 getDrawerMenu().closeDrawer();
                 return true;
             }
-            Fragment currentContentFrameFragment = getFragmentManager().findFragmentById(R.id.content_frame);
-            int x = getFragmentManager().getBackStackEntryCount();
+            androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
+            Fragment currentContentFrameFragment = fm.findFragmentById(R.id.content_frame);
+            int x = fm.getBackStackEntryCount();
             Log.d("gipp", "backstack count: " + x);
             if (currentContentFrameFragment == null) {
                 Log.d("gipp", "current fragment is null");
@@ -597,7 +592,18 @@ public class Start extends MenuActivity {
         }
     }
 
-
+    public void setTopBarVisibility(boolean isVisible) {
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            if (isVisible) {
+                actionBar.show();
+            } else {
+                actionBar.hide();
+            }
+        } else {
+            Log.w("StartActivity", "ActionBar not found, cannot set visibility.");
+        }
+    }
     /*
     @Override
     public void onBackStackChanged() {

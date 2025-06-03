@@ -1,6 +1,7 @@
 package com.teraim.fieldapp.dynamic.workflow_realizations;
 
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -15,9 +16,11 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.CompoundButton.OnCheckedChangeListener;
+import android.widget.TableRow;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
@@ -40,6 +43,8 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 	private Drawable originalBackground;
 	private final Context ctx;
 	private ActionMode mActionMode;
+
+	private CellType cellType;
 	private static final int backgroundColor=Color.TRANSPARENT;
 
 	private void setBackgroundColor(int color) {
@@ -163,20 +168,17 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 		};
 
 
-
-
-
-
-
-
 		public WF_Simple_Cell_Widget(Map<String, String> columnKeyHash, String headerT, String descriptionT,
-									 final WF_Context context, String id,boolean isVisible) {
+									 final WF_Context context, String id,boolean isVisible,CellType type) {
 			super(id,new CheckBox(context.getContext()),isVisible,context);
-			myCheckBox = (CheckBox)this.getWidget();
-			myCheckBox.setGravity(Gravity.CENTER_VERTICAL);
 			myHash = columnKeyHash;
 			ctx = context.getContext();
+			cellType = type;
+			myCheckBox = (CheckBox) getWidget();//v.findViewById(R.id.checkbox);
 
+			//TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
+			myCheckBox.setGravity(Gravity.CENTER_VERTICAL);
+			//myCheckBox.setLayoutParams(params);
 			getWidget().setOnLongClickListener(new View.OnLongClickListener() {
 
 				@Override
@@ -238,7 +240,12 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 			//this.getWidget().requestLayout();
 		}
 
-		@Override
+	@Override
+	public CellType getType() {
+		return cellType;
+	}
+
+	@Override
 		public Map<String, String> getKeyHash() {
 			return null;
 		}
