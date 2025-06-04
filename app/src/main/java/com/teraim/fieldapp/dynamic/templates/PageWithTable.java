@@ -27,14 +27,10 @@ import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
-import com.teraim.fieldapp.dynamic.workflow_abstracts.Filter;
-import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
-import com.teraim.fieldapp.dynamic.workflow_abstracts.Sorter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Cell;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_List;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table_Row_Recycle;
 import com.teraim.fieldapp.ui.FilterDialogDismissListener;
 import com.teraim.fieldapp.ui.FilterDialogFragment;
@@ -57,27 +53,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private LinearLayout stickyHeaderLinearLayout;
     private RecyclerView tableRecyclerView;
 
-    private WF_List<Listable> tableRowsDataList = new WF_List() {
-        @Override
-        public void addSorter(Sorter s) {
-            super.addSorter(s);
-        }
-
-        @Override
-        public void removeSorter(Sorter s) {
-            super.removeSorter(s);
-        }
-
-        @Override
-        public void addFilter(Filter f) {
-            super.addFilter(f);
-        }
-
-        @Override
-        public void removeFilter(Filter f) {
-            super.removeFilter(f);
-        }
-    };
+    private List<WF_Table_Row_Recycle> tableRowsDataList = new ArrayList<>();
     private TableBodyAdapter tableBodyAdapter;
 
     private boolean isProgrammaticScroll = false;
