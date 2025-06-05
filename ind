@@ -1,0 +1,12 @@
+
+Fatal error: Uncaught Error: Call to undefined function create_function() in /customers/c/9/3/teraim.com/httpd.www/wp-content/plugins/download-manager/modules/widgets.php:460
+Stack trace:
+#0 /customers/c/9/3/teraim.com/httpd.www/wp-content/plugins/download-manager/wpdm-core.php(299): include()
+#1 /customers/c/9/3/teraim.com/httpd.www/wp-content/plugins/download-manager/download-manager.php(40): include('/customers/c/9/...')
+#2 /customers/c/9/3/teraim.com/httpd.www/wp-settings.php(255): include_once('/customers/c/9/...')
+#3 /customers/c/9/3/teraim.com/httpd.www/wp-config.php(90): require_once('/customers/c/9/...')
+#4 /customers/c/9/3/teraim.com/httpd.www/wp-load.php(37): require_once('/customers/c/9/...')
+#5 /customers/c/9/3/teraim.com/httpd.www/wp-blog-header.php(13): require_once('/customers/c/9/...')
+#6 /customers/c/9/3/teraim.com/httpd.www/index.php(17): require('/customers/c/9/...')
+#7 {main}
+  thrown in /customers/c/9/3/teraim.com/httpd.www/wp-content/plugins/download-manager/modules/widgets.php on line 460

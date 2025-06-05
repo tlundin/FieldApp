@@ -185,21 +185,21 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         });
         filterRow2.addView(rrButton);
 
-        Button regButton = new Button(getContext());
-        regButton.setText("<<REG");
-        regButton.setTypeface(regButton.getTypeface(), Typeface.BOLD);
-        regButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        int marginInDp = 2;
-        int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
-        params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
-        regButton.setLayoutParams(params);
-        regButton.setPadding(6,6,6,6);
-        regButton.setOnClickListener(v -> {
-            Log.d("PageWithTable", "REG button clicked!");
-            Toast.makeText(getContext(), "REG Clicked (Placeholder Action)", Toast.LENGTH_SHORT).show();
-        });
-        filterRow2.addView(regButton);
+        //Button regButton = new Button(getContext());
+        //regButton.setText("<<REG");
+        //regButton.setTypeface(regButton.getTypeface(), Typeface.BOLD);
+        //regButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+        //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        //int marginInDp = 2;
+        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
+        //params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
+        //regButton.setLayoutParams(params);
+        //regButton.setPadding(6,6,6,6);
+        //regButton.setOnClickListener(v -> {
+         //   Log.d("PageWithTable", "REG button clicked!");
+         //
+        //});
+        //filterRow2.addView(regButton);
     }
 
     private ToggleButton createFilterToggleButton(Context context, String text) {
@@ -816,7 +816,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (my_root != null) {
             WF_Container root = new WF_Container("root",my_root, null);
             ret.add(root);
-            //if (filterPanel != null) ret.add(new WF_Container("filter_panel",filterPanel,root));
+            if (filterRow2 != null) ret.add(new WF_Container("filter_panel",filterRow2,root));
 
         } else {
             Log.w("PageWithTable", "my_root is null in getContainers.");
