@@ -24,7 +24,6 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import androidx.appcompat.widget.AppCompatImageButton;
-import androidx.core.content.ContextCompat;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.JsonReader;
@@ -35,7 +34,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.WindowManager;
@@ -70,12 +68,7 @@ import com.teraim.fieldapp.synchronization.framework.SyncService;
 import com.teraim.fieldapp.utils.BackupManager;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
-import com.teraim.fieldapp.utils.Tools;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -143,6 +136,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private final static int MENU_ITEM_ABOUT = 5;
     private Button refresh_button;
     private CompoundButton.OnCheckedChangeListener mSyncSwitchListener;
+    private RequestQueue requestQueue;
+    private Timer teamUpdateTimer;
 
     private enum GPSQuality {
         red,
@@ -163,6 +158,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         me = this;
 
         globalPh = new PersistenceHelper(this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE));
+        requestQueue = Volley.newRequestQueue(this.getApplicationContext());
 
         brr = new BroadcastReceiver() {
             private static final long MIN_REDRAW_DELAY = 5000;
@@ -291,9 +287,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     }
 
     private void getTeamUpdates(int locationUpdateInterval) {
-        Timer timer = new Timer();
-
-        timer.schedule(new TimerTask() {
+        if (teamUpdateTimer != null) { // Cancel any existing timer before starting a new one
+            teamUpdateTimer.cancel();
+            teamUpdateTimer.purge();
+        }
+        teamUpdateTimer = new Timer();
+        teamUpdateTimer.schedule(new TimerTask() {
 
             synchronized public void run() {
                 //Log.d("fenris","runs with "+locationUpdateInterval+"s intervals");
@@ -322,7 +321,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             String team = gs.getMyTeam();
             String project = globalPh.get(PersistenceHelper.BUNDLE_NAME);
             String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
-            RequestQueue queue = Volley.newRequestQueue(this);
+
             if(updateMyPosition) {
                 JSONObject jsonBody = new JSONObject();
                 JSONObject positionObject = new JSONObject();
@@ -379,7 +378,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                     }
                 };
 
-                queue.add(postMyPositionRequest);
+                requestQueue.add(postMyPositionRequest);
             }
             final String GetPoisitions = Constants.SynkStatusURI + "/positions";
             StringRequest getTeamStatusRequest = new StringRequest(Request.Method.GET, GetPoisitions,
@@ -399,7 +398,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 }
             });
 
-            queue.add(getTeamStatusRequest);
+            requestQueue.add(getTeamStatusRequest);
             final String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
             final String GetServerStatus = exportServerURL + "/server";
             StringRequest getServerStatusRequest = new StringRequest(Request.Method.GET, GetServerStatus,
@@ -420,7 +419,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 }
             });
 
-            queue.add(getServerStatusRequest);
+            requestQueue.add(getServerStatusRequest);
 
         } else {
             if (callInProgress)
@@ -447,7 +446,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         }
 
         syncState = R.drawable.syncoff;
-
+        if (requestQueue != null) {
+            requestQueue.stop();
+        }
+        if (teamUpdateTimer != null) { // Also ensure your timer is cancelled
+            teamUpdateTimer.cancel();
+            teamUpdateTimer.purge();
+        }
         super.onDestroy();
 
     }
@@ -1458,7 +1463,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 final String SyncServerStatusCall = Constants.SynkStatusURI;
                 //team + "&project=" + project + "&timestamp=" + timestamp + "&useruuid=" + useruuid;
                 //final TextView mTextView = (TextView) findViewById(R.id.text);
-                RequestQueue queue = Volley.newRequestQueue(this);
+
 
                 StringRequest stringRequest = new StringRequest(Request.Method.GET, SyncServerStatusCall,
                         new Response.Listener<String>() {
@@ -1491,7 +1496,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 });
 
 
-                queue.add(stringRequest);
+                requestQueue.add(stringRequest);
             } else {
                 Log.d("fenris", "no connection");
                 syncState=R.drawable.syncerr;

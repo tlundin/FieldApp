@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.teraim.fieldapp.R; // Assuming R is in the main app package
+import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table_Row_Recycle; // Import for the row widget
 
 import java.util.ArrayList;
@@ -22,7 +23,7 @@ public class TableBodyAdapter extends RecyclerView.Adapter<TableBodyAdapter.RowV
 
     private final Context context;
     // Changed data type from List<List<String>> to List<WF_Table_Row_Recycle>
-    private final List<WF_Table_Row_Recycle> tableRowsDataList;
+    private final List<Listable> tableRowsDataList;
     private List<String> columnHeaders; // Still kept, might be used by PageWithTable or for other logic
     private final ScrollSyncManager scrollSyncManager;
 
@@ -33,7 +34,7 @@ public class TableBodyAdapter extends RecyclerView.Adapter<TableBodyAdapter.RowV
     }
 
     // Updated constructor to accept List<WF_Table_Row_Recycle>
-    public TableBodyAdapter(Context context, List<WF_Table_Row_Recycle> rowsData, List<String> columnHeaders, ScrollSyncManager scrollSyncManager) {
+    public TableBodyAdapter(Context context, List<Listable> rowsData, List<String> columnHeaders, ScrollSyncManager scrollSyncManager) {
         this.context = context;
         this.tableRowsDataList = rowsData; // Use the new list type
         this.columnHeaders = columnHeaders != null ? columnHeaders : new ArrayList<>();
@@ -55,7 +56,7 @@ public class TableBodyAdapter extends RecyclerView.Adapter<TableBodyAdapter.RowV
 
     @Override
     public void onBindViewHolder(@NonNull RowViewHolder holder, int position) {
-        WF_Table_Row_Recycle rowWidgetItem = tableRowsDataList.get(position);
+        WF_Table_Row_Recycle rowWidgetItem =(WF_Table_Row_Recycle)tableRowsDataList.get(position);
         // The bind method in ViewHolder now takes the WF_Table_Row_Recycle object
         holder.bind(rowWidgetItem);
     }
