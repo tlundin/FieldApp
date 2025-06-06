@@ -59,8 +59,8 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private LinearLayout stickyHeaderLinearLayout;
     private RecyclerView tableRecyclerView;
 
-    private List<Listable> masterTableRowsDataList = new ArrayList<>();
-    private List<Listable> displayedTableRowsDataList = new ArrayList<>();
+    private final List<Listable> masterTableRowsDataList = new ArrayList<>();
+    private final List<Listable> displayedTableRowsDataList = new ArrayList<>();
     private TableBodyAdapter tableBodyAdapter;
 
     private boolean isProgrammaticScroll = false;
