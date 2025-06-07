@@ -54,9 +54,11 @@
         <item name="materialButtonStyle">@style/MyButton</item>
         <item name="dividerColor">@color/my_light_divider_color</item>
         <item name="colorOnSurface">@color/my_light_on_surface_color</item>
-
-        <!-- This is the key line to apply your new overflow menu style -->
         <item name="actionOverflowMenuStyle">@style/AppTheme.PopupMenu</item>
+        <item name="android:actionOverflowMenuStyle">@style/AppTheme.PopupMenu</item>
+        <item name="popupMenuStyle">@style/AppTheme.PopupMenu</item>
+        <item name="android:popupMenuStyle">@style/AppTheme.PopupMenu</item>
+
     </style>
 
     <style name="GreenStyle" parent="@android:style/Widget.TextView">

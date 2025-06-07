@@ -251,9 +251,10 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 				if (aggregateCellViewsInRow != null && currentAggCellIndex < aggregateCellViewsInRow.size()) {
 					cellViewToUpdate = aggregateCellViewsInRow.get(currentAggCellIndex);
 					currentAggCellIndex++;
-				} else {
-					Log.w("WF_Table_Row_Recycle", "Row " + getLabel() + ": Not enough aggregate cell views for colDef '" + colDef.label + "' (global index " + globalDefIndex + ")");
 				}
+				//else {
+					//Log.w("WF_Table_Row_Recycle", "Row " + getLabel() + ": Not enough aggregate cell views for colDef '" + colDef.label + "' (global index " + globalDefIndex + ")");
+				//}
 			} else { // Non-aggregate column
 				if (myColumns != null && currentDataCellIndex < myColumns.size()) {
 					WF_Cell wfCell = myColumns.get(currentDataCellIndex);
@@ -401,5 +402,8 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 			}
 		}
 		return false;
+	}
+	public List<String> getRowData() {
+		return myRow;
 	}
 }
