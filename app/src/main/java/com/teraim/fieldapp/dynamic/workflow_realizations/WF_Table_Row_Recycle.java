@@ -61,6 +61,15 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		} else { // Data Row
 			if (v instanceof TableRow) {
 				actualHeaderCellsContainer = (TableRow) v;
+				headerT_RowLabel.setOnClickListener(new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						// Call back to PageWithTable
+						if (myWfTable != null && myRow != null) {
+							myWfTable.onRowHeaderClicked(myRow);
+						}
+					}
+				});
 			} else {
 				Log.e("WF_Table_Row_Recycle", "Data row's main view (getWidget()) is not a TableRow for ID: " + id + ". View type: " + (v != null ? v.getClass().getName() : "null"));
 				// If getWidget() can be something else, this assignment might be wrong for data rows.
@@ -92,8 +101,8 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		Context ctx = myContext.getContext();
 		if (definition.backgroundColor != null) headerC.setBackgroundColor(Tools.getColorResource(ctx, definition.backgroundColor));
 		else headerC.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
-		if (definition.textColor != null) headerTV.setTextColor(Tools.getColorResource(ctx, definition.textColor));
-		else headerTV.setTextColor(ContextCompat.getColor(ctx, R.color.default_text_color));
+		//if (definition.textColor != null) headerTV.setTextColor(Tools.getColorResource(ctx, definition.textColor));
+		//else headerTV.setTextColor(ContextCompat.getColor(ctx, R.color.default_text_color));
 		headerTV.setTextSize(TypedValue.COMPLEX_UNIT_SP, definition.textSizeSp);
 		headerTV.setTypeface(null, Typeface.NORMAL);
 

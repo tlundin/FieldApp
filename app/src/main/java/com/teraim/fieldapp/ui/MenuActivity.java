@@ -149,6 +149,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private long lastRedraw = 0;
     private Handler handler = null;
 
+    private IntentFilter filter = new IntentFilter();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -240,13 +242,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
         };
 
 
-        IntentFilter filter = new IntentFilter();
         filter.addAction(INITDONE);
         filter.addAction(INITSTARTS);
         filter.addAction(REDRAW);
         filter.addAction(INITFAILED);
 
-        LocalBroadcastManager.getInstance(this).registerReceiver(brr, filter);
+
 
         //Register to sync framework
         //initializeSynchronisation();
@@ -433,13 +434,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
     @Override
+    protected void onPause() {
+        if (brr!=null)
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(brr);
+        super.onPause();
+    }
+
+    @Override
     public void onDestroy() {
         Log.d("NILS", "In the onDestroy() event");
         latestSignal = null;
-
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(brr);
-
-        // Unbind from the service
+       // Unbind from the service
         if (mBound) {
             unbindService(mConnection);
             mBound = false;
@@ -472,6 +477,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     @Override
     protected void onResume() {
         super.onResume();
+        LocalBroadcastManager.getInstance(this).registerReceiver(brr, filter);
         if ("Internet".equals(this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.SYNC_METHOD, ""))) {
             Intent myIntent = new Intent(MenuActivity.this, SyncService.class);
             myIntent.setAction(MESSAGE_ACTION);
@@ -614,8 +620,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
     private void createMenu(Menu menu) {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        //animView = (ImageView) inflater.inflate(R.layout.refresh_load_icon, null);
 
         for (int c = 0; c < mnu.length; c++)
             mnu[c] = menu.add(0, c, c, "");

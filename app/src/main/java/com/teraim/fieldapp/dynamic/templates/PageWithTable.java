@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 // Removed FragmentManager import as FilterDialogFragment is removed
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -52,6 +54,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 
 public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager {
 
@@ -88,6 +97,11 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
     private Set<String> activeAlphabeticalFilters = new HashSet<>();
     private boolean filterHideRowsWithNoEntries = false;
+    private CardView infoPanelCard;
+    private TextView infoPanelText;
+    private ImageButton infoPanelCloseButton;
+    private String currentlyDisplayedInfoLabel = null;
+
 
 
     // Inner class to define column properties
@@ -149,6 +163,12 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         stickyHeaderLinearLayout = view.findViewById(R.id.sticky_header_linear_layout);
         tableRecyclerView = view.findViewById(R.id.table_recycler_view);
 
+        infoPanelCard = view.findViewById(R.id.info_panel_card);
+        infoPanelText = view.findViewById(R.id.info_panel_text);
+        infoPanelCloseButton = view.findViewById(R.id.info_panel_close_button);
+        infoPanelCloseButton.setOnClickListener(v -> hideInfoPanel());
+
+
         setupRecyclerView();
         setupHeaderScrollListener();
         refreshHeaderUI();
@@ -185,21 +205,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         });
         filterRow2.addView(rrButton);
 
-        //Button regButton = new Button(getContext());
-        //regButton.setText("<<REG");
-        //regButton.setTypeface(regButton.getTypeface(), Typeface.BOLD);
-        //regButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
-        //LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        //int marginInDp = 2;
-        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
-        //params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
-        //regButton.setLayoutParams(params);
-        //regButton.setPadding(6,6,6,6);
-        //regButton.setOnClickListener(v -> {
-         //   Log.d("PageWithTable", "REG button clicked!");
-         //
-        //});
-        //filterRow2.addView(regButton);
     }
 
     private ToggleButton createFilterToggleButton(Context context, String text) {
@@ -213,6 +218,65 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         tb.setLayoutParams(params);
         tb.setPadding(6, 6, 6, 6);
         return tb;
+    }
+
+    public void onRowHeaderClicked(List<String> row) {
+        if (al == null || infoPanelCard == null || infoPanelText == null) return;
+
+        String rowLabel = al.getEntryLabel(row);
+        String extraInfo = al.getDescription(row);
+        String url = al.getUrl(row); // Assuming this method exists in VariableConfiguration
+
+        // If the same row is clicked again while its info is showing, hide it.
+        if (infoPanelCard.getVisibility() == View.VISIBLE && rowLabel.equals(currentlyDisplayedInfoLabel)) {
+            hideInfoPanel();
+            return;
+        }
+
+        if ((extraInfo == null || extraInfo.isEmpty()) && (url == null || url.isEmpty())) {
+            hideInfoPanel();
+            Toast.makeText(getContext(), "No extra information available.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Build the text with a potential link
+        String infoText = (extraInfo != null) ? extraInfo : "";
+        if (url != null && !url.isEmpty()) {
+            final String linkPlaceholder = " info";
+            SpannableString spannableString = new SpannableString(infoText + linkPlaceholder);
+
+            ClickableSpan clickableSpan = new ClickableSpan() {
+                @Override
+                public void onClick(View textView) {
+                    try {
+                        Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                        getContext().startActivity(browserIntent);
+                    } catch (Exception e) {
+                        Log.e("PageWithTable", "Could not open URL: " + url, e);
+                        Toast.makeText(getContext(), "Could not open link", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            };
+
+            int startIndex = infoText.length();
+            int endIndex = startIndex + linkPlaceholder.length();
+            spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            infoPanelText.setText(spannableString);
+            infoPanelText.setMovementMethod(LinkMovementMethod.getInstance()); // Makes links clickable
+        } else {
+            infoPanelText.setText(infoText);
+            infoPanelText.setMovementMethod(null); // No links, no movement method needed
+        }
+
+        infoPanelCard.setVisibility(View.VISIBLE);
+        currentlyDisplayedInfoLabel = rowLabel;
+    }
+
+    private void hideInfoPanel() {
+        if (infoPanelCard != null) {
+            infoPanelCard.setVisibility(View.GONE);
+        }
+        currentlyDisplayedInfoLabel = null;
     }
 
     public void applyRowFilters() {
@@ -816,8 +880,8 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (my_root != null) {
             WF_Container root = new WF_Container("root",my_root, null);
             ret.add(root);
-            if (filterRow2 != null) ret.add(new WF_Container("filter_panel",filterRow2,root));
-
+            ret.add(new WF_Container("filter_panel",filterRow2,root));
+            ret.add(new WF_Container("table_panel",tableRecyclerView,root));
         } else {
             Log.w("PageWithTable", "my_root is null in getContainers.");
         }
@@ -832,7 +896,4 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public void setSelectedColumnIndex(int myHeaderIndex) { /* TODO */ }
     public int getSelectedColumnIndex() { return currentlyFocusedColumn; }
 
-    // Execute method removed as per request
-    // @Override
-    // public boolean execute(String function, String target) { /* ... */ }
 }

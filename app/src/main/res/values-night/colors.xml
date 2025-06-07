@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- For Dark Theme, text on surfaces should be light/white -->
+    <color name="my_dark_on_surface_color">#DEFFFFFF</color> <!-- 87% White -->
 
-    <color name="my_dark_divider_color">#1FFFFFFF</color>
-    <color name="my_dark_on_surface_color">#DEFFFFFF</color>
+    <!-- The divider should also be light on a dark surface -->
+    <color name="my_dark_divider_color">#1FFFFFFF</color> <!-- 12% White -->
+
+    <!-- You can also override other colors here if needed for dark theme -->
+    <!-- For example, if 'my_light_on_surface_color' is used by your dark theme's style, override it too -->
+    <color name="my_light_on_surface_color">#DEFFFFFF</color>
 </resources>

@@ -174,6 +174,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	private Variable myX, myY, myAcc;
 	private LocationCallback locationCallback;
 
+	private IntentFilter ifi;
+
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -192,9 +194,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			o = gs.getLogger();
 
 
-            IntentFilter ifi = new IntentFilter();
+			ifi = new IntentFilter();
 			ifi.addAction(REDRAW_PAGE);
-            ifi.addAction(REFRESH_AFTER_SUBFLOW_EXECUTION);
+			ifi.addAction(REFRESH_AFTER_SUBFLOW_EXECUTION);
 			//ifi.addAction(BluetoothConnectionService.BLUETOOTH_MESSAGE_RECEIVED);
 			//This receiver will forward events to the current context.
 			//Bluetoothmessages are saved in the global context by the message handler.
@@ -231,8 +233,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				}
 			};
 
-			LocalBroadcastManager.getInstance(this.getActivity()).registerReceiver(brr,
-                    ifi);
+
 			
 			myContext = new WF_Context(this.getActivity(),this,R.id.content_frame);
 			wf = getFlow();
@@ -288,6 +289,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (myContext.hasMap())
 				gs.registerUpdateListener(myContext.getCurrentGis());
 		}
+		if (brr!=null && getActivity()!=null)
+			LocalBroadcastManager.getInstance(getActivity()).registerReceiver(brr,
+				ifi);
 
 		super.onResume();
 	}
@@ -339,6 +343,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (myContext.hasGPSTracker())
 				stopLocationUpdates();
 		}
+		if (brr!=null && getActivity()!=null)
+			LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(brr);
+
+
 		super.onPause();
 	}
 
@@ -459,8 +467,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		if (brr!=null && this.getActivity()!=null)
-			LocalBroadcastManager.getInstance(this.getActivity()).unregisterReceiver(brr);
+
 	}
 
 	private void execute(int blockP) {
