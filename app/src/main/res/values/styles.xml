@@ -2,7 +2,8 @@
 
     <style name="ConsoleStyle" parent="@android:style/Widget.TextView">
         <item name="android:textSize">@dimen/text_size_large</item>
-        <item name="android:textColor">@color/white</item> <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:textStyle">normal</item>
     </style>
 
     <style name="AppBaseTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
@@ -30,9 +31,19 @@
         <item name="android:windowExitAnimation">@anim/slide_out_right</item>
     </style>
 
-    <!-- Ensure @color/my_light_on_surface_color is defined as a dark color in res/values/colors.xml -->
-    <!-- and you can have a different definition for it in res/values-night/colors.xml if needed, -->
-    <!-- or rely on Material Components defaults for colorOnSurface in dark theme -->
+    <!-- New, specific style for the text appearance inside the options menu popup -->
+    <style name="AppTheme.PopupMenu.TextAppearance" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <!-- This theme attribute will be light in dark mode and dark in light mode -->
+        <item name="android:textColor">?attr/colorOnSurface</item>
+    </style>
+
+    <!-- New, specific style for the popup menu itself -->
+    <style name="AppTheme.PopupMenu" parent="Widget.MaterialComponents.PopupMenu.Overflow">
+        <!-- Apply the text appearance style to the menu items -->
+        <item name="android:itemTextAppearance">@style/AppTheme.PopupMenu.TextAppearance</item>
+    </style>
+
+    <!-- This is your main theme for the entire application -->
     <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
@@ -43,6 +54,9 @@
         <item name="materialButtonStyle">@style/MyButton</item>
         <item name="dividerColor">@color/my_light_divider_color</item>
         <item name="colorOnSurface">@color/my_light_on_surface_color</item>
+
+        <!-- This is the key line to apply your new overflow menu style -->
+        <item name="actionOverflowMenuStyle">@style/AppTheme.PopupMenu</item>
     </style>
 
     <style name="GreenStyle" parent="@android:style/Widget.TextView">
@@ -63,29 +77,19 @@
 
     <style name="NavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
         <item name="itemTextAppearance">@style/NavigationViewItemTextAppearance</item>
-        <!-- MODIFIED: Use a theme attribute for adaptive text color -->
+        <!-- Use a theme attribute for adaptive text color -->
         <item name="itemTextColor">?attr/colorOnSurface</item>
-        <!-- Alternatively, if you want slightly less emphasis: -->
-        <!-- <item name="itemTextColor">?attr/colorOnSurfaceVariant</item> -->
         <item name="itemBackground">@drawable/navigation_item_background</item>
     </style>
 
     <style name="NavigationViewItemTextAppearance" parent="TextAppearance.MaterialComponents.Body2">
         <item name="android:textSize">14sp</item>
-        <!-- This style does not set android:textColor, so it will respect itemTextColor from NavigationViewStyle -->
     </style>
 
-    <!-- This selector is for itemTextColor if you want different colors for checked/unchecked states.
-         If you use this, NavigationViewStyle's itemTextColor should point to this selector:
-         <item name="itemTextColor">@color/navigation_item_text_color_selector</item>
-         And then @color/navigation_item_text_color (for unchecked) and
-         @color/navigation_item_text_color_selected (for checked) need to be defined
-         with appropriate light/dark theme values in your colors.xml files.
-    -->
     <color name="navigation_item_text_color_selector">
         <selector xmlns:android="http://schemas.android.com/apk/res/android">
             <item android:state_checked="true" android:color="@color/navigation_item_text_color_selected" />
-            <item android:color="@color/navigation_item_text_color" /> <!-- This is the default/unchecked color -->
+            <item android:color="@color/navigation_item_text_color" />
         </selector>
     </color>
 
@@ -93,7 +97,7 @@
         <selector xmlns:android="http://schemas.android.com/apk/res/android">
             <item android:state_checked="true">
                 <shape>
-                    <solid android:color="#E0E0E0" /> <!-- This is a light grey, ensure it contrasts with selected text color -->
+                    <solid android:color="#E0E0E0" />
                     <corners android:radius="4dp"/>
                 </shape>
             </item>
