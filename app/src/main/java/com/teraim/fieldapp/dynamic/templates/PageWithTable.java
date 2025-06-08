@@ -98,10 +98,11 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private int currentlyFocusedColumn = -1;
 
     // Filter states
-    private Set<String> activeAlphabeticalFilters = new HashSet<>();
+    private String activeAlphabeticalFilter = null; // Changed to String to hold one active filter
     private boolean filterHideRowsWithNoEntries = false;
     private List<ToggleButton> topFilterGroup = new ArrayList<>();
-    private String activeTopFilter = "Växter"; // Default active top filter
+    private List<ToggleButton> alphabetFilterButtons = new ArrayList<>(); // To manage alpha buttons as a group
+    private String activeTopFilter = "Växter";
 
     public static class ColumnDefinition {
         public String label, key, type, backgroundColor, textColor;
@@ -125,7 +126,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
         my_root = view.findViewById(R.id.myRoot);
         filterPanel = view.findViewById(R.id.filterPanel);
-        filterRowTop = view.findViewById(R.id.filterRowTop); // Assuming ID exists in layout
+        filterRowTop = view.findViewById(R.id.filterRowTop);
         filterRow1 = view.findViewById(R.id.filterRow1);
         filterRow2 = view.findViewById(R.id.filterRow2);
 
@@ -168,25 +169,32 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             return;
         }
         filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
-        activeAlphabeticalFilters.clear(); topFilterGroup.clear();
+        activeAlphabeticalFilter = null; topFilterGroup.clear(); alphabetFilterButtons.clear();
 
         // Top Row: Växter, Mossor, Lavar
         String[] topButtonLabels = {"Växter", "Mossor", "Lavar"};
         for (String label : topButtonLabels) {
-            ToggleButton tb = createFilterToggleButton(getContext(), label, false); // Not weighted
+            ToggleButton tb = createFilterToggleButton(getContext(), label, false);
             tb.setOnClickListener(v -> {
                 for (ToggleButton otherButton : topFilterGroup) {
                     otherButton.setChecked(otherButton == tb);
                 }
                 tb.setChecked(true);
                 activeTopFilter = label;
+
+                // When top filter changes, inactivate all alphabetical filters
+                for (ToggleButton alphaButton : alphabetFilterButtons) {
+                    alphaButton.setChecked(false);
+                }
+                activeAlphabeticalFilter = null; // Clear the active alphabetical filter state
+
                 applyRowFilters();
             });
             filterRowTop.addView(tb);
             topFilterGroup.add(tb);
         }
         if (!topFilterGroup.isEmpty()) {
-            topFilterGroup.get(0).setChecked(true); // Set "Växter" as default
+            topFilterGroup.get(0).setChecked(true);
             activeTopFilter = topButtonLabels[0];
         }
 
@@ -196,37 +204,50 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             final String label = alphaButtonLabels[i];
             ToggleButton tb = createFilterToggleButton(getContext(), label, true);
             tb.setOnClickListener(v -> {
-                if (tb.isChecked()) activeAlphabeticalFilters.add(label); else activeAlphabeticalFilters.remove(label);
+                boolean isNowChecked = tb.isChecked();
+                // De-select all other alphabetical buttons
+                for (ToggleButton otherButton : alphabetFilterButtons) {
+                    if (otherButton != tb) {
+                        otherButton.setChecked(false);
+                    }
+                }
+                // If the user clicked an already checked button, it becomes unchecked.
+                // The state is already toggled by the system, so we just need to update our logic.
+                if (isNowChecked) {
+                    activeAlphabeticalFilter = label;
+                } else {
+                    activeAlphabeticalFilter = null; // All alpha filters are now off
+                }
                 applyRowFilters();
             });
-            // All 4 alphabetical buttons go on the first row below the top group
             filterRow1.addView(tb);
+            alphabetFilterButtons.add(tb);
         }
 
-        ToggleButton rrButton = createFilterToggleButton(getContext(), "RR", true);
+        // RR button on the second row
+        ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
         rrButton.setOnClickListener(v -> {
             filterHideRowsWithNoEntries = rrButton.isChecked();
             applyRowFilters();
         });
         filterRow2.addView(rrButton);
-
     }
 
     private ToggleButton createFilterToggleButton(Context context, String text, boolean useWeight) {
         ToggleButton tb = new ToggleButton(context);
         tb.setTextOn(text); tb.setTextOff(text); tb.setText(text); tb.setChecked(false);
-        tb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10);
+        tb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         LinearLayout.LayoutParams params;
         if (useWeight) {
             params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
         } else {
             params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         }
-        //int marginInDp = 2;
-        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp,getResources().getDisplayMetrics());
+       // int marginInDp = 2;
+        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
         //params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
         tb.setLayoutParams(params);
-        tb.setPadding(8, 0, 8, 0);
+        //tb.setPadding(8, 4, 8, 4);
         return tb;
     }
 
@@ -281,17 +302,16 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void applyRowFilters() {
-        Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilters + ", HideEmpty: " + filterHideRowsWithNoEntries);
+        Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
         for (Listable item : masterTableRowsDataList) {
             if (item instanceof WF_Table_Row_Recycle) {
                 WF_Table_Row_Recycle rowWidget = (WF_Table_Row_Recycle) item;
-                if (rowWidget.getRowData() == null) continue; // Skip if row data is null
+                if (rowWidget.getRowData() == null) continue;
 
                 boolean shouldDisplay = true;
 
-                // Top Filter Logic (Växter, Mossor, Lavar)
                 if (al != null) {
                     if ("Mossor".equals(activeTopFilter)) {
                         String relevantColumnValue = al.getColumn("P_Mossor", rowWidget.getRowData());
@@ -318,23 +338,20 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                     continue;
                 }
 
-                // Alphabetical filter logic
                 String rowLabel = rowWidget.getLabel();
-                if (rowLabel == null || rowLabel.isEmpty()) {
-                    if (!activeAlphabeticalFilters.isEmpty()) shouldDisplay = false;
-                } else {
-                    if (!activeAlphabeticalFilters.isEmpty()) {
-                        boolean matchesAnyAlphaFilter = false;
+                if (activeAlphabeticalFilter != null) {
+                    if (rowLabel == null || rowLabel.isEmpty()) {
+                        shouldDisplay = false;
+                    } else {
                         char firstChar = Character.toUpperCase(rowLabel.charAt(0));
-                        for (String filterGroup : activeAlphabeticalFilters) {
-                            if (filterGroup.length() >= 3 && filterGroup.charAt(1) == '-') { // e.g., "A-F"
-                                char startRange = filterGroup.charAt(0); char endRange = filterGroup.charAt(2);
-                                if (firstChar >= startRange && firstChar <= endRange) { matchesAnyAlphaFilter = true; break; }
-                            } else if (filterGroup.equals("U-Ö")) {
-                                if (firstChar >= 'U' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') { matchesAnyAlphaFilter = true; break; }
-                            }
+                        boolean matchesAlpha = false;
+                        if (activeAlphabeticalFilter.length() >= 3 && activeAlphabeticalFilter.charAt(1) == '-') { // e.g., "A-F"
+                            char startRange = activeAlphabeticalFilter.charAt(0); char endRange = activeAlphabeticalFilter.charAt(2);
+                            if (firstChar >= startRange && firstChar <= endRange) { matchesAlpha = true; }
+                        } else if (activeAlphabeticalFilter.equals("S-Ö")) {
+                            if (firstChar >= 'S' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') { matchesAlpha = true; }
                         }
-                        if (!matchesAnyAlphaFilter) shouldDisplay = false;
+                        if (!matchesAlpha) shouldDisplay = false;
                     }
                 }
 
@@ -342,7 +359,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                     continue;
                 }
 
-                // "RR" filter logic
                 if (filterHideRowsWithNoEntries) {
                     if (!rowWidget.hasAnyCheckedNonAggregateSimpleCell(columnDefinitions)) {
                         shouldDisplay = false;
@@ -362,7 +378,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
         refreshColumnVisibilitiesInUI();
     }
-
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
