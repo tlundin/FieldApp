@@ -17,14 +17,16 @@ public class WF_Cell_Widget extends WF_ClickableField implements WF_Cell, EventL
 
 
 	private final Map<String, String> myHash;
+	private CellType cellType;
 
 	public WF_Cell_Widget(Map<String, String> columnKeyHash, String headerT, String descriptionT,
-			WF_Context context, String id,boolean isVisible) {
+			WF_Context context, String id,boolean isVisible,CellType type) {
 		super(headerT,descriptionT, context, id,
 				LayoutInflater.from(context.getContext()).inflate(R.layout.cell_field_normal,null),
 				isVisible,new DisplayFieldBlock("black",null,null,null));
 
 		myHash = columnKeyHash;
+		cellType = type;
 		context.registerEventListener(this, Event.EventType.onSave);
 	}
 
@@ -69,5 +71,10 @@ public class WF_Cell_Widget extends WF_ClickableField implements WF_Cell, EventL
 	@Override
 	public String getName() {
 		return null;
+	}
+
+	@Override
+	public CellType getType() {
+		return cellType;
 	}
 }

@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/whatever"
-    android:layout_width="0dp"
+    android:id="@+id/cell_root_container"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_weight="1"
     android:orientation="horizontal"
+    android:gravity="center_vertical|start"
+    android:background="?attr/colorPrimaryVariant">
 
-     >
-
-     <TextView
-         android:id="@+id/headerT"
-         android:padding="3dp"
-         android:background="@drawable/header_cell_shape"
-         android:layout_height="match_parent"
-         android:layout_width="0dp"
-         android:layout_weight="1"
-         android:gravity="center"
-         android:maxLines="1"
-         android:text="zz"
-         android:textSize="25sp" />
-
-</LinearLayout>
+<TextView
+android:id="@+id/headerT"
+android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:textColor="?attr/colorOnPrimary"
+    android:gravity="start"
+    android:singleLine="true"
+    android:textAppearance="?android:attr/textAppearanceSmall" />
+    </LinearLayout>

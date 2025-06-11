@@ -41,7 +41,6 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 		gs = GlobalState.getInstance();
 		myW = (TableLayout)v.findViewById(R.id.table);
 		redraw = true;
-
 	}
 	//TODO: MERGE THESE
 	//How about using the Container's panel?? TODO

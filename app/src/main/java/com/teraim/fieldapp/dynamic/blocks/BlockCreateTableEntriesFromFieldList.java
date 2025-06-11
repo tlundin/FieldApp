@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
+import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 
@@ -37,16 +38,12 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 
 	public void create(WF_Context myContext) {
 		o = GlobalState.getInstance().getLogger();
-		WF_Table myTable=null;
-			if (target!=null) {
-				myTable = myContext.getTable(target);
-
-			}
+		PageWithTable myTable = (PageWithTable) myContext.getTemplate();
 
 		if (myTable==null) {
-			Log.e("vortex","couldnt find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
+			Log.e("vortex","could not find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
 			o.addRow("");
-			o.addRedText("couldnt find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
+			o.addRedText("could not find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
 			return;
 		}
 		VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();

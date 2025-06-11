@@ -87,7 +87,7 @@ public class WF_Table extends WF_List  {
 
 		this.myVariator=variatorColumn;
 		allInstances = gs.getDb().preFetchValues(myContext.getKeyHash(), selectionPattern, myVariator);
-		Log.d("nils","in update entry fields. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
+		Log.d("nils","in addRows. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
 
 		//Rows are not containing unique entries. only need one of each.
 		Map<String,List<String>>uRows = new HashMap<String,List<String>>();
@@ -216,14 +216,14 @@ public class WF_Table extends WF_List  {
 		Map<String, String> colHash = Tools.copyKeyHash(myContext.getKeyHash());
 		colHash.put(myVariator, colKey);
 		
-		//Add header to the header row? Duh!!
+		//Add header to the header row
 		headerRow.addHeaderCell(header,backgroundColor,textColor);
 		
 		
 		//Create all row entries.
 		for (Listable l:get()) {
 			WF_Table_Row wft = (WF_Table_Row)l;
-			wft.addCell(header, colKey, colHash, type, width);
+			wft.addCell(header, colKey, colHash, type, width, WF_Cell.CellType.Normal);
 		}
 		columnKeys.add(colKey);
 	}
