@@ -572,7 +572,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         if (gisImageView.handleScaleOut(Initial)&&isZoomLevel) {
                             //trigger pop on fragment.
                             gisImageView.unSelectGop();
-                            myContext.getActivity().getFragmentManager().popBackStackImmediate();
+                            // New way, using AndroidX FragmentManager
+                            if (myContext.getActivity() instanceof androidx.fragment.app.FragmentActivity) {
+                                ((androidx.fragment.app.FragmentActivity) myContext.getActivity()).getSupportFragmentManager().popBackStackImmediate();
+                            }
 
                         }
                         //startScrollOut();

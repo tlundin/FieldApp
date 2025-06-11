@@ -416,11 +416,15 @@ public class FotoTemplate extends Executor {
 */
 
 	private void turnPage() {
-		final FragmentTransaction ft = getActivity().getFragmentManager().beginTransaction(); 
-		OldPhotosFragment gs = new OldPhotosFragment();  			
-		ft.replace(R.id.content_frame, gs);
-		ft.addToBackStack(null);
-		ft.commit(); 
+		// Get the AndroidX FragmentManager for managing child fragments
+		androidx.fragment.app.FragmentManager fragmentManager = getChildFragmentManager();
+		androidx.fragment.app.FragmentTransaction ft = fragmentManager.beginTransaction();
+
+		OldPhotosFragment oldPhotosFragment = new OldPhotosFragment();
+
+		ft.replace(R.id.content_frame, oldPhotosFragment); // R.id.content_frame must be in this fragment's layout
+		ft.addToBackStack(null); // Optional
+		ft.commit();
 	}
 
 

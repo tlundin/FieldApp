@@ -34,4 +34,18 @@
     <color name="navigation_header_text_color">#A0A0A0</color>
     <color name="navigation_item_text_color">#000000</color>
     <color name="navigation_item_text_color_selected">?attr/colorPrimary</color>
+    <color name="selected_header_background">#2F8432</color>
+    <color name="selected_header_text_color">#FFFFFF</color>
+    <color name="default_text_color">#FFFFFF</color>
+    <color name="my_dark_divider_color">#1F000000</color>
+    <color name="my_dark_on_surface_color">#DE000000</color>
+    <color name="my_light_on_surface_color">#DE000000</color> <!-- 87% Black - Good for text on light surfaces -->
+    <!-- Or a dark grey like: <color name="my_light_on_surface_color">#FF212121</color> -->
+    <color name="my_light_divider_color">#1F000000</color> <!-- 12% Black - Good for dividers on light surfaces -->
+    <color name="app_primary">#6200EE</color> <!-- A purple -->
+    <color name="app_on_primary_text">#FFFFFF</color> <!-- White text on primary -->
+    <color name="app_surface">#FFFFFF</color> <!-- White surface -->
+    <color name="app_on_surface_text">#DE000000</color> <!-- 87% Black text on surface -->
+    <color name="app_divider">#1F000000</color> <!-- 12% Black divider -->
+
 </resources>

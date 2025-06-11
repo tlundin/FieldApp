@@ -1,0 +1,5 @@
+<resources>
+    <item type="id" name="tag_original_bg_color" />
+    <item type="id" name="tag_original_text_color" />
+    <item type="id" name="tag_original_text_size_sp" />
+</resources>

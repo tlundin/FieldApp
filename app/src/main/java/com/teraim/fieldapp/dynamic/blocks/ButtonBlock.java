@@ -144,17 +144,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 		}
 	}
 
-
-
-	//TODO: REMOVE THIS Constructor!!
-	//Function used with buttons that need to attach customized actions after click
-	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,
-					   OnclickExtra onclickExtra,DB_Context buttonContext, int dummy) {
-		this(id,lbl,action,name,container,target,type,statusVariableS,isVisible,null,null,true,null,buttonContext.toString(),false,null);
-		extraActionOnClick = onclickExtra;
-		this.buttonContextOld = buttonContext;
-	}
-
 	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,String exportFormat,String exportMethod, boolean enabled, String buttonContextS, String statusContextS,boolean requestSync, String imgFilter) {
 		Log.d("NILS","In NEW for Button "+name+" with context: "+buttonContextS);
 		this.blockId=id;
@@ -898,7 +887,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 					//Check if a sync is required. Pop current fragment.
 					private void goBack() {
-						myContext.getActivity().getFragmentManager().popBackStackImmediate();
+						if (myContext.getActivity() instanceof androidx.fragment.app.FragmentActivity) {
+							((androidx.fragment.app.FragmentActivity) myContext.getActivity()).getSupportFragmentManager().popBackStackImmediate();
+						}
 						//myContext.reload();
 						if (syncRequired)
 							gs.sendEvent(MenuActivity.SYNC_REQUIRED);

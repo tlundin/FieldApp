@@ -3,6 +3,7 @@ package com.teraim.fieldapp.dynamic.blocks;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 
@@ -38,14 +39,14 @@ public class BlockAddVariableToTable extends Block {
 	
 	public void create(WF_Context myContext) {
 
-		final WF_Table l = myContext.getTable(target);
+		PageWithTable table = (PageWithTable)myContext.getTemplate();
 		o = GlobalState.getInstance().getLogger();
-		if (l==null) {
+		if (table==null) {
 			o.addRow("");
 			o.addRedText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
 		} else {
 			Log.d("nils","Calling AddVariableToTable for "+variableSuffix);
-			l.addVariableToEveryCell(variableSuffix, displayOut,format,isVisible,showHistorical,initialValue);		
+			table.addVariableToEveryCell(variableSuffix, displayOut,format,isVisible,showHistorical,initialValue);
 		}
     }
 

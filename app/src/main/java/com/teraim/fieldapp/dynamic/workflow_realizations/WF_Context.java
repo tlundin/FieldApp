@@ -41,7 +41,6 @@ public class WF_Context {
 
 	private final Context ctx;
 	private final List<WF_Static_List> lists= new ArrayList<>();
-	private final List<WF_Table> tables=new ArrayList<WF_Table>();
 	private final Map<String,Drawable> drawables;
 	private List<WF_Container> containers;
 	private final Executor myTemplate;
@@ -101,9 +100,7 @@ public class WF_Context {
 		return lists;
 	}
 	
-	public List<WF_Table> getTables() {
-		return tables;
-	}
+
 
 	public  WF_Static_List getList(String id) {
 		for (WF_Static_List wfl:lists) {
@@ -113,28 +110,6 @@ public class WF_Context {
 		}
 		return null;
 	}	
-	
-	public  WF_Table getTable(String id) {
-		for (WF_Table wfl:tables) {
-			Log.d("nils","In gettable: "+wfl.getId());
-			String myId = wfl.getId();				
-			if(myId!=null && myId.equalsIgnoreCase(id))
-				return wfl;
-		}
-		return null;
-	}	
-
-/*
-	public List<Listable> getListable(String id) {
-		for (WF_Static_List wfl:lists) {
-			Log.d("nils","filterable list: "+wfl.getId());
-			String myId = wfl.getId();				
-			if(myId!=null && myId.equalsIgnoreCase(id))
-				return wfl.getList();
-		}
-		return null;
-	}	
-*/
 
 	public void setHasMenu() {
 		hasMenu=true;
@@ -167,16 +142,7 @@ public class WF_Context {
 		filterables.add(l);
 	}
 	
-	public void addTable(WF_Table t) {
-		tables.add(t);
-		filterables.add(t);
-	}
-	/*
-	public void addFilterable(Filterable f) {
-		filterables.add(f);
-	}
-	 */
-	public void addDrawable(String key,Drawable d) {	
+	public void addDrawable(String key,Drawable d) {
 		drawables.put(key,d);
 	}
 
@@ -210,7 +176,6 @@ public class WF_Context {
 
 	public void resetState() {
 		emptyContainers();
-		tables.clear();
 		lists.clear();
 		filterables.clear();
 		drawables.clear();
@@ -287,6 +252,10 @@ public class WF_Context {
 	
 	public void removeEventListener(EventListener eventListener) {
 		eventBroker.removeEventListener(eventListener);
+	}
+
+	public List<EventListener> getEventListeners(EventType et) {
+		return eventBroker.getEventListeners(et);
 	}
 
 	public void onEvent(Event ev) {

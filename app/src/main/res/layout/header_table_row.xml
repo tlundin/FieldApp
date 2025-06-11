@@ -1,11 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TableRow xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="0dp"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#000"
-    >
+    android:orientation="vertical"
+    android:background="@android:color/transparent"
+    android:paddingTop="4sp"
+    android:paddingBottom="4sp">
 
- 
+    <TableRow
+        android:id="@+id/header_content_row"
+        android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:background="@android:color/transparent">
 
-   
+    <TextView
+        android:id="@+id/headerT"
+        android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:gravity="center_vertical|start"
+    android:text=""
+    android:textAppearance="?android:attr/textAppearanceSmall"
+    android:textColor="?attr/colorOnPrimary" />
+    <!-- Actual column title cells (data and aggregate) are added programmatically here -->
 </TableRow>
+
+    <!-- Divider Line -->
+<View
+android:layout_width="match_parent"
+android:layout_height="2dp"
+app:dividerColor="?attr/dividerColor"
+android:background="?android:attr/listDivider" />
+    </LinearLayout>

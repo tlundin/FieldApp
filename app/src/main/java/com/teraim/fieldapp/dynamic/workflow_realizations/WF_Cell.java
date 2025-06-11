@@ -7,9 +7,9 @@ import com.teraim.fieldapp.dynamic.types.Variable;
 import java.util.Map;
 import java.util.Set;
 
-interface WF_Cell {
+public interface WF_Cell {
 
-	
+	enum CellType { Aggregate, Normal };
 	void addVariable(final String varId, boolean displayOut, String format, boolean isVisible, boolean showHistorical, String prefetchValue);
 	
 	
@@ -18,6 +18,8 @@ interface WF_Cell {
 	void refresh();
 
 	View getWidget();
+
+	CellType getType();
 
 	Map<String,String> getKeyHash();
 
