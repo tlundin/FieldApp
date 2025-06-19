@@ -10,7 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 
-import com.teraim.fieldapp.FileLoadedCb;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.AsyncResumeExecutorI;
@@ -24,7 +25,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.DataLoader;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
 import com.teraim.fieldapp.loadermodule.ModuleLoaderCb;
@@ -33,6 +33,7 @@ import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataIni;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataJgw;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataXML;
 import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -349,35 +350,40 @@ public class CreateGisBlock extends Block {
 
 			}
 
-
-			if (meta.thawSynchronously().errCode!=ErrorCode.thawed) {
-				Log.d("vortex","no frozen metadata. will try to download.");
-				meta.load(Executors.newFixedThreadPool(1), new ModuleLoaderCb() {
-					@Override
-					public void onFileLoaded(LoadResult result) {
-						if (result.errCode==ErrorCode.frozen) {
-							PhotoMeta pm = ((PhotoMetaI)meta).getPhotoMeta();
-							Log.d("vortex","img N, W, S, E "+pm.N+","+pm.W+","+pm.S+","+pm.E);
-							createAfterLoad(pm,cacheFolder,fileName);
-						}
-						else {
-							o.addRow("");
-							o.addRedText("Could not find GIS image meta file "+metaFileName);
-							Log.e("vortex","Failed to parse image meta. Errorcode "+result.errCode.name());
-							cb.abortExecution("Could not load GIS image meta file ["+metaFileName+"."+gs.getImgMetaFormat()+"].");
-						}
-					}
-
-					@Override
-					public void onError(LoadResult result) {
-						Log.e("vortex","Error loading foto metadata! ErrorCode: "+result.errCode+" "+result.errorMessage);
-					}
-				});
-			} else {
+			// Check if the metadata is already cached and loaded
+			if (meta.thawSynchronously().errCode == ErrorCode.thawed) {
 				Log.d("vortex","Found frozen metadata. Will use it");
 				PhotoMeta pm = ((PhotoMetaI)meta).getPhotoMeta();
-				Log.d("vortex","img N, W, S, E "+pm.N+","+pm.W+","+pm.S+","+pm.E);
+				// It's already loaded, so we can call createAfterLoad directly.
+				// This part of the logic is likely on the main thread already.
 				createAfterLoad(pm, cacheFolder, fileName);
+			} else {
+				Log.d("vortex","No frozen metadata. Delegating download to ViewModel.");
+
+				// DELEGATE the background work to the ViewModel
+				// The ViewModel returns a LiveData object that we can observe.
+				ModuleLoaderViewModel viewModel = new ViewModelProvider(myContext.getFragmentActivity()).get(ModuleLoaderViewModel.class);
+
+				viewModel.loadPhotoMetadata(meta, cacheFolder, fileName)
+						.observe(myContext.getFragmentActivity(), gisResult -> {
+							// THIS BLOCK IS GUARANTEED TO RUN ON THE MAIN THREAD
+
+							if (gisResult != null && gisResult.isSuccess()) {
+								// The background task was successful. Now we can safely update the UI.
+								Log.d("vortex","ViewModel finished loading. Calling createAfterLoad on main thread.");
+								createAfterLoad(gisResult.photoMeta, gisResult.cacheFolder, gisResult.fileName);
+							} else {
+								// The background task failed.
+								String errorMessage = "Could not load GIS image meta file [" + metaFileName + "." + gs.getImgMetaFormat() + "].";
+								if (gisResult != null && gisResult.error != null) {
+									errorMessage = gisResult.error.getMessage();
+								}
+								o.addRow("");
+								o.addRedText(errorMessage);
+								Log.e("vortex", "Failed to parse image meta. " + errorMessage);
+								cb.abortExecution(errorMessage);
+							}
+						});
 			}
 		}
 	}
@@ -403,7 +409,32 @@ public class CreateGisBlock extends Block {
 
 
 
+public static class GisResult {
+	public final PhotoMeta photoMeta;
+	public final String cacheFolder;
+	public final String fileName;
+	public final Exception error; // Will be null on success
 
+	// Constructor for success
+	public GisResult(PhotoMeta photoMeta, String cacheFolder, String fileName) {
+		this.photoMeta = photoMeta;
+		this.cacheFolder = cacheFolder;
+		this.fileName = fileName;
+		this.error = null;
+	}
+
+	// Constructor for failure
+	public GisResult(Exception error) {
+		this.photoMeta = null;
+		this.cacheFolder = null;
+		this.fileName = null;
+		this.error = error;
+	}
+
+	public boolean isSuccess() {
+		return error == null;
+	}
+}
 
 }
 

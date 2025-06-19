@@ -5,12 +5,21 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
+import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
+import com.teraim.fieldapp.dynamic.types.PhotoMeta;
+import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadCompletionEvent;
 import com.teraim.fieldapp.loadermodule.LoadJob;
+import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadingStatus;
+import com.teraim.fieldapp.loadermodule.ModuleLoaderCb;
 import com.teraim.fieldapp.loadermodule.ModuleRegistry;
+import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.loadermodule.StatefulModuleLoader;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 public class ModuleLoaderViewModel extends ViewModel {
@@ -71,5 +80,49 @@ public class ModuleLoaderViewModel extends ViewModel {
         });
 
         loader.startLoading();
+    }
+
+    // Use a single-thread executor for this sequential task.
+    private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
+
+    /**
+     * Loads photo metadata on a background thread and returns a LiveData for the result.
+     * @param metadataModule The configuration module for the photo metadata.
+     * @param cacheFolder The path to the cache folder.
+     * @param imageFileName The file name of the associated image.
+     * @return A LiveData object that will receive the GisResult upon completion.
+     */
+
+    public LiveData<CreateGisBlock.GisResult> loadPhotoMetadata(ConfigurationModule metadataModule, String cacheFolder, String imageFileName) {
+
+        MutableLiveData<CreateGisBlock.GisResult> resultLiveData = new MutableLiveData<>();
+
+        metadataModule.load(singleTaskExecutor, new ModuleLoaderCb() {
+            @Override
+            public void onFileLoaded(LoadResult result) {
+                if (result.errCode == LoadResult.ErrorCode.frozen) {
+                    PhotoMeta pm = ((PhotoMetaI) metadataModule).getPhotoMeta();
+                    // On success, post the GisResult object
+                    resultLiveData.postValue(new CreateGisBlock.GisResult(pm, cacheFolder, imageFileName));
+                } else {
+                    // On failure, post a GisResult with an error
+                    resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Failed to load metadata, code: " + result.errCode)));
+                }
+            }
+
+            @Override
+            public void onError(LoadResult result) {
+                resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Error loading metadata: " + result.errorMessage)));
+            }
+        });
+
+        return resultLiveData;
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        // Always shut down executors in onCleared
+        singleTaskExecutor.shutdownNow();
     }
 }
