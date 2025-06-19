@@ -887,7 +887,7 @@ public class Expressor {
                     value = v.getValue();
                     //Log.d("vortex","Atom variable ["+v.getId()+"] Type "+v.getType()+" Value: "+value);
                     if (v.getType()!= DataType.text && Tools.isNumeric(value)) {
-                        Log.d("vortex","numeric");
+                        //Log.d("vortex","numeric");
                         double d = Double.parseDouble(value);
                         if (v.getType()== Variable.DataType.decimal || value.contains(".") || d>Integer.MAX_VALUE || d<Integer.MIN_VALUE)
                             return d;
@@ -909,7 +909,7 @@ public class Expressor {
                             return null;
                         }
                     }
-                    Log.d("vortex","literal");
+                    //Log.d("vortex","literal");
                     if (value.isEmpty()) {
                         Log.e("vortex","empty literal...returning null");
                         return null;

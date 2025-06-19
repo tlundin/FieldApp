@@ -302,7 +302,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void applyRowFilters() {
-        Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
+        //Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
         for (Listable item : masterTableRowsDataList) {
@@ -373,7 +373,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
         Collections.sort(displayedTableRowsDataList, Comparator.comparing(o -> ((o != null && o.getLabel() != null) ? o.getLabel() : ""), String.CASE_INSENSITIVE_ORDER));
         if (tableBodyAdapter != null) {
-            Log.d("PageWithTable", "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
+            //Log.d("PageWithTable", "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
             tableBodyAdapter.notifyDataSetChanged();
         }
         refreshColumnVisibilitiesInUI();
