@@ -8,9 +8,10 @@ package com.teraim.fieldapp.dynamic.workflow_realizations;
  */
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.Start;
@@ -39,7 +40,7 @@ import java.util.Set;
 
 public class WF_Context {
 
-	private final Context ctx;
+	private final FragmentActivity ctx;
 	private final List<WF_Static_List> lists= new ArrayList<>();
 	private final Map<String,Drawable> drawables;
 	private List<WF_Container> containers;
@@ -64,7 +65,7 @@ public class WF_Context {
 	private final Map<String,DataSource> chartGroupM = new HashMap<String, DataSource>();
 
 
-	public WF_Context(Context ctx,Executor e,int rootContainerId) {
+	public WF_Context(FragmentActivity ctx, Executor e, int rootContainerId) {
 		this.ctx=ctx;
 		myTemplate = e;
 		eventBroker = new EventBroker(ctx);
@@ -92,8 +93,8 @@ public class WF_Context {
 		executedBlocks.clear();
 	}
 	
-	public Activity getActivity() {
-		return (Activity)ctx;
+	public FragmentActivity getFragmentActivity() {
+		return ctx;
 	}
 
 	public List<WF_Static_List> getLists() {

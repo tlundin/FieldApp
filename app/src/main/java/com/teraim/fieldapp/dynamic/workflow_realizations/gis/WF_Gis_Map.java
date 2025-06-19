@@ -9,10 +9,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -62,11 +60,9 @@ import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.loadermodule.Configuration;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.ModuleLoader;
-import com.teraim.fieldapp.log.Logger;
 import com.teraim.fieldapp.log.PlainLogger;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
-import com.teraim.fieldapp.ui.LoginConsoleFragment;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -77,7 +73,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -573,8 +568,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                             //trigger pop on fragment.
                             gisImageView.unSelectGop();
                             // New way, using AndroidX FragmentManager
-                            if (myContext.getActivity() instanceof androidx.fragment.app.FragmentActivity) {
-                                ((androidx.fragment.app.FragmentActivity) myContext.getActivity()).getSupportFragmentManager().popBackStackImmediate();
+                            if (myContext.getFragmentActivity() instanceof androidx.fragment.app.FragmentActivity) {
+                                ((androidx.fragment.app.FragmentActivity) myContext.getFragmentActivity()).getSupportFragmentManager().popBackStackImmediate();
                             }
 
                         }

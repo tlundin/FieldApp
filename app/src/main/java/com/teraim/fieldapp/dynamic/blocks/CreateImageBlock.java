@@ -29,7 +29,6 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.Tools;
@@ -162,7 +161,7 @@ import java.util.regex.Pattern;
 			new Thread(new Runnable() {
 				public void run() {
 					float ratio = realH/realW;
-					Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
+					Display display = myContext.getFragmentActivity().getWindowManager().getDefaultDisplay();
 					Point size = new Point();
 					display.getSize(size);
 					Log.d("botox","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
@@ -173,7 +172,7 @@ import java.util.regex.Pattern;
 					Log.d("botox", "insample was "+Tools.calculateInSampleSize(options,x,y));
 					options.inJustDecodeBounds = false;
 					Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR+dynImgName,options);
-					CreateImageBlock.this.myContext.getActivity().runOnUiThread(new Runnable() {
+					CreateImageBlock.this.myContext.getFragmentActivity().runOnUiThread(new Runnable() {
 						public void run() {
 							if(Looper.myLooper() == Looper.getMainLooper())
 								Log.d("botox","In UI thread");

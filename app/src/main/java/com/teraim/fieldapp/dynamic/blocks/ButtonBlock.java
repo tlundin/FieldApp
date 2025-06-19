@@ -887,8 +887,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 					//Check if a sync is required. Pop current fragment.
 					private void goBack() {
-						if (myContext.getActivity() instanceof androidx.fragment.app.FragmentActivity) {
-							((androidx.fragment.app.FragmentActivity) myContext.getActivity()).getSupportFragmentManager().popBackStackImmediate();
+						if (myContext.getFragmentActivity() instanceof androidx.fragment.app.FragmentActivity) {
+							((androidx.fragment.app.FragmentActivity) myContext.getFragmentActivity()).getSupportFragmentManager().popBackStackImmediate();
 						}
 						//myContext.reload();
 						if (syncRequired)

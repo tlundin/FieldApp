@@ -54,7 +54,7 @@ public class StartCameraBlock extends Block implements EventListener {
                 this.myContext = myContext;
                 // private String fileName;
                 int TAKE_PHOTO_CODE = 0;
-                myContext.getActivity().startActivityForResult(cameraIntent, TAKE_PHOTO_CODE);
+                myContext.getFragmentActivity().startActivityForResult(cameraIntent, TAKE_PHOTO_CODE);
             } catch (IOException e) {
                 Log.e("vortex", "failed to create image file.");
             }

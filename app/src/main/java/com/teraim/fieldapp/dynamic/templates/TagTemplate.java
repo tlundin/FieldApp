@@ -226,7 +226,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 						if(save()) {
 							//Trigger bluetooth transfer.
 							gs.sendEvent(MenuActivity.SYNC_REQUIRED);
-							myContext.getActivity().getFragmentManager().popBackStackImmediate();
+							myContext.getFragmentActivity().getFragmentManager().popBackStackImmediate();
 						}
 					}
 				})
