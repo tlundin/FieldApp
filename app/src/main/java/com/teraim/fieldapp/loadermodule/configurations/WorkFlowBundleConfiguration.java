@@ -77,9 +77,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	public static LoggerI debugConsole;
 	private String imageMetaFormat=null;
 
-	public WorkFlowBundleConfiguration(Context context,String cachePath, Source source, PersistenceHelper globalPh, PersistenceHelper ph,
+	public WorkFlowBundleConfiguration(Context context,String cachePath, PersistenceHelper globalPh, PersistenceHelper ph,
 									   String urlOrPath, String bundle, LoggerI debugConsole) {
-		super(context, globalPh,ph, source, urlOrPath, bundle,"Workflow bundle       ");
+		super(context, globalPh,ph, urlOrPath, bundle,"Workflow bundle       ");
 		this.o=debugConsole;
 		cacheFolder = cachePath;
 		//make debugConsole globally available, so we dont have to pass it to each subclass.
@@ -161,9 +161,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	@Override
 	protected LoadResult parse(XmlPullParser parser) throws XmlPullParserException, IOException {
-		while (parser.next() != XmlPullParser.END_TAG) {
+		while (parser.next() != XmlPullParser.END_TAG && parser.getEventType() != XmlPullParser.END_DOCUMENT) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
-				Log.d("NILS","Skipping "+parser.getName());
+				Log.d("NILS","Skipping "+parser.getEventType());
 				continue;
 			}
 			String name = parser.getName();
@@ -426,7 +426,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_define_coupled_variable_group");
-		Log.d("vortex","In create_list_filter!!");
+		Log.d("vortex","In block_define_coupled_variable_group");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -496,7 +496,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		
 
 		parser.require(XmlPullParser.START_TAG, null,"block_no_op");
-		Log.d("vortex","In create_list_filter!!");
+		Log.d("vortex","In block_no_op");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -523,7 +523,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			
 
 			parser.require(XmlPullParser.START_TAG, null,"block_delete_matching_variables");
-			Log.d("vortex","In create_list_filter!!");
+			Log.d("vortex","In block_delete_matching_variables");
 			while (parser.next() != XmlPullParser.END_TAG) {
 				if (parser.getEventType() != XmlPullParser.START_TAG) {
 					continue;
@@ -561,7 +561,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_filter");
-		Log.d("vortex","In create_list_filter!!");
+		Log.d("vortex","In block_add_filter!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;

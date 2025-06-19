@@ -36,8 +36,8 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 	private int groupIndex;
 
 
-	public VariablesConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
-		super(context, globalPh,ph, source, serverOrFile,VariablesConfiguration.NAME,"Variables module      ");
+	public VariablesConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
+		super(context, globalPh,ph, serverOrFile,VariablesConfiguration.NAME,"Variables module      ");
 		this.o = debugConsole;
 		o.addRow("Parsing Variables.csv file");
 
@@ -70,11 +70,8 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 	
 	@Override
     public LoadResult prepare() throws Dependant_Configuration_Missing {
-
 		cheaderL = new ArrayList<String>();
-
 		scanHeader = true;
-
 		//check if there is a groups configuration.
 		if ((gc=GroupsConfiguration.getSingleton()) != null) {
 			groupsFileHeaderS = gc.getGroupFileColumns();
@@ -82,6 +79,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 			nameIndex = gc.getNameIndex();
 			groupIndex = gc.getGroupIndex();
 		} else {
+			Log.d("vortex","No groups configuration found.");
 			throw new Dependant_Configuration_Missing("Groups");
 		}
 		return null;

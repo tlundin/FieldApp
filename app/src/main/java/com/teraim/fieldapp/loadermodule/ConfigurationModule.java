@@ -3,10 +3,10 @@ package com.teraim.fieldapp.loadermodule;
 import android.content.Context;
 import android.util.Log;
 
-import com.teraim.fieldapp.FileLoadedCb;
+import androidx.lifecycle.MutableLiveData;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
@@ -15,37 +15,46 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
 
 
 //Class that describes the specific load behaviour for a certain type of input data.
 public abstract class ConfigurationModule {
 
 
-
-    public boolean tryingThawAfterFail,tryingWebAfterFail;
+	private final Context context;
+	public boolean tryingThawAfterFail,tryingWebAfterFail;
     public enum Type {
 		json,
 		xml,
 		csv,
 		ini,
-		jgw
+		jgw,
+		txt
 	}
+	public enum State {
+		INITIAL,
+		LOADING,
+		FREEZING,
+		FROZEN,
+		THAWING,
+		THAWED,
+		NOT_FOUND,
+		NO_DATA, ERROR
+	}
+	public final MutableLiveData<State> state = new MutableLiveData<>(State.INITIAL);
 
-	public enum Source {
-		file,
-		internet
-	}
-	public final Source source;
+
 	public final Type type;
 	public final String fileName;
 	private String rawData;
     private final String printedLabel;
-    private final String frozenPath;
+    private  String frozenPath;
 	protected float newVersion;
 	protected final PersistenceHelper globalPh;
     protected final PersistenceHelper ph;
 	private boolean IamLoaded=false;
-	protected final String versionControl;
+	protected String versionControl;
 
 	private Integer linesOfRawData;
 	protected Object essence;
@@ -58,20 +67,19 @@ public abstract class ConfigurationModule {
 	//tells if this module is stored on disk or db.
 	protected boolean isDatabaseModule = false,hasSimpleVersion=true;
 
-	protected ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, Type type, Source source, String urlOrPath, String fileName, String moduleName) {
-		this.source=source;
+	protected ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, Type type, String urlOrPath, String fileName, String moduleName) {
 		this.type=type;
-		
 		this.fileName=fileName;
 		this.globalPh=gPh;
 		this.ph=ph;
 		this.printedLabel=moduleName;
 		this.baseBundlePath=urlOrPath;
 		fullPath = urlOrPath+fileName+"."+type.name();
-		frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
+		this.context = context;
+
 		Log.d("balla","full path "+fullPath);
-		Log.d("balla","base bundle path "+baseBundlePath);
 		this.versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);
+		this.state.setValue(State.INITIAL);
 	}
 
 
@@ -128,24 +136,22 @@ public abstract class ConfigurationModule {
 		return notFound;
 	}
 
-	public void cancelLoader() {
-		if (mLoader!=null) {
-			Log.e("vortex","Cancelled mLoader!");
-			mLoader.cancel(true);
-			mLoader = null;
-		}
-	}
-	private Loader mLoader=null;
+	public void load(ExecutorService executor, ModuleLoaderCb cb) {
+		state.postValue(State.LOADING);
+		executor.submit(() -> {
 
-	public void load(FileLoadedCb moduleLoader) {
-		if (source == Source.internet) {
-			mLoader = new WebLoader(null, null, moduleLoader, versionControl);
-		}
-		else 
-			mLoader = new FileLoader(null, null, moduleLoader,versionControl);
-		mLoader.execute(this);
-	}
+			try {
+				frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
+				versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);
+				LoadResult result = DataLoader.loadAndParseAndFreeze(this);
+				cb.onFileLoaded(result);
 
+			} catch (Exception e) {
+				state.postValue(State.ERROR);
+				cb.onError(new LoadResult(this,LoadResult.ErrorCode.IOError,e.getMessage()));
+			}
+		});
+	}
 
 	public String getRawData() {
 		return rawData;
@@ -161,12 +167,6 @@ public abstract class ConfigurationModule {
 	}
 
 
-	public void setLoadedFromFrozenCopy() {
-		//load the data from frozen
-		IamLoaded=true;
-	}
-
-
 	public String getFileName() {
 		return fileName;
 	}
@@ -177,36 +177,30 @@ public abstract class ConfigurationModule {
 
 	//Freeze this configuration. counter is used by some dependants.
 	public void freeze(int counter) {
-		this.setEssence();
-		if (essence!=null) {
-            Runnable r = new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					
-					try {
-						Tools.witeObjectToFile(essence, frozenPath);
-					} catch (IOException e) {
+		Log.d("ConfigurationModule","freeze called");
+		setEssence();
+		if (essence != null) {
+			state.postValue(State.FREEZING);
+			try {
+				Tools.witeObjectToFile(essence, frozenPath);
+			} catch (IOException e) {
 
-						GlobalState gs = GlobalState.getInstance();
-						if (gs!=null) {
-							gs.getLogger().addRow("");
-							StringWriter sw = new StringWriter();
-							PrintWriter pw = new PrintWriter(sw);
-							e.printStackTrace(pw);		
-							gs.getLogger().addRedText(sw.toString());
-						}
-						e.printStackTrace();
-					}
+				GlobalState gs = GlobalState.getInstance();
+				if (gs != null) {
+					gs.getLogger().addRow("");
+					StringWriter sw = new StringWriter();
+					PrintWriter pw = new PrintWriter(sw);
+					e.printStackTrace(pw);
+					gs.getLogger().addRedText(sw.toString());
 				}
-			};
-
-			Thread t = new Thread(r);
-			t.start();
-
+				e.printStackTrace();
+			}
 		}
 	}
+
+
+
+
 
 	public LoadResult thawSynchronously() {
 

@@ -26,7 +26,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.expr.Aritmetic;
 import com.teraim.fieldapp.expr.Parser;
 import com.teraim.fieldapp.gis.TrackerListener;
-import com.teraim.fieldapp.loadermodule.Configuration;
+import com.teraim.fieldapp.loadermodule.ModuleRegistry;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.StatusHandler;
@@ -669,12 +669,6 @@ public class GlobalState {
 
     //Change current context (side effect) to the context given in the workflow startblock.
     //If no context can be built (missing variable values), return error. Otherwise, return null.
-
-
-    public void setModules(Configuration myModules) {
-    }
-
-
     public static void destroy() {
         singleton = null;
     }

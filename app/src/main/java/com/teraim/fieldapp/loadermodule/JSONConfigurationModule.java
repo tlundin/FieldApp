@@ -13,8 +13,8 @@ import java.io.IOException;
 public abstract class JSONConfigurationModule extends ConfigurationModule {
 
 	protected JSONConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-									  Source source, String urlOrPath, String fileName, String moduleName) {
-		super(context,gPh,ph, Type.json, source, urlOrPath, fileName, moduleName);
+									   String urlOrPath, String fileName, String moduleName) {
+		super(context,gPh,ph, Type.json, urlOrPath, fileName, moduleName);
 	}
 
 	protected abstract LoadResult prepare(JsonReader reader) throws IOException, JSONException;

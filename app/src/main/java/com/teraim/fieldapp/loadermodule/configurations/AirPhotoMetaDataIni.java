@@ -14,8 +14,8 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements PhotoMetaI {
 
     public AirPhotoMetaDataIni(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-                               ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(context,gPh,ph, Type.ini, source, urlOrPath, fileName, moduleName);
+                                String urlOrPath, String fileName, String moduleName) {
+        super(context,gPh,ph, Type.ini, urlOrPath, fileName, moduleName);
     }
 
     @Override

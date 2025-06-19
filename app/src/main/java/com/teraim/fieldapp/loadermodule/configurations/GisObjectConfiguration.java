@@ -43,8 +43,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     private boolean isDebug = false;
 
 
-    public GisObjectConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, Source source, String fileLocation, String fileName, LoggerI debugConsole, DbHelper myDb, Table t) {
-        super(context,globalPh,ph, source,fileLocation, fileName, fileName);
+    public GisObjectConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String fileLocation, String fileName, LoggerI debugConsole, DbHelper myDb, Table t) {
+        super(context,globalPh,ph, fileLocation, fileName, fileName);
         this.o = debugConsole;
         this.myDb = myDb;
         //isDatabaseModule=true;
@@ -130,11 +130,10 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             if (tag.equals(JsonToken.END_ARRAY)) {
                 //end array means we are done.
                 this.setEssence();
-                reader.close();
                 o.addRow("");
                 o.addText("Found "+myGisObjects.size()+" objects");
                 freezeSteps = myGisObjects.size();
-                Log.d("vortex","Found "+myGisObjects.size()+" objekt of type "+fileName);
+                Log.d("vortex","Found "+myGisObjects.size()+" objects of type "+fileName);
                 //freezeSteps=myBlocks.size();
                 return new LoadResult(this,ErrorCode.parsed);
             }
@@ -501,7 +500,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     private final Set<String>seenAlready=new HashSet<>();
     @Override
     public void freeze(int counter) {
-
         if (counter==-1 || myGisObjects==null || myGisObjects.isEmpty()) {
             Log.d("vortex","nothing to freeze!");
             newVersion=-1;
@@ -549,7 +547,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             //Log.d("fenris","key: "+key+" value: "+attr.get(key));
             if (key.equalsIgnoreCase(NamedVariables.PYSTATUS) || key.equalsIgnoreCase(NamedVariables.TRAKTSTATUS)) {
                 String statusVariableName= Constants.STATUS_VARIABLES_GROUP_NAME+":"+"status_"+myType.toLowerCase();
-                Log.d("fenris","status variable found, setting "+statusVariableName);
+                //Log.d("fenris","status variable found, setting "+statusVariableName);
                 myDb.fastInsert(go.getKeyHash(), statusVariableName, attr.get(key));
                 /*
                 DbHelper.DBColumnPicker cp = myDb.getLastVariableInstance(myDb.createSelection(go.getKeyHash(), statusVariableName));
@@ -567,7 +565,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                 o.addRow("");
                 o.addRedText("Row: "+counter+". Insert failed for "+key+". Hash: "+go.getKeyHash().toString());
             }
-            if (isDebug) {
+            if (isDebug && varTable != null) {
                 if (varTable.getRowFromKey(key)==null) {
                     missingVariables.add(key);
                     Log.d("vortex","key missing: "+key);

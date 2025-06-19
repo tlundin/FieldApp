@@ -31,7 +31,7 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 
 	public ImportDataConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String server, String bundle, LoggerI debugConsole,
 								   DbHelper myDb, Table t) {
-		super(context,globalPh,ph, Source.internet, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");
+		super(context,globalPh,ph, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");
 		this.o = debugConsole;
 		this.myDb = myDb;
 		isDatabaseModule=true;

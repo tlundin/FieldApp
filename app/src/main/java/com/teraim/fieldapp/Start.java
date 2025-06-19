@@ -92,7 +92,7 @@ public class Start extends MenuActivity {
         super.onCreate(savedInstanceState); // <<-- MOVE THIS TO THE TOP
 
         // Setup handler for uncaught exceptions.
-        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
+/*        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
         {
             @Override
             public void uncaughtException (Thread thread, Throwable e)
@@ -100,7 +100,7 @@ public class Start extends MenuActivity {
                 Log.e("vortex","Uncaught Exception detected in thread {"+thread+"} Exce: "+ e);
                 handleUncaughtException (thread, e);
             }
-        });
+        });*/
 
         Log.d("nils","in START onCreate");
         singleton = this;
