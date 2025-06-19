@@ -4,8 +4,10 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Variable.DataType;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.DbHelper.TmpVal;
 
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ public class VariableCache {
         myDbContext = new DB_Context("", null);
         this.gs = gs;
         o = gs.getLogger();
-
+        preCache();
 
     }
 
@@ -86,7 +88,28 @@ public class VariableCache {
         }
         return ret;
     }
-
+    Map<String, Map<String, Variable>> preCache = new HashMap<String, Map<String, Variable>>();
+    List<String> preCacheVariables = List.of(GisConstants.ObjectID,GisConstants.Typkod);
+    public void preCache() {
+        long time = System.currentTimeMillis();
+        for(String varId: preCacheVariables) {
+            //Log.d("v", "Precaching all variables for " + varId);
+            DbHelper.Selection s = gs.getDb().createSelection(null, varId);
+            DbHelper.DBColumnPicker p = gs.getDb().getAllVariableInstances(s);
+            Variable v;
+            while (p.next()) {
+                DbHelper.StoredVariableData sv = p.getVariable();
+                List<String> varDesc = gs.getVariableConfiguration().getCompleteVariableDefinition(varId);
+                v = new Variable(varId, gs.getVariableConfiguration().getVarLabel(varDesc), varDesc, p.getKeyColumnValues(), gs, vCol, sv.value, true, null);
+                //Log.d("v", "precaching " + p.getKeyColumnValues() + " with value " + sv.value);
+                String uid = p.getKeyColumnValues().get("uid");
+                if (preCache.get(uid) == null)
+                    preCache.put(uid, new HashMap<String, Variable>());
+                preCache.get(uid).put(varId, v);
+            }
+        }
+        Log.d("spandex","precache time: "+(System.currentTimeMillis()-time)+" precache size "+preCache.size());
+    }
 
     public Map<String, Variable> createOrGetCache(Map<String, String> myKeyHash) {
         Map<String, Variable> ret = newcache.get(myKeyHash);
@@ -101,9 +124,6 @@ public class VariableCache {
             }
             else
                 Log.d("vortex", "Creating Cache for keyhash null");
-
-
-
 
             ret = createAllVariablesForKey(copy);
             if (ret == null) {
@@ -246,6 +266,19 @@ public class VariableCache {
     }
 
     public Variable getVariable(Map<String, String> keyChain, String varId) {
+        //Log.d("spandex","in getvar for "+varId+" with keychain "+keyChain);
+        if (preCacheVariables.contains(varId)) {
+            Map<String, Variable> entry = preCache.get(keyChain.get("uid"));
+            if (entry != null) {
+                Variable v = entry.get(varId);
+                if (v == null)
+                    Log.d("v", "Variable not found for uid " + keyChain.get("uid"));
+                else {
+                    //Log.d("v", "Precache Variable found for uid " + keyChain.get("uid"));
+                    return v;
+                }
+            }
+        }
         return getVariable(keyChain, createOrGetCache(keyChain), varId, null, null);
         //return new Variable(varId,null,null,keyChain,gs,"value",null);
     }
@@ -253,6 +286,7 @@ public class VariableCache {
 
     //A variable that is given a value at start.
     public Variable getCheckedVariable(Map<String, String> keyChain, String varId, String value, Boolean wasInDatabase) {
+        //Log.d("spandex","in getcheckedvar for "+varId+" with keychain "+keyChain);
         return getVariable(keyChain, createOrGetCache(keyChain), varId, value, wasInDatabase);
     }
 
