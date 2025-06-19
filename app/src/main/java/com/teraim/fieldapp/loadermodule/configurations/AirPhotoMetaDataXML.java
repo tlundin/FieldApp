@@ -21,9 +21,9 @@ public class AirPhotoMetaDataXML extends XMLConfigurationModule implements Photo
 
 	
 	public AirPhotoMetaDataXML(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-							   Source source, String urlOrPath, String metaDataFileName,
+							   String urlOrPath, String metaDataFileName,
 							   String moduleName) {
-		super(context,gPh, ph, source, urlOrPath, metaDataFileName, moduleName);
+		super(context,gPh, ph, urlOrPath, metaDataFileName, moduleName);
 		hasSimpleVersion=false;
 	}
 

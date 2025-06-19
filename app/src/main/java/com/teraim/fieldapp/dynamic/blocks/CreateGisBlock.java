@@ -24,16 +24,15 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule.Source;
+import com.teraim.fieldapp.loadermodule.DataLoader;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
+import com.teraim.fieldapp.loadermodule.ModuleLoaderCb;
 import com.teraim.fieldapp.loadermodule.PhotoMetaI;
-import com.teraim.fieldapp.loadermodule.WebLoader;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataIni;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataJgw;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataXML;
 import com.teraim.fieldapp.log.LoggerI;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -44,6 +43,7 @@ import com.teraim.fieldapp.utils.Tools.WebLoaderCb;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Executors;
 
 public class CreateGisBlock extends Block {
 
@@ -333,17 +333,17 @@ public class CreateGisBlock extends Block {
 					/*falls through*/
 				case "xml":
 					meta = new AirPhotoMetaDataXML(gs.getContext(),gs.getGlobalPreferences(),
-							gs.getPreferences(),Source.internet,
+							gs.getPreferences(),
 							serverFileRootDir,metaFileName,"");
 					break;
 				case "ini":
 					meta = new AirPhotoMetaDataIni(gs.getContext(),gs.getGlobalPreferences(),
-							gs.getPreferences(),Source.internet,
+							gs.getPreferences(),
 							serverFileRootDir,metaFileName,"");
 					break;
 				case "jgw":
 					meta = new AirPhotoMetaDataJgw(gs.getContext(),gs.getGlobalPreferences(),
-							GlobalState.getInstance().getPreferences(),Source.internet,
+							GlobalState.getInstance().getPreferences(),
 							serverFileRootDir,metaFileName,"");
 					break;
 
@@ -352,11 +352,10 @@ public class CreateGisBlock extends Block {
 
 			if (meta.thawSynchronously().errCode!=ErrorCode.thawed) {
 				Log.d("vortex","no frozen metadata. will try to download.");
-				new WebLoader(null, null, new FileLoadedCb(){
+				meta.load(Executors.newFixedThreadPool(1), new ModuleLoaderCb() {
 					@Override
-					public void onFileLoaded(LoadResult res) {
-
-						if (res.errCode==ErrorCode.frozen) {
+					public void onFileLoaded(LoadResult result) {
+						if (result.errCode==ErrorCode.frozen) {
 							PhotoMeta pm = ((PhotoMetaI)meta).getPhotoMeta();
 							Log.d("vortex","img N, W, S, E "+pm.N+","+pm.W+","+pm.S+","+pm.E);
 							createAfterLoad(pm,cacheFolder,fileName);
@@ -364,23 +363,21 @@ public class CreateGisBlock extends Block {
 						else {
 							o.addRow("");
 							o.addRedText("Could not find GIS image meta file "+metaFileName);
-							Log.e("vortex","Failed to parse image meta. Errorcode "+res.errCode.name());
+							Log.e("vortex","Failed to parse image meta. Errorcode "+result.errCode.name());
 							cb.abortExecution("Could not load GIS image meta file ["+metaFileName+"."+gs.getImgMetaFormat()+"].");
 						}
 					}
+
 					@Override
-					public void onFileLoaded(ErrorCode errCode, String version) {
-						Log.e("vortex","Error loading foto metadata! ErrorCode: "+errCode);
+					public void onError(LoadResult result) {
+						Log.e("vortex","Error loading foto metadata! ErrorCode: "+result.errCode+" "+result.errorMessage);
 					}
-					@Override
-					public void onUpdate(Integer... args) {
-					}},
-						"Forced").execute(meta);
+				});
 			} else {
 				Log.d("vortex","Found frozen metadata. Will use it");
 				PhotoMeta pm = ((PhotoMetaI)meta).getPhotoMeta();
 				Log.d("vortex","img N, W, S, E "+pm.N+","+pm.W+","+pm.S+","+pm.E);
-				createAfterLoad(pm,cacheFolder,fileName);
+				createAfterLoad(pm, cacheFolder, fileName);
 			}
 		}
 	}

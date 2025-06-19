@@ -23,8 +23,8 @@ public class SpinnerConfiguration extends CSVConfigurationModule {
 	private final LoggerI o;
 	private int c=0;
 
-	public SpinnerConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
-		super(context, globalPh, ph, source, serverOrFile, SpinnerConfiguration.NAME,"Spinner module         ");
+	public SpinnerConfiguration(Context context,  PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
+		super(context, globalPh, ph, serverOrFile, SpinnerConfiguration.NAME,"Spinner module         ");
 		this.o = debugConsole;
 		
 	}

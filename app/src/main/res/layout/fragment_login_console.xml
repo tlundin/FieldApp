@@ -1,83 +1,82 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" >
+    android:layout_height="match_parent">
 
     <ImageView
         android:id="@+id/bgImg"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="centerCrop"
         android:background="@android:drawable/screen_background_light_transparent"
-        android:scaleType="centerCrop" />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/logo"
-        android:scaleType="centerInside"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:layout_marginTop="16dp"
-
-        />
-
-    <TextView
-        android:id="@+id/logger"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="16dp"
-        android:layout_marginRight="16dp"
-        android:gravity="bottom"
-        android:background="#44000000"
-        android:maxLines="2"
-        android:textColor="@color/white"
-        android:scrollbars="vertical"
-        android:textSize="14sp"
-        android:layout_above="@+id/licenseTxt"
-
-
-         />
-
-    <TextView
-        android:id="@+id/appTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/versionTxt"
-        android:layout_alignParentLeft="true"
-        android:layout_alignRight="@+id/logger"
-        android:background="#44000000"
-        android:layout_marginLeft="16dp"
-        android:textColor="@color/white"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/versionTxt"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/logger"
-        android:layout_alignParentLeft="true"
-        android:layout_alignRight="@+id/logger"
-        android:layout_marginLeft="16dp"
-        android:background="#44000000"
-        android:textColor="@color/white"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/licenseTxt"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:textColor="@color/white"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:text="FieldPad uses 3rd party components that are under Apache 2.0 license."
-        android:layout_marginLeft="16dp"
+        android:textColor="@color/white"
         android:textSize="8sp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        />
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
+    <TextView
+        android:id="@+id/versionTxt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#44000000"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/licenseTxt"
+        app:layout_constraintEnd_toEndOf="@+id/logger"
+        app:layout_constraintStart_toStartOf="@+id/logger" />
 
+    <TextView
+        android:id="@+id/appTxt"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#44000000"
+        android:textColor="@color/white"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/versionTxt"
+        app:layout_constraintEnd_toEndOf="@+id/logger"
+        app:layout_constraintStart_toStartOf="@+id/logger" />
 
+    <TextView
+        android:id="@+id/logger"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:background="#44000000"
+        android:gravity="top"
+        android:scrollbars="vertical"
+        android:textColor="@color/white"
+        android:textSize="14sp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/appTxt"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

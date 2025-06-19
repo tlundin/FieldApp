@@ -114,7 +114,7 @@ public class ModuleLoader implements FileLoadedCb{
 //                onFileLoaded(new LoadResult(module, ErrorCode.sameold));
 //            }
             //Supposed to load from web, but no connection?
-            else if ((socketBroken || (module.source == ConfigurationModule.Source.internet) && !Connectivity.isConnected(ctx))) {
+            else if (socketBroken || !Connectivity.isConnected(ctx)) {
                 majorVersionUpdated=false;
                 if(allFrozen) {
                     Log.d("vortex", "no network");
@@ -133,10 +133,10 @@ public class ModuleLoader implements FileLoadedCb{
             } else {
                 //Forced, detailed or the module is not frozen yet?
                 if (forced || detailed || !module.frozenFileExists() || majorVersionUpdated) {
-                    if (module.source == ConfigurationModule.Source.internet) {
-                        frontPageLog.addText("waiting for network...");
-                    }
-                    module.load(this);
+
+                    frontPageLog.addText("waiting for network...");
+
+                    //module.load(this);
                 } else {
                     //module is frozen, but majorVersion not yet known.
                     onFileLoaded(new LoadResult(module, ErrorCode.sameold));
@@ -257,7 +257,7 @@ public class ModuleLoader implements FileLoadedCb{
                         module.tryingWebAfterFail=true;
                         module.deleteFrozen();
                         module.setFrozenVersion(-1);
-                        module.load(this);
+                        //module.load(this);
                         allDone = false;
                     }
                     break;
@@ -364,7 +364,7 @@ public class ModuleLoader implements FileLoadedCb{
                             //debug.addRow("");
                             //debug.addGreenText("Reload required for dependant "+res.errorMessage);
                             //majorVersionChange=true;
-                            reloadModule.load(this);
+                            //reloadModule.load(this);
                             allDone = false;
 
                         }
@@ -448,7 +448,7 @@ public class ModuleLoader implements FileLoadedCb{
         List<ConfigurationModule> list = myModules.getAll();
         for (ConfigurationModule module:list) {
             Log.e("vortex","Cancelling loader process for "+module.getFileName());
-            module.cancelLoader();
+            //module.cancelLoader();
         }
     }
 

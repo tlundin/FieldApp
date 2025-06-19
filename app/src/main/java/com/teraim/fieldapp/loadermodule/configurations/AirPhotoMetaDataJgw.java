@@ -24,8 +24,8 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     private final String imgUrlorPath;
     private double Width,Height;
     public AirPhotoMetaDataJgw(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-                               ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(context,gPh, ph, Type.jgw, source, urlOrPath, fileName, moduleName);
+                                String urlOrPath, String fileName, String moduleName) {
+        super(context,gPh, ph, Type.jgw, urlOrPath, fileName, moduleName);
         Log.d("jgw","setting simple version to false");
         Log.d("jgw","urlorpath: "+urlOrPath);
         Log.d("jgw","fileName: "+fileName);

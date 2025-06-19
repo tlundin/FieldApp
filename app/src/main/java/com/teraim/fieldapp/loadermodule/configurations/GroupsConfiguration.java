@@ -27,8 +27,8 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 	private int nameIndex = -1;
 	private static GroupsConfiguration singleton=null;
 
-	public GroupsConfiguration(Context context, Source source, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, String bundle, LoggerI debugConsole) {
-		super(context,globalPh,ph, source,serverOrFile, "Groups", "Group module            ");
+	public GroupsConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, String bundle, LoggerI debugConsole) {
+		super(context,globalPh,ph, serverOrFile, "Groups", "Group module            ");
 		o = debugConsole;
 		singleton = null;
 		o.addRow("Parsing Groups.csv file");

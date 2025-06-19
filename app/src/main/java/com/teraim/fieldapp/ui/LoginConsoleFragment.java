@@ -1,48 +1,46 @@
 package com.teraim.fieldapp.ui;
 
-import static com.teraim.fieldapp.utils.Tools.getColorResource;
-import static com.teraim.fieldapp.utils.Tools.getMajorVersion;
-
 import android.app.AlertDialog;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
 import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.text.TextUtils;
-import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
-import com.teraim.fieldapp.dynamic.templates.LineMapTemplate;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.loadermodule.Configuration;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
+import com.teraim.fieldapp.loadermodule.GisDatabaseWorkflow;
 import com.teraim.fieldapp.loadermodule.ModuleLoader;
 import com.teraim.fieldapp.loadermodule.ModuleLoader.ModuleLoaderListener;
-import com.teraim.fieldapp.loadermodule.WebLoader;
+import com.teraim.fieldapp.loadermodule.Workflow_I;
+import com.teraim.fieldapp.loadermodule.ModuleRegistry;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
 import com.teraim.fieldapp.log.LoggerI;
-import com.teraim.fieldapp.log.PlainLogger;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
@@ -52,8 +50,8 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -65,13 +63,15 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 	private PersistenceHelper globalPh,ph;
 	private ModuleLoader myLoader=null,myDBLoader=null;
 	private String bundleName;
-	private Configuration myModules;
 	private DbHelper myDb;
 	private TextView appTxt;
 	private float oldV = -1;
 	private final static String InitialBundleName = Constants.DEFAULT_APP;
+	private ModuleLoaderViewModel viewModel;
 
-
+	private ModuleRegistry moduleRegistry;
+	private TextView loadStatusView;
+	private boolean loadGisModules=true;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -81,15 +81,15 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		TextView versionTxt;
 		Log.e("vortex","OnCreateView!");
         TextView log = view.findViewById(R.id.logger);
+		loadStatusView = view.findViewById(R.id.logger);
 		versionTxt = view.findViewById(R.id.versionTxt);
 		appTxt = view.findViewById(R.id.appTxt);
-
-
+		moduleRegistry = new ModuleRegistry();
 
 		//Typeface type=Typeface.createFromAsset(getActivity().getAssets(),
 		//		"clacon.ttf");
 		//log.setTypeface(type);
-		log.setMovementMethod(new ScrollingMovementMethod());
+		//log.setMovementMethod(new ScrollingMovementMethod());
 		versionTxt.setText("Field Pad version "+Constants.VORTEX_VERSION);
 
 		//Create global state
@@ -116,8 +116,6 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT));
 		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/config");
 		new File(getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/cache");
-
-		//write down version..quickly! :)
 		globalPh.put(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM, Constants.VORTEX_VERSION);
 		ph = new PersistenceHelper(getActivity().getApplicationContext().getSharedPreferences(globalPh.get(PersistenceHelper.BUNDLE_NAME), Context.MODE_PRIVATE));
 		oldV= ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
@@ -128,56 +126,67 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		    globalPh.put(PersistenceHelper.SERVER_URL,checked_URL);
 		String appBaseUrl = checked_URL+bundleName.toLowerCase(Locale.ROOT)+"/";
 		final String appRootFolderPath = getContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT)+"/";
-		loginConsole = new PlainLogger(getActivity(),"INITIAL");
-		loginConsole.setOutputView(log);
-
-
-		String server = globalPh.get(PersistenceHelper.SERVER_URL);
-		if (globalPh.getB("local_config"))
-			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.file,globalPh,ph,null,bundleName,debugConsole));
-		else
-			myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),ConfigurationModule.Source.internet,globalPh,ph,server,bundleName,debugConsole));
-
-		if (Constants.FreeVersion && expired())
-			showErrorMsg("The license has expired. The App still works, but you will not be able to export any data.");
+		//loginConsole = new PlainLogger(getActivity(),"INITIAL");
+		//loginConsole.setOutputView(log);
+		//String server = globalPh.get(PersistenceHelper.SERVER_URL);
+		//myModules = new Configuration(Constants.getCurrentlyKnownModules(getContext(),globalPh,ph,server,bundleName,debugConsole));
 		//If all modules are already in memory, thaw them by default. Also create a button to allow the user to load new configuration.
+		//myLoader = new ModuleLoader("moduleLoader", myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader"), debugConsole, LoginConsoleFragment.this, getActivity());
 
-
-		myLoader = new ModuleLoader("moduleLoader", myModules, loginConsole, globalPh, ph.getB(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader"), debugConsole, LoginConsoleFragment.this, getActivity());
-
-
+		viewModel = new ViewModelProvider(this).get(ModuleLoaderViewModel.class);
 		return view;
 	}
 
 
 
+	@Override
+	public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+		super.onViewCreated(view, savedInstanceState);
+		viewModel.progressText.observe(getViewLifecycleOwner(), text -> {
+			loadStatusView.setText(text);
+		});
 
+		// --- Observer for the final completion status of the entire plan ---
+		// This reacts only when the whole plan is loading, succeeds, or fails.
+		viewModel.finalProcessStatus.observe(getViewLifecycleOwner(), status -> {
+			if (status == null) return;
+			// Use a switch to react to the final state
+			switch (status) {
+				case LOADING:
+					// The process has started, disable buttons and show a progress indicator.
+					// e.g., progressBar.setVisibility(View.VISIBLE);
+					break;
+				case SUCCESS:
+					// The entire plan is done and was successful!
+					Toast.makeText(getContext(), "All modules loaded successfully!", Toast.LENGTH_SHORT).show();
+					Log.d("LoginConsoleFragment","load successful");
+					start();
+					break;
 
-	private boolean expired() {
-		long takenIntoUseTime = globalPh.getL(PersistenceHelper.TIME_OF_FIRST_USE);
-		long currentTime = System.currentTimeMillis();
-		long diff = currentTime - takenIntoUseTime;
-		return (diff > Constants.MS_MONTH);
-
+				case FAILURE:
+					// The plan is done but at least one job failed.
+					// Re-enable UI so the user can try again.
+					Log.d("LoginConsoleFragment","load failed");
+					Toast.makeText(getContext(), "An error occurred during loading. Please try again.", Toast.LENGTH_LONG).show();
+					// e.g., showErrorDialog();
+					break;
+			}
+		});
 	}
+
+
 
 	@Override
 	public void onResume() {
 		super.onResume();
 		Log.e("gipp","loginfragment onresume!");
 
-		if (GlobalState.getInstance() == null && myLoader != null ) {
-			if (!myLoader.isActive()) {
-				Intent intent = new Intent();
-				intent.setAction(MenuActivity.INITSTARTS);
-				LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
-				Log.d("vortex", "Loading In Memory Modules");
-				myLoader.loadModules(null,false);
-				Log.d("XEROX","EEE myloader "+myLoader.hashCode()+" isA"+myLoader.isActive());
-				loginConsole.draw();
-				Log.d("vortex", "loginConsole object " + loginConsole);
-			} else
-				Log.e("vortex","Loader is active...discarding onResume");
+		if (GlobalState.getInstance() == null ) {
+			Intent intent = new Intent();
+			intent.setAction(MenuActivity.INITSTARTS);
+			LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
+			startLoadingProcess();
+			Log.d("vortex", "Loading In Memory Modules");
 		}
 	}
 
@@ -261,7 +270,13 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		return start.get(0)+end.get(0)+"_"+(new Random()).nextInt(500);
 	}
 
+	void startLoadingProcess() {
+		// Create the specific workflow needed for this screen.
+		Workflow_I myWorkflow = new GisDatabaseWorkflow(getContext(), globalPh, ph);
 
+		// Tell the ViewModel to execute it. The fragment doesn't need to know the details.
+		viewModel.execute(myWorkflow,moduleRegistry);
+	}
 
 
 
@@ -290,7 +305,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 		//If load successful, create database and import data into it. 
 		if (loaderId.equals("moduleLoader")) {
 			//Create or update database from Table object.
-			ConfigurationModule m = myModules.getModule(VariablesConfiguration.NAME);
+			ConfigurationModule m = moduleRegistry.getModule(VariablesConfiguration.NAME);
 
 			if (m!=null) {
 				final String _loaderId = "dbLoader";
@@ -313,7 +328,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 					loadSuccess(_loaderId, majorVersionChange, "\ndb modules unchanged",socketBroken);
 				} else {
 					//Load configuration files asynchronously.
-					Constants.getDBImportModules(getContext(),globalPh, ph, globalPh.get(PersistenceHelper.SERVER_URL), bundleName, debugConsole, myDb, t, new AsyncLoadDoneCb() {
+					Constants.getDBImportModules(getContext(), globalPh, ph, globalPh.get(PersistenceHelper.SERVER_URL), bundleName, debugConsole, myDb, t, new AsyncLoadDoneCb() {
 						public void onLoadSuccesful(List<ConfigurationModule> modules) {
 							Configuration dbModules = new Configuration(modules);
 							if (modules != null) {
@@ -324,6 +339,8 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 								Log.e("vortex", "null returned from getDBImportModules");
 						}
 					});
+
+
 				}
 				//Configuration dbModules = new Configuration(Constants.getDBImportModules(globalPh, ph, server(), bundleName, debugConsole, myDb,t));
 				//Import historical data to database. 
@@ -338,11 +355,11 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 			//Map<String, Workflow> workflows,Table t,SpinnerDefinition sd
 
 
-			WorkFlowBundleConfiguration wfC = ((WorkFlowBundleConfiguration)myModules.getModule(bundleName));
+			WorkFlowBundleConfiguration wfC = ((WorkFlowBundleConfiguration)moduleRegistry.getModule(bundleName));
 			@SuppressWarnings("unchecked") List<Workflow> workflows = (List<Workflow>)wfC.getEssence();
 			String imgMetaFormat = wfC.getImageMetaFormat();
-			Table t = (Table)(myModules.getModule(VariablesConfiguration.NAME).getEssence());
-			SpinnerDefinition sd = (SpinnerDefinition)(myModules.getModule(SpinnerConfiguration.NAME).getEssence());
+			Table t = (Table)(moduleRegistry.getModule(VariablesConfiguration.NAME).getEssence());
+			SpinnerDefinition sd = (SpinnerDefinition)(moduleRegistry.getModule(SpinnerConfiguration.NAME).getEssence());
 			if (t==null) {
 				Log.e("vortex","table null - load fail");
 				return;
@@ -363,7 +380,7 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 					loginConsole.draw();
 				}
 				//Log.d("log",debugConsole.getLogText().toString());
-				start(gs);
+				start();
 
 			} else {
 				Log.e("vortex","No activity.");
@@ -378,7 +395,33 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 
 
 
-	private void start(GlobalState gs) {
+	private void start() {
+		WorkFlowBundleConfiguration wfC = ((WorkFlowBundleConfiguration)moduleRegistry.getModule(bundleName));
+		@SuppressWarnings("unchecked") List<Workflow> workflows = (List<Workflow>)wfC.getEssence();
+		String imgMetaFormat = wfC.getImageMetaFormat();
+		Table t = (Table)(moduleRegistry.getModule(VariablesConfiguration.NAME).getEssence());
+		myDb = new DbHelper(getActivity().getApplicationContext(), t, globalPh, ph, bundleName);
+		SpinnerDefinition sd = (SpinnerDefinition)(moduleRegistry.getModule(SpinnerConfiguration.NAME).getEssence());
+		if (t==null) {
+			Log.e("vortex","table null - load fail");
+			return;
+		}
+			final GlobalState gs =
+					GlobalState.createInstance(getActivity().getApplicationContext(),globalPh,ph,debugConsole,myDb, workflows, t,sd, this.logTxt,imgMetaFormat);
+			//SharedPreferences sp = GlobalState.getInstance().getPreferences().getPreferences();
+			//sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, new HashSet<>()).commit();
+			//check if backup required.
+			if (gs.getBackupManager().timeToBackup()) {
+				//loginConsole.addRow("Backing up data");
+				gs.getBackupManager().backUp();
+			}
+//			if(isAdded()) {
+//				loginConsole.clear();
+//				loginConsole.addRow(getString(R.string.done_loading));
+//				loginConsole.draw();
+//			}
+			//Log.d("log",debugConsole.getLogText().toString());
+
 		Start.alive = true;
 		//Update app version if new
 		//if (majorVersionChange) {
@@ -415,44 +458,17 @@ public class LoginConsoleFragment extends Fragment implements ModuleLoaderListen
 					appTxt.setText(bundleName + " " + newV);
 			}
 			Start.singleton.changePage(wf, null);
-			gs.setModules(myModules);
-
 			GlobalState.getInstance().onStart();
 		} else {
 			if (isAdded()) {
-				loginConsole.addRow("");
-				loginConsole.addRedText("Found no workflow 'Main'. Exiting..");
+				Log.d("vortex","Main workflow not found.");
+				//loginConsole.addRow("");
+				//loginConsole.addRedText("Found no workflow 'Main'. Exiting..");
 			}
 		}
 		myLoader=null;
-
-
-	}
-private static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-	final ImageView bmImage;
-
-	public DownloadImageTask(ImageView bmImage) {
-		this.bmImage = bmImage;
 	}
 
-	protected Bitmap doInBackground(String... urls) {
-		String urldisplay = urls[0];
-		Bitmap mIcon11 = null;
-		try {
-			InputStream in = new java.net.URL(urldisplay).openStream();
-			mIcon11 = BitmapFactory.decodeStream(in);
-		} catch (Exception e) {
-
-		}
-		return mIcon11;
-	}
-
-	protected void onPostExecute(Bitmap result) {
-		Log.d("vortex","setting image!!");
-		if (result!=null)
-			bmImage.setImageBitmap(result);
-	}
-}
 
 
 
