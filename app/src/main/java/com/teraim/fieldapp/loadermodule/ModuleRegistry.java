@@ -40,6 +40,9 @@ public final class ModuleRegistry {
             }
         }
     }
+    public void add(ConfigurationModule module) {
+        moduleMap.put(module.getFileName(), module);
+    }
 
     /**
      * Retrieves a module by its unique file name.

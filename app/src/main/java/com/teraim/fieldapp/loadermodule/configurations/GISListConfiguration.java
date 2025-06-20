@@ -57,7 +57,7 @@ public class GISListConfiguration extends CI_ConfigurationModule {
 
     @Override
     protected void setEssence() {
-
+        essence = gisTypes;
     }
 
     public List<String> getGisTypes() {

@@ -4,19 +4,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@null"> <include layout="@layout/toolbar" />
+        android:background="@null">
+
+        <include
+            android:id="@+id/toolbar"
+            layout="@layout/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true" />
 
         <FrameLayout
             android:id="@+id/content_frame"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@null"> </FrameLayout>
+            android:layout_below="@id/toolbar"
+            android:background="@null" />
 
-    </LinearLayout>
+        <FrameLayout
+            android:id="@+id/progress_indicator_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:visibility="gone">
+
+            <include layout="@layout/progress_indicator" />
+
+        </FrameLayout>
+
+    </RelativeLayout>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/nav_view"
@@ -25,4 +43,5 @@
         android:layout_gravity="start"
         android:fitsSystemWindows="true"
         />
+
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -74,12 +74,11 @@ public abstract class ConfigurationModule {
 		this.ph=ph;
 		this.printedLabel=moduleName;
 		this.baseBundlePath=urlOrPath;
-		fullPath = urlOrPath+fileName+"."+type.name();
+		this.fullPath = urlOrPath+fileName+"."+type.name();
 		this.context = context;
-
+		this.frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
 		Log.d("balla","full path "+fullPath);
 		this.versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);
-		this.state.setValue(State.INITIAL);
 	}
 
 
@@ -136,12 +135,44 @@ public abstract class ConfigurationModule {
 		return notFound;
 	}
 
+	public void load(ExecutorService executor, ModuleLoaderCb cb, boolean forceReload) {
+		state.postValue(State.LOADING);
+
+		executor.submit(() -> {
+			// --- This entire block runs on a background thread ---
+
+			// 1. Check if we should skip the download
+			if (!forceReload) {
+				// Try to load from the local frozen cache first.
+				if (thawSynchronously().errCode == ErrorCode.thawed) {
+					Log.d("ModuleLoader", "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
+					// Signal completion using the existing callback.
+					cb.onFileLoaded(new LoadResult(this, ErrorCode.thawed));
+					// Stop execution here. Do not proceed to network load.
+					return;
+				}
+			}
+
+			// 2. If we are here, it means either:
+			//    a) A force reload was requested.
+			//    b) There was no frozen file to thaw.
+			//    c) The frozen file was corrupt and failed to thaw.
+			//    Proceed with the network load.
+			Log.d("ModuleLoader", "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
+			LoadResult networkResult = DataLoader.loadAndParseAndFreeze(this);
+
+			if (networkResult.errCode == ErrorCode.frozen) {
+				cb.onFileLoaded(networkResult);
+			} else {
+				cb.onError(networkResult);
+			}
+		});
+	}
 	public void load(ExecutorService executor, ModuleLoaderCb cb) {
 		state.postValue(State.LOADING);
 		executor.submit(() -> {
 
 			try {
-				frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
 				versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);
 				LoadResult result = DataLoader.loadAndParseAndFreeze(this);
 				cb.onFileLoaded(result);
@@ -209,6 +240,7 @@ public abstract class ConfigurationModule {
 			return new LoadResult(this,ErrorCode.thawed);
 		else {
 			this.setThawActive(true);
+			Log.d("ConfigurationModule", "Trying to thaw using "+this.frozenPath);
 			Object result = Tools.readObjectFromFile(this.frozenPath);
 			this.setThawActive(false);
 			setEssence(result);

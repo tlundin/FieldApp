@@ -31,20 +31,19 @@
         <item name="android:windowExitAnimation">@anim/slide_out_right</item>
     </style>
 
-    <!-- New, specific style for the text appearance inside the options menu popup -->
     <style name="AppTheme.PopupMenu.TextAppearance" parent="TextAppearance.MaterialComponents.Subtitle1">
-        <!-- This theme attribute will be light in dark mode and dark in light mode -->
         <item name="android:textColor">?attr/colorOnSurface</item>
     </style>
 
-    <!-- New, specific style for the popup menu itself -->
     <style name="AppTheme.PopupMenu" parent="Widget.MaterialComponents.PopupMenu.Overflow">
-        <!-- Apply the text appearance style to the menu items -->
         <item name="android:itemTextAppearance">@style/AppTheme.PopupMenu.TextAppearance</item>
     </style>
 
-    <!-- This is your main theme for the entire application -->
-    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
@@ -79,7 +78,6 @@
 
     <style name="NavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
         <item name="itemTextAppearance">@style/NavigationViewItemTextAppearance</item>
-        <!-- Use a theme attribute for adaptive text color -->
         <item name="itemTextColor">?attr/colorOnSurface</item>
         <item name="itemBackground">@drawable/navigation_item_background</item>
     </style>

@@ -287,7 +287,8 @@ public class Tools {
 			object = objectIn.readObject();
 
 		} catch (Exception e) {
-			Log.d("vortex","thaw failed");
+			Log.d("vortex","thaw failed ");
+			e.printStackTrace();
 			object=null;
 		}  finally {
 			if (objectIn != null) {
@@ -1036,11 +1037,7 @@ public class Tools {
 	}
 	 */
 
-	public static void onLoadCacheImage(String serverFileRootDir, final String fileName, final String cacheFolder, WebLoaderCb cb) {
-		final String fullPicURL = serverFileRootDir+fileName;
-		new DownloadTask(cb).execute(fileName,fullPicURL,cacheFolder);
 
-	}
 	public static void preCacheImage(String serverFileRootDir, final String fileName, final String cacheFolder, final LoggerI logger) {
 
 		onLoadCacheImage (serverFileRootDir,fileName,cacheFolder,new WebLoaderCb(){
@@ -1077,7 +1074,11 @@ public class Tools {
 		void progress(int bytesRead);
 	}
 
+	public static void onLoadCacheImage(String serverFileRootDir, final String fileName, final String cacheFolder, WebLoaderCb cb) {
+		final String fullPicURL = serverFileRootDir+fileName;
+		new DownloadTask(cb).execute(fileName,fullPicURL,cacheFolder);
 
+	}
 	private static class DownloadTask extends AsyncTask<String, Void, Boolean> {
 		final WebLoaderCb cb;
 

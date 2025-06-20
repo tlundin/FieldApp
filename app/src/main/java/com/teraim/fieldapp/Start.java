@@ -1,5 +1,9 @@
 package com.teraim.fieldapp;
 
+import static com.teraim.fieldapp.loadermodule.LoadingStatus.FAILURE;
+import static com.teraim.fieldapp.loadermodule.LoadingStatus.LOADING;
+import static com.teraim.fieldapp.loadermodule.LoadingStatus.SUCCESS;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -18,14 +22,19 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewConfiguration;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.dynamic.Executor;
+import com.teraim.fieldapp.dynamic.templates.StartupFragment;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
@@ -38,8 +47,8 @@ import com.teraim.fieldapp.log.Logger;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.DrawerMenu;
-import com.teraim.fieldapp.ui.LoginConsoleFragment;
 import com.teraim.fieldapp.ui.MenuActivity;
+import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
@@ -80,7 +89,9 @@ public class Start extends MenuActivity {
 
     private ContentResolver mResolver;
 
-
+    private ModuleLoaderViewModel viewModel;
+    private FrameLayout progressIndicatorContainer;
+    private TextView progressIndicatorText;
 
 
     /**
@@ -103,12 +114,25 @@ public class Start extends MenuActivity {
         });*/
 
         Log.d("nils","in START onCreate");
+
         singleton = this;
+
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
+
+        // 1. Get references to the ViewModel and the new UI elements
+        viewModel = new ViewModelProvider(this).get(ModuleLoaderViewModel.class);
+        progressIndicatorContainer = findViewById(R.id.progress_indicator_container);
+        progressIndicatorText = findViewById(R.id.progress_text);
+
+        // 2. Set up the observers
+        setupObservers();
         //This combats an issue on the target panasonic platform having to do with http reading.
         //System.setProperty("http.keepAlive", "false");
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar == null) {
+            Log.e("START_ACTIVITY_ERROR", "findViewById(R.id.toolbar) returned NULL. This is the root cause of the crash. Check for build cache issues or ID typos.");
+        }
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
         assert actionbar != null;
@@ -201,8 +225,6 @@ public class Start extends MenuActivity {
     @Override
     protected void onStart() {
         Log.d("nils","In START onStart");
-        if(GlobalState.getInstance()!=null)
-            GlobalState.getInstance().onStart();
         super.onStart();
     }
 
@@ -253,27 +275,14 @@ public class Start extends MenuActivity {
 
         } else {
             // Permission has already been granted
-
             if (GlobalState.getInstance() == null) {
                 loading = true;
-
-                //Create a global logger.
-
-
                 //Start the login fragment.
                 androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
-                /*
-                for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
-                    fm.popBackStack();
-                }
-
-                 */
-                //	private ArrayList<String> rutItems;
-                //	private ArrayList<String> wfItems;
-                LoginConsoleFragment loginFragment = new LoginConsoleFragment();
+                StartupFragment startupFragment = new StartupFragment();
                 //Don't add loginfragment to backstack.
                 fm.beginTransaction()
-                        .replace(R.id.content_frame, loginFragment)
+                        .replace(R.id.content_frame, startupFragment)
                         .addToBackStack("login")
                         .commit();
 
@@ -345,7 +354,7 @@ public class Start extends MenuActivity {
             template = "DefaultTemplate";
 
         //Set context.
-        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"]");
+        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"] with template "+wf.getTemplate());
         DB_Context cHash = DB_Context.evaluate(wf.getContext());
 
         //if Ok err is null.
@@ -368,8 +377,10 @@ public class Start extends MenuActivity {
 
 
             if (template==null) {
-                template = "EmptyTemplate";
-                label = "Start";
+                template = "StartupFragment";
+                label = (GlobalState.getInstance()!=null)?"Start":"Startup...";
+                androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.popBackStack();
             }
 
 
@@ -462,7 +473,7 @@ public class Start extends MenuActivity {
                 return false;
             } else
                 Log.d("gipp", "current content fragment: "+currentContentFrameFragment.getClass().getName());
-            if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.EmptyTemplate")) {
+            if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.StartupFragment")) {
                 String dialogText = getString(R.string.exit_app);
                 new AlertDialog.Builder(this)
                         .setTitle("Exit")
@@ -574,6 +585,7 @@ public class Start extends MenuActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
         switch (requestCode) {
             case PERMISSION_ALL: {
                 // If request is cancelled, the result arrays are empty.
@@ -603,6 +615,33 @@ public class Start extends MenuActivity {
         } else {
             Log.w("StartActivity", "ActionBar not found, cannot set visibility.");
         }
+    }
+
+    private void setupObservers() {
+        viewModel.finalProcessStatus.observe(this, workflowResult -> { // Renamed parameter for clarity
+            if (workflowResult == null) return;
+            switch (workflowResult.status) {
+                case LOADING:
+                    Log.d("heppola","LOADING");
+                    progressIndicatorContainer.setVisibility(View.VISIBLE);
+                    break;
+                case SUCCESS:
+                    Log.d("heppola","SUCCESS");
+                    // Fall-through to also hide on success
+                case FAILURE:
+                    // Hide the indicator when the process is complete
+                    progressIndicatorContainer.setVisibility(View.GONE);
+                    break;
+            }
+        });
+        // This observer updates the TEXT of the indicator
+        viewModel.progressText.observe(this, text -> {
+            if (text != null && !text.isEmpty()) {
+                // We'll just show the first line of the detailed progress for a clean look
+                String firstLine = text.split("\n")[0];
+                progressIndicatorText.setText(firstLine);
+            }
+        });
     }
     /*
     @Override

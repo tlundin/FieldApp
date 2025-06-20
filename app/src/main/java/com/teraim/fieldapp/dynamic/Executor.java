@@ -124,7 +124,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	private static final String STOP_ID = "STOP";
 
 	public static final String REDRAW_PAGE = "executor_redraw_page";
-    private static final String REFRESH_AFTER_SUBFLOW_EXECUTION = "executor_refresh_after_subflow";
+	private static final String REFRESH_AFTER_SUBFLOW_EXECUTION = "executor_refresh_after_subflow";
 
 	private Long oldT = null;
 
@@ -136,7 +136,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	//Keep track of input in below arraylist.
 
-	protected final Map<Rule,Boolean>executedRules = new LinkedHashMap<Rule,Boolean>();	
+	protected final Map<Rule,Boolean>executedRules = new LinkedHashMap<Rule,Boolean>();
 
 	protected List<Rule> rules = new ArrayList<Rule>();
 	private List<Workflow> wfStack;
@@ -154,7 +154,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	protected GlobalState gs;
 
 	protected LoggerI o;
-    private BroadcastReceiver brr;
+	private BroadcastReceiver brr;
 	private final Map<String,String> jump= new HashMap<String,String>();
 	private Set<Variable> visiVars;
 
@@ -169,7 +169,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	//Create pop dialog to display status.
 	private ProgressDialog pDialog;
 	protected boolean survivedCreate = false;
-    private WF_Event_OnSave delayedOnSave=null;
+	private WF_Event_OnSave delayedOnSave=null;
 
 	private Variable myX, myY, myAcc;
 	private LocationCallback locationCallback;
@@ -180,49 +180,46 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		survivedCreate = false;
-		//If app has been murdered brutally, restart it. 
-		if(!Start.alive) {
-			Tools.restart(getActivity());
-		} else {
-			gs = GlobalState.getInstance();
-			if (gs == null) {
-				Log.e("vortex","globalstate null in executor, exit");
-				return;
-			}
-			al = gs.getVariableConfiguration();
-			varCache=gs.getVariableCache();
-			o = gs.getLogger();
+
+		gs = GlobalState.getInstance();
+		if (gs == null) {
+			Log.e("vortex","globalstate null in executor, exit");
+			return;
+		}
+		al = gs.getVariableConfiguration();
+		varCache=gs.getVariableCache();
+		o = gs.getLogger();
 
 
-			ifi = new IntentFilter();
-			ifi.addAction(REDRAW_PAGE);
-			ifi.addAction(REFRESH_AFTER_SUBFLOW_EXECUTION);
-			//ifi.addAction(BluetoothConnectionService.BLUETOOTH_MESSAGE_RECEIVED);
-			//This receiver will forward events to the current context.
-			//Bluetoothmessages are saved in the global context by the message handler.
-			brr = new BroadcastReceiver() {
-				@Override
-				public void onReceive(Context ctx, Intent intent) {
-					Log.d("vortex","GETS HERE:::::: "+this.toString()+"  P: "+Executor.this.toString());
-					if (intent.getAction().equals(REDRAW_PAGE)) {
-                        boolean callAfterSub=intent.getBooleanExtra("RedrawAfterExecutingSub",false);
-                        Log.d("vortex","callAfterSUB: "+callAfterSub);
-                        if (!callAfterSub || callAfterSub && myContext.isCaller()) {
+		ifi = new IntentFilter();
+		ifi.addAction(REDRAW_PAGE);
+		ifi.addAction(REFRESH_AFTER_SUBFLOW_EXECUTION);
+		//ifi.addAction(BluetoothConnectionService.BLUETOOTH_MESSAGE_RECEIVED);
+		//This receiver will forward events to the current context.
+		//Bluetoothmessages are saved in the global context by the message handler.
+		brr = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context ctx, Intent intent) {
+				Log.d("vortex","GETS HERE:::::: "+this.toString()+"  P: "+Executor.this.toString());
+				if (intent.getAction().equals(REDRAW_PAGE)) {
+					boolean callAfterSub=intent.getBooleanExtra("RedrawAfterExecutingSub",false);
+					Log.d("vortex","callAfterSUB: "+callAfterSub);
+					if (!callAfterSub || callAfterSub && myContext.isCaller()) {
 
-                            Log.d("vortex","Setting DB context in broadcastreceiver");
-                            gs.setDBContext(myContext.getHash());
-                            Log.d("vortex","Redraw page received in Executor. Sending onSave event.");
-                            Log.d("vortex","my parent: "+Executor.this.getClass().getCanonicalName());
-                            myContext.registerEvent(new WF_Event_OnSave(Constants.SYNC_ID));
+						Log.d("vortex","Setting DB context in broadcastreceiver");
+						gs.setDBContext(myContext.getHash());
+						Log.d("vortex","Redraw page received in Executor. Sending onSave event.");
+						Log.d("vortex","my parent: "+Executor.this.getClass().getCanonicalName());
+						myContext.registerEvent(new WF_Event_OnSave(Constants.SYNC_ID));
 
-                        } else
-                        	Log.d("vortex"," i am not a parent");
+					} else
+						Log.d("vortex"," i am not a parent");
 
 
 
-						//Executor.this.restart();
+					//Executor.this.restart();
 
-					}
+				}
 					/*
 				else if (intent.getAction().equals(BluetoothConnectionService.BLUETOOTH_MESSAGE_RECEIVED)) {
 					Log.d("nils","New bluetoot message received event!");
@@ -230,45 +227,45 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				}
 					 */
 
+			}
+		};
+
+
+
+		myContext = new WF_Context(this.getActivity(),this,R.id.content_frame);
+		wf = getFlow();
+		if (wf == null) {
+			Log.e("Vortex","WF was null in Executor. Exiting...");
+			return;
+		} else {
+			myContext.setWorkflow(wf);
+
+			Log.d("GPS","tracker created");
+			Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
+			myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
+			myY = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LONG);
+			myAcc = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_ACCURACY);
+
+			locationCallback = new LocationCallback() {
+				@Override
+				public void onLocationResult(LocationResult locationResult) {
+					if (locationResult == null) {
+						return;
+					}
+					for (Location location : locationResult.getLocations()) {
+						onLocationChanged(location);
+					}
 				}
 			};
 
+			fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
 
-			
-			myContext = new WF_Context(this.getActivity(),this,R.id.content_frame);
-			wf = getFlow();
-			if (wf == null) {
-				Log.e("Vortex","WF was null in Executor. Exiting...");
-				return;
-			} else {
-				myContext.setWorkflow(wf);
-
-					Log.d("GPS","tracker created");
-					Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
-					myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
-					myY = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LONG);
-					myAcc = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_ACCURACY);
-
-					locationCallback = new LocationCallback() {
-						@Override
-						public void onLocationResult(LocationResult locationResult) {
-							if (locationResult == null) {
-								return;
-							}
-							for (Location location : locationResult.getLocations()) {
-								onLocationChanged(location);
-							}
-						}
-					};
-
-					fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
-
-				Log.d("nils","GETS TO ONCREATE EXECUTOR FOR WF "+wf.getLabel());
-				survivedCreate = true;
-			}
-
-
+			Log.d("nils","GETS TO ONCREATE EXECUTOR FOR WF "+wf.getLabel());
+			survivedCreate = true;
 		}
+
+
+
 
 
 
@@ -279,20 +276,23 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	@Override
 	public void onResume() {
 		Log.d("vortex", "in Executor onResume " + this.toString());
-
 		gs = GlobalState.getInstance();
-		if (myContext != null) {
-			if (myContext.hasGPSTracker())
-				startLocationUpdates(createLocationRequest(), locationCallback);
-			resetContext();
-			//make sure the correct map is updated.
-			if (myContext.hasMap())
-				gs.registerUpdateListener(myContext.getCurrentGis());
-		}
-		if (brr!=null && getActivity()!=null)
-			LocalBroadcastManager.getInstance(getActivity()).registerReceiver(brr,
-				ifi);
+		if (gs == null) {
+			Log.e("vortex","globalstate null in executor, exit");
 
+		} else {
+			if (myContext != null) {
+				if (myContext.hasGPSTracker())
+					startLocationUpdates(createLocationRequest(), locationCallback);
+				resetContext();
+				//make sure the correct map is updated.
+				if (myContext.hasMap())
+					gs.registerUpdateListener(myContext.getCurrentGis());
+			}
+			if (brr != null && getActivity() != null)
+				LocalBroadcastManager.getInstance(getActivity()).registerReceiver(brr,
+						ifi);
+		}
 		super.onResume();
 	}
 
@@ -322,19 +322,19 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		gs.updateCurrentPosition(signal,this.hashCode());
 	}
 
-    private void resetContext() {
-        Log.d("hash","resetting global context");
-        Log.d("hash","local: "+myContext.getHash());
-        Log.d("hash","global: "+gs.getVariableCache().getContext());
-        if (myContext.getHash()==null) {
-            myContext.setHash(DB_Context.evaluate(wf.getContext()));
-        }
-        gs.setDBContext(myContext.getHash());
+	private void resetContext() {
+		Log.d("hash","resetting global context");
+		Log.d("hash","local: "+myContext.getHash());
+		Log.d("hash","global: "+gs.getVariableCache().getContext());
+		if (myContext.getHash()==null) {
+			myContext.setHash(DB_Context.evaluate(wf.getContext()));
+		}
+		gs.setDBContext(myContext.getHash());
 
-    }
+	}
 
 
-    @Override
+	@Override
 	public void onPause()
 	{
 
@@ -357,9 +357,15 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 		//Find out the name of the workflow to execute.
 		Bundle b = this.getArguments();
+		String name;
+		String statusVariable=null;
 		if (b!=null) {
-			String name = b.getString("workflow_name");
-			String statusVariable = b.getString("status_variable");
+			name = b.getString("workflow_name");
+			statusVariable = b.getString("status_variable");
+		} else {
+			Log.d("vortex", "BUNDLE null in executor");
+			name = "Main";
+		}
 
 			if (statusVariable !=null) {
 				myContext.setStatusVariable(b.getString("status_variable"));
@@ -392,17 +398,16 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					}
 				}, EventType.onSave);
 			}
-			if (name!=null && name.length()>0) 
+			if (name!=null && name.length()>0)
 				wf = gs.getWorkflow(name);
 
 			if (wf==null&&name!=null&&name.length()>0) {
 				o.addRow("");
 				o.addYellowText("Workflow "+name+" NOT found!");
 				return null;
-			} 
+			}
 
-		} else
-			Log.e("vortex","BUNDLE WAS NULL!!!!");
+
 		return wf;
 	}
 
@@ -417,15 +422,15 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				wf = wfStack.get(0);
 			wfStack=null;
 		}
- 		String wfLabel = wf.getLabel();
+		String wfLabel = wf.getLabel();
 		o.addRow("");
 		o.addRow("");
 		o.addRow("*******EXECUTING: "+wfLabel);
 		Start.singleton.setTitle(wfLabel);
 		Log.d("vortex","in Executor run()");
-		
+
 		myContext.resetState();
-        resetContext();
+		resetContext();
 		//DB_Context wfHash = DB_Context.evaluate(wf.getContext());
         /*if (myContext.getHash() ==null) {
             Log.d("hash","setting mycontext hash to "+gs.getVariableCache().getContext());
@@ -971,7 +976,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				}
 			}
 			else
-			 drawAll();
+				drawAll();
 		} catch (Exception e) {
 			removeLoadDialog();
 			if (blocks != null) {
@@ -985,57 +990,56 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	private void drawAll() {
 
-			//Remove loading popup if displayed.
-			removeLoadDialog();
-			Container root = myContext.getContainer("root");
-			if (root==null && myContext.hasContainers()) {
-				o.addRow("");
-				o.addRedText("TEMPLATE ERROR: Cannot find the root container. \nEach template must have a root! Execution aborted.");				
-			} else {
-				//Now all blocks are executed.
-				//Draw the UI.
-				o.addRow("");
-				o.addYellowText("Now Drawing components recursively");
-				Log.d("vortex","Now Drawing components recursively");
-				//Draw all lists first.
-				for (WF_Static_List l:myContext.getLists())
-					l.draw();
+		//Remove loading popup if displayed.
+		removeLoadDialog();
+		Container root = myContext.getContainer("root");
+		if (root==null && myContext.hasContainers()) {
+			o.addRow("");
+			o.addRedText("TEMPLATE ERROR: Cannot find the root container. \nEach template must have a root! Execution aborted.");
+		} else {
+			//Now all blocks are executed.
+			//Draw the UI.
+			o.addRow("");
+			o.addYellowText("Now Drawing components recursively");
+			Log.d("vortex","Now Drawing components recursively");
+			//Draw all lists first.
+			for (WF_Static_List l:myContext.getLists())
+				l.draw();
 
-				if (root!=null) 
-					myContext.drawRecursively(root);
-				//open menu if any
-				if (delayedOnSave!=null) {
+			if (root!=null)
+				myContext.drawRecursively(root);
+			//open menu if any
+			if (delayedOnSave!=null) {
 
-                    Log.d("blubb","executing delayed onSave");
-					myContext.registerEvent(delayedOnSave);
-                    delayedOnSave=null;
-				}
-				if (myContext.hasMenu()) {
-					Log.d("vortex","Drawing menu");
-					gs.getDrawerMenu().openDrawer();
-				}
+				Log.d("blubb","executing delayed onSave");
+				myContext.registerEvent(delayedOnSave);
+				delayedOnSave=null;
+			}
+			if (myContext.hasMenu()) {
+				Log.d("vortex","Drawing menu");
+				gs.getDrawerMenu().openDrawer();
+			}
 
-				//Send event that flow has executed.
-				Log.d("vortex","Registering WF EXECUTION");
-				myContext.registerEvent(new WF_Event_OnFlowExecuted("executor"));
-				if (root==null) {
-
-					int c = getActivity().getFragmentManager().getBackStackEntryCount();
-					Log.d("blax","need to redraw previous fragment if there is one! "+c);
-					if (c>0) {
-						Log.d("blax","there is a fragment to redraw. Try broadcast!");
-                        Intent intent = new Intent();
-                        intent.setAction(Executor.REDRAW_PAGE);
-                        intent.putExtra("RedrawAfterExecutingSub",true);
-						gs.sendSyncEvent(intent);
-					}
+			//Send event that flow has executed.
+			Log.d("vortex","Registering WF EXECUTION");
+			myContext.registerEvent(new WF_Event_OnFlowExecuted("executor"));
+			if (root==null) {
+				int c = getActivity().getFragmentManager().getBackStackEntryCount();
+				Log.d("blax","need to redraw previous fragment if there is one! "+c);
+				if (c>0) {
+					Log.d("blax","there is a fragment to redraw. Try broadcast!");
+					Intent intent = new Intent();
+					intent.setAction(Executor.REDRAW_PAGE);
+					intent.putExtra("RedrawAfterExecutingSub",true);
+					gs.sendSyncEvent(intent);
 				}
 			}
+		}
 
 
 	}
 
-    private void addLoadDialog() {
+	private void addLoadDialog() {
 		pDialog = ProgressDialog.show(myContext.getContext(), "",
 				getResources().getString(R.string.loading_please_wait), true);
 	}
@@ -1094,18 +1098,18 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		Log.e("vortex","Execution aborted.");
 		removeLoadDialog();
 		new AlertDialog.Builder(myContext.getContext())
-		.setTitle("Execution aborted")
-		.setMessage(reason) 
-		.setIcon(android.R.drawable.ic_dialog_alert)
-		.setCancelable(false)
-		.setNeutralButton("Ok",new Dialog.OnClickListener() {				
-			@Override
-			public void onClick(DialogInterface dialog, int which) {
-				// TODO Auto-generated method stub
+				.setTitle("Execution aborted")
+				.setMessage(reason)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setCancelable(false)
+				.setNeutralButton("Ok",new Dialog.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						// TODO Auto-generated method stub
 
-			}
-		} )
-		.show();
+					}
+				} )
+				.show();
 	}
 
 	public void restart() {
