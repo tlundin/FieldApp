@@ -47,67 +47,88 @@ public final class DataLoader {
      * @return A LoadResult indicating the outcome of the operation.
      */
     public static LoadResult loadAndParseAndFreeze(ConfigurationModule module) {
-        URL url = null;
-        InputStream in = null;
-        try {
-            url = new URL(module.getURL());
-            Log.d("vortex", "Trying to open connection to: " + url);
-            URLConnection ucon = url.openConnection();
-            ucon.setConnectTimeout(5000);
-            in = ucon.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+        // --- Retry Logic Setup ---
+        final int MAX_ATTEMPTS = 3;
 
-            // 1. Determine Version
-            float version = getVersion(reader, module);
-
-            // 2. Read the file content
-            StringBuilder sb = new StringBuilder();
-            LoadResult readResult = read(reader, module, version, sb);
-
-            // 3. If read was successful, parse and then freeze the module.
-            if (readResult != null && readResult.errCode == ErrorCode.loaded) {
-                LoadResult parseResult = parse(module);
-                if (parseResult.errCode == ErrorCode.parsed) {
-                    // CORRECTED: Use postValue from a background thread.
-                    module.state.postValue(ConfigurationModule.State.FREEZING);
-                    return freeze(module);
-                } else {
-                    Log.d("abba", module.getLabel() + " parsing failed with message: " + parseResult.errorMessage);
-                    return parseResult;
-                }
-            } else {
-                return readResult;
-            }
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-            return new LoadResult(module, ErrorCode.BadURL);
-        } catch (IOException e) {
-            if (e instanceof UnknownHostException) {
-                return new LoadResult(module, ErrorCode.HostNotFound, "Server not found: " + (url != null ? url.getHost() : ""));
-            } else if (e instanceof MalformedJsonException) {
-                return new LoadResult(module, ErrorCode.ParseError, "Malformed JSON: " + e.getMessage() + "\nFirst row must contain the file version number.");
-            } else if (e instanceof FileNotFoundException) {
-                return new LoadResult(module, ErrorCode.notFound);
-            } else if (e instanceof java.net.SocketTimeoutException) {
-                return new LoadResult(module, ErrorCode.socket_timeout);
-            } else {
-                StringWriter sw = new StringWriter();
-                e.printStackTrace(new PrintWriter(sw));
-                e.printStackTrace();
-                return new LoadResult(module, ErrorCode.IOError, sw.toString());
-            }
-        } catch (XmlPullParserException e) {
-            return new LoadResult(module, ErrorCode.ParseError, "Malformed XML");
-        } catch (JSONException e) {
-            e.printStackTrace();
-            return new LoadResult(module, ErrorCode.ParseError, "JSONException :" + e.getMessage());
-        } catch (Dependant_Configuration_Missing e) {
-            return new LoadResult(module, ErrorCode.reloadDependant, e.getDependendant());
-        } finally {
+        for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+            URL url = null;
+            InputStream in = null;
             try {
-                if (in != null) in.close();
-            } catch (IOException ignored) {}
+                url = new URL(module.getURL());
+                Log.d("vortex", "Trying to open connection (Attempt " + attempt + "): " + url);
+                URLConnection ucon = url.openConnection();
+                ucon.setConnectTimeout(5000);
+                in = ucon.getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+
+                // Get Version, Read, Parse, Freeze... (your existing logic)
+                float version = getVersion(reader, module);
+                StringBuilder sb = new StringBuilder();
+                LoadResult readResult = read(reader, module, version, sb);
+
+                // If read was successful, parse and then freeze the module.
+                if (readResult != null && readResult.errCode == ErrorCode.loaded) {
+                    LoadResult parseResult = parse(module);
+                    if (parseResult.errCode == ErrorCode.parsed) {
+                        module.state.postValue(ConfigurationModule.State.FREEZING);
+                        LoadResult freezeResult = freeze(module);
+                        // --- SUCCESS! ---
+                        // If everything worked, return the result and exit the loop.
+                        return freezeResult;
+                    } else {
+                        return parseResult; // Return non-recoverable parse error immediately.
+                    }
+                } else if (readResult.errCode == ErrorCode.sameold || readResult.errCode == ErrorCode.existingVersionIsMoreCurrent) {
+                    // If the version is the same or older, we don't need to retry.
+                    return readResult;
+                }
+                // For other read results, the loop will continue if it was a recoverable error.
+
+            } catch (IOException e) {
+                Log.w("vortex", "Attempt " + attempt + " failed with IOException: " + e.getMessage());
+                if (attempt == MAX_ATTEMPTS) {
+                    // If this was the last attempt, return the error.
+                    return handleIOException(e, module, url);
+                }
+                // Before retrying, wait for a moment.
+                try {
+                    // Exponential backoff: 1s, 2s, 4s...
+                    long delay = (long) (1000 * Math.pow(2, attempt - 1));
+                    Log.d("vortex", "Waiting for " + delay + "ms before retrying.");
+                    Thread.sleep(delay);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return new LoadResult(module, ErrorCode.Aborted, "Retry delay was interrupted.");
+                }
+            } catch (Exception e) {
+                // Catch other non-recoverable exceptions and return immediately.
+                Log.e("vortex", "A non-recoverable error occurred.", e);
+                // This could be XmlPullParserException, JSONException, etc.
+                return new LoadResult(module, ErrorCode.ParseError, e.getMessage());
+            } finally {
+                try {
+                    if (in != null) in.close();
+                } catch (IOException ignored) {}
+            }
+        } // End of for loop
+
+        // This line is reached only if all retries failed with a recoverable error.
+        return new LoadResult(module, ErrorCode.IOError, "All " + MAX_ATTEMPTS + " attempts failed.");
+    }
+
+    private static LoadResult handleIOException(IOException e, ConfigurationModule module, URL url) {
+        if (e instanceof UnknownHostException) {
+            return new LoadResult(module, ErrorCode.HostNotFound, "Server not found: " + (url != null ? url.getHost() : ""));
+        } else if (e instanceof MalformedJsonException) {
+            return new LoadResult(module, ErrorCode.ParseError, "Malformed JSON: " + e.getMessage());
+        } else if (e instanceof FileNotFoundException) {
+            return new LoadResult(module, ErrorCode.notFound);
+        } else if (e instanceof java.net.SocketTimeoutException) {
+            return new LoadResult(module, ErrorCode.socket_timeout);
+        } else {
+            StringWriter sw = new StringWriter();
+            e.printStackTrace(new PrintWriter(sw));
+            return new LoadResult(module, ErrorCode.IOError, sw.toString());
         }
     }
 

@@ -380,6 +380,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 								statusVarM = new HashMap<String, Pair<String, String>>();
 							statusVarM.put(pickerStatusVars.getKeyColumnValues().get("uid"), new Pair<>(name, value));
 						}
+						pickerStatusVars.close();
 
 					} else
 						Log.d("fenris","PICKERSTATUSVARS NULL FOR "+statusVariable);
@@ -430,8 +431,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 									}
 								}
 							}
-							if (!pickerLocation2.next())
+							if (!pickerLocation2.next()) {
 								break;
+								}
 						} else {
 							String myTypeS = myType.toString();
 							this.creator = storedVar1.creator;
@@ -459,6 +461,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 					lastCheckTimeStamp = thisCheck;
 					Log.d("vortex","Added "+myGisObjects.size()+" objects of type "+this.getName()==null?"null":this.getName());
 				}
+				if (pickerLocation2!=null)
+					pickerLocation2.close();
+				pickerLocation1.close();
 			}
 		} else
 			Log.e("vortex","picker was null");

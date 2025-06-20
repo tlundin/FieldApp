@@ -1,5 +1,9 @@
 package com.teraim.fieldapp.ui;
 
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
@@ -18,44 +22,104 @@ import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.loadermodule.StatefulModuleLoader;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
 
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-
 public class ModuleLoaderViewModel extends ViewModel {
 
-    // These are exposed to the Fragment and represent the OVERALL plan's status.
-    private final MutableLiveData<LoadingStatus> _finalProcessStatus = new MutableLiveData<>();
-    public final LiveData<LoadingStatus> finalProcessStatus = _finalProcessStatus;
+    /**
+     * A helper class to wrap the final result of a workflow execution.
+     */
+    public static class WorkflowResult {
+        public final LoadingStatus status;
+        public final ModuleRegistry registry;
+
+        public WorkflowResult(LoadingStatus status, ModuleRegistry registry) {
+            this.status = status;
+            this.registry = registry;
+        }
+    }
+
+    // LiveData exposed to the UI layer
+    private final MutableLiveData<WorkflowResult> _finalProcessStatus = new MutableLiveData<>();
+    public final LiveData<WorkflowResult> finalProcessStatus = _finalProcessStatus;
 
     private final MutableLiveData<String> _progressText = new MutableLiveData<>("");
     public final LiveData<String> progressText = _progressText;
+
+    // Executors for background tasks
+    private final ExecutorService setupExecutor = Executors.newSingleThreadExecutor();
+    private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
+
+    // Handler to post tasks back to the main UI thread
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+
     /**
-     * The single public entry point. The Fragment provides a plan (a Queue of jobs)
-     * and the ViewModel executes it.
+     * Executes a workflow. Handles pre-checking for cached modules and orchestrates
+     * the entire loading process off the main thread.
+     *
+     * @param workflow The workflow to execute.
+     * @param forceReload If true, all modules will be fetched from the server.
      */
-    private Workflow_I currentWorkflow;
-    private ModuleRegistry registry;
-
-    public void execute(Workflow_I workflow, ModuleRegistry registry) {
-        if (_finalProcessStatus.getValue() == LoadingStatus.LOADING) return;
-        this.registry=registry;
-        this.currentWorkflow = workflow;
-        _finalProcessStatus.setValue(LoadingStatus.LOADING);
-
-        LoadJob initialJob = workflow.getInitialJob();
-        if (initialJob == null || initialJob.modules.isEmpty()) {
-            _finalProcessStatus.setValue(LoadingStatus.SUCCESS);
+    public void execute(Workflow_I workflow, boolean forceReload) {
+        if (_finalProcessStatus.getValue() != null && _finalProcessStatus.getValue().status == LoadingStatus.LOADING) {
+            Log.w("ModuleLoaderViewModel", "Execution request ignored: a workflow is already running.");
             return;
         }
-        runJob(initialJob);
+
+        _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.LOADING, null));
+
+        // Move all setup and pre-check logic to a background thread to keep the UI responsive.
+        setupExecutor.execute(() -> {
+            // --- This block runs on the setupExecutor background thread ---
+
+            // This is now safe as it's off the main thread.
+            LoadJob initialJob = workflow.getInitialJob();
+            if (initialJob == null || initialJob.modules.isEmpty()) {
+                _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, new ModuleRegistry()));
+                return;
+            }
+
+            final ModuleRegistry registry = new ModuleRegistry();
+            final ArrayList<ConfigurationModule> modulesToDownload = new ArrayList<>();
+
+            if (!forceReload) {
+                for (ConfigurationModule module : initialJob.modules) {
+                    if (module.thawSynchronously().errCode == LoadResult.ErrorCode.thawed) {
+                        registry.add(module);
+                    } else {
+                        modulesToDownload.add(module);
+                    }
+                }
+            } else {
+                modulesToDownload.addAll(initialJob.modules);
+            }
+
+            // Post the next step back to the main thread.
+            mainHandler.post(() -> {
+                // --- This block runs on the MAIN UI thread ---
+                if (modulesToDownload.isEmpty()) {
+                    Log.d("ViewModel", "All modules were successfully loaded from cache. Workflow complete.");
+                    _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
+                } else {
+                    Log.d("ViewModel", "Starting network download for " + modulesToDownload.size() + " modules.");
+                    LoadJob downloadJob = new LoadJob(initialJob.stage, modulesToDownload);
+                    runJob(downloadJob, true, registry, workflow);
+                }
+            });
+        });
     }
 
-    private void runJob(LoadJob job) {
-        StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage);
+    /**
+     * Runs a specific job in the workflow. This method MUST be called on the main thread
+     * because it sets up LiveData observers.
+     */
+    private void runJob(final LoadJob job, final boolean forceReload, final ModuleRegistry registry, final Workflow_I workflow) {
+        StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage, forceReload);
 
+        // These observeForever calls are now safe because runJob is on the main thread.
         loader.progressText.observeForever(_progressText::postValue);
-
         loader.loadingStatus.observeForever(new Observer<LoadCompletionEvent>() {
             @Override
             public void onChanged(LoadCompletionEvent completionEvent) {
@@ -64,17 +128,14 @@ public class ModuleLoaderViewModel extends ViewModel {
 
                 if (completionEvent.status == LoadingStatus.SUCCESS) {
                     registry.add(job.modules);
-                    LoadJob nextJob = currentWorkflow.getNextJob(registry);
-
+                    LoadJob nextJob = workflow.getNextJob(registry);
                     if (nextJob != null) {
-                        runJob(nextJob); // Execute the next job in the chain
+                        runJob(nextJob, true, registry, workflow);
                     } else {
-                        // No next job, the workflow is successfully completed.
-                        _finalProcessStatus.postValue(LoadingStatus.SUCCESS);
+                        _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
                     }
                 } else {
-                    // A job failed, so the entire workflow fails.
-                    _finalProcessStatus.postValue(LoadingStatus.FAILURE);
+                    _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.FAILURE, null));
                 }
             }
         });
@@ -82,47 +143,30 @@ public class ModuleLoaderViewModel extends ViewModel {
         loader.startLoading();
     }
 
-    // Use a single-thread executor for this sequential task.
-    private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
-
-    /**
-     * Loads photo metadata on a background thread and returns a LiveData for the result.
-     * @param metadataModule The configuration module for the photo metadata.
-     * @param cacheFolder The path to the cache folder.
-     * @param imageFileName The file name of the associated image.
-     * @return A LiveData object that will receive the GisResult upon completion.
-     */
-
     public LiveData<CreateGisBlock.GisResult> loadPhotoMetadata(ConfigurationModule metadataModule, String cacheFolder, String imageFileName) {
-
         MutableLiveData<CreateGisBlock.GisResult> resultLiveData = new MutableLiveData<>();
-
         metadataModule.load(singleTaskExecutor, new ModuleLoaderCb() {
             @Override
             public void onFileLoaded(LoadResult result) {
                 if (result.errCode == LoadResult.ErrorCode.frozen) {
                     PhotoMeta pm = ((PhotoMetaI) metadataModule).getPhotoMeta();
-                    // On success, post the GisResult object
                     resultLiveData.postValue(new CreateGisBlock.GisResult(pm, cacheFolder, imageFileName));
                 } else {
-                    // On failure, post a GisResult with an error
                     resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Failed to load metadata, code: " + result.errCode)));
                 }
             }
-
             @Override
             public void onError(LoadResult result) {
                 resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Error loading metadata: " + result.errorMessage)));
             }
-        });
-
+        }, true);
         return resultLiveData;
     }
 
     @Override
     protected void onCleared() {
         super.onCleared();
-        // Always shut down executors in onCleared
+        setupExecutor.shutdownNow();
         singleTaskExecutor.shutdownNow();
     }
 }

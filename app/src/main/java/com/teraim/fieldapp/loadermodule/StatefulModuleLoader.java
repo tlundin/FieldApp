@@ -29,21 +29,27 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     // LiveData for the FINAL completion event of this specific job.
     // This is the corrected line with the proper generic type.
     public final MutableLiveData<LoadCompletionEvent> loadingStatus = new MutableLiveData<>();
+    private final boolean forceReload;
 
     /**
      * Creates a loader for a specific job.
-     * @param modules The list of ConfigurationModules to load for this job.
-     * @param stage The identifier for this job (e.g., FILES, DATABASES).
+     *
+     * @param modules     The list of ConfigurationModules to load for this job.
+     * @param stage       The identifier for this job (e.g., FILES, DATABASES).
+     * @param forceReload
      */
-    public StatefulModuleLoader(List<ConfigurationModule> modules, LoadStage stage) {
+    public StatefulModuleLoader(List<ConfigurationModule> modules, LoadStage stage, boolean forceReload) {
         this.stage = stage;
         this.modules = modules;
-        // Create a dedicated thread pool for this job.
+        this.forceReload = forceReload;
         final int NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
         Log.d("StatefulModuleLoader","number of threads: "+NUMBER_OF_CORES);
         this.executor = Executors.newFixedThreadPool(Math.max(2, NUMBER_OF_CORES));
         this.modulesInProgress = new AtomicInteger(modules.isEmpty() ? 0 : modules.size());
-        updateProgress();
+
+        // NEW: Post a simple, non-blocking initial message instead.
+        // This requires no loops and is extremely fast.
+        progressText.postValue("Preparing stage: " + stage + " (" + modules.size() + " modules)...");
     }
 
     /**
@@ -59,7 +65,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
         progressText.setValue("Starting stage: " + stage + "...");
         for (ConfigurationModule module : modules) {
             // The loader acts as the callback for each module's async operations.
-            module.load(executor, this);
+            module.load(executor, this, forceReload);
         }
     }
 

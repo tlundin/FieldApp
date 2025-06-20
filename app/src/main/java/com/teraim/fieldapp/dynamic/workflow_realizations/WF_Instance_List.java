@@ -107,7 +107,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		myKeyHash.remove(variatorColumn);
 		//preload
 		Cursor c = gs.getDb().getPrefetchCursor(myKeyHash, namePrefix, variatorColumn);
-		if (c!=null && c.moveToFirst() ) {
+		if (c.moveToFirst() ) {
 			Log.d("nils","In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
 			do {
 				Log.d("nils","varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
@@ -174,6 +174,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 
 			} while (c.moveToNext());
 		}
+		c.close();
 
 		/*
 

@@ -26,7 +26,7 @@ public  class StartBlock extends Block {
         this.blockId=id;
 		if (context !=null)
 			contextE = preCompileExpression(context);
-		System.err.println("Bananas: "+((contextE == null)?"null":contextE.toString()));
+		//System.err.println("Bananas: "+((contextE == null)?"null":contextE.toString()));
 
 	}
 

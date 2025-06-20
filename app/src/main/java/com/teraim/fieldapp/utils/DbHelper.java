@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("SyntaxError")
 public class DbHelper extends SQLiteOpenHelper {
@@ -164,6 +165,7 @@ public class DbHelper extends SQLiteOpenHelper {
         if (!newKeyHash.isEmpty()) {
             if (ar!=null)
                 newKeyHash.put(ar,arval);
+            c.close();
             return newKeyHash;
         }
         Log.e("vortex","failed to resolve unknown");
@@ -172,10 +174,69 @@ public class DbHelper extends SQLiteOpenHelper {
             o.addRow("");
             o.addRedText("Failed to resolve unknown in context "+myKeyHash);
         }
+        c.close();
         return null;
     }
 
-    public Map<String,String> createNotNullSelection(String[] rowKHA, Map<String, String> myKeyHash) {
+    public Map<String, String> createNotNullSelection(String[] rowKHA, Map<String, String> myKeyHash) {
+
+        // The new key-hash to return
+        Map<String, String> myNewKeyHash = new HashMap<>();
+
+        // Use lists to build the query parts dynamically and safely
+        List<String> selectionClauses = new ArrayList<>();
+        List<String> selectionArgs = new ArrayList<>();
+        List<String> columnsToSelect = new ArrayList<>();
+
+        for (String key : rowKHA) {
+            String dbColumnName = getDatabaseColumnName(key);
+            columnsToSelect.add(dbColumnName);
+
+            String existingValue = myKeyHash.get(key);
+
+            if (existingValue == null) {
+                // Add a "IS NOT NULL" clause, which does not require a selection argument.
+                selectionClauses.add(dbColumnName + " IS NOT NULL");
+            } else {
+                // Add a "= ?" placeholder for the value.
+                selectionClauses.add(dbColumnName + " = ?");
+                // Add the value to the arguments list. This prevents SQL injection.
+                selectionArgs.add(existingValue);
+            }
+        }
+
+        // Join the individual clauses with " AND "
+        String finalSelection = String.join(" AND ", selectionClauses);
+        String[] finalColumns = columnsToSelect.toArray(new String[0]);
+        String[] finalSelectionArgs = selectionArgs.toArray(new String[0]);
+
+        // Use try-with-resources to ensure the Cursor is always closed automatically.
+        try (Cursor c = db().query(true, TABLE_VARIABLES, finalColumns, finalSelection, finalSelectionArgs, null, null, null, "1")) {
+
+            if (c.moveToNext()) {
+                for (String colName : c.getColumnNames()) {
+                    // Get the value using the column name for clarity
+                    String value = c.getString(c.getColumnIndexOrThrow(colName));
+                    myNewKeyHash.put(getRealColumnNameFromDatabaseName(colName), value);
+                }
+            }
+
+            // The original code logged an error if more than one result was found.
+            // This check is maintained. The "LIMIT 1" in the query makes this less likely,
+            // but it's good practice to keep the verification.
+            if (c.moveToNext()) {
+                Log.e("vortex", "Query returned more than one result, which was not expected!");
+            }
+
+        } catch (Exception e) {
+            Log.e("vortex", "Error executing database query in createNotNullSelection", e);
+            // Depending on requirements, you might want to return null or an empty map on error.
+        }
+
+        Log.d("vortex", "Returning keyhash after query: " + myNewKeyHash);
+        return myNewKeyHash;
+    }
+/*    public Map<String,String> createNotNullSelection_old(String[] rowKHA, Map<String, String> myKeyHash) {
 
         String query = "";
         String cols = "";
@@ -216,7 +277,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         Log.d ("vortex","now after C with keyhash: "+myNewKeyHash);
         return myNewKeyHash;
-    }
+    }*/
 
 
 
@@ -2413,7 +2474,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
-    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV(Map<String, String> keyChain) {
+/*    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV_old(Map<String, String> keyChain) {
         final List<String> selectionArgs = new ArrayList<String>();
         final String AR = getDatabaseColumnName("år");
         boolean hist = false;
@@ -2477,27 +2538,88 @@ public class DbHelper extends SQLiteOpenHelper {
             //Log.d("vortex","historical selloArgs: "+selectionArgs);
             selArgs = selectionArgs.toArray(new String[selectionArgs.size()]);
             Cursor d = db().query(true, TABLE_VARIABLES, new String[]{VARID, "value"}, selection.toString(), selArgs, null, null, null, null);
-            histC = d.getCount();
-//            Log.d("vortex", "Got " + histC + " results in hist ");
+            //histC = d.getCount();
+            //Log.d("vortex", "Got " + histC + " results in hist ");
             while (d.moveToNext())
                 getTmpVal(d.getString(0), tmp).hist = d.getString(1);
             d.close();
         }
-
-
-//        Log.d("vortex", "Tmpval has " + tmp.values().size() );
-        /*
-			for (String v:tmp.keySet()) {
-					TmpVal tv = tmp.get(v);
-					Log.e("vortex","VAR: "+v+" NORM: "+tv.norm);
-			}
-
-        */
-
-
         return tmp;
+    }*/
 
+    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV(Map<String, String> keyChain) {
+        // 1. Preparation: Translate external keys to database column names.
+        final String yearColumn = getDatabaseColumnName("år");
+        final Map<String, String> dbColumnFilters = (keyChain != null)
+                ? keyChain.entrySet().stream()
+                .collect(Collectors.toMap(e -> getDatabaseColumnName(e.getKey()), Map.Entry::getValue))
+                : new HashMap<>();
 
+        // 2. Query Building: Create the WHERE clause and arguments dynamically and safely.
+        final List<String> selectionParts = new ArrayList<>();
+        final List<String> selectionArgs = new ArrayList<>();
+        final boolean isHistoricalQuery = Constants.HISTORICAL_TOKEN_IN_DATABASE.equals(dbColumnFilters.get(yearColumn));
+
+        for (int i = 1; i <= NO_OF_KEYS; i++) {
+            String key = "L" + i;
+            String filterValue = dbColumnFilters.get(key);
+
+            if (filterValue != null) {
+                // Handle the year column specially to query both normal and historical values in one go.
+                if (key.equals(yearColumn) && !isHistoricalQuery) {
+                    selectionParts.add(key + " IN (?, ?)");
+                    selectionArgs.add(Constants.getYear()); // Current year
+                    selectionArgs.add(Constants.HISTORICAL_TOKEN_IN_DATABASE); // Historical token
+                } else if ("?".equals(filterValue)) {
+                    selectionParts.add(key + " NOT NULL");
+                } else {
+                    selectionParts.add(key + " = ?");
+                    selectionArgs.add(filterValue);
+                }
+            } else {
+                selectionParts.add(key + " IS NULL");
+            }
+        }
+
+        String selection = String.join(" AND ", selectionParts);
+        String[] finalSelectionArgs = selectionArgs.toArray(new String[0]);
+        String[] columnsToFetch = {VARID, "value", yearColumn}; // Fetch the year column to differentiate results.
+
+        Map<String, TmpVal> results = new HashMap<>();
+
+        // 3. Execution: Use try-with-resources to guarantee the Cursor is always closed.
+        try (Cursor cursor = db().query(true, TABLE_VARIABLES, columnsToFetch, selection, finalSelectionArgs, null, null, null, null)) {
+            int varIdIndex = cursor.getColumnIndexOrThrow(VARID);
+            int valueIndex = cursor.getColumnIndexOrThrow("value");
+            int yearIndex = cursor.getColumnIndexOrThrow(yearColumn);
+
+            while (cursor.moveToNext()) {
+                String varId = cursor.getString(varIdIndex);
+                String value = cursor.getString(valueIndex);
+                String yearValue = cursor.getString(yearIndex);
+
+                // Using computeIfAbsent is a cleaner way to get-or-create the TmpVal object.
+                TmpVal tmpVal = results.computeIfAbsent(varId, k -> new TmpVal());
+
+                // Populate either the historical or normal value based on the year column's data.
+                if (Constants.HISTORICAL_TOKEN_IN_DATABASE.equals(yearValue)) {
+                    tmpVal.hist = value;
+                } else {
+                    tmpVal.norm = value;
+                }
+
+                // If the original query was for historical, the historical value is also the "normal" one.
+                if (isHistoricalQuery) {
+                    tmpVal.norm = tmpVal.hist;
+                }
+            }
+        } catch (Exception e) {
+            // Log the exception, e.g., Log.e("DatabaseError", "Failed to fetch values", e);
+            // Depending on requirements, you might want to re-throw or return an empty map.
+            return new HashMap<>(); // Return empty map on failure
+        }
+
+        return results;
     }
 
 

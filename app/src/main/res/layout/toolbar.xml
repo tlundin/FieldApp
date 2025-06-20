@@ -5,6 +5,4 @@
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     android:background="@color/primary"
-    app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-    app:popupTheme="@style/AppTheme.PopupMenu"
-    android:popupTheme="@style/AppTheme.PopupMenu" />
+    app:popupTheme="@style/AppTheme.PopupMenu" />

@@ -1632,10 +1632,7 @@ public class Expressor {
                                 statusVariableName=Constants.STATUS_VARIABLES_GROUP_NAME+":"+statusVariableName;
                             }
                             cp = GlobalState.getInstance().getDb().getLastVariableInstance(GlobalState.getInstance().getDb().createSelection(GlobalState.getInstance().getVariableCache().getContext().getContext(), statusVariableName));
-
-
                             if (cp != null) {
-
                                 while (cp.next()) {
                                     Log.d("statusvar", "picker return for " + evalArgs.get(0) + " is\n" + cp.getKeyColumnValues());
                                     empty = false;
@@ -1655,8 +1652,7 @@ public class Expressor {
                                         continue;
                                     }
                                 }
-
-
+                                cp.close();
                             }
                         }
                         if (cp==null || empty) {
@@ -1664,7 +1660,6 @@ public class Expressor {
                             o.addRedText("getStatusVariableValues finds no match with argument "+ evalArgs.get(0));
                             Log.e("vortex","found no results in getStatusVariableValues for variable "+ evalArgs.get(0));
                         }
-
                         if (combinedStatus != null) {
                             if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                                 Log.d("vortex","found one that is not done!");
