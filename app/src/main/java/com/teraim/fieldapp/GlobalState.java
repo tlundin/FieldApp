@@ -95,6 +95,7 @@ public class GlobalState {
     private GisObject selectedGop;
     private final CharSequence logTxt;
     private final String userUUID;
+    private ModuleRegistry moduleRegistry;
 
     public static GlobalState getInstance() {
 
@@ -273,6 +274,13 @@ public class GlobalState {
 
     public boolean serverHasNewVersion() {
         return globalPh.getB(PersistenceHelper.SERVER_PENDING_UPDATE);
+    }
+
+    public void setModuleRegistry(ModuleRegistry moduleRegistry) {
+        this.moduleRegistry = moduleRegistry;
+    }
+    public ModuleRegistry getModuleRegistry() {
+        return moduleRegistry;
     }
 
     public class TeamPosition {

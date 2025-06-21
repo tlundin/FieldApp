@@ -15,8 +15,9 @@ android {
         targetSdkVersion 34
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+        coreLibraryDesugaringEnabled true
     }
     buildTypes {
         release {
@@ -28,17 +29,18 @@ android {
 }
 
 dependencies {
-    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
     implementation 'com.android.volley:volley:1.2.1'
     implementation files('libs/achartengine-1.2.0.jar')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'com.google.android.gms:play-services-vision:20.1.2'
+    implementation 'com.google.android.gms:play-services-vision:20.1.3'
 //    implementation 'com.google.android.gms:play-services:12.0.1'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.1'
-    implementation 'com.google.android.gms:play-services-location:17.0.0'
-    implementation 'androidx.fragment:fragment:1.7.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.2.1'
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'androidx.fragment:fragment:1.8.8'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
 
 }

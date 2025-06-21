@@ -55,6 +55,17 @@ public class ModuleLoaderViewModel extends ViewModel {
     // Handler to post tasks back to the main UI thread
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    // Field to hold the currently executing workflow
+    private Workflow_I currentWorkflow;
+
+    /**
+     * Public getter for the currently executing workflow.
+     * Allows observers to check which workflow has completed.
+     */
+    public Workflow_I getCurrentWorkflow() {
+        return currentWorkflow;
+    }
+
     /**
      * Executes a workflow. Handles pre-checking for cached modules and orchestrates
      * the entire loading process off the main thread.
@@ -68,20 +79,20 @@ public class ModuleLoaderViewModel extends ViewModel {
             return;
         }
 
+        // Set the current workflow so observers can identify it
+        this.currentWorkflow = workflow;
+
         _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.LOADING, null));
 
-        // Move all setup and pre-check logic to a background thread to keep the UI responsive.
         setupExecutor.execute(() -> {
-            // --- This block runs on the setupExecutor background thread ---
-
-            // This is now safe as it's off the main thread.
+            final ModuleRegistry registry = new ModuleRegistry();
             LoadJob initialJob = workflow.getInitialJob();
+
             if (initialJob == null || initialJob.modules.isEmpty()) {
-                _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, new ModuleRegistry()));
+                mainHandler.post(() -> _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry)));
                 return;
             }
 
-            final ModuleRegistry registry = new ModuleRegistry();
             final ArrayList<ConfigurationModule> modulesToDownload = new ArrayList<>();
 
             if (!forceReload) {
@@ -96,9 +107,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                 modulesToDownload.addAll(initialJob.modules);
             }
 
-            // Post the next step back to the main thread.
             mainHandler.post(() -> {
-                // --- This block runs on the MAIN UI thread ---
                 if (modulesToDownload.isEmpty()) {
                     Log.d("ViewModel", "All modules were successfully loaded from cache. Workflow complete.");
                     _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
@@ -112,13 +121,11 @@ public class ModuleLoaderViewModel extends ViewModel {
     }
 
     /**
-     * Runs a specific job in the workflow. This method MUST be called on the main thread
-     * because it sets up LiveData observers.
+     * Runs a specific job in the workflow. This method MUST be called on the main thread.
      */
     private void runJob(final LoadJob job, final boolean forceReload, final ModuleRegistry registry, final Workflow_I workflow) {
         StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage, forceReload);
 
-        // These observeForever calls are now safe because runJob is on the main thread.
         loader.progressText.observeForever(_progressText::postValue);
         loader.loadingStatus.observeForever(new Observer<LoadCompletionEvent>() {
             @Override

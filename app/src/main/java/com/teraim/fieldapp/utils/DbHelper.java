@@ -54,7 +54,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("SyntaxError")
 public class DbHelper extends SQLiteOpenHelper {
 
     /* Database Version*/ private static final int DATABASE_VERSION = 18;/* Books table name*/
@@ -466,17 +465,6 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d("nils", "Key: " + e + "Value:" + realColumnNameToDB.get(e));
 
     }
-/*
-    public void fixYearNull() {
-        String colYear = getDatabaseColumnName(YEAR);
-        //add year to rows missing year
-        if (!colYear.equals(getDatabaseColumnName(YEAR)))
-            db().execSQL("update variabler set " + colYear + "= '" + Calendar.getInstance().get(Calendar.YEAR) + "' where " + colYear + " is null");
-
-    }
-*/
-
-
 
     private boolean staticColumn(String col) {
         for (String staticCol : VAR_COLS) {
@@ -2839,6 +2827,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d("berokk","faultInKeys: "+ sr.faultInKeys);
         Log.d("berokk","faultInValues: "+ sr.faultInValues);
         Log.d("berokk","refused: "+ sr.refused);
+        Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
         Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
 
     }
