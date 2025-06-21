@@ -221,6 +221,7 @@ public class StartupFragment extends Executor {
         float loadedAppVersion = ph.getF(PersistenceHelper.NEW_APP_VERSION);
         ph.put(PersistenceHelper.CURRENT_VERSION_OF_APP, loadedAppVersion);
         gs.setDrawerMenu(Start.singleton.getDrawerMenu());
+        gs.setModuleRegistry(moduleRegistry);
         Start.singleton.getDrawerMenu().closeDrawer();
         Start.singleton.getDrawerMenu().clear();
         Workflow wf = gs.getWorkflow("Main");

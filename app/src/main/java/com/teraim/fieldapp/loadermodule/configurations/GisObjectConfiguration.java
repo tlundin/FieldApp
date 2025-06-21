@@ -41,6 +41,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     private String myType;
     private final Table varTable;
     private boolean isDebug = false;
+    private boolean isProvYta = false;
 
 
     public GisObjectConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String fileLocation, String fileName, LoggerI debugConsole, DbHelper myDb, Table t) {
@@ -560,8 +561,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                     cp.close();
                 }
                 */
-            }
-            else if (!myDb.fastHistoricalInsert(go.getKeyHash(),key,attr.get(key))) {
+            } else if (!myDb.fastHistoricalInsert(go.getKeyHash(),key,attr.get(key))) {
                 o.addRow("");
                 o.addRedText("Row: "+counter+". Insert failed for "+key+". Hash: "+go.getKeyHash().toString());
             }
@@ -570,6 +570,9 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                     missingVariables.add(key);
                     Log.d("vortex","key missing: "+key);
                 }
+            }
+            if (key.equalsIgnoreCase(NamedVariables.PROVYTE_TYP)) {
+                this.isProvYta = true;
             }
         }
 
@@ -601,6 +604,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     }
 
 
-
+    public boolean isProvYta() {
+        return isProvYta;
+    }
 
 }

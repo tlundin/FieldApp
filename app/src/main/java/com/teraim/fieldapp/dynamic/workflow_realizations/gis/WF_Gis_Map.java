@@ -39,6 +39,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -60,9 +63,12 @@ import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.loadermodule.Configuration;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.ModuleLoader;
+import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
+import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.log.PlainLogger;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
+import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -101,6 +107,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final ImageButton objectMenuB;
     private final ImageButton zoomB;
     private final ImageButton centerB;
+    private final ModuleLoaderViewModel viewModel;
     private Animation popupShow,layersPopupShow;
     private final Animation popupHide;
     private Animation layersPopupHide;
@@ -227,6 +234,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         refreshPopup = li.inflate(R.layout.refresh_pop,null);
 
+        viewModel = new ViewModelProvider(myContext.getFragmentActivity()).get(ModuleLoaderViewModel.class);
         TextView refreshTextView = refreshPopup.findViewById(R.id.refresh_txt);
 
         Button dismissButton = refreshPopup.findViewById(R.id.dismiss_button);
@@ -329,39 +337,18 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         if (gs.serverHasNewVersion())
             refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
         refreshB.setOnClickListener(v -> {
-            Log.d("vortex","refresh clicked");
-            refreshB.setImageResource(R.drawable.refresh_selector);
-            refreshPopup.setVisibility(View.VISIBLE);
-            Constants.getDBImportModules(gs.getContext(),globalPh, localPh, globalPh.get(PersistenceHelper.SERVER_URL), globalPh.get(PersistenceHelper.BUNDLE_NAME), gs.getLogger(), gs.getDb(), gs.getVariableConfiguration().getTable(), new AsyncLoadDoneCb() {
-                public void onLoadSuccesful(List<ConfigurationModule> modules) {
-                    Configuration dbModules = new Configuration(modules);
-                    if (modules != null) {
-                        PlainLogger refreshOut = new PlainLogger(gs.getContext(), "Refresh");
-                        refreshOut.setOutputView(refreshTextView);
-                        refreshB.setClickable(false);
-                        ModuleLoader myDBLoader = new ModuleLoader("_map", dbModules, refreshOut, globalPh, false, gs.getLogger(), new ModuleLoader.ModuleLoaderListener() {
-                            @Override
-                            public void loadSuccess(String loaderId, boolean majorVersionChange, CharSequence loadText, boolean socketBroken) {
-                                Log.d("vortex"," DB updated");
-                                myContext.refreshGisObjects();
-                                gisImageView.redraw();
-                                refreshPopup.setVisibility(View.GONE);
-                                refreshB.setClickable(true);
-                                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
-                            }
+            Log.d("vortex", "Refresh clicked. Starting refresh workflow.");
 
-                            @Override
-                            public void loadFail(String loaderId) {
-                                Log.d("vortex"," fail");
-                                refreshB.setClickable(true);
-                            }
-                        }, gs.getContext().getApplicationContext());
-                        myDBLoader.loadModules(false, false);
-                    } else
-                        Log.e("vortex", "null returned from getDBImportModules");
-                }
-            });
+            // Create the specific workflow for this task
+            Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
+
+            // Tell the ViewModel to execute it, always forcing a reload for a refresh.
+            viewModel.execute(refreshWorkflow, true);
         });
+        // Set up an observer to react to the result of the ViewModel's execution
+        setupRefreshObserver();
+
+
 
         layerB = layersPopup.findViewById(R.id.btn_Layers);
 
@@ -568,9 +555,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                             //trigger pop on fragment.
                             gisImageView.unSelectGop();
                             // New way, using AndroidX FragmentManager
-                            if (myContext.getFragmentActivity() instanceof androidx.fragment.app.FragmentActivity) {
-                                ((androidx.fragment.app.FragmentActivity) myContext.getFragmentActivity()).getSupportFragmentManager().popBackStackImmediate();
-                            }
+                             myContext.getFragmentActivity().getSupportFragmentManager().popBackStackImmediate();
+
 
                         }
                         //startScrollOut();
@@ -680,7 +666,44 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     }
 
 
+    private void setupRefreshObserver() {
+        viewModel.finalProcessStatus.observe(myContext.getFragmentActivity(), workflowResult -> {
+            if (workflowResult == null) return;
 
+            // Only react to the specific workflow we care about on this screen.
+            // This check is important if other workflows might run in the background.
+            if (viewModel.getCurrentWorkflow() instanceof RefreshGisWorkflow) {
+
+                switch (workflowResult.status) {
+                    case LOADING:
+                        // Show a loading indicator and disable the button.
+                        refreshPopup.setVisibility(View.VISIBLE);
+                        refreshB.setClickable(false);
+                        // You could also animate the refresh icon here
+                        // refreshB.setImageResource(R.drawable.refresh_selector);
+                        break;
+
+                    case SUCCESS:
+                        Log.d("vortex", "DB updated successfully via new framework.");
+                        // This is your success logic
+                        myContext.refreshGisObjects();
+                        gisImageView.redraw();
+                        refreshPopup.setVisibility(View.GONE);
+                        refreshB.setClickable(true);
+                        globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
+                        break;
+
+                    case FAILURE:
+                        Log.e("vortex", "DB update failed via new framework.");
+                        // This is your failure logic
+                        Toast.makeText(ctx, "Failed to refresh map data.", Toast.LENGTH_SHORT).show();
+                        refreshPopup.setVisibility(View.GONE);
+                        refreshB.setClickable(true);
+                        break;
+                }
+            }
+        });
+    }
 
     public void setZoomButtonVisible(boolean visible) {
         if (!visible)

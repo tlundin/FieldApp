@@ -61,6 +61,6 @@ public class GISListConfiguration extends CI_ConfigurationModule {
     }
 
     public List<String> getGisTypes() {
-        return gisTypes;
+        return (essence!=null)?(List<String>)essence:null;
     }
 }
