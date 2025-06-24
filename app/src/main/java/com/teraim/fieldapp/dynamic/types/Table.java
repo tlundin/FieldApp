@@ -19,9 +19,6 @@ import java.util.TreeMap;
 
 public class Table implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1183209171210448314L;
 	//The table is a Map of key=Header,value=List of Data.
 	private final Map<String,List<String>> colTable=new TreeMap<String,List<String>>(String.CASE_INSENSITIVE_ORDER);

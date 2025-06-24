@@ -7,16 +7,10 @@ import java.util.List;
 
 public class SetValueBlock extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -9113802658084282751L;
 
 	public enum ExecutionBehavior {
 		constant,dynamic, constant_value, update_flow
 	}
-
-
 	private final String target;
 	private ExecutionBehavior executionBehaviour=ExecutionBehavior.update_flow;
 	private final List<EvalExpr> expression;

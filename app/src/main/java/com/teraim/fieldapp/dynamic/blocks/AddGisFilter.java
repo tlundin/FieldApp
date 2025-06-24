@@ -29,19 +29,18 @@ public class AddGisFilter extends Block implements GisFilter {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = 3888638684411710898L;
+
     private final String nName;
     private final String label;
     private final String targetObjectType;
     private final String targetLayer;
-    String expression;
     private final String color;
 	private float radius;
 	private Style fillType;
 	private PolyType polyType;
 	private boolean hasWidget=true;
     private boolean isActive=true;
-	private WF_Gis_Map myGis;
+	private transient WF_Gis_Map myGis;
 	private final List<EvalExpr> expressionE;
 
 

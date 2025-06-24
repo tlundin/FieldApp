@@ -8,15 +8,11 @@ import java.util.List;
 import java.util.Map;
 
 public class SpinnerDefinition implements Serializable {
-	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -3915632410406656481L;
+	private final Map<String,List<SpinnerElement>> myElements = new HashMap<String,List<SpinnerElement>>();
+
+
 	public class SpinnerElement implements Serializable {
-		/**
-		 * 
-		 */
 		private static final long serialVersionUID = 9162426573700197032L;
 		public final String value;
         public final String opt;
@@ -35,9 +31,6 @@ public class SpinnerDefinition implements Serializable {
 			//Log.e("vortex","SPINNER val "+val+" OPT: "+opt+" VARS "+vars+" DESC "+descr);
 		}
 	}
-	
-	String spinnerId;
-	private final Map<String,List<SpinnerElement>> myElements = new HashMap<String,List<SpinnerElement>>();
 	
 	public List<SpinnerElement> get(String spinnerId){
 		return myElements.get(spinnerId.toLowerCase());

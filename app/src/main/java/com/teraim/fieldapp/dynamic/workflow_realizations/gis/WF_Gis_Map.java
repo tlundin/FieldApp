@@ -60,9 +60,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.gis.GisImageView;
-import com.teraim.fieldapp.loadermodule.Configuration;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.ModuleLoader;
 import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.log.PlainLogger;
@@ -114,7 +111,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final GisObjectsMenu gisObjectMenu;
     private final View gisObjectsPopUp;
     private final View layersPopup;
-    private final View refreshPopup;
     private boolean gisObjMenuOpen=false;
     private boolean animationRunning=false;
     private final Map<String,List<FullGisObjectConfiguration>> myGisObjectTypes;
@@ -198,10 +194,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final CreateGisBlock myDaddy;
     private final PhotoMeta photoMeta;
 
-    private void dismissPopup() {
-        refreshPopup.setVisibility(View.GONE);
-    }
-
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
@@ -232,20 +224,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         layersPopup = li.inflate(R.layout.layers_menu_pop,null);
 
-        refreshPopup = li.inflate(R.layout.refresh_pop,null);
-
         viewModel = new ViewModelProvider(myContext.getFragmentActivity()).get(ModuleLoaderViewModel.class);
-        TextView refreshTextView = refreshPopup.findViewById(R.id.refresh_txt);
-
-        Button dismissButton = refreshPopup.findViewById(R.id.dismiss_button);
-        if (dismissButton != null) {
-            dismissButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dismissPopup(); // Call helper method to dismiss
-                }
-            });
-        }
 
         gisObjectMenu = gisObjectsPopUp.findViewById(R.id.gisObjectsMenu);
         NudgeView nudgeMenu = createMenuL.findViewById(R.id.gisNudgeButtonMenu);
@@ -302,8 +281,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         });
         gisObjectsPopUp.setVisibility(View.GONE);
         layersPopup.setVisibility(View.GONE);
-        refreshPopup.setVisibility(View.GONE);
-        mapView.addView(refreshPopup);
         mapView.addView(gisObjectsPopUp);
         mapView.addView(layersPopup);
         //LinearLayout filtersL = (LinearLayout)mapView.findViewById(R.id.FiltersL);
@@ -677,7 +654,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 switch (workflowResult.status) {
                     case LOADING:
                         // Show a loading indicator and disable the button.
-                        refreshPopup.setVisibility(View.VISIBLE);
                         refreshB.setClickable(false);
                         // You could also animate the refresh icon here
                         // refreshB.setImageResource(R.drawable.refresh_selector);
@@ -686,10 +662,12 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     case SUCCESS:
                         Log.d("vortex", "DB updated successfully via new framework.");
                         // This is your success logic
-                        myContext.refreshGisObjects();
-                        gisImageView.redraw();
-                        refreshPopup.setVisibility(View.GONE);
-                        refreshB.setClickable(true);
+                        if (myContext.getCurrentGis()!=null) {
+                            myContext.refreshGisObjects();
+                            gisImageView.redraw();
+                            refreshB.setClickable(true);
+                            Toast.makeText(ctx, R.string.refresh_completed, Toast.LENGTH_SHORT).show();
+                        }
                         globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
                         break;
 
@@ -697,7 +675,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         Log.e("vortex", "DB update failed via new framework.");
                         // This is your failure logic
                         Toast.makeText(ctx, "Failed to refresh map data.", Toast.LENGTH_SHORT).show();
-                        refreshPopup.setVisibility(View.GONE);
                         refreshB.setClickable(true);
                         break;
                 }

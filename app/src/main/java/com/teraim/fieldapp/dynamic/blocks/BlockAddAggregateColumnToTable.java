@@ -12,11 +12,6 @@ import java.util.List;
 
 public class BlockAddAggregateColumnToTable extends Block {
 
-
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -3041902713022605254L;
 	private Expressor.EvalExpr expressionE=null;
 
 	private final String target;

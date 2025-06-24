@@ -14,6 +14,7 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 
 public class AirPhotoMetaDataXML extends XMLConfigurationModule implements PhotoMetaI {
 
@@ -100,20 +101,25 @@ public class AirPhotoMetaDataXML extends XMLConfigurationModule implements Photo
 	}
 
 	@Override
+	protected Type getEssenceType() {
+		return PhotoMeta.class;
+	}
+
+	@Override
 	protected void setFrozenVersion(float version) {
 		// TODO Auto-generated method stub
 		
 	}
 
-	@Override
-	public boolean isRequired() {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
 	@Override
 	public void setEssence() {
 		
+	}
+
+	@Override
+	public boolean isRequired() {
+		return false;
 	}
 
 	@Override

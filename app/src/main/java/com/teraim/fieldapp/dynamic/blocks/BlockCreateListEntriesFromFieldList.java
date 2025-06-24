@@ -25,6 +25,7 @@ import java.util.logging.LogRecord;
 
 public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
+
     private static final Map <String,List<List<String>>> cacheMap=new HashMap <String,List<List<String>>>();
     private final String id;
     private final String type;
@@ -32,6 +33,11 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
     private final String selectionPattern;
     private final String selectionField;
     private final String variatorColumn;
+
+
+    private transient WF_Static_List myList = null;
+    private transient List<AddVariableToEveryListEntryBlock> associatedVariablesList;
+    private transient List<AddFilter>associatedFiltersList;
 
     public BlockCreateListEntriesFromFieldList(String id,String namn, String type,
                                                String containerId, String selectionPattern, String selectionField,String variatorColumn,
@@ -46,10 +52,6 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
         this.selectionField = selectionField;
         this.variatorColumn=variatorColumn;
     }
-
-    private static final long serialVersionUID = -5618217142115636962L;
-
-    private WF_Static_List myList = null;
 
     public void create(WF_Context myContext) {
         //prefetch values from db.
@@ -153,8 +155,7 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
 
 
-    private List<AddVariableToEveryListEntryBlock> associatedVariablesList;
-    private List<AddFilter>associatedFiltersList;
+
 
     public void associateVariableBlock(AddVariableToEveryListEntryBlock bl) {
         if (associatedVariablesList==null)

@@ -25,9 +25,9 @@ import java.util.TreeSet;
 public class WF_SorterWidget extends WF_Widget {
 
 
-    private WF_Filter existing=null;
-	private final WF_List targetList;
-	private ToggleButton previousButton=null;
+    private transient WF_Filter existing=null;
+	private transient WF_List targetList;
+	private transient ToggleButton previousButton=null;
 
 	public WF_SorterWidget(String name,WF_Context ctx, final String type, final WF_List targetList,final ViewGroup container,final String selectionField, final String displayField,String selectionPattern,boolean isVisible) {
 		super(name,new LinearLayout(ctx.getContext()),isVisible,ctx);

@@ -71,7 +71,7 @@ public class RefreshGisWorkflow implements Workflow_I {
             return null; // Nothing to refresh.
         }
 
-        return new LoadJob(LoadStage.DATABASES, databaseModules);
+        return new LoadJob(LoadStage.PROVYTOR, databaseModules);
     }
 
     @Override

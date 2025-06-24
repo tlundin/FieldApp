@@ -14,7 +14,7 @@ public abstract class JSONConfigurationModule extends ConfigurationModule {
 
 	protected JSONConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
 									   String urlOrPath, String fileName, String moduleName) {
-		super(context,gPh,ph, Type.json, urlOrPath, fileName, moduleName);
+		super(context,gPh,ph, FileFormat.json, urlOrPath, fileName, moduleName);
 	}
 
 	protected abstract LoadResult prepare(JsonReader reader) throws IOException, JSONException;

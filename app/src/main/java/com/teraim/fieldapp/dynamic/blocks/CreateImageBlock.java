@@ -45,17 +45,13 @@ import java.util.regex.Pattern;
  */
 	public class CreateImageBlock extends Block implements EventListener {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5781622495945524716L;
+	private transient ImageView img = null;
+	private transient WF_Context myContext;
+	private transient String dynImgName;
     private final String container;
 	private final String source;
 	private final String scale;
-	private ImageView img = null;
-	private WF_Context myContext;
 	private final boolean isVisible;
-	private String dynImgName;
 	private final List<EvalExpr> sourceE;
 
 	public CreateImageBlock(String id, String nName, String container,

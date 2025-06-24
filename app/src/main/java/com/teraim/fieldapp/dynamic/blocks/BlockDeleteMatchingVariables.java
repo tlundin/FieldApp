@@ -14,10 +14,6 @@ import static com.teraim.fieldapp.utils.Expressor.preCompileExpression;
 
 public class BlockDeleteMatchingVariables extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1134485697631003990L;
     private final String context;
     private String pattern;
 	private List<EvalExpr> contextE;

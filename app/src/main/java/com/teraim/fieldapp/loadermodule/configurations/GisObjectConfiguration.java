@@ -24,6 +24,7 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -82,12 +83,17 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     }
 
     @Override
+    protected Type getEssenceType() {
+        return GisObjectConfiguration.class;
+    }
+
+    @Override
     protected void setFrozenVersion(float version) {
         ph.put(PersistenceHelper.CURRENT_VERSION_OF_GIS_OBJECT_BLOCKS+fileName,version);
 
     }
 
-    @Override
+
     public boolean isRequired() {
         return false;
     }

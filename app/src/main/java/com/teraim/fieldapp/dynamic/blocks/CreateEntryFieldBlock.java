@@ -14,26 +14,15 @@ import com.teraim.fieldapp.utils.Tools.Unit;
 
 public class CreateEntryFieldBlock extends DisplayFieldBlock {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2013870148670474248L;
+	private transient WF_ClickableField myField;
 	private final String name;
-    String type;
     private final String label;
     private final String containerId;
-    String postLabel;
     private final String initialValue;
-
-	Unit unit;
     private boolean isVisible = false;
     private final boolean showHistorical;
     private boolean autoOpenSpinner=true;
 	private final String format;
-
-	private WF_ClickableField myField;
-
-
 	public CreateEntryFieldBlock(String id,String name, 
 			String containerId,boolean isVisible,String format,boolean showHistorical,String initialValue, String label, boolean autoOpenSpinner,String textColor,String backgroundColor,String verticalFormat,String verticalMargin) {
 		super(textColor,backgroundColor,verticalFormat,verticalMargin);

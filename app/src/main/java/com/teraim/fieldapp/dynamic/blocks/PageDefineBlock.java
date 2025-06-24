@@ -12,10 +12,7 @@ import java.util.List;
  */
 public  class PageDefineBlock extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5680503647867451267L;
+
 	private String pageName="",pageType=null;
 	private final boolean hasGPS;
 	private boolean goBackAllowed=true;

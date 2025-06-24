@@ -8,12 +8,8 @@ package com.teraim.fieldapp.dynamic.blocks;
  */
 public  class LayoutBlock extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5739546668415459049L;
-	private String layoutDirection="", alignment="";
-
+	private final String layoutDirection;
+    private final String alignment;
 	public String getLayoutDirection() {
 		return layoutDirection;
 	}

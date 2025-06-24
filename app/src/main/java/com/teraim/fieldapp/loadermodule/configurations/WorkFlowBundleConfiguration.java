@@ -1,8 +1,11 @@
 package com.teraim.fieldapp.loadermodule.configurations;
 
+import static com.teraim.fieldapp.utils.Tools.getFileContentAsString;
+
 import android.content.Context;
 import android.util.Log;
 
+import com.google.gson.reflect.TypeToken;
 import com.teraim.fieldapp.dynamic.blocks.AddEntryToFieldListBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisFilter;
@@ -52,7 +55,6 @@ import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
 import com.teraim.fieldapp.loadermodule.XMLConfigurationModule;
 import com.teraim.fieldapp.log.LoggerI;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 import com.teraim.fieldapp.utils.Tools.Unit;
@@ -61,6 +63,11 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -84,8 +91,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		cacheFolder = cachePath;
 		//make debugConsole globally available, so we dont have to pass it to each subclass.
 		WorkFlowBundleConfiguration.debugConsole = debugConsole;
-		isBundle = true;
 		hasSimpleVersion=true;
+		isBundle=true;
 	}
 
 	@Override
@@ -96,25 +103,17 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	}
 
-//	private float getFrozenAppVersion() {
-//		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP));
-//	}
-	
-	
-
 	@Override
 	protected void setFrozenVersion(float version) {
 		ph.put(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE,version);
 	}
 
-	@Override
 	public boolean isRequired() {
 		return true;
 	}
 
 	//workflows will be added to this one.
-    private final List<Workflow> bundle = new ArrayList<>();
-
+	private final List<Workflow> bundle = new ArrayList<>();
 
 	@Override
 	protected LoadResult prepare(XmlPullParser parser) throws XmlPullParserException, IOException {
@@ -137,22 +136,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		imageMetaFormat = parser.getAttributeValue(null,"img_meta_format");
 		Log.d("franzon","imagemetaformat "+(imageMetaFormat==null?"null":imageMetaFormat));
 		Log.d("franzon","minvortexversion "+(minVersion==null?"null":minVersion));
-		Log.d("vortex","Version field of workflow file contains "+newWorkflowVersion+" verscontrol: "+versionControl);
-		if (versionControl==null || !versionControl.equals("Forced")) {
-			if (minVersion!=null) {
-				try {
-					float verf = Float.parseFloat(minVersion);
-					if (Float.parseFloat(Constants.VORTEX_VERSION)<verf)
-						return new LoadResult(this,ErrorCode.Unsupported,minVersion);
 
-				} catch (NumberFormatException e) {
-					o.addRow("");
-					o.addRedText("malformed version number in workflow bundle for application "+myApplication);
-				}			
-		}
 
-	}
-		
+
+
 
 		return null;
 	}
@@ -178,13 +165,13 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				return null;
 			} else {
 				skip(name,parser,o);
-			}	
+			}
 		}
 		return new LoadResult(this,ErrorCode.parsed);
 	}
 	private Workflow readWorkflow(XmlPullParser parser) throws XmlPullParserException, IOException {
 
-		Workflow wf = new Workflow(myApplication);
+		Workflow wf = new Workflow();
 		parser.require(XmlPullParser.START_TAG, null, "workflow");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -420,7 +407,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		checkForNull(fileName);
 		return new StartCameraBlock(id,fileName);
 	}
-		private Block readBlockSliderGroup(XmlPullParser parser) throws IOException, XmlPullParserException {
+	private Block readBlockSliderGroup(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_define_coupled_variable_group...");
 		String id=null,groupName=null,function=null,arguments=null,delay=null;
 
@@ -493,7 +480,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private Block readBlockNoOp(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_no_operation...");
 		String id=null;
-		
+
 
 		parser.require(XmlPullParser.START_TAG, null,"block_no_op");
 		Log.d("vortex","In block_no_op");
@@ -504,7 +491,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			String name= parser.getName();
 			if (name.equals("block_ID")) {
 				id = readText("block_ID",parser);
-			} 
+			}
 			else {
 
 				Log.e("vortex","Skipped "+name);
@@ -518,47 +505,47 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	}
 
 	private Block readBlockDeleteMatchingVariables(XmlPullParser parser) throws IOException, XmlPullParserException {
-			o.addRow("Parsing block: block_delete_matching_variables...");
-			String id=null,label=null,target=null,pattern=null;
-			
+		o.addRow("Parsing block: block_delete_matching_variables...");
+		String id=null,label=null,target=null,pattern=null;
 
-			parser.require(XmlPullParser.START_TAG, null,"block_delete_matching_variables");
-			Log.d("vortex","In block_delete_matching_variables");
-			while (parser.next() != XmlPullParser.END_TAG) {
-				if (parser.getEventType() != XmlPullParser.START_TAG) {
-					continue;
-				}
-				String name= parser.getName();
-				switch (name) {
-					case "block_ID":
-						id = readText("block_ID", parser);
-						break;
-					case "target":
-						target = readText("target", parser);
-						break;
-					case "pattern":
-						pattern = readText("pattern", parser);
-						break;
-					case "label":
-						label = readText("label", parser);
-						break;
-					default:
 
-						Log.e("vortex", "Skipped " + name);
-						skip(name, parser);
-						break;
-				}
+		parser.require(XmlPullParser.START_TAG, null,"block_delete_matching_variables");
+		Log.d("vortex","In block_delete_matching_variables");
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG) {
+				continue;
 			}
+			String name= parser.getName();
+			switch (name) {
+				case "block_ID":
+					id = readText("block_ID", parser);
+					break;
+				case "target":
+					target = readText("target", parser);
+					break;
+				case "pattern":
+					pattern = readText("pattern", parser);
+					break;
+				case "label":
+					label = readText("label", parser);
+					break;
+				default:
 
-			checkForNull("block_ID",id,"target",target);
-			return new BlockDeleteMatchingVariables(id, label, target, pattern);
-
+					Log.e("vortex", "Skipped " + name);
+					skip(name, parser);
+					break;
+			}
 		}
+
+		checkForNull("block_ID",id,"target",target);
+		return new BlockDeleteMatchingVariables(id, label, target, pattern);
+
+	}
 
 	private Block readBlockAddFilter(XmlPullParser parser) throws IOException, XmlPullParserException {
 		o.addRow("Parsing block: block_add_filter...");
 		String id=null,target=null,type=null,selectionField=null,selectionPattern=null;
-		
+
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_filter");
 		Log.d("vortex","In block_add_filter!!");
@@ -623,7 +610,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			} else if (name.equals("poly_type")) {
 				polyType = readText("poly_type",parser);
 			} else if (name.equalsIgnoreCase("name")) {
-				nName = readText("name",parser);			
+				nName = readText("name",parser);
 			}  else if (name.equalsIgnoreCase("expression")) {
 				expression = readText("expression",parser);
 			} else if (name.equalsIgnoreCase("img_source")) {
@@ -718,9 +705,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				line_width = readText("line_width", parser);
 			}
 			else {
-				Log.e("vortex","Skipped "+name);
+				//Log.e("vortex","Skipped "+name);
 				skip(name,parser);
-
 			}
 		}
 
@@ -797,7 +783,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			if (name.equals("block_ID")) {
 				id = readText("block_ID",parser);
 			} else if (name.equals("name")) {
-				nName = readText("name",parser);				
+				nName = readText("name",parser);
 			} else if (name.equals("container_name")) {
 				container = readText("container_name",parser);
 			} else if (name.equals("source")) {
@@ -812,7 +798,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				E = readText("BottomE",parser);
 			}else if (name.equalsIgnoreCase("BottomN")) {
 				S = readText("BottomN",parser);
-			}else if (name.equals("car_navigation_on")) {			
+			}else if (name.equals("car_navigation_on")) {
 				hasSatNav = readText("car_navigation_on",parser).equals("true");
 			} else if (name.equals("team")) {
 				showTeam = readText("team",parser).equals("true");
@@ -822,9 +808,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				Log.e("vortex","Skipped "+name);
 				skip(name,parser);
 			}
-		} 
+		}
 
- 		checkForNull("block_ID",id,"name",nName,"container_name",container,"source",source);
+		checkForNull("block_ID",id,"name",nName,"container_name",container,"source",source);
 
 		return new CreateGisBlock(id,nName,container,isVisible,source,N,E,S,W,hasSatNav,showTeam);
 
@@ -1018,7 +1004,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 		checkForNull("block_ID",id,"name",mName,"label",label,"container",container,
 				"text_size",textSize,"margins",margins,"start_angle",startAngle,"height",h,"width",w
-				);
+		);
 		if (type == ChartType.round)
 			return new RoundChartBlock(id,mName,label,container,textSize,margins,startAngle,height,width,displayValues,isVisible);
 		else
@@ -1101,7 +1087,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		checkForNull("block_ID",id,"label",label,"text_color",textColor,"bck_color",bgColor);
 		return new MenuHeaderBlock(id,label,textColor,bgColor);
 
-	}	
+	}
 
 	private Block readBlockDefineMenuEntry(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//		o.addRow("Parsing block: block_set_value...");
@@ -1189,7 +1175,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			} else if (name.equals("next_block_ID")) {
 				nextBlockId = readText("next_block_ID",parser);
 			}
-			else		
+			else
 				skip(name,parser,o);
 		}
 		checkForNull("block_ID",id,"next_block_id",nextBlockId);
@@ -1201,7 +1187,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private Block readBlockConditionalContinuation(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_conditional_continuation...");
 		List<String> varL=null;
-		String id=null,expr=null,elseBlockId=null; 
+		String id=null,expr=null,elseBlockId=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_conditional_continuation");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -1234,7 +1220,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private Block readBlockAddVariableToListEntry(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_add_variable_to_list_entry...");
 		boolean isVisible = true,isDisplayed = false,showHistorical=false;
-		String targetList= null,targetField= null,namn=null,format= null,id=null,initialValue=null; 
+		String targetList= null,targetField= null,namn=null,format= null,id=null,initialValue=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_add_variable_to_list_entry");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -1277,7 +1263,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 		checkForNull("block_ID",id,"name",namn,"target_list",targetList,"target_field",targetField,"format",format);
 		return new AddVariableToListEntry(id,namn,
-				targetList,targetField, isDisplayed,format,isVisible,showHistorical,initialValue);	
+				targetList,targetField, isDisplayed,format,isVisible,showHistorical,initialValue);
 
 	}
 
@@ -1322,7 +1308,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private Block readBlockAddVariableToEntryField(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addRow("Parsing block: block_add_variable_to_entry_field...");
 		boolean isVisible = true,isDisplayed=false,showHistorical=false;
-		String target= null,namn= null,format= null,id=null,initialValue=null; 
+		String target= null,namn= null,format= null,id=null,initialValue=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_add_variable_to_entry_field");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -1721,7 +1707,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//o.addRow("Parsing block: block_create_display_field...");
 		boolean isVisible = true;
 		String namn=null, formula = null, label=null,containerId=null,format = null,id=null,textColor=null,bgColor=null,verticalMargin=null,verticalFormat=null;
-		Unit unit=null;	
+		Unit unit=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_display_field");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -2094,7 +2080,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		checkForNull("block_ID",id,"label",label,"container_name",containerName,"filter",filter,
 				"target",target,"result",result,"format",format,"unit",postLabel);
 		return new AddSumOrCountBlock(id,containerName,label,postLabel,filter,target,type,result,isVisible,format,textColor,bgColor,verticalFormat,verticalMargin);
-	}	
+	}
 
 
 	/**
@@ -2103,7 +2089,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	 * @return
 	 * @throws IOException
 	 * @throws XmlPullParserException
-	 * @throws EvalException 
+	 * @throws EvalException
 	 */	
 	/*
 		private CreateListEntriesBlock readBlockCreateListEntries(XmlPullParser parser) throws IOException, XmlPullParserException, EvalException {
@@ -2178,7 +2164,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
-			}	
+			}
 			String name = parser.getName();
 			switch (name) {
 				case "block_ID":
@@ -2321,7 +2307,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
-			}		
+			}
 			String name= parser.getName();
 			switch (name) {
 				case "block_ID":
@@ -2365,7 +2351,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
-			}		
+			}
 			String name= parser.getName();
 			switch (name) {
 				case "block_ID":
@@ -2408,7 +2394,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
-			}		
+			}
 			String name= parser.getName();
 			switch (name) {
 				case "block_ID":
@@ -2442,7 +2428,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
-			}		
+			}
 			String name= parser.getName();
 			switch (name) {
 				case "block_ID":
@@ -2477,7 +2463,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	}
 
 	private void checkForNull(String...pars) {
-		
+
 		boolean lbl = false;
 		String lab=null;
 		for (String par:pars) {
@@ -2488,7 +2474,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			} else if (par==null) {
 				o.addRow("");
 				o.addYellowText("Parameter "+lab+" was NULL");
-				
+
 			}
 		}
 	}
@@ -2505,8 +2491,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			if (text.length()>0 && Character.isDigit(text.charAt(0))) {
 				o.addRow("");
 				o.addRedText("XML: EXCEPTION - Symbol started with integer");
-				throw new XmlPullParserException("Symbol cannot start with integer");	
-			} 
+				throw new XmlPullParserException("Symbol cannot start with integer");
+			}
 		} else {
 			o.addRow("");
 			o.addRedText("XML: EXCEPTION - Symbol was NULL");
@@ -2516,20 +2502,75 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	}
 
 
+	public List<Workflow> getEssence() {
+		return (List<Workflow>)essence;
+	}
 
-
-
-
-
-
+	@Override
+	protected Type getEssenceType() {
+		// This creates a specific "type token" that tells Gson to expect
+		// a JSON array and to convert its elements into Workflow objects.
+		return new TypeToken<List<Workflow>>(){}.getType();
+	}
 
 	@Override
 	public void setEssence() {
 		essence=bundle;
 	}
-
-
-
+//	@Override
+//	public LoadResult thawSynchronously() {
+//		List<Workflow> workflows = new ArrayList<>();
+//		Path dir = Paths.get(frozenPath).getParent();
+//		String glob = Paths.get(frozenPath).getFileName().toString() + "*";
+//
+//		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, glob)) {
+//			Log.d("blaha","TFound "+stream.toString());
+//			int i=1;
+//			for (Path entry : stream) {
+//				Log.d("blaha","Thawing "+entry.toString());
+//				if (i==9)
+//					Log.d("anchir","Found 9 files");
+//				String rawJsonContent = getFileContentAsString(entry.toString());
+//				Workflow wf = Tools.readObjectFromFileAsJson(entry.toString(), Workflow.class);
+//				if (wf != null) {
+//					workflows.add(wf);
+//				}
+//				i++;
+//			}
+//		} catch (IOException e) {
+//			// Handle exceptions, e.g., directory not found, read errors
+//			e.printStackTrace();
+//			return new LoadResult(this, ErrorCode.IOError);
+//		}
+//		if (workflows.size() > 0) {
+//			essence = workflows;
+//			return new LoadResult(this, ErrorCode.thawed);
+//		} else {
+//			Log.d("eep","no workflows");
+//			return new LoadResult(this, ErrorCode.thawFailed);
+//		}
+//
+//	}
+//	@Override
+//	public void freeze(int _c) {
+//		setEssence();
+//		int i=0;
+//		for(Workflow wf : bundle) {
+//			i++;
+//			Tools.writeObjectToFileAsJson(wf, frozenPath + i);
+//			Log.d("blah", "Wrote workflow " + frozenPath + i + " to disk " + wf.getName() + " blocks " + wfp(wf.getBlocks()));
+//		}
+//	}
+//
+//	private String wfp(List<Block> blocks) {
+//		StringBuilder sb = new StringBuilder();
+//		sb.append("[");
+//		for (Block b:blocks) {
+//			sb.append(b.getClass());
+//		}
+//		sb.append("]");
+//		return sb.toString();
+//	}
 
 
 }

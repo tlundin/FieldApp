@@ -15,6 +15,7 @@ import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -46,12 +47,16 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 	}
 
 	@Override
+	protected Type getEssenceType() {
+		return ImportDataConfiguration.class;
+	}
+
+	@Override
 	protected void setFrozenVersion(float version) {
 		ph.put(PersistenceHelper.CURRENT_VERSION_OF_HISTORY_FILE,version);
 
 	}
 
-	@Override
 	public boolean isRequired() {
 		return false;
 	}

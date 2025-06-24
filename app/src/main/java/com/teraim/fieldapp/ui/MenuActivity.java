@@ -675,7 +675,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
             if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("NONE") || GlobalState.getInstance().isSolo())
-                mnu[MENU_ITEM_SYNC_TYPE].setVisible(false);
+                mnu[MENU_ITEM_SYNC_TYPE].setEnabled(false).setVisible(false);
             else
                 refreshSyncDisplay();
 
@@ -866,7 +866,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                 break;
             case MENU_ITEM_CONTEXT:
-                //Log.d("vortex", "gs is " + GlobalState.getInstance() + " gs " + gs);
+                Log.d("vortex", "gs is " + GlobalState.getInstance() + " gs " + gs);
                 //Log.d("vortex","in click for context: gs "+(gs==null)+" varc "+(gs.getVariableCache()==null));
                 if (gs != null && gs.getVariableCache() != null) {
                     //Object moo=null;
@@ -1454,7 +1454,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private void getTeamSyncStatusFromServer() {
         Log.d("fenris", "update team sync state called");
         //block multiple calls.
-        if (!callInProgress) {
+        if (!callInProgress && gs !=null) {
             callInProgress = true;
             String team = gs.getMyTeam();
             String project = globalPh.get(PersistenceHelper.BUNDLE_NAME);

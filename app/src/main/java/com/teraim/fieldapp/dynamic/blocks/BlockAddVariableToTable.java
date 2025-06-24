@@ -9,10 +9,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 
 public class BlockAddVariableToTable extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6892340768823185014L;
+
 	private String target=null;
     private String variableSuffix=null;
     private String format=null;

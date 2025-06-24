@@ -4,5 +4,6 @@ package com.teraim.fieldapp.loadermodule;
 public enum LoadStage {
     FILES,
     DATABASES,
+    PROVYTOR
     // You could add more types later, e.g., USER_PREFERENCES
 }

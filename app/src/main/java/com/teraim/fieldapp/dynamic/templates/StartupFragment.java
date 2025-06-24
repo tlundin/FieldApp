@@ -5,8 +5,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,7 +12,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,11 +26,7 @@ import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.GisDatabaseWorkflow;
-import com.teraim.fieldapp.loadermodule.LoadJob;
-import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.ModuleRegistry;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
@@ -51,8 +44,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * A modern, combined fragment that serves as the application's main entry point.
@@ -74,6 +65,7 @@ public class StartupFragment extends Executor {
     private PersistenceHelper globalPh, ph;
     private String bundleName;
     private float oldAppVersion = -1;
+    private boolean loadAllModules = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -136,7 +128,6 @@ public class StartupFragment extends Executor {
                     // This prevents the observer from re-triggering the start process if the LiveData
                     // re-delivers its "sticky" SUCCESS state when the fragment is recreated.
                     if (GlobalState.getInstance() == null) {
-                        Toast.makeText(getContext(), "Configuration loaded successfully!", Toast.LENGTH_SHORT).show();
                         Log.d("StartupFragment", "Load successful. Finalizing setup.");
                         // Pass the completed ModuleRegistry to the startApplication method.
                         startApplication(workflowResult.registry);
@@ -166,7 +157,7 @@ public class StartupFragment extends Executor {
         // If GlobalState is not initialized, it means we need to load the configuration.
         if (GlobalState.getInstance() == null) {
             Log.d("StartupFragment", "GlobalState is null. Starting initial configuration load.");
-            startLoadingProcess(false); // 'false' means this is not a forced reload
+            startLoadingProcess(loadAllModules); // 'false' means this is not a forced reload
         }
     }
 
@@ -201,10 +192,10 @@ public class StartupFragment extends Executor {
             return;
         }
 
-        List<Workflow> workflows = (List<Workflow>) wfC.getEssence();
+        List<Workflow> workflows = wfC.getEssence();
         String imgMetaFormat = wfC.getImageMetaFormat();
-        Table t = (Table) (moduleRegistry.getModule(VariablesConfiguration.NAME).getEssence());
-        SpinnerDefinition sd = (SpinnerDefinition) (moduleRegistry.getModule(SpinnerConfiguration.NAME).getEssence());
+        Table t = (Table) moduleRegistry.getModule(VariablesConfiguration.NAME).getEssence();
+        SpinnerDefinition sd = (SpinnerDefinition) moduleRegistry.getModule(SpinnerConfiguration.NAME).getEssence();
 
         if (t == null) {
             showErrorDialog("Variable configuration (Table) is null. Cannot start application.");
@@ -225,6 +216,7 @@ public class StartupFragment extends Executor {
         Start.singleton.getDrawerMenu().closeDrawer();
         Start.singleton.getDrawerMenu().clear();
         Workflow wf = gs.getWorkflow("Main");
+        gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
         Start.singleton.changePage(wf, null);
     }
@@ -309,6 +301,7 @@ public class StartupFragment extends Executor {
     }
 
     private void initialize() {
+        loadAllModules = true;
         File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
         File primaryExternalStorage = externalStorageVolumes[0];
 

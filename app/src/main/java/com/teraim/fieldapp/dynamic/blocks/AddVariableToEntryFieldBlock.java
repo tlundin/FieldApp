@@ -12,7 +12,7 @@ public class AddVariableToEntryFieldBlock extends Block {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -7978000865030730562L;
+
 	private final boolean displayOut;
     private final boolean isVisible;
     private final boolean showHistorical;

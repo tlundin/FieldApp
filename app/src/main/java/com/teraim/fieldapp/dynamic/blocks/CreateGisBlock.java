@@ -48,33 +48,30 @@ import java.util.concurrent.Executors;
 
 public class CreateGisBlock extends Block {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 2013870148670474254L;
+
+	private transient GlobalState gs;
+	private transient Cutout cutOut = null;
+	private transient WF_Context myContext;
+	private transient LoggerI o;
+	private transient WF_Gis_Map gis = null;
+	private transient List<MapGisLayer> mapLayers;
+	private transient AsyncResumeExecutorI cb;
+	private transient PhotoMeta photoMetaData;
+	private transient List<GisLayer> myLayers = null;
+	private transient boolean aborted = false;
+	private transient Rect r = null;
+	private transient String cachedImgFilePath="";
 	private static final int MAX_NUMBER_OF_PICS = 100;
 	private final String name,source,containerId,N,E,S,W;
-	Unit unit;
-	private GlobalState gs;
 	private boolean isVisible = false;
-    boolean showHistorical;
-	String format;
-
-	private Cutout cutOut=null;
-
-	private WF_Context myContext;
-	private LoggerI o;
 	private final boolean hasSatNav;
     private final boolean showTeam;
-	private WF_Gis_Map gis=null;
 	private final List<EvalExpr> sourceE;
-	private int loadCount=0;
-	private boolean aborted=false;
-	private List<MapGisLayer> mapLayers;
 	public boolean hasCarNavigation() {
 		return hasSatNav;
 	}
 	public boolean isTeamVisible() { return showTeam;}
+
 	public CreateGisBlock(String id,String name,
 						  String containerId,boolean isVisible,String source,String N,String E, String S,String W, boolean hasSatNav,boolean showTeam) {
 		super();
@@ -93,14 +90,6 @@ public class CreateGisBlock extends Block {
 		this.showTeam=showTeam;
 
 	}
-
-
-
-
-	//Callback after image has loaded.
-    private AsyncResumeExecutorI cb;
-
-
     /**
 	 *
 	 * @param myContext
@@ -195,9 +184,7 @@ public class CreateGisBlock extends Block {
 		return false;
 	}
 
-	private Rect r = null;
-	private PhotoMeta photoMetaData;
-	private String cachedImgFilePath="";
+
 
 	private void createAfterLoad(PhotoMeta photoMeta, final String cacheFolder, final String fileName) {
 		this.photoMetaData=photoMeta;
@@ -396,18 +383,12 @@ public class CreateGisBlock extends Block {
 
 
 	//Reloads current flow with a new viewport.
-	//Cache for layers.
-    private List<GisLayer> myLayers=null;
-
 	public void setCutOut(Rect r, List<Location> geoR, List<GisLayer> myLayers) {
 		cutOut = new Cutout();
 		cutOut.r = r;
 		cutOut.geoR = geoR;
 		this.myLayers = myLayers;
 	}
-
-
-
 
 public static class GisResult {
 	public final PhotoMeta photoMeta;

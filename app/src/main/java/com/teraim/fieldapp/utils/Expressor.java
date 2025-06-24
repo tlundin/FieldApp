@@ -825,7 +825,6 @@ public class Expressor {
 
         }
     }
-
     //marker class
     abstract static class Expr implements Serializable {
         private static final long serialVersionUID = -1968204853256767316L;
@@ -843,17 +842,9 @@ public class Expressor {
         EvalExpr(TokenType t) {
             super(t);
         }
-
-        /**
-         *
-         */
         private static final long serialVersionUID = 1L;
-
         abstract Object eval();
-
-
     }
-
     public static class Atom extends EvalExpr {
         final Token myToken;
         Atom(Token t) {
@@ -960,7 +951,7 @@ public class Expressor {
 
     }
 
-    private static class Convoluted extends EvalExpr {
+    protected static class Convoluted extends EvalExpr {
         final EvalExpr arg1,arg2;
         final Operand operator;
 
@@ -1240,7 +1231,7 @@ public class Expressor {
     }
 
     //cut out function from full expression.
-    private static class Function extends EvalExpr {
+    protected static class Function extends EvalExpr {
         //try to build a function from the tokens in the beg. of the given token stream.
 
         private static final int No_Null = 1;
