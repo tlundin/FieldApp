@@ -24,16 +24,18 @@ import android.view.WindowManager;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
-import com.teraim.fieldapp.dynamic.types.Numerable.Type;
+import com.teraim.fieldapp.dynamic.blocks.Block;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
-import com.teraim.fieldapp.loadermodule.ModuleLoader;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper.Selection;
@@ -45,6 +47,7 @@ import org.json.JSONObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,12 +59,17 @@ import java.io.InputStreamReader;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StreamCorruptedException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -302,73 +310,127 @@ public class Tools {
 
 		return object;
 	}
+	private final static Gson gson = new GsonBuilder()
+			.registerTypeAdapter(Block.class, new BlockDeserializer())
+			.registerTypeAdapter(Expressor.EvalExpr.class, new EvalExprDeserializer())
+			.create();
 
-
-	public static void readObjectFromFileAsync(String filename, final ConfigurationModule caller, final ModuleLoader callBack) {
-
-
-		class FileLoader extends AsyncTask<String, Void, Object> {
-
-			//fileName to load
-			protected Object doInBackground(String... params) {
-				String fileName = params[0];
-
-				ObjectInputStream objectIn = null;
-				Object object = null;
-
-				try {
-					File file = new File(fileName);
-					FileInputStream fileIn = new FileInputStream(file);
-					int fileLength = (int)file.length();
-					Integer totalBlocks = fileLength/4096;
-					byte[] buf = new byte[4096];
-					int read = 0,blockC=0;
-					ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
-					while((read = fileIn.read(buf))>0) {
-						callBack.onUpdate(blockC++,totalBlocks);
-						outputStream.write(buf,0,read);
-					}
-					//create object.
-					ByteArrayInputStream bis = new ByteArrayInputStream(outputStream.toByteArray());
-					objectIn = new ObjectInputStream(bis);
-					object = objectIn.readObject();
-
-				} catch (Exception e) {
-                    Log.d("vortex","thaw failed");
-                    e.printStackTrace();
-                   return null;
-				}  finally {
-					if (objectIn != null) {
-						try {
-							objectIn.close();
-						} catch (IOException e) {
-							Log.d("vortex","thaw failed - ");
-							e.printStackTrace();
-							return null;
-						}
-					}
-				}
-				Log.d("vortex","returning thawed object");
-				return object;
-
-
-			}
-
-
-
-
-			protected void onPostExecute(Object result) {
-
-				Log.d("vortex", "Object thawed ");
-                caller.setEssence(result);
-				caller.setThawActive(false);
-                LoadResult loadResult = new LoadResult(caller,result==null?
-                        LoadResult.ErrorCode.thawFailed:LoadResult.ErrorCode.thawed);
-				callBack.onFileLoaded(loadResult);
-			}
+	/**
+	 * Writes an object to a file as a JSON string. Replaces the old witeObjectToFile method.
+	 * This is much faster and more robust than standard Java serialization.
+	 *
+	 * @param objectToSave The object to serialize and save.
+	 * @param fileName The full path of the file to save to.
+	 * @return true on success, false on failure.
+	 */
+	public static boolean writeObjectToFileAsJson(Object objectToSave, String fileName) {
+		if (objectToSave == null) {
+			System.err.println("Cannot save a null object."); // Or your Log.e
+			return false;
 		}
-		new FileLoader().execute(filename);
+		System.out.println("Writing object to file " + fileName); // Or your Log.d
+
+		try {
+			// 1. Convert the object to a JSON string
+			String jsonOutput = gson.toJson(objectToSave);
+
+			// 2. Print the JSON string to the console for debugging
+			System.out.println("DEBUG: JSON being written to file:");
+			System.out.println(jsonOutput);
+
+			// 3. Write the JSON string to the file
+			try (Writer writer = new BufferedWriter(new OutputStreamWriter(
+					new FileOutputStream(fileName), "UTF-8"))) {
+				writer.write(jsonOutput);
+			}
+
+			return true;
+
+		} catch (Exception e) {
+			// It's good practice to handle potential exceptions
+			e.printStackTrace();
+			return false;
+		}
 	}
+	public static String getFileContentAsString(String filePath) {
+		File file = new File(filePath);
+		if (!file.exists()) {
+			return "Error: File not found at path: " + filePath;
+		}
+
+		StringBuilder contentBuilder = new StringBuilder();
+
+		// Using try-with-resources to ensure the reader is automatically closed
+		try (BufferedReader reader = new BufferedReader(
+				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+
+			String line;
+			while ((line = reader.readLine()) != null) {
+				contentBuilder.append(line);
+				// Note: readLine() strips newline characters. If your JSON is pretty-printed,
+				// you might want to add them back for readability during debugging.
+				// contentBuilder.append(System.lineSeparator());
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "Error: Failed to read file. Reason: " + e.getMessage();
+		}
+
+		return contentBuilder.toString();
+	}
+
+	/**
+	 * Reads a JSON file and deserializes it back into an object of the specified class.
+	 * This replaces the old readObjectFromFile method.
+	 *
+	 * @param fileName The full path of the file to read.
+	 * @param classOfT The class of the object to be returned (e.g., MyData.class).
+	 * @return An object of type T, or null if reading or parsing fails.
+	 */
+	public static <T> T readObjectFromFileAsJson(String fileName, Class<T> classOfT) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
+			System.out.println("Reading object from file " + fileName+ " class is "+classOfT.toString()+"");
+			return gson.fromJson(reader, classOfT);
+		} catch (JsonSyntaxException e) {
+			Log.e("Tools.JsonIO", "JSON syntax error in file: " + fileName);
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			// This is expected if the file doesn't exist, so don't spam the log with a stack trace.
+			Log.d("Tools.JsonIO", "IOException reading file (may not exist yet): " + fileName);
+			return null;
+		}
+	}
+
+	/**
+	 * Reads a JSON file and deserializes it into an object of a generic type (e.g., List<MyData>).
+	 * Use this when the return type is generic.
+	 *
+	 * @param fileName The full path of the file to read.
+	 * @param typeOfT The specific generic type, obtained via TypeToken (e.g., new TypeToken<List<MyData>>(){}.getType()).
+	 * @return An object of the generic type, or null if reading or parsing fails.
+	 */
+	public static <T> T readObjectFromFileAsJson(String fileName, Type typeOfT) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
+			System.out.println("Reading object from file " + fileName+ " class type "+typeOfT+"");
+			String rawJsonContent = getFileContentAsString(fileName);
+			Long startTime = System.currentTimeMillis();
+			Object result = gson.fromJson(reader, typeOfT);
+//			System.out.println("DEBUG: JSON being read from file:"+rawJsonContent);
+			Log.d("bamboo",fileName+" read in "+(System.currentTimeMillis()-startTime)+"ms");
+//			T returnType = (T) result;
+//			Log.d("bamboo","returning "+returnType.getClass().getCanonicalName());
+			return (T) result;
+		} catch (JsonSyntaxException e) {
+			Log.e("Tools.JsonIO", "JSON syntax error in file: " + fileName);
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			Log.d("Tools.JsonIO", "IOException reading file (may not exist yet): " + fileName);
+			return null;
+		}
+	}
+
 
 
 
@@ -376,11 +438,11 @@ public class Tools {
 
 	//This cannot be part of Variable, since Variable is an interface.
 
-	public static Type convertToType(String text) {
-		Type[] types = Type.values();
+	public static com.teraim.fieldapp.dynamic.types.Numerable.Type convertToType(String text) {
+		com.teraim.fieldapp.dynamic.types.Numerable.Type[] types = com.teraim.fieldapp.dynamic.types.Numerable.Type.values();
 		//Special cases
 		if (text.equals("number"))
-			return Type.NUMERIC;
+			return com.teraim.fieldapp.dynamic.types.Numerable.Type.NUMERIC;
 		for (int i =0;i<types.length;i++) {
 			if (text.equalsIgnoreCase(types[i].name()))
 				return types[i];

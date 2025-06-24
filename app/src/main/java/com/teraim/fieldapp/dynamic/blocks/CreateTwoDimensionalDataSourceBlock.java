@@ -17,17 +17,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-class CreateTwoDimensionalDataSourceBlock extends Block {
+public class CreateTwoDimensionalDataSourceBlock extends Block {
 
-	String id=null;
+
+	private transient CategorySeries series;
+	private transient List<Variable> myVariables;
+	private transient XYMultipleSeriesDataset dataset;
     private String myChart=null;
-
-	private final CategorySeries series;
 	private String[] myCategories =null;
     private String[] myVariableNames=null;
-
-	private List<Variable> myVariables;
-	XYMultipleSeriesDataset dataset;
 	private final int[] colors = { Color.BLUE, Color.MAGENTA, Color.GREEN, Color.CYAN, Color.RED,
 			Color.YELLOW,Color.BLUE, Color.MAGENTA, Color.GREEN, Color.CYAN, Color.RED,
 			Color.YELLOW };
@@ -106,6 +104,4 @@ class CreateTwoDimensionalDataSourceBlock extends Block {
 			}
 		});
 	}
-
-	
 }

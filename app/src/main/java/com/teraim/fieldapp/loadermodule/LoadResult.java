@@ -5,21 +5,21 @@ public class LoadResult {
 	
 	public enum ErrorCode {
 		ok,
-		newVarPatternVersionLoaded,
 		loaded,
-		bothFilesLoaded,
 		HostNotFound,
 		notFound,
 		ParseError,
 		IOError,
-		sameold, 
-		whatever, 
 		configurationError, 
-		Aborted, 
-		LoadInBackground, newConfigVersionLoaded, 
-		BadURL,frozen, parsed, noData, thawed, 
-		ClassNotFound, Unsupported, socket_timeout,
-		reloadDependant, existingVersionIsMoreCurrent, slowConnection, thawFailed, tick, majorVersionNotUpdated,majorVersionUpdated
+		Aborted,
+		BadURL,
+		frozen,
+		parsed,
+		noData,
+		thawed,
+		Unsupported,
+		socket_timeout,
+		reloadDependant, thawFailed, majorVersionNotUpdated,majorVersionUpdated
 	}
 	
 	

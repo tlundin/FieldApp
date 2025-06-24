@@ -9,9 +9,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.utils.Tools.Unit;
 
 public class DisplayValueBlock extends DisplayFieldBlock implements EventGenerator {
-
-	private static final long serialVersionUID = 9151756426062334462L;
-
 	private final String namn;
 	private final String label;
 	private final String formula;
@@ -49,7 +46,4 @@ public class DisplayValueBlock extends DisplayFieldBlock implements EventGenerat
 		}
 			
 	}
-
-
-
 }

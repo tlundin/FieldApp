@@ -8,10 +8,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 
 
 public class AddEntryToFieldListBlock extends Block {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -8389535736187888854L;
 	private String target= null;
     private String namn= null;
     private String label=null;

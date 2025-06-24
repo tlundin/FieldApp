@@ -20,10 +20,9 @@ import java.util.List;
 
 public class StartCameraBlock extends Block implements EventListener {
 
-    private static final long serialVersionUID = -8381530803516157092L;
     private final List<Expressor.EvalExpr> fileNameE;
     private final String rawName;
-    private WF_Context myContext;
+    private transient WF_Context myContext;
 
     public StartCameraBlock(String id, String fileName) {
         this.blockId = id;

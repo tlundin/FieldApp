@@ -5,7 +5,7 @@ import java.io.Serializable;
 import android.util.Log;
 
 public class PhotoMeta implements Serializable {
-	private static final long serialVersionUID = -3400543797668108399L;
+
 	public double N=0,E=0,S=0,W=0;
 
 

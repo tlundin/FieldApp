@@ -11,15 +11,16 @@ import java.io.Serializable;
  *
  */
 public abstract  class Block implements Serializable {
-	private static final long serialVersionUID = -8275181338935274930L;
-	LoggerI o;
+
+	protected final String s_type;
+	protected transient LoggerI o;
 	String blockId;
-	
-	
+
+	protected Block() {
+		this.s_type = this.getClass().getSimpleName();
+	}
+
 	public String getBlockId() {
 		return blockId;
 	}
-
-
-
 }

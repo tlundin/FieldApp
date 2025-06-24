@@ -13,11 +13,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_SorterWidget;
 
 public class CreateSortWidgetBlock extends Block {
 
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 4728236327056430480L;
 	private final String containerId;
     private final String type;
     private final String target;

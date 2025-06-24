@@ -13,27 +13,16 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 
 public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 2013870148670474248L;
 	private String name;
-    String type;
     private final String label;
     private final String containerId;
     private final String initialValue;
     private final String group;
-    String textColor;
-    String backgroundColor;
 	private final int min,max;
     private boolean isVisible = false;
     private final boolean showHistorical;
-    boolean autoOpenSpinner=true;
-
-
-	private WF_ClickableField myField;
 	private String variableName=null;
-
+	private transient WF_ClickableField myField;
 	public CreateSliderEntryFieldBlock(String id, String name,
 									   String containerId, boolean isVisible, boolean showHistorical, String initialValue, String label, String variableName, String group,String textColor,String backgroundColor,int min,int max,String verticalFormat,String verticalMargin) {
 		super(textColor,backgroundColor,verticalFormat,verticalMargin);
@@ -60,9 +49,6 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
     private String getName() {
 		return name;
 	}
-
-
-
 	/**
 	 * @return the label
 	 */
@@ -116,18 +102,6 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 		}
 		return null;
 	}
-
-	public void attachRule(Rule r) {
-		if (myField == null) {
-			Log.e("vortex","no entryfield created. Rule block before entryfield block?");
-		} else {
-			myField.attachRule(r);
-		}
-	}
-
-
-
-
 }
 
 

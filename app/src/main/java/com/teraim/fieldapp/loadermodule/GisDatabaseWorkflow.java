@@ -99,7 +99,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         if (stageCount == 1) {
             stageCount = 2; // Advance the stage to prevent re-running this block
 
-            ConfigurationModule varConfModule = registry.getModule(VariablesConfiguration.NAME);
+            VariablesConfiguration varConfModule = (VariablesConfiguration) registry.getModule(VariablesConfiguration.NAME);
             GISListConfiguration gisListModule = (GISListConfiguration) registry.getModule(GISListConfiguration.NAME);
 
             if (varConfModule == null || gisListModule == null) {
@@ -107,7 +107,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
                 return null;
             }
 
-            Table t = (Table) varConfModule.getEssence();
+            Table t = varConfModule.getEssence();
             List<String> gisList = gisListModule.getGisTypes();
             List<ConfigurationModule> databaseModules = createDBModules(context, gisPath, bundleName, t, gisList, debugConsole);
 

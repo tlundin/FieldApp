@@ -1,7 +1,5 @@
 package com.teraim.fieldapp.ui;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -22,7 +20,6 @@ import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.loadermodule.StatefulModuleLoader;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
 
-import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -48,27 +45,14 @@ public class ModuleLoaderViewModel extends ViewModel {
     private final MutableLiveData<String> _progressText = new MutableLiveData<>("");
     public final LiveData<String> progressText = _progressText;
 
-    // Executors for background tasks
-    private final ExecutorService setupExecutor = Executors.newSingleThreadExecutor();
+    // Executor for one-off background tasks like loading photo metadata.
     private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
 
-    // Handler to post tasks back to the main UI thread
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-
-    // Field to hold the currently executing workflow
     private Workflow_I currentWorkflow;
 
     /**
-     * Public getter for the currently executing workflow.
-     * Allows observers to check which workflow has completed.
-     */
-    public Workflow_I getCurrentWorkflow() {
-        return currentWorkflow;
-    }
-
-    /**
-     * Executes a workflow. Handles pre-checking for cached modules and orchestrates
-     * the entire loading process off the main thread.
+     * Executes a workflow. This version reverts to a fully parallel model where
+     * all modules are dispatched immediately for processing.
      *
      * @param workflow The workflow to execute.
      * @param forceReload If true, all modules will be fetched from the server.
@@ -79,53 +63,32 @@ public class ModuleLoaderViewModel extends ViewModel {
             return;
         }
 
-        // Set the current workflow so observers can identify it
+        _finalProcessStatus.setValue(new WorkflowResult(LoadingStatus.LOADING, null));
+
+        final ModuleRegistry registry = new ModuleRegistry();
         this.currentWorkflow = workflow;
 
-        _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.LOADING, null));
+        // The initial setup work now runs directly on the calling thread (main thread).
+        // This may cause a brief "skipped frames" warning but avoids the slowdown and
+        // errors from the previous sequential pre-check model.
+        LoadJob initialJob = workflow.getInitialJob();
+        if (initialJob == null || initialJob.modules.isEmpty()) {
+            _finalProcessStatus.setValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
+            return;
+        }
 
-        setupExecutor.execute(() -> {
-            final ModuleRegistry registry = new ModuleRegistry();
-            LoadJob initialJob = workflow.getInitialJob();
-
-            if (initialJob == null || initialJob.modules.isEmpty()) {
-                mainHandler.post(() -> _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry)));
-                return;
-            }
-
-            final ArrayList<ConfigurationModule> modulesToDownload = new ArrayList<>();
-
-            if (!forceReload) {
-                for (ConfigurationModule module : initialJob.modules) {
-                    if (module.thawSynchronously().errCode == LoadResult.ErrorCode.thawed) {
-                        registry.add(module);
-                    } else {
-                        modulesToDownload.add(module);
-                    }
-                }
-            } else {
-                modulesToDownload.addAll(initialJob.modules);
-            }
-
-            mainHandler.post(() -> {
-                if (modulesToDownload.isEmpty()) {
-                    Log.d("ViewModel", "All modules were successfully loaded from cache. Workflow complete.");
-                    _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
-                } else {
-                    Log.d("ViewModel", "Starting network download for " + modulesToDownload.size() + " modules.");
-                    LoadJob downloadJob = new LoadJob(initialJob.stage, modulesToDownload);
-                    runJob(downloadJob, true, registry, workflow);
-                }
-            });
-        });
+        // Directly call runJob, which will set up the parallel loader.
+        runJob(initialJob, forceReload, registry, workflow);
     }
 
     /**
-     * Runs a specific job in the workflow. This method MUST be called on the main thread.
+     * Runs a specific job in the workflow. This method MUST be called on the main thread
+     * because it sets up LiveData observers.
      */
     private void runJob(final LoadJob job, final boolean forceReload, final ModuleRegistry registry, final Workflow_I workflow) {
         StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage, forceReload);
 
+        // These observeForever calls are safe because execute() ensures runJob is on the main thread.
         loader.progressText.observeForever(_progressText::postValue);
         loader.loadingStatus.observeForever(new Observer<LoadCompletionEvent>() {
             @Override
@@ -136,7 +99,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                 if (completionEvent.status == LoadingStatus.SUCCESS) {
                     registry.add(job.modules);
                     LoadJob nextJob = workflow.getNextJob(registry);
-                    if (nextJob != null) {
+                    if (nextJob != null && forceReload) {
                         runJob(nextJob, true, registry, workflow);
                     } else {
                         _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
@@ -170,10 +133,14 @@ public class ModuleLoaderViewModel extends ViewModel {
         return resultLiveData;
     }
 
+    public Workflow_I getCurrentWorkflow() {
+        return currentWorkflow;
+    }
+
     @Override
     protected void onCleared() {
         super.onCleared();
-        setupExecutor.shutdownNow();
+        // The setupExecutor has been removed, so we only need to shut down the other executor.
         singleTaskExecutor.shutdownNow();
     }
 }

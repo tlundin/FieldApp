@@ -176,8 +176,8 @@ public class VariableConfiguration implements Serializable {
 			//Log.d("nils","getvarislocal uses string "+s);
 			return (s != null && s.startsWith("local"));
 		}
-		Log.e("vortex","row was null...cannot determine if local or global. Will default to global");
-		return false;
+		Log.e("vortex","row was null...cannot determine if local or global. Will default to local");
+		return true;
 
 
 	}

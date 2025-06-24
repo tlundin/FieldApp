@@ -17,8 +17,8 @@
     </style>
 
     <style name="MyButton" parent="Widget.MaterialComponents.Button">
-        <item name="backgroundTint">@color/button_background_light_gray</item>
-        <item name="android:textColor">@android:color/black</item>
+        <item name="backgroundTint">@color/my_button_background_tint</item>
+        <item name="android:textColor">@color/my_button_text_color</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

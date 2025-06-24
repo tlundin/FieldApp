@@ -52,7 +52,7 @@ import java.util.Set;
 public class AddGisPointObjects extends Block implements FullGisObjectConfiguration {
 
 
-	private static final long serialVersionUID = 7979886099817953005L;
+
 	private final boolean useIconOnMap;
 	private final String nName;
 	private final String target;
@@ -62,18 +62,18 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	private final String imgSource;
 	private final String refreshRate;
 
-	private Bitmap icon=null;
+	private transient Bitmap icon=null;
 	private final boolean isVisible;
 	private final GisObjectType myType;
 	private boolean loadDone=false;
-	private Set<GisObject> myGisObjects;
+	private transient Set<GisObject> myGisObjects;
 	private float radius;
 	private final String color;
 	private Paint.Style fillType;
 	private PolyType polyType;
 	private final String onClick;
 	private final String statusVariable;
-	private DB_Context objectKeyHash;
+	private transient DB_Context objectKeyHash;
 	private final boolean isUser;
 	private final boolean createAllowed;
 	private boolean dynamic;
@@ -113,8 +113,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 
 		if (coordType==null||coordType=="")
 			this.coordType=GisConstants.SWEREF;
-		else
-			Log.e("vortex","LATLONG!");
+
 		setRadius(radius);
 
 		this.fillType=Paint.Style.FILL;

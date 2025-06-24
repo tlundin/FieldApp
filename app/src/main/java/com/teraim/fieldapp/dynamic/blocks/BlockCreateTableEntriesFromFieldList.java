@@ -20,7 +20,6 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
     private String selectionField=null;
     private String selectionPattern=null;
     private String variatorColumn=null;
-	String typeField=null,keyField = null;
 	private static final Map <String,List<List<String>>> cacheMap=new WeakHashMap<String,List<List<String>>>();
 
 	public BlockCreateTableEntriesFromFieldList(String id, String type,String target,
@@ -66,10 +65,6 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 	}
 
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1074961225196569424L;
 
 
 

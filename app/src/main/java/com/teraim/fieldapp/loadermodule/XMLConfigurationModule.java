@@ -15,7 +15,7 @@ public abstract class XMLConfigurationModule extends ConfigurationModule {
 	
 	protected XMLConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
 									  String urlOrPath, String fileName, String moduleName) {
-		super(context,gPh,ph, Type.xml, urlOrPath, fileName, moduleName);
+		super(context,gPh,ph, FileFormat.xml, urlOrPath, fileName, moduleName);
 	}
 	protected abstract LoadResult prepare(XmlPullParser parser) throws XmlPullParserException, IOException;
 	protected abstract LoadResult parse(XmlPullParser parser) throws XmlPullParserException, IOException;

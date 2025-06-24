@@ -22,7 +22,6 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
@@ -67,10 +66,10 @@ public final class DataLoader {
                 LoadResult readResult = read(reader, module, version, sb);
 
                 // If read was successful, parse and then freeze the module.
-                if (readResult != null && readResult.errCode == ErrorCode.loaded) {
+                if (readResult.errCode == ErrorCode.loaded) {
                     LoadResult parseResult = parse(module);
                     if (parseResult.errCode == ErrorCode.parsed) {
-                        module.state.postValue(ConfigurationModule.State.FREEZING);
+                        //module.state.postValue(ConfigurationModule.State.FREEZING);
                         LoadResult freezeResult = freeze(module);
                         // --- SUCCESS! ---
                         // If everything worked, return the result and exit the loop.
@@ -78,12 +77,7 @@ public final class DataLoader {
                     } else {
                         return parseResult; // Return non-recoverable parse error immediately.
                     }
-                } else if (readResult.errCode == ErrorCode.sameold || readResult.errCode == ErrorCode.existingVersionIsMoreCurrent) {
-                    // If the version is the same or older, we don't need to retry.
-                    return readResult;
                 }
-                // For other read results, the loop will continue if it was a recoverable error.
-
             } catch (IOException e) {
                 Log.w("vortex", "Attempt " + attempt + " failed with IOException: " + e.getMessage());
                 if (attempt == MAX_ATTEMPTS) {
@@ -175,19 +169,8 @@ public final class DataLoader {
         return -1;
     }
     private static LoadResult read(BufferedReader reader, ConfigurationModule m, float newVersion, StringBuilder sb) throws IOException {
-        float frozenVersion = m.getFrozenVersion();
-
-        if (newVersion != -1) {
+        if (newVersion != -1)
             m.setNewVersion(newVersion);
-            if (frozenVersion != -1) {
-                if (frozenVersion == newVersion) {
-                    Log.d("vortex","TEMP - always load");
-                    //return new LoadResult(m, ErrorCode.sameold);
-                } else if (frozenVersion > newVersion) {
-                    return new LoadResult(m, ErrorCode.existingVersionIsMoreCurrent, newVersion + "");
-                }
-            }
-        }
         String line;
         int rowC = 0;
         while ((line = reader.readLine()) != null) {
@@ -198,7 +181,7 @@ public final class DataLoader {
         return new LoadResult(m, ErrorCode.loaded);
     }
     private static LoadResult parse(ConfigurationModule m) throws IOException, XmlPullParserException, JSONException, Dependant_Configuration_Missing {
-        switch (m.type) {
+        switch (m.fileFormat) {
             case csv:
             case ini:
             case jgw:
@@ -216,6 +199,7 @@ public final class DataLoader {
     private static final long RETRY_DELAY_SECONDS = 1;
     private static LoadResult parseCSV(CI_ConfigurationModule m) throws IOException {
         LoadResult lr;
+        Log.d("vortex","parse csv");
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
                 lr = m.prepare();
@@ -310,13 +294,13 @@ public final class DataLoader {
 
         if (m.getEssence() != null || m.isDatabaseModule) {
             // CORRECTED: Use postValue from a background thread.
-            m.state.postValue(ConfigurationModule.State.FROZEN);
+            m.state.postValue(ConfigurationModule.ModuleLoadState.FROZEN);
             return new LoadResult(m, ErrorCode.frozen);
         } else {
             // This enum value does not exist in ConfigurationModule.State. Assuming ERROR or a new state.
             // For now, let's use ERROR. If you have NO_DATA state, you can use that.
             // CORRECTED: Use postValue from a background thread.
-            m.state.postValue(ConfigurationModule.State.ERROR); // Assuming NO_DATA state doesn't exist.
+            m.state.postValue(ConfigurationModule.ModuleLoadState.ERROR); // Assuming NO_DATA state doesn't exist.
             return new LoadResult(m, ErrorCode.noData);
         }
     }

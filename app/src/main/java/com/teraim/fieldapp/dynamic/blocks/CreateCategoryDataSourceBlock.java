@@ -1,8 +1,6 @@
 package com.teraim.fieldapp.dynamic.blocks;
-
 import android.graphics.Color;
 import android.util.Log;
-
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.SimpleChartDataSource;
 import com.teraim.fieldapp.dynamic.types.Variable;
@@ -11,9 +9,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.Expressor;
-
 import org.achartengine.model.CategorySeries;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,10 +18,8 @@ public class CreateCategoryDataSourceBlock extends Block {
 	private final List<Expressor.EvalExpr> argumentE;
 	String id=null;
     private String myChart=null;
-
 	private final CategorySeries series;
 	private String[] myCategories =null;
-
 
 	private final int[] colors = { Color.RED, Color.BLUE, Color.MAGENTA, Color.GREEN, Color.CYAN,
 			Color.YELLOW,Color.BLACK,Color.BLUE, Color.MAGENTA, Color.GREEN, Color.CYAN, Color.RED,

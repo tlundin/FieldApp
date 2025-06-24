@@ -41,51 +41,26 @@ public class Variable implements Serializable {
 	protected String name=null;
 	private DataType myType=null;
 	private String myValue=null;
-
-	private Map<String, Boolean> currentRuleState;
 	protected final String[] myValueColumn = new String[1];
 	protected Selection mySelection=null;
-
 	private String myLabel = null;
-
 	private Set<String> myRules = null;
-
 	final DbHelper myDb;
-
 	private List<String> myRow;
-
 	private String myStringUnit;
-
 	private boolean isSynchronized = true;
-
 	boolean unknown=true;
-
 	private boolean isKeyVariable = false;
-
 	private final String realValueColumnName;
-
 	private Selection histSelection;
-
 	private final GlobalState gs;
-
-	protected Boolean iAmIllegal=null;
-
 	private boolean iAmOutOfRange=false;
-
-	protected String iAmPartOfKeyChain=null;
-
 	private String myHistory = null;
-
 	private boolean historyChecked = false;
-
 	Long timeStamp=null;
-
 	private final VariableConfiguration al;
-
 	private String myDefaultValue=null;
-
 	private CombinedRangeAndListFilter myFilter=null;
-
 	private boolean usingDefault = false;
 
 	public enum DataType {
@@ -398,7 +373,6 @@ public class Variable implements Serializable {
 
 	public void deleteValue() {
 		myDb.deleteVariable(name,mySelection,isSynchronized);
-		//Log.d("zzzz","myValue null in DeleteValue");
 		myValue=null;
 		unknown = false;
 		usingDefault = false;
@@ -406,7 +380,6 @@ public class Variable implements Serializable {
 
 	public void deleteValueNoSync() {
 		myDb.deleteVariable(name,mySelection,false);
-		//Log.d("zzzz","myValue null in DeleteValueNoS");
 		myValue=null;
 		unknown = false;
 		usingDefault = false;
@@ -418,14 +391,10 @@ public class Variable implements Serializable {
 	}
 
 	public void invalidate() {
-		//Log.d("vortex","Invalidating variable: "+this.getId());
 		unknown=true;
 		usingDefault = false;
 		timeStamp=null;
 		myValue=null;
-		//Log.d("vortex","Test - getValue returns: "+this.getValue());
-		//Log.d("vortex","My keychain is: "+this.getKeyChain().toString());
-
 	}
 
 	public boolean isKeyVariable() {
@@ -443,36 +412,10 @@ public class Variable implements Serializable {
 				myRules = new HashSet<String>();
 			myRules.add(rule);
 		}
-		refreshRuleState();
 	}
 
 
-	private void refreshRuleState() {}
-	/*
-		Log.d("nils", "Refreshing rulestate for "+this.getId());
-		iAmIllegal = false;	
-		if (myRules !=null) {
-			currentRuleState = new HashMap<String,Boolean>();
-			Boolean evalRes;
-			Iterator<String> it = myRules.iterator();
-			RuleExecutor re = RuleExecutor.getInstance(gs.getContext());
-			while(it.hasNext()) {
-				String rule=it.next();
-				evalRes = re.evaluate(rule);
-				if (evalRes!=null) { 
-					Log.d("nils","putting "+rule+" and evalres "+evalRes+" into currentRulestate.");
-					currentRuleState.put(rule, evalRes);
-					//mark variable if one of the rules fails.
-					if (!evalRes)
-						iAmIllegal=true;
-				}
-			}
-		} else
-			Log.d("nils","Myrules was null");
-//		} else 
-//			Log.d("nils","Variable "+this.myLabel+" is invalid. Will not refresh rulestate.");
-	}
-	*/
+
 	public boolean hasBrokenRules() {
 		/*
 		if (iAmIllegal==null)
@@ -490,9 +433,6 @@ public class Variable implements Serializable {
 		return iAmOutOfRange;
 	}
 
-	public Map<String,Boolean> getRuleState() {
-		return currentRuleState;
-	}
 	public void setOutOfRange(boolean oor) {
 		iAmOutOfRange = oor;
 	}

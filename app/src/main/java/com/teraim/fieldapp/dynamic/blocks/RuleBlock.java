@@ -8,80 +8,96 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 
 import java.util.List;
 
-public  class RuleBlock extends Block {
+public class RuleBlock extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2045031005203874392L;
-	private final Rule r;
+
+	private final String ruleName, target, condition, action, errorMsg;
+	private final Scope myScope;
+
+	// The Rule object is a runtime object and MUST be transient.
+	// It will be lazily created when first needed.
+	private transient Rule r;
+
 	private enum Scope {
 		block,
 		flow,
 		both
 	}
-	private Scope myScope = Scope.flow;
 
-	public RuleBlock(String id,String ruleName,String target, String condition, String action, String errorMsg, String myScope) {
-		Log.d("basap","in new ruleblock for block "+id+" with target "+target);
-		this.r = new Rule(id,ruleName,target,condition,action,errorMsg);
-		this.blockId=id;
-		if (myScope!=null && myScope.length()>0)
+	public RuleBlock(String id, String ruleName, String target, String condition, String action, String errorMsg, String scopeStr) {
+		this.blockId = id;
+		this.ruleName = ruleName;
+		this.target = target;
+		this.condition = condition;
+		this.action = action;
+		this.errorMsg = errorMsg;
+
+		Scope tempScope = Scope.flow;
+		if (scopeStr != null && !scopeStr.isEmpty()) {
 			try {
-				this.myScope = Scope.valueOf(myScope);
-			} catch (IllegalArgumentException e) { Log.e("vortex","Argument "+myScope+" not recognized. Defaults to scope flow");}
-		
-	}
-
-	public void getRule() {
-    }
-
-	public void create(WF_Context myContext, List<Block> blocks) {
-		Log.d("nils","Create called in addRuleBlock, id "+blockId+" Target name: "+r.getTargetString()+" my scope: "+myScope+" Target Block: "+r.getMyTargetBlockId());
-		o = GlobalState.getInstance().getLogger();
-		//Add rules that will be executed att flow exit.
-		if (myScope == Scope.flow || myScope == Scope.both)
-			myContext.addRule(r);
-		//If target mentions specific block, find it and attach rule to EntryField.
-		if (r.getMyTargetBlockId()!=-1) {
-			 int index = findBlockIndex(r.getTargetString(),blocks);
-			 if (index==-1) {
-				 o.addRow("");
-				 o.addRedText("target block for rule "+blockId+" not found ("+r.getMyTargetBlockId()+")");
-				 return;
-			 } 
-			 Block b = blocks.get(index);
-			 if (b instanceof CreateEntryFieldBlock) {
-				 Log.d("vortex","target ok");
-				 ((CreateEntryFieldBlock)b).attachRule(r);
-			 } else if (b instanceof BlockCreateListEntriesFromFieldList) {
-				BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList)b;
-				r.setTarget(myContext,bl);
-
-			} else {
-				Log.e("vortex","target for rule doesnt seem correct: "+b.getClass()+" blId: "+r.getTargetString());
-				o = GlobalState.getInstance().getLogger();
-				o.addRow("");
-				o.addRedText("target for rule doesnt seem correct: "+b.getClass()+" blId: "+r.getTargetString());
+				tempScope = Scope.valueOf(scopeStr);
+			} catch (IllegalArgumentException e) {
+				Log.e("vortex", "Argument " + scopeStr + " not recognized. Defaults to scope flow");
 			}
 		}
-		
+		this.myScope = tempScope;
+		// Do NOT initialize 'r' here. It will be null after construction.
 	}
-	
+
+	// Lazy initializer for the transient Rule object.
+	// This creates the Rule object on-demand the first time it's needed at runtime,
+	// completely outside the serialization/deserialization process.
+	private Rule getRule() {
+		if (r == null) {
+			Log.d("RuleBlock", "Lazily creating Rule object for block " + blockId);
+			r = new Rule(blockId, ruleName, target, condition, action, errorMsg);
+		}
+		return r;
+	}
+
+	public void create(WF_Context myContext, List<Block> blocks) {
+		// Use the getter to ensure the rule object is instantiated.
+		Rule currentRule = getRule();
+
+		Log.d("nils", "Create called in addRuleBlock, id " + blockId + " Target name: " + currentRule.getTargetString() + " my scope: " + myScope + " Target Block: " + currentRule.getMyTargetBlockId());
+		o = GlobalState.getInstance().getLogger();
+
+		if (myScope == Scope.flow || myScope == Scope.both) {
+			myContext.addRule(currentRule);
+		}
+
+		if (currentRule.getMyTargetBlockId() != -1) {
+			int index = findBlockIndex(currentRule.getTargetString(), blocks);
+			if (index == -1) {
+				o.addRow("");
+				o.addRedText("target block for rule " + blockId + " not found (" + currentRule.getMyTargetBlockId() + ")");
+				return;
+			}
+			Block b = blocks.get(index);
+			if (b instanceof CreateEntryFieldBlock) {
+				Log.d("vortex", "target ok");
+				((CreateEntryFieldBlock) b).attachRule(currentRule);
+			} else if (b instanceof BlockCreateListEntriesFromFieldList) {
+				BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;
+				currentRule.setTarget(myContext, bl);
+			} else {
+				Log.e("vortex", "target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
+				o = GlobalState.getInstance().getLogger();
+				o.addRow("");
+				o.addRedText("target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
+			}
+		}
+	}
+
 	private int findBlockIndex(String tid, List<Block> blocks) {
-		if (tid==null)
+		if (tid == null)
 			return -1;
-		for(int i=0;i<blocks.size();i++) {
+		for (int i = 0; i < blocks.size(); i++) {
 			String id = blocks.get(i).getBlockId();
-			//			Log.d("nils","checking id: "+id);
-			if(id.equals(tid)) {
-				
+			if (id.equals(tid)) {
 				return i;
 			}
 		}
-
-	
 		return -1;
 	}
-
 }

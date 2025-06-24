@@ -11,6 +11,7 @@ import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -123,11 +124,15 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 	}
 
 	@Override
+	protected Type getEssenceType() {
+		return GroupsConfiguration.class;
+	}
+
+	@Override
 	protected void setFrozenVersion(float version) {
 		ph.put(PersistenceHelper.CURRENT_VERSION_OF_GROUP_CONFIG_FILE,version);
 	}
 
-	@Override
 	public boolean isRequired() {
 		return false;
 	}

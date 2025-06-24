@@ -3,12 +3,12 @@ package com.teraim.fieldapp.loadermodule.configurations;
 import android.content.Context;
 import android.util.Log;
 
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
+import com.google.gson.reflect.TypeToken;
 import com.teraim.fieldapp.loadermodule.LoadResult;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +17,7 @@ public class GISListConfiguration extends CI_ConfigurationModule {
     private List<String> gisTypes = new ArrayList<>();
 
     public GISListConfiguration(Context context, PersistenceHelper gPh, PersistenceHelper ph, String urlOrPath) {
-        super(context,gPh,ph, Type.txt, urlOrPath, "content", "Gis content                ");
+        super(context,gPh,ph, FileFormat.txt, urlOrPath, "content", "Gis content                ");
     }
 
     @Override
@@ -46,18 +46,23 @@ public class GISListConfiguration extends CI_ConfigurationModule {
     }
 
     @Override
+    protected Type getEssenceType() {
+        return new TypeToken<List<String>>(){}.getType();
+    }
+
+    @Override
     protected void setFrozenVersion(float version) {
 
     }
 
     @Override
-    public boolean isRequired() {
-        return false;
+    protected void setEssence() {
+        essence = gisTypes;
     }
 
     @Override
-    protected void setEssence() {
-        essence = gisTypes;
+    public boolean isRequired() {
+        return false;
     }
 
     public List<String> getGisTypes() {

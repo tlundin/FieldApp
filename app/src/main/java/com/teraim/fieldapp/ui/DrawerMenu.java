@@ -85,17 +85,16 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 
 	}
 
-	public void addHeader(String label, int bgColor,int textColor) {
+	public void addHeader(String label) {
 		Menu menu = navigationView.getMenu();
 		currentSubMenu = menu.addSubMenu(Menu.NONE, Menu.NONE, Menu.NONE, label);
 	}
 
-	public void addItem(String label, Workflow wf,int bgColor,int textColor) {
-		Log.d("axion","adding item "+label+" with color "+bgColor+" and text color "+textColor);
+	public void addItem(String label, Workflow wf) {
 		if (currentSubMenu == null) {
 			// Handle cases where addItem is called before addHeader, maybe add to a default section or throw an error
 			// For this example, let's add a default header if none exists
-			addHeader("Vecka "+Constants.getWeekNumber(), android.R.color.transparent, android.R.color.black);
+			addHeader("Vecka "+Constants.getWeekNumber());
 		}
 
 		int itemId = nextItemId++;

@@ -12,6 +12,14 @@ public class ConditionalContinuationBlock extends Block {
 	private final String elseID;
     private final String expr;
     private final List<EvalExpr>exprE;
+	public String getFormula() {
+		return expr;
+	}
+	public String getElseId() {
+		return elseID;
+	}
+	public final static int STOP = 1,JUMP=2,NEXT = 3;
+	private Integer lastEval = null;
 	public ConditionalContinuationBlock(String id, List<String> varL,
 			String expr, String elseBlockId) {
 		this.blockId=id;
@@ -19,21 +27,6 @@ public class ConditionalContinuationBlock extends Block {
 		this.exprE = Expressor.preCompileExpression(expr);
 		this.elseID=elseBlockId;
 	}
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5923203475793337276L;
-	public String getFormula() {
-		return expr;
-	}
-	public String getElseId() {
-		return elseID;
-	}
-    public final static int STOP = 1,JUMP=2,NEXT = 3;
-    
-    private Integer lastEval = null;
-    
     public boolean isExpressionOk() {
     	return exprE!=null;
     }

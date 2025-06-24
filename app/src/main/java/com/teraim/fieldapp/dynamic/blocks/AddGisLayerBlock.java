@@ -8,11 +8,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 
 public class AddGisLayerBlock extends Block {
 
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4149408006972701777L;
 	private final String name;
     private final String label;
     private final String target;

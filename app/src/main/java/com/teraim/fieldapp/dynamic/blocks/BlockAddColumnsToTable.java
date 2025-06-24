@@ -13,11 +13,6 @@ import java.util.List;
 
 public class BlockAddColumnsToTable extends Block {
 
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -3041902713022605254L;
 	private final String name=null;
     private String target=null;
     private String label=null;

@@ -20,7 +20,6 @@ import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnNewVersion;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.expr.Aritmetic;
@@ -81,7 +80,6 @@ public class GlobalState {
     private DrawerMenu myDrawerMenu;
 
     public String TEXT_LARGE;
-    private WF_Context currentContext;
     private String myPartner = "?";
 
     private PersistenceHelper globalPh = null;
@@ -463,15 +461,7 @@ public class GlobalState {
     public LoggerI getLogger() {
         return logger;
     }
-/*
-	public void setCurrentWorkflowContext(WF_Context myContext) {
-		currentContext = myContext;
-	}
 
-	public WF_Context getCurrentWorkflowContext() {
-		return currentContext;
-	}
-*/
     EventListener gisMap = null;
     public void registerUpdateListener(EventListener map) {
         this.gisMap = map;

@@ -12,6 +12,7 @@ import com.teraim.fieldapp.log.LoggerI;
 
 public class AddFilter extends Block {
 
+
 	private final String target;
 	private final String type;
 	private final String selectionField;
@@ -33,12 +34,6 @@ public class AddFilter extends Block {
 	public String getSelectionPattern() {
 		return selectionPattern;
 	}
-	
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 8707251750682677396L;
 
 	public void create(WF_Context myContext) {
 		o = GlobalState.getInstance().getLogger();

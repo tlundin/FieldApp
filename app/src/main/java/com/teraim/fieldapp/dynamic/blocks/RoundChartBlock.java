@@ -13,10 +13,9 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 
 public class RoundChartBlock extends ChartBlock  {
 
+
 	private String startAngle;
-
-	private SimpleChartDataSource myDataSource;
-
+	private transient SimpleChartDataSource myDataSource;
 
 
 	public RoundChartBlock(String blockId, String name, String label, String container,

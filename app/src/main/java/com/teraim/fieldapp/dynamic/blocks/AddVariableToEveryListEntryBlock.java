@@ -8,6 +8,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 
 public class AddVariableToEveryListEntryBlock extends Block {
 
+
 	private final String target;
     private final String variableSuffix;
     private final String format;
@@ -15,7 +16,7 @@ public class AddVariableToEveryListEntryBlock extends Block {
     private final boolean isVisible;
     private final boolean showHistorical;
 	private String initialValue=null;
-	private static final long serialVersionUID = 3621078864866872867L;
+
 
 
 

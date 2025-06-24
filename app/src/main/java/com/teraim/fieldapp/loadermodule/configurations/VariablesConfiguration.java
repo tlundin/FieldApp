@@ -15,6 +15,7 @@ import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -54,6 +55,14 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 		}
 		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_VARPATTERN_FILE));
 	}
+	@Override
+	public Table getEssence() {
+		return (Table) essence;
+	}
+	@Override
+	protected Type getEssenceType() {
+		return Table.class;
+	}
 
 	@Override
 	protected void setFrozenVersion(float version) {
@@ -61,7 +70,6 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 
 	}
 
-	@Override
 	public boolean isRequired() {
 		return true;
 	}
@@ -136,12 +144,8 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 
 		} else {
 			List<List<String>> elems;
-
-
 			String[] r = Tools.split(row);
-
 			if (r==null|| r.length<Constants.VAR_PATTERN_ROW_LENGTH) {
-
 				o.addRow("");
 				o.addRedText("Too short row or row null in Variable.csv.");
 				if (r!=null) {
@@ -154,7 +158,6 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 				for(int i=0;i<r.length;i++) {
 					if (r[i]!=null)
 						r[i] = r[i].replace("\"", "");
-
 				}
                 int pGroupIndex = 1;
                 String pGroup = r[pGroupIndex];
@@ -163,7 +166,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 					//Log.d("nils","found variable "+r[pNameIndex]+" in varpattern");							
 					myTable.addRow(trr);
 					//o.addRow("Generated variable(1): ["+r[pNameIndex]+"]");
-					Log.d("vortex","Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
+					//Log.d("vortex","Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
 				} else {
 					//Log.d("nils","found group name: "+pGroup);
 					elems = groups.get(pGroup);
@@ -212,22 +215,15 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 										o.addRedText("row not inserted. Something wrong at line "+currentRow);
 										break;
 									}
-									
 								}
 							}
 						}
 					}
 				}
 			}
-
 		}
-
-
 		return null;
 	}
-
-	
-
 	private List<String> trimmed(String[] r) {
         return new ArrayList<String>(Arrays.asList(r).subList(0, Constants.VAR_PATTERN_ROW_LENGTH));
 	}

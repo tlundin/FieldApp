@@ -86,7 +86,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private ImageButton infoPanelCloseButton;
     private String currentlyDisplayedInfoLabel = null;
 
-    private WF_Context myContext;
+    private transient WF_Context myContext;
     private LayoutInflater inflater;
     private int rowNumber = 0;
 

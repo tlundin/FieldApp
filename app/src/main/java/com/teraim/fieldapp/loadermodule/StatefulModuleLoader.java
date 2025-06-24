@@ -72,7 +72,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     @Override
     public void onFileLoaded(LoadResult result) {
         ConfigurationModule module = result.module;
-        module.state.postValue(result.errCode == ErrorCode.thawed ? ConfigurationModule.State.THAWED : ConfigurationModule.State.FROZEN);
+        module.state.postValue(ConfigurationModule.ModuleLoadState.FROZEN);
         switch (result.errCode) {
             case loaded:
             case frozen:
@@ -92,7 +92,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     public void onError(LoadResult result) {
         ConfigurationModule module = result.module;
         System.err.println("Error for module [" + module.getLabel() + "]: " + result.errCode + " - " + result.errorMessage);
-        module.state.postValue(ConfigurationModule.State.ERROR);
+        module.state.postValue(ConfigurationModule.ModuleLoadState.ERROR);
         // A module has failed its lifecycle.
         checkIfAllDone();
     }
@@ -104,7 +104,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     private void checkIfAllDone() {
         // This is the old, incorrect position for the update
         // updateProgress();
-
+        Log.d("StatefulModuleLoader", "checkIfAllDone"+" modules in progress "+modulesInProgress.get());
         if (modulesInProgress.decrementAndGet() == 0) {
             // --- This block now executes only for the very last module ---
 
@@ -114,7 +114,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
 
             // 2. Then, determine the overall result.
             boolean hasErrors = modules.stream()
-                    .anyMatch(m -> m.state.getValue() == ConfigurationModule.State.ERROR);
+                    .anyMatch(m -> m.state.getValue() == ConfigurationModule.ModuleLoadState.ERROR);
 
             // 3. Finally, send the completion signal.
             // This will be queued on the main thread AFTER the final progress update.
@@ -138,8 +138,8 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
         Log.d("StatefulModuleLoader", "updateProgress");
         StringBuilder sb = new StringBuilder();
         long completed = modules.stream().filter(m ->
-                m.state.getValue() != ConfigurationModule.State.INITIAL &&
-                        m.state.getValue() != ConfigurationModule.State.LOADING).count();
+                m.state.getValue() != ConfigurationModule.ModuleLoadState.INITIAL &&
+                        m.state.getValue() != ConfigurationModule.ModuleLoadState.LOADING).count();
 
         sb.append("Stage: ").append(stage).append(" (")
                 .append(completed).append("/").append(modules.size()).append(")\n\n");

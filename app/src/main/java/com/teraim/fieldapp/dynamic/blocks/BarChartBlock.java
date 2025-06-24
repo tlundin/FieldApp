@@ -22,13 +22,6 @@ import org.achartengine.renderer.XYSeriesRenderer;
  */
 public class BarChartBlock extends ChartBlock {
 
-    private static final long serialVersionUID = 4030652478782165890L;
-
-    private WF_Widget myWidget;
-    private CategorySeries distributionSeries;
-    private int insertIndex = -1;
-    private WF_Context myContext;
-
 
     public BarChartBlock(String blockId, String name, String label, String container,
                           String textSize, String margins,int lineWidth, int height,int width, boolean displayValues,

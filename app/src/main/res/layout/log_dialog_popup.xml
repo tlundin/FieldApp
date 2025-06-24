@@ -12,7 +12,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
-        app:tint="?android:textColorPrimary"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/close"
         android:padding="16dp"
@@ -37,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="16dp"
-            android:textColor="@color/white" />
+            />
 
     </ScrollView>
 

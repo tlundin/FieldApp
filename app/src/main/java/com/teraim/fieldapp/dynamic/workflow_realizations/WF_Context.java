@@ -44,7 +44,7 @@ public class WF_Context {
 	private final List<WF_Static_List> lists= new ArrayList<>();
 	private final Map<String,Drawable> drawables;
 	private List<WF_Container> containers;
-	private final Executor myTemplate;
+	private transient Executor myTemplate;
 	private final EventBroker eventBroker;
 	private final Set<Rule> rules=new HashSet<Rule>();
 	private final Set<Integer> executedBlocks = new HashSet<Integer>();

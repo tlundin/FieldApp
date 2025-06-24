@@ -24,9 +24,9 @@ import org.achartengine.model.CategorySeries;
  */
 public abstract class ChartBlock  extends Block implements EventListener {
 
-    GraphicalView chart;
-    Context ctx;
-    WF_Context myContext;
+    transient GraphicalView chart;
+    transient Context ctx;
+    transient WF_Context myContext;
     private int insertIndex = -1;
     final String label;
     private final String container;
@@ -38,8 +38,8 @@ public abstract class ChartBlock  extends Block implements EventListener {
     private int width;
     final float textSize;
     DataSource myDataSource;
-    private WF_Widget myWidget;
-    private WF_Container myContainer;
+    transient private WF_Widget myWidget;
+    transient private WF_Container myContainer;
     int[] intMargins=null;
 
     ChartBlock(String blockId, String name, String label, String container,

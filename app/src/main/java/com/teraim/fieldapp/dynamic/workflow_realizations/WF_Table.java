@@ -37,18 +37,17 @@ public class WF_Table extends WF_List  {
 	private final View headerCell;
 	protected List<? extends Listable> filteredList;
 
-	private final WF_Context myContext;
-	private final GlobalState gs;
-	private final VariableConfiguration al;
+	private transient WF_Context myContext;
+	private transient final GlobalState gs;
+	private transient final VariableConfiguration al;
 	private String myVariator;
-	private LinearLayout headerV;
-	private final LayoutInflater inflater ;
-	private final TableLayout tableView;
+	private transient LayoutInflater inflater ;
+	private transient TableLayout tableView;
 	//The index of the currently selected column.
 	private int selectedColumnIndex =-1;
 
 	private int rowNumber=0, numberOfColumns =1;
-    private final WF_Table_Row headerRow;
+    private transient WF_Table_Row headerRow;
 	private boolean tableTypeSimple;
 
     //How about using the Container's panel?? TODO

@@ -92,10 +92,15 @@ import okhttp3.Response;
  * @author Terje
  */
 public  class ButtonBlock extends Block  implements EventListener {
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = 6454431627090793561L;
+	private transient WF_Context myContext;
+	private transient PopupWindow mpopup = null;
+	private transient WF_Button button = null;
+	private transient Boolean validationResult = true;
+	private transient android.graphics.drawable.Drawable originalBackground;
+	private transient GlobalState gs;
+	private transient VariableCache varCache;
+	private transient DB_Context buttonContextOld = null, buttonContext = null;
+	private transient Map<String, String> statusVariableHash = null;
 	private String exportMethod="file";
 	private String exportFormat = "csv";
 	private String exportFileName = null;
@@ -103,32 +108,22 @@ public  class ButtonBlock extends Block  implements EventListener {
 	private final String onClick;
 	private final String name;
 	private final String containerId;
-	private Boolean validationResult = true;
 	private final Type type;
-	private android.graphics.drawable.Drawable originalBackground;
 	private final List<EvalExpr>textE;
 	private final List<EvalExpr> targetE;
 	private final List<EvalExpr> buttonContextE;
 	private final List<EvalExpr> imgFilterE;
 	private List<EvalExpr> statusContextE;
 
-	private WF_Context myContext;
 	private final boolean isVisible;
 	private String statusVar=null;
-	private OnclickExtra extraActionOnClick=null;
-	private GlobalState gs;
-	private PopupWindow mpopup=null;
 
 	private String targetMailAdress=null;
 
 
 	private final boolean enabled;
 
-	private DB_Context buttonContextOld=null,buttonContext=null;
 	private final boolean syncRequired;
-	private VariableCache varCache;
-	private WF_Button button = null;
-	private Map<String,String> statusVariableHash=null;
 
 	enum Type {
 		action,
@@ -296,11 +291,6 @@ public  class ButtonBlock extends Block  implements EventListener {
 							clickOngoing = true;
 						originalBackground = view.getBackground();
 						view.setBackgroundColor(Color.parseColor(Constants.Color_Pressed));
-						//ACtion = workflow to execute.
-						//Commence!
-						if (extraActionOnClick != null) {
-							extraActionOnClick.onClick();
-						}
 
 						if (onClick.startsWith("template"))
 							myContext.getTemplate().execute(onClick, getTarget());
