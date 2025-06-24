@@ -100,8 +100,12 @@ public class VariableCache {
             while (p.next()) {
                 DbHelper.StoredVariableData sv = p.getVariable();
                 List<String> varDesc = gs.getVariableConfiguration().getCompleteVariableDefinition(varId);
+                if (varDesc == null) {
+                    Log.d("vortex","skipping precache of variable "+varId);
+                    continue;
+                }
                 v = new Variable(varId, gs.getVariableConfiguration().getVarLabel(varDesc), varDesc, p.getKeyColumnValues(), gs, vCol, sv.value, true, null);
-                //Log.d("v", "precaching " + varId+" hash: "+p.getKeyColumnValues() + " with value " + sv.value);
+                Log.d("v", "precaching " + varId+" hash: "+p.getKeyColumnValues() + " with value " + sv.value);
                 String uid = p.getKeyColumnValues().get("uid");
                 if (preCache.get(uid) == null)
                     preCache.put(uid, new HashMap<String, Variable>());

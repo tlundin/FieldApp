@@ -36,10 +36,10 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.4";
+    public static final String VORTEX_VERSION = "10.0";
 
     public final static String DEFAULT_APP = "Vortex";
-    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
+    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com/";
 
     //public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
 
@@ -61,6 +61,7 @@ public class Constants {
     public static final String DEFAULT_IMG_FORMAT = "jgw";
     //Update interval in seconds for location updates.
     public static final int LOCATION_UPDATE_INTERVAL = 10;
+    public static final String RELOAD_DB_MODULES = "reload_database_modules";
 
     public static String UNDEFINED = "undefined";
 

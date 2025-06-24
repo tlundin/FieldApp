@@ -38,6 +38,7 @@ import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.utils.DbHelper.Selection;
 
 import org.json.JSONArray;
@@ -987,6 +988,7 @@ public class Tools {
 		}
 		Intent intent = new Intent(context, Start.class);
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+		intent.putExtra(Constants.RELOAD_DB_MODULES, true);
 		context.startActivity(intent);
 		context.finish();
 	}

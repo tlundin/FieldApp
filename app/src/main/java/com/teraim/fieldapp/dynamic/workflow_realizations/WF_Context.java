@@ -65,7 +65,7 @@ public class WF_Context {
 	private final Map<String,DataSource> chartGroupM = new HashMap<String, DataSource>();
 
 
-	public WF_Context(FragmentActivity ctx, Executor e, int rootContainerId) {
+	public WF_Context(FragmentActivity ctx, Executor e) {
 		this.ctx=ctx;
 		myTemplate = e;
 		eventBroker = new EventBroker(ctx);
