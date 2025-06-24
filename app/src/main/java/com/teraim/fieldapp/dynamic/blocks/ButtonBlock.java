@@ -740,6 +740,15 @@ public  class ButtonBlock extends Block  implements EventListener {
 																// Cancel the post on failure.
 																Log.d("FAIL", e.getMessage());
 																final String err = e.getMessage();
+																final int MAX_LENGTH = 250;
+																String displayMessage;
+
+																if (err != null && err.length() > MAX_LENGTH) {
+																	// Truncate to 247 chars and add "..."
+																	displayMessage = err.substring(0, MAX_LENGTH - 3) + "...";
+																} else {
+																	displayMessage = err;
+																}
 																((Activity) ctx).runOnUiThread(new Runnable() {
 																	@Override
 																	public void run() {
@@ -748,7 +757,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																		if ("timeout".equals(err) && counter.get() > 0) {
 																			exporter.getDialog().setOutCome("Network Timeout. [" + (counter.get() - 1) + "] images exported. Please retry to send the remaining images");
 																		} else
-																			exporter.getDialog().setOutCome("Export failed.\n Error: " + err);
+																			exporter.getDialog().setOutCome("Export failed.\n Error: " + displayMessage);
 																	}
 																});
 																if (call != null)

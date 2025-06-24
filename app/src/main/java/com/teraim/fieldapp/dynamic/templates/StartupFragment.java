@@ -45,11 +45,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+
 /**
- * A modern, combined fragment that serves as the application's main entry point.
+ * A fragment that serves as the application's main entry point.
  * It handles first-time initialization, displays app information, and manages both
  * the initial configuration load and user-triggered reloads via a ViewModel.
  */
+
 public class StartupFragment extends Executor {
 
     // UI Elements
@@ -157,6 +159,11 @@ public class StartupFragment extends Executor {
         // If GlobalState is not initialized, it means we need to load the configuration.
         if (GlobalState.getInstance() == null) {
             Log.d("StartupFragment", "GlobalState is null. Starting initial configuration load.");
+            Bundle b = this.getArguments();
+            if (b != null && b.getBoolean(Constants.RELOAD_DB_MODULES)) {
+                Log.d("StartupFragment", "Reload of DB modules triggered by configuration change");
+                loadAllModules = true;
+            }
             startLoadingProcess(loadAllModules); // 'false' means this is not a forced reload
         }
     }

@@ -232,7 +232,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 
 
-		myContext = new WF_Context(this.getActivity(),this,R.id.content_frame);
+		myContext = new WF_Context(this.getActivity(),this);
 		wf = getFlow();
 		if (wf == null) {
 			Log.e("Vortex","WF was null in Executor. Exiting...");
@@ -279,7 +279,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		gs = GlobalState.getInstance();
 		if (gs == null) {
 			Log.e("vortex","globalstate null in executor, exit");
-
 		} else {
 			if (myContext != null) {
 				if (myContext.hasGPSTracker())
@@ -354,7 +353,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	private Workflow getFlow() {
 		Workflow wf=null;
-
 		//Find out the name of the workflow to execute.
 		Bundle b = this.getArguments();
 		String name;

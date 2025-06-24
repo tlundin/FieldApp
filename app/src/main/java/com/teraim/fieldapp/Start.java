@@ -86,7 +86,7 @@ public class Start extends MenuActivity {
     public static final long SYNC_INTERVAL = 60;
     // Instance fields
     // Account mAccount;
-
+    private static  boolean shouldLoadDbModules;
     private ContentResolver mResolver;
 
     private ModuleLoaderViewModel viewModel;
@@ -117,6 +117,7 @@ public class Start extends MenuActivity {
 
         singleton = this;
 
+        shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
 
@@ -337,11 +338,7 @@ public class Start extends MenuActivity {
             Log.e("vortex","no wf in changepage");
             return;
         }
-        GlobalState gs = GlobalState.getInstance();
-        if (gs == null) {
-            Log.e("vortex","Global State is null in change page. App needs to restart");
-            Tools.restart(this);
-        }
+
 
         if (isFinishing()) {
             Log.d("vortex","This activity is finishing! Cannot continue");
@@ -360,34 +357,30 @@ public class Start extends MenuActivity {
         //if Ok err is null.
         if (cHash.isOk()) {
             Log.d("hash","setting global context to "+cHash);
-            gs.setDBContext(cHash);
-
+            if (GlobalState.getInstance()!=null)
+                    GlobalState.getInstance().setDBContext(cHash);
             debugLogger.addRow("Context now [");
             debugLogger.addGreenText(cHash.toString());
             debugLogger.addText("]");
             debugLogger.addText("wf context: "+wf.getContext());
 
-            //gs.setRawHash(r.rawHash);
-            //gs.setKeyHash(r.keyHash);
-            //No template. This flow does not have a ui. Hand over to Executor.
             Fragment fragmentToExecute;
             Bundle args = new Bundle();
             args.putString("workflow_name", wf.getName());
             args.putString("status_variable", statusVar);
 
-
             if (template==null) {
-                template = "StartupFragment";
-                label = (GlobalState.getInstance()!=null)?"Start":"Startup...";
+                template="StartupFragment";
+                label = (GlobalState.getInstance() != null) ? "Start" : "Startup...";
+                args.putBoolean(Constants.RELOAD_DB_MODULES, shouldLoadDbModules);
                 androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
                 fragmentManager.popBackStack();
             }
 
-
             fragmentToExecute = wf.createFragment(template);
             fragmentToExecute.setArguments(args);
+            changePage(fragmentToExecute, label);
 
-            changePage(fragmentToExecute,label);
 
             //show error message.
         } else
@@ -395,23 +388,14 @@ public class Start extends MenuActivity {
     }
     public void changePage(Fragment newPage, String label) {
         androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
-
         FragmentTransaction ft = fragmentManager.beginTransaction();
-
         ft
                 .replace(R.id.content_frame, newPage)
                 .addToBackStack(label)
                 .commit();
         setTitle(label);
-
-
     }
 
-
-
-    /* (non-Javadoc)
-     * @see android.app.Activity#onActivityResult(int, int, android.content.Intent)
-     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("vortex","IN ONACTIVITY RESULT ");
@@ -423,9 +407,6 @@ public class Start extends MenuActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
-
-
-
 
     @Override
     public void onDestroy() {
