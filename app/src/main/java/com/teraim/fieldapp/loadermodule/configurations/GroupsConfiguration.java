@@ -3,6 +3,7 @@ package com.teraim.fieldapp.loadermodule.configurations;
 import android.content.Context;
 import android.util.Log;
 
+import com.google.gson.reflect.TypeToken;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.loadermodule.CSVConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
@@ -123,10 +124,7 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_GROUP_CONFIG_FILE));
 	}
 
-	@Override
-	protected Type getEssenceType() {
-		return GroupsConfiguration.class;
-	}
+
 
 	@Override
 	protected void setFrozenVersion(float version) {
@@ -155,6 +153,10 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 		return groupIndex;
 	}
 
+	@Override
+	protected Type getEssenceType() {
+		return new TypeToken <Map<String, List<List<String>>>>(){}.getType();
+	}
 	@Override
 	public void setEssence() {
 		essence=groups;

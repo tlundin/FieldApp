@@ -36,21 +36,35 @@ public class CriticalOnlyLogger implements LoggerI {
 
 	@Override
 	public void addRedText(String text) {
-		Log.d("CRIT",text);
+		Log.d("CRIT", text);
 		if (!hasRed) {
-			hasRed=true;
-			//Add a Last Executed Block marker.
-			//if (GlobalState.getInstance().getCurrentWorkflowContext()!=null) {
-			//	GlobalState.getInstance().getCurrentWorkflowContext().getTemplate().
-			//}
+			hasRed = true;
+			// ... (your other logic)
 			LocalBroadcastManager.getInstance(myContext).sendBroadcast(new Intent(MenuActivity.REDRAW));
 		}
-		if (text!=null && text.length()>0) {
-			s = new SpannableString("\n" + text);
-			s.setSpan(new TextAppearanceSpan(myContext, R.style.RedStyle), 0, s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-			myTxt.append(s);
-			if (log != null) log.setText(myTxt);
-			//Log.d("vortex","hasRed true for "+this.toString());
+
+		if (text != null && text.length() > 0) {
+			// Assume myTxt is a SpannableStringBuilder, which is necessary for modification.
+			// If it's not, you should initialize it as:
+			// SpannableStringBuilder myTxt = new SpannableStringBuilder();
+
+			// 1. Get the starting position, which is the current end of the text.
+			int start = myTxt.length();
+
+			// 2. Append the new text (as a plain string).
+			String stringToAppend = "\n" + text;
+			myTxt.append(stringToAppend);
+
+			// 3. Get the new end position.
+			int end = myTxt.length();
+
+			// 4. Apply the span to the newly appended text section within myTxt.
+			myTxt.setSpan(new TextAppearanceSpan(myContext, R.style.RedStyle), start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+			// 5. Update your TextView.
+			if (log != null) {
+				log.setText(myTxt);
+			}
 		}
 	}
 

@@ -170,10 +170,10 @@ public class StartupFragment extends Executor {
 
     /**
      * Kicks off the loading process via the ViewModel.
-     * @param forceReload If true, all modules will be fetched from the server, ignoring cache.
+     * @param loadAllModules If true, all modules will be fetched from the server, ignoring cache.
      */
-    private void startLoadingProcess(boolean forceReload) {
-        if (forceReload && GlobalState.getInstance() != null) {
+    private void startLoadingProcess(boolean loadAllModules) {
+        if (loadAllModules && GlobalState.getInstance() != null) {
             GlobalState.destroy();
         }
 
@@ -183,7 +183,7 @@ public class StartupFragment extends Executor {
 
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
-        viewModel.execute(myWorkflow, forceReload);
+        viewModel.execute(myWorkflow, loadAllModules);
     }
 
     /**

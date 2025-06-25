@@ -281,7 +281,10 @@ public class Start extends MenuActivity {
                 //Start the login fragment.
                 androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
                 StartupFragment startupFragment = new StartupFragment();
-                //Don't add loginfragment to backstack.
+                Bundle args = new Bundle();
+                //This boolean will be set to true if the user made a change to the configuration, otherwise false.
+                args.putBoolean(Constants.RELOAD_DB_MODULES, shouldLoadDbModules);
+                startupFragment.setArguments(args);
                 fm.beginTransaction()
                         .replace(R.id.content_frame, startupFragment)
                         .addToBackStack("login")
@@ -338,8 +341,10 @@ public class Start extends MenuActivity {
             Log.e("vortex","no wf in changepage");
             return;
         }
-
-
+        if(GlobalState.getInstance() == null) {
+            Log.d("vortex", "Global state is null in changepage - cannot continue");
+            return;
+        }
         if (isFinishing()) {
             Log.d("vortex","This activity is finishing! Cannot continue");
             return;
@@ -357,8 +362,7 @@ public class Start extends MenuActivity {
         //if Ok err is null.
         if (cHash.isOk()) {
             Log.d("hash","setting global context to "+cHash);
-            if (GlobalState.getInstance()!=null)
-                    GlobalState.getInstance().setDBContext(cHash);
+            GlobalState.getInstance().setDBContext(cHash);
             debugLogger.addRow("Context now [");
             debugLogger.addGreenText(cHash.toString());
             debugLogger.addText("]");
@@ -371,10 +375,9 @@ public class Start extends MenuActivity {
 
             if (template==null) {
                 template="StartupFragment";
-                label = (GlobalState.getInstance() != null) ? "Start" : "Startup...";
-                args.putBoolean(Constants.RELOAD_DB_MODULES, shouldLoadDbModules);
-                androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
-                fragmentManager.popBackStack();
+                label = "Startup";
+                //Get rid of existing StartupFragment from stack
+                getSupportFragmentManager().popBackStack();
             }
 
             fragmentToExecute = wf.createFragment(template);
