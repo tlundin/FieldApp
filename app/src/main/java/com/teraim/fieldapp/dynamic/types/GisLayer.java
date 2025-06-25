@@ -236,28 +236,22 @@ public class GisLayer {
 
 		for (String key:gops.keySet()) {
 			Set<GisObject> bag = gops.get(key);
-
 			Iterator<GisObject> iterator = bag.iterator();
-
-
 			while (iterator.hasNext()) {
 				GisObject go = iterator.next();
 				//Mark this object if it is visible.
 				markIfUseful(go,gisImageView);
 				if (go.isDefect())
 					iterator.remove();
-
-
 			}
 			//Log.d("bloon","Bag: "+key+" size: "+bag.size());
 			int c=0;
 			for (GisObject gop:bag) {
 				if (gop.isUseful()) {
+					//if (key.equals("Hallmarkstorr"))
+					//	Log.d("plaxxo","Useful: "+ gop.getLabel()+" key: "+gop.getKeyHash()+" statusVar "+gop.getStatusVariableId()+" value "+gop.getStatusVariableValue());
 					//Log.d("grogg","Useful: "+ gob.getLabel()+" key: "+gob.getKeyHash());
 					c++;
-
-
-
 					if (currStat !=null) {
 						//Log.d("grogg","currstid "+currStat.id);
 						if (currStat.id.equals(gop.getKeyHash().get("uid"))) {
@@ -278,7 +272,7 @@ public class GisLayer {
                 }
 
 			}
-			Log.d("grogg","bag has "+c+" useful members");
+			Log.d("grogg","bag "+key+" has "+c+" useful members");
 		}
 	}
 

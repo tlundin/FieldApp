@@ -674,8 +674,10 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
 
 
-            if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("NONE") || GlobalState.getInstance().isSolo())
-                mnu[MENU_ITEM_SYNC_TYPE].setEnabled(false).setVisible(false);
+            if (globalPh.get(PersistenceHelper.SYNC_METHOD).equals("NONE") || GlobalState.getInstance().isSolo()) {
+                mnu[MENU_ITEM_SYNC_TYPE].setEnabled(false);
+                mnu[MENU_ITEM_SYNC_TYPE].setVisible(false);
+            }
             else
                 refreshSyncDisplay();
 
