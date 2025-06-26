@@ -8,6 +8,7 @@ import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
 
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
+import com.teraim.fieldapp.dynamic.types.Event;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadCompletionEvent;
@@ -26,21 +27,14 @@ import java.util.concurrent.Executors;
 public class ModuleLoaderViewModel extends ViewModel {
 
     /**
-     * A helper class to wrap the final result of a workflow execution.
-     */
-    public static class WorkflowResult {
-        public final LoadingStatus status;
-        public final ModuleRegistry registry;
-
-        public WorkflowResult(LoadingStatus status, ModuleRegistry registry) {
-            this.status = status;
-            this.registry = registry;
-        }
+         * A helper class to wrap the final result of a workflow execution.
+         */
+        public record WorkflowResult(LoadingStatus status, ModuleRegistry registry) {
     }
 
     // LiveData exposed to the UI layer
-    private final MutableLiveData<WorkflowResult> _finalProcessStatus = new MutableLiveData<>();
-    public final LiveData<WorkflowResult> finalProcessStatus = _finalProcessStatus;
+    private final MutableLiveData<Event<WorkflowResult>> _finalProcessStatus = new MutableLiveData<>();
+    public LiveData<Event<WorkflowResult>> finalProcessStatus = _finalProcessStatus;
 
     private final MutableLiveData<String> _progressText = new MutableLiveData<>("");
     public final LiveData<String> progressText = _progressText;
@@ -58,12 +52,11 @@ public class ModuleLoaderViewModel extends ViewModel {
      * @param forceReload If true, all modules will be fetched from the server.
      */
     public void execute(Workflow_I workflow, boolean forceReload) {
-        if (_finalProcessStatus.getValue() != null && _finalProcessStatus.getValue().status == LoadingStatus.LOADING) {
+        if (_finalProcessStatus.getValue() != null && _finalProcessStatus.getValue().peekContent().status == LoadingStatus.LOADING) {
             Log.w("ModuleLoaderViewModel", "Execution request ignored: a workflow is already running.");
             return;
         }
-
-        _finalProcessStatus.setValue(new WorkflowResult(LoadingStatus.LOADING, null));
+        _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.LOADING, null)));
 
         final ModuleRegistry registry = new ModuleRegistry();
         this.currentWorkflow = workflow;
@@ -73,7 +66,7 @@ public class ModuleLoaderViewModel extends ViewModel {
         // errors from the previous sequential pre-check model.
         LoadJob initialJob = workflow.getInitialJob();
         if (initialJob == null || initialJob.modules.isEmpty()) {
-            _finalProcessStatus.setValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
+            _finalProcessStatus.setValue(new Event<>(new WorkflowResult(LoadingStatus.SUCCESS,registry)));
             return;
         }
 
@@ -90,7 +83,7 @@ public class ModuleLoaderViewModel extends ViewModel {
 
         // These observeForever calls are safe because execute() ensures runJob is on the main thread.
         loader.progressText.observeForever(_progressText::postValue);
-        loader.loadingStatus.observeForever(new Observer<LoadCompletionEvent>() {
+        loader.loadingStatus.observeForever(new Observer<>() {
             @Override
             public void onChanged(LoadCompletionEvent completionEvent) {
                 loader.loadingStatus.removeObserver(this);
@@ -102,10 +95,10 @@ public class ModuleLoaderViewModel extends ViewModel {
                     if (nextJob != null && forceReload) {
                         runJob(nextJob, true, registry, workflow);
                     } else {
-                        _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.SUCCESS, registry));
+                        _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.SUCCESS, registry)));
                     }
                 } else {
-                    _finalProcessStatus.postValue(new WorkflowResult(LoadingStatus.FAILURE, null));
+                    _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.FAILURE, null)));
                 }
             }
         });

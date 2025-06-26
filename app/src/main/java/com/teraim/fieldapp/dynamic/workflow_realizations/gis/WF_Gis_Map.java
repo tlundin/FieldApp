@@ -39,7 +39,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.GlobalState;
@@ -62,9 +61,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfig
 import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
-import com.teraim.fieldapp.log.PlainLogger;
 import com.teraim.fieldapp.non_generics.Constants;
-import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
 import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -490,7 +487,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             Log.d("vortex","Cutout layers has "+myLayers.size()+" members");
             myDaddy.setCutOut(r,geoR,myLayers);
             //myContext.getTemplate().restart();
-            Start.singleton.changePage(myContext.getWorkflow(), null);
+            GlobalState.getInstance().changePage(myContext.getWorkflow(), null);
 
 
         });
@@ -644,14 +641,20 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
     private void setupRefreshObserver() {
-        viewModel.finalProcessStatus.observe(myContext.getFragmentActivity(), workflowResult -> {
-            if (workflowResult == null) return;
+        viewModel.finalProcessStatus.observe(myContext.getFragmentActivity(), event -> {
+            if (event == null) return;
+
+            // Get the content of the event. It will be null if it has already been handled.
+            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
+            if (workflowResult == null) {
+                // Event was already handled (e.g., on screen rotation), so do nothing.
+                return;
+            }
 
             // Only react to the specific workflow we care about on this screen.
-            // This check is important if other workflows might run in the background.
             if (viewModel.getCurrentWorkflow() instanceof RefreshGisWorkflow) {
 
-                switch (workflowResult.status) {
+                switch (workflowResult.status()) {
                     case LOADING:
                         // Show a loading indicator and disable the button.
                         refreshB.setClickable(false);
@@ -660,11 +663,14 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         break;
 
                     case SUCCESS:
+                        // This block will now execute only ONCE per success event.
                         Log.d("vortex", "DB updated successfully via new framework.");
-                        // This is your success logic
-                        if (myContext.getCurrentGis()!=null) {
+
+                        if (myContext.getCurrentGis() != null) {
+                            // These heavy operations are now protected from repeated calls.
                             myContext.refreshGisObjects();
                             gisImageView.redraw();
+
                             refreshB.setClickable(true);
                             Toast.makeText(ctx, R.string.refresh_completed, Toast.LENGTH_SHORT).show();
                         }
@@ -673,7 +679,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
                     case FAILURE:
                         Log.e("vortex", "DB update failed via new framework.");
-                        // This is your failure logic
                         Toast.makeText(ctx, "Failed to refresh map data.", Toast.LENGTH_SHORT).show();
                         refreshB.setClickable(true);
                         break;

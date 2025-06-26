@@ -1478,7 +1478,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			} else
 				Log.e("grogg",gop.getStatusVariableId()+" is null");
 			*/
-			Start.singleton.changePage(wf,gop.getStatusVariableId());
+			GlobalState.getInstance().changePage(wf,gop.getStatusVariableId());
 
 		}
 	}

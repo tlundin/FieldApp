@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import com.google.android.material.navigation.NavigationView;
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -127,7 +128,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 		Workflow workflow = workflowMap.get(item.getItemId());
 		if (workflow != null) {
 			// Use the workflow object to determine which fragment to load
-			Start.singleton.changePage(workflow,null);
+			GlobalState.getInstance().changePage(workflow,null);
 			// Highlight the selected item
 			navigationView.setCheckedItem(item.getItemId());
 

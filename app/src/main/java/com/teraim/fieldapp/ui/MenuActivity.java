@@ -902,7 +902,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
                 Typeface type = Typeface.createFromAsset(getAssets(),
                         "clacon.ttf");
                 tv.setTypeface(type);
-                final LoggerI log = Start.singleton.getLogger();
+                final LoggerI log = GlobalState.getInstance().getInstance().getLogger();
                 log.setOutputView(tv);
                 //trigger redraw.
                 log.draw();
@@ -1003,8 +1003,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
             case MENU_ITEM_SETTINGS:
                 //close drawer menu if open
-                if (Start.singleton.getDrawerMenu() != null)
-                    Start.singleton.getDrawerMenu().closeDrawer();
+                if (gs.getDrawerMenu() != null)
+                    gs.getDrawerMenu().closeDrawer();
                 if (isSynkServiceRunning())
                     stopSync();
                 Intent intent = new Intent(getBaseContext(), ConfigMenu.class);

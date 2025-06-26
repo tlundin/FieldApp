@@ -1,15 +1,9 @@
 package com.teraim.fieldapp;
 
-import static com.teraim.fieldapp.loadermodule.LoadingStatus.FAILURE;
-import static com.teraim.fieldapp.loadermodule.LoadingStatus.LOADING;
-import static com.teraim.fieldapp.loadermodule.LoadingStatus.SUCCESS;
-
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import androidx.fragment.app.Fragment;
-import android.app.FragmentManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -50,7 +44,6 @@ import com.teraim.fieldapp.ui.DrawerMenu;
 import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
-import com.teraim.fieldapp.utils.Tools;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -60,20 +53,15 @@ import java.util.Arrays;
  * @author Terje
  *
  */
-public class Start extends MenuActivity {
-
-    public static boolean alive = false;
+public class Start extends MenuActivity implements StartProvider {
 
     //	private Map<String,List<String>> menuStructure;
 
     private final AsyncTask<GlobalState, Integer, LoadResult> histT=null;
-    public static Start singleton;
     private DrawerMenu mDrawerMenu;
 
     private androidx.appcompat.app.ActionBarDrawerToggle mDrawerToggle;
     private boolean loading = false;
-
-
 
     // Constants
     // The authority for the sync adapter's content provider
@@ -87,11 +75,11 @@ public class Start extends MenuActivity {
     // Instance fields
     // Account mAccount;
     private static  boolean shouldLoadDbModules;
-    private ContentResolver mResolver;
 
     private ModuleLoaderViewModel viewModel;
     private FrameLayout progressIndicatorContainer;
     private TextView progressIndicatorText;
+    private Start startInstance;
 
 
     /**
@@ -114,9 +102,7 @@ public class Start extends MenuActivity {
         });*/
 
         Log.d("nils","in START onCreate");
-
-        singleton = this;
-
+        startInstance = this;
         shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
@@ -329,8 +315,8 @@ public class Start extends MenuActivity {
         //getSupportActionBar().setTitle(title);
         if (title != null)
         {
-            // font color set to primary_light
-            getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
+            getSupportActionBar( ).setTitle( title );
+            //getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
         }
     }
 
@@ -602,15 +588,25 @@ public class Start extends MenuActivity {
     }
 
     private void setupObservers() {
-        viewModel.finalProcessStatus.observe(this, workflowResult -> { // Renamed parameter for clarity
-            if (workflowResult == null) return;
-            switch (workflowResult.status) {
+        // This observer handles the VISIBILITY of the progress indicator
+        viewModel.finalProcessStatus.observe(this, event -> { // The LiveData now emits an Event
+            if (event == null) return;
+
+            // Get the content of the event. It will be null if it has already been handled.
+            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
+            if (workflowResult == null) {
+                // Event was already handled, so we don't change the UI state again.
+                return;
+            }
+
+            // Now, we can safely access the status from the unwrapped result
+            switch (workflowResult.status()) { // Use the record's accessor method: status()
                 case LOADING:
-                    Log.d("heppola","LOADING");
+                    Log.d("heppola", "LOADING");
                     progressIndicatorContainer.setVisibility(View.VISIBLE);
                     break;
                 case SUCCESS:
-                    Log.d("heppola","SUCCESS");
+                    Log.d("heppola", "SUCCESS");
                     // Fall-through to also hide on success
                 case FAILURE:
                     // Hide the indicator when the process is complete
@@ -618,7 +614,9 @@ public class Start extends MenuActivity {
                     break;
             }
         });
-        // This observer updates the TEXT of the indicator
+
+        // This observer updates the TEXT of the indicator.
+        // It does not need changes as it observes a different LiveData source.
         viewModel.progressText.observe(this, text -> {
             if (text != null && !text.isEmpty()) {
                 // We'll just show the first line of the detailed progress for a clean look
@@ -626,6 +624,11 @@ public class Start extends MenuActivity {
                 progressIndicatorText.setText(firstLine);
             }
         });
+    }
+
+    @Override
+    public Start getStartInstance() {
+        return startInstance;
     }
     /*
     @Override

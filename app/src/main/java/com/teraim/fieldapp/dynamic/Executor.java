@@ -424,7 +424,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		o.addRow("");
 		o.addRow("");
 		o.addRow("*******EXECUTING: "+wfLabel);
-		Start.singleton.setTitle(wfLabel);
+		gs.setTitle(wfLabel);
 		Log.d("vortex","in Executor run()");
 
 		myContext.resetState();

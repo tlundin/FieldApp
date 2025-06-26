@@ -3,6 +3,7 @@ package com.teraim.fieldapp.loadermodule;
 import android.content.Context;
 import android.util.Log;
 
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.configurations.GISListConfiguration;
@@ -44,7 +45,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         this.context = context;
         this.globalPh = globalPh;
         this.ph = ph;
-        this.debugConsole = Start.singleton.getLogger();
+        this.debugConsole = GlobalState.getInstance().getLogger();
         this.bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
         this.url = globalPh.get(PersistenceHelper.SERVER_URL) + bundleName.toLowerCase(Locale.ROOT) + "/";
         this.gisPath = url + Constants.GIS_CONFIG_WEB_FOLDER + "/";

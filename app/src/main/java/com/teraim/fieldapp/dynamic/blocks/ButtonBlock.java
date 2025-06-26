@@ -457,7 +457,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 										Log.d("vortex", "call to empty template flow. setcaller.");
 										myContext.setCaller();
 									}
-									Start.singleton.changePage(wf, statusVar);
+									gs.changePage(wf, statusVar);
 
 								}
 

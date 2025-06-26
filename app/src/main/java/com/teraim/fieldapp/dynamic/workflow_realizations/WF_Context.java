@@ -193,7 +193,7 @@ public class WF_Context {
 		isCaller = false;
 		if (hasMenu) {
 			hasMenu = false;
-			Start.singleton.getDrawerMenu().clear();
+			GlobalState.getInstance().getDrawerMenu().clear();
 		}
 
 	}

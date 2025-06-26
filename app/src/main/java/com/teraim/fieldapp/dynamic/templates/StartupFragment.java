@@ -21,6 +21,7 @@ import androidx.lifecycle.ViewModelProvider;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
+import com.teraim.fieldapp.StartProvider;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
@@ -68,6 +69,18 @@ public class StartupFragment extends Executor {
     private String bundleName;
     private float oldAppVersion = -1;
     private boolean loadAllModules = false;
+    private Start startInstance;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof StartProvider) {
+            startInstance = ((StartProvider) context).getStartInstance();
+        } else {
+            throw new RuntimeException(context.toString()
+                    + " must implement StartProvider");
+        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -121,21 +134,27 @@ public class StartupFragment extends Executor {
 
         // Set up the observer for the final completion status of the loading process
         // This will now receive a result object containing the ModuleRegistry on success.
-        viewModel.finalProcessStatus.observe(getViewLifecycleOwner(), workflowResult -> {
-            if (workflowResult == null) return;
+        viewModel.finalProcessStatus.observe(getViewLifecycleOwner(), event -> {
+            // event is now an Event<WorkflowResult> object.
+            // We must get its content, which will be null if it has already been handled.
+            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
 
-            switch (workflowResult.status) {
+            // If the result is null, it means the event was already processed.
+            // This elegantly handles configuration changes (like screen rotation).
+            if (workflowResult == null) {
+                Log.d("StartupFragment", "Event was already handled. Ignoring.");
+                return;
+            }
+
+            // Now we can safely use the workflowResult object.
+            switch (workflowResult.status()) {// Corrected: Access status on the unwrapped result
                 case SUCCESS:
-                    // ADD THIS CHECK: Only start the application if it has not been started already.
-                    // This prevents the observer from re-triggering the start process if the LiveData
-                    // re-delivers its "sticky" SUCCESS state when the fragment is recreated.
-                    if (GlobalState.getInstance() == null) {
-                        Log.d("StartupFragment", "Load successful. Finalizing setup.");
-                        // Pass the completed ModuleRegistry to the startApplication method.
-                        startApplication(workflowResult.registry);
-                    } else {
-                        Log.d("StartupFragment", "SUCCESS event re-delivered, but GlobalState already exists. Ignoring.");
-                    }
+                    // The check for a pre-handled event is now done above.
+                    // This block will only execute ONCE for each new SUCCESS event.
+                    Log.d("StartupFragment", "Load successful. Finalizing setup.");
+                    // Pass the completed ModuleRegistry to the startApplication method.
+                    // Corrected: Access registry on the unwrapped result
+                    startApplication(workflowResult.registry()); // Use .registry() if it's a record
                     break;
                 case FAILURE:
                     Log.d("StartupFragment", "Load failed.");
@@ -146,6 +165,7 @@ public class StartupFragment extends Executor {
                     break;
             }
         });
+
         if (GlobalState.getInstance() !=null && wf!=null) {
 			Log.d("gipp", "Executing workflow main in Startup ");
             run();
@@ -210,7 +230,7 @@ public class StartupFragment extends Executor {
         }
 
         DbHelper myDb = new DbHelper(requireActivity().getApplicationContext(), t, globalPh, ph, bundleName);
-        gs = GlobalState.createInstance(requireActivity().getApplicationContext(), globalPh, ph, Start.singleton.getLogger(), myDb, workflows, t, sd, "", imgMetaFormat);
+        gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, startInstance.getLogger(), myDb, workflows, t, sd, "", imgMetaFormat);
 
         if (gs.getBackupManager().timeToBackup()) {
             gs.getBackupManager().backUp();
@@ -218,14 +238,14 @@ public class StartupFragment extends Executor {
 
         float loadedAppVersion = ph.getF(PersistenceHelper.NEW_APP_VERSION);
         ph.put(PersistenceHelper.CURRENT_VERSION_OF_APP, loadedAppVersion);
-        gs.setDrawerMenu(Start.singleton.getDrawerMenu());
+        gs.setDrawerMenu(startInstance.getDrawerMenu());
         gs.setModuleRegistry(moduleRegistry);
-        Start.singleton.getDrawerMenu().closeDrawer();
-        Start.singleton.getDrawerMenu().clear();
+        startInstance.getDrawerMenu().closeDrawer();
+        startInstance.getDrawerMenu().clear();
         Workflow wf = gs.getWorkflow("Main");
         gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
-        Start.singleton.changePage(wf, null);
+        startInstance.changePage(wf, null);
     }
 
 

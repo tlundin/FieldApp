@@ -66,7 +66,8 @@ public class GlobalState {
     private static GlobalState singleton;
 
 
-    private static Context myC = null;
+    private Context myC = null;
+    private final Start startActivity;
     private String imgMetaFormat = Constants.DEFAULT_IMG_FORMAT;
     private final LoggerI logger;
     private PersistenceHelper ph = null;
@@ -100,25 +101,25 @@ public class GlobalState {
         return singleton;
     }
 
-    public static GlobalState createInstance(Context applicationContext, PersistenceHelper globalPh,
+    public static GlobalState createInstance(Start startActivity, Context applicationContext, PersistenceHelper globalPh,
                                              PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
                                              List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
         singleton = null;
-        return new GlobalState(applicationContext, globalPh,
+        return new GlobalState(startActivity, applicationContext, globalPh,
                 ph, debugConsole, myDb,
                 workflows, t, sd, logTxt, imgMetaFormat);
 
     }
 
     //private GlobalState(Context ctx)  {
-    private GlobalState(Context applicationContext, PersistenceHelper globalPh,
+    private GlobalState(Start startActivity,Context applicationContext, PersistenceHelper globalPh,
                         PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
                         List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
 
         myC = applicationContext;
         this.globalPh = globalPh;
         this.ph = ph;
-
+        this.startActivity = startActivity;
         this.db = myDb;
 
         this.logger = debugConsole;
@@ -279,6 +280,14 @@ public class GlobalState {
     }
     public ModuleRegistry getModuleRegistry() {
         return moduleRegistry;
+    }
+
+    public void setTitle(String wfLabel) {
+        startActivity.setTitle(wfLabel);
+    }
+
+    public void changePage(Workflow wf, String statusVar) {
+        startActivity.changePage(wf,statusVar);
     }
 
     public class TeamPosition {
