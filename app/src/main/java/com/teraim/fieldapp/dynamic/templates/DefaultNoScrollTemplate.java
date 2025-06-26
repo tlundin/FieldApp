@@ -58,7 +58,6 @@ public class DefaultNoScrollTemplate extends Executor {
 		
 //		errorView = (TextView)v.findViewById(R.id.errortext);
 		my_root = view.findViewById(R.id.myRoot);
-//		my_pie = (LinearLayout)v.findViewById(R.id.pieRoot);
 		if (myContext != null )
 			myContext.addContainers(getContainers());
 		else

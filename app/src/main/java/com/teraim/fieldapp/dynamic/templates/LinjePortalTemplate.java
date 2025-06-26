@@ -848,7 +848,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 					Workflow wf = gs.getWorkflow("wf_"+linjeObjLabel);
 
 					if (wf!=null) {
-						Start.singleton.changePage(wf, null);
+						gs.changePage(wf, null);
 						Log.d("nils","Should have started "+"wf_"+linjeObjLabel);
 					} 
 					else {
