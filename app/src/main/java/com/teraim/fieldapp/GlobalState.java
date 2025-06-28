@@ -26,7 +26,7 @@ import com.teraim.fieldapp.expr.Aritmetic;
 import com.teraim.fieldapp.expr.Parser;
 import com.teraim.fieldapp.gis.TrackerListener;
 import com.teraim.fieldapp.loadermodule.ModuleRegistry;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.StatusHandler;
 import com.teraim.fieldapp.synchronization.ConnectionManager;
@@ -69,7 +69,6 @@ public class GlobalState {
     private Context myC = null;
     private final Start startActivity;
     private String imgMetaFormat = Constants.DEFAULT_IMG_FORMAT;
-    private final LoggerI logger;
     private PersistenceHelper ph = null;
     private DbHelper db = null;
     private Parser parser = null;
@@ -102,18 +101,18 @@ public class GlobalState {
     }
 
     public static GlobalState createInstance(Start startActivity, Context applicationContext, PersistenceHelper globalPh,
-                                             PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
+                                             PersistenceHelper ph, DbHelper myDb,
                                              List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
         singleton = null;
         return new GlobalState(startActivity, applicationContext, globalPh,
-                ph, debugConsole, myDb,
+                ph, myDb,
                 workflows, t, sd, logTxt, imgMetaFormat);
 
     }
 
     //private GlobalState(Context ctx)  {
     private GlobalState(Start startActivity,Context applicationContext, PersistenceHelper globalPh,
-                        PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
+                        PersistenceHelper ph, DbHelper myDb,
                         List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
 
         myC = applicationContext;
@@ -122,10 +121,8 @@ public class GlobalState {
         this.startActivity = startActivity;
         this.db = myDb;
 
-        this.logger = debugConsole;
         //Parser for rules
         parser = new Parser(this);
-
         artLista = new VariableConfiguration(this, t);
         myWfs = mapWorkflowsToNames(workflows);
         //Event Handler on the Bluetooth interface.
@@ -467,8 +464,8 @@ public class GlobalState {
         return myVariableCache;
     }
 
-    public LoggerI getLogger() {
-        return logger;
+    public LogRepository getLogger() {
+        return LogRepository.getInstance();
     }
 
     EventListener gisMap = null;

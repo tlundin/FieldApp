@@ -5,6 +5,7 @@ import android.util.Log;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Rule;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.List;
 
@@ -60,7 +61,7 @@ public class RuleBlock extends Block {
 		Rule currentRule = getRule();
 
 		Log.d("nils", "Create called in addRuleBlock, id " + blockId + " Target name: " + currentRule.getTargetString() + " my scope: " + myScope + " Target Block: " + currentRule.getMyTargetBlockId());
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 
 		if (myScope == Scope.flow || myScope == Scope.both) {
 			myContext.addRule(currentRule);
@@ -69,8 +70,8 @@ public class RuleBlock extends Block {
 		if (currentRule.getMyTargetBlockId() != -1) {
 			int index = findBlockIndex(currentRule.getTargetString(), blocks);
 			if (index == -1) {
-				o.addRow("");
-				o.addRedText("target block for rule " + blockId + " not found (" + currentRule.getMyTargetBlockId() + ")");
+				o.addText("");
+				o.addCriticalText("target block for rule " + blockId + " not found (" + currentRule.getMyTargetBlockId() + ")");
 				return;
 			}
 			Block b = blocks.get(index);
@@ -82,9 +83,9 @@ public class RuleBlock extends Block {
 				currentRule.setTarget(myContext, bl);
 			} else {
 				Log.e("vortex", "target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
-				o = GlobalState.getInstance().getLogger();
-				o.addRow("");
-				o.addRedText("target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
+				o = LogRepository.getInstance();
+				o.addText("");
+				o.addCriticalText("target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
 			}
 		}
 	}

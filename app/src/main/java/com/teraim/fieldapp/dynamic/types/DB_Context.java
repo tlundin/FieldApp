@@ -4,7 +4,7 @@ package com.teraim.fieldapp.dynamic.types;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 
@@ -74,7 +74,7 @@ public class DB_Context implements Serializable {
 		String err = null;
 		Map<String, String> keyHash = null;
 		boolean  hasWildCard = false;
-		LoggerI o = GlobalState.getInstance().getLogger();
+		LogRepository o = LogRepository.getInstance();
 		//Log.d("vortex","In evaluate Context!!");
 
 		if (eContext==null) {
@@ -92,7 +92,7 @@ public class DB_Context implements Serializable {
 			} else {
 				String[] pairs = cContext.split(",");
 				if (pairs==null||pairs.length==0) {
-					o.addRow("Could not split context on comma (,)");
+					o.addText("Could not split context on comma (,)");
 					err = "Could not split context on comma (,). for context "+cContext;
 
 				} else {
@@ -134,8 +134,8 @@ public class DB_Context implements Serializable {
 				}
 			}
 			if (err!=null) {
-				o.addRow("");
-				o.addRedText(err);
+				o.addText("");
+				o.addCriticalText(err);
 				return new DB_Context(err);
 			} else {
 				//Log.d("vortex","DB_CONTEXT evaluate returns: "+keyHash+ " for "+eContext+" isPartial "+hasWildCard);

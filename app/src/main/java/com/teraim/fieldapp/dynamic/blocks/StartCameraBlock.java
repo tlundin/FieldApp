@@ -12,6 +12,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 
 import java.io.File;
@@ -32,14 +33,14 @@ public class StartCameraBlock extends Block implements EventListener {
     }
 
     public void create(WF_Context myContext) {
-        o = GlobalState.getInstance().getLogger();
+        o = LogRepository.getInstance();
         String fileName = Expressor.analyze(fileNameE);
         File[] externalStorageVolumes =
                 ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(),  null);
         File primaryExternalStorage = externalStorageVolumes[0];
         String PIC_ROOT_DIR = primaryExternalStorage+"pics/";
         Log.d("foto","foto evaluates to "+fileName);
-        o.addRow("StartCameraBlock fileName will be ["+PIC_ROOT_DIR +fileName+"]");
+        o.addText("StartCameraBlock fileName will be ["+PIC_ROOT_DIR +fileName+"]");
         if (fileName!=null) {
             File newfile = new File(PIC_ROOT_DIR + fileName);
             try {
@@ -58,8 +59,8 @@ public class StartCameraBlock extends Block implements EventListener {
                 Log.e("vortex", "failed to create image file.");
             }
         } else {
-            o.addRow("");
-            o.addRedText("FileName doesn't compute in startcamerablock "+blockId+" From xml target: "+this.rawName);
+            o.addText("");
+            o.addCriticalText("FileName doesn't compute in startcamerablock "+blockId+" From xml target: "+this.rawName);
             Log.e("vortex", "fileName evaluated to null in startcamera");
         }
     }

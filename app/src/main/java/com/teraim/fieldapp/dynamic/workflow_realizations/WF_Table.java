@@ -82,11 +82,11 @@ public class WF_Table extends WF_List  {
 
 	private final Map<String,Set<String>>varIdMap=new HashMap<String,Set<String>>();
 	//Creates new rows and adds dataset to each.
-	public void addRows(List<List<String>> rows,String variatorColumn, String selectionPattern) {
+	public void addTexts(List<List<String>> rows,String variatorColumn, String selectionPattern) {
 
 		this.myVariator=variatorColumn;
 		allInstances = gs.getDb().preFetchValues(myContext.getKeyHash(), selectionPattern, myVariator);
-		Log.d("nils","in addRows. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
+		Log.d("nils","in addTexts. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
 
 		//Rows are not containing unique entries. only need one of each.
 		Map<String,List<String>>uRows = new HashMap<String,List<String>>();
@@ -107,11 +107,11 @@ public class WF_Table extends WF_List  {
 		}	
 		//Now add only the unique entrylabel ones
 		for (String rowKey:uRows.keySet()) {
-			addRow(uRows.get(rowKey));
+			addText(uRows.get(rowKey));
 		}
 	}
 	//Create a new row + dataset.
-    private void addRow(List<String> row) {
+    private void addText(List<String> row) {
 		WF_Table_Row rowWidget = new WF_Table_Row(this,(rowNumber++)+"",inflater.inflate(R.layout.table_row, null),myContext,true);
 		rowWidget.addEntryField(row);
 		add(rowWidget);
@@ -155,14 +155,14 @@ public class WF_Table extends WF_List  {
 		//Add as many columns as there are keys. Check if labels are used or if the columnkey should be used.
 		if (useColumKeyAsHeader&&labels.size()<columnKeyL.size()) {
 			Log.e("vortex","There are too few labels in addColumns! Labels: "+labels.toString());
-			o.addRow("");
-			o.addRedText("There are too few labels in addColumns! Labels: "+labels.toString());
+			o.addText("");
+			o.addCriticalText("There are too few labels in addColumns! Labels: "+labels.toString());
 			return;
 		}
 		if (columnKeyL==null) {
 			Log.e("vortex","columnkeys missing for addColumn!!");
-			o.addRow("");
-			o.addRow("columnkeys missing for addColumn!!");
+			o.addText("");
+			o.addText("columnkeys missing for addColumn!!");
 			return;
 		}
 		String k,l;
@@ -259,7 +259,7 @@ public class WF_Table extends WF_List  {
 			return myCells;
 		}
 
-		void addRow(View textView, WF_Table_Row myRow) {
+		void addText(View textView, WF_Table_Row myRow) {
 				myCells.add(textView);
 				myRows.add(myRow);
 		}
@@ -380,8 +380,8 @@ public class WF_Table extends WF_List  {
 		try {
 			aggF = AggregateFunction.valueOf(aggregationFunction.toUpperCase());
 		} catch (IllegalArgumentException e) {
-			o.addRow("");
-			o.addRedText("The aggregate function "+aggregationFunction+" is not supported. Supported are: "+
+			o.addText("");
+			o.addCriticalText("The aggregate function "+aggregationFunction+" is not supported. Supported are: "+
 					Arrays.asList(AggregateFunction.values()));
 			return;
 		}
@@ -403,11 +403,11 @@ public class WF_Table extends WF_List  {
 			if (!isLogical) {
 				TextView tv = wft.addAggregateTextCell(backgroundColor,textColor);
 				view = tv;
-				aggregateCol.addRow(tv, wft);
+				aggregateCol.addText(tv, wft);
 				tv.setMinWidth(widthI);
 			} else {
 				CheckBox cb = wft.addAggregateLogicalCell(backgroundColor,textColor);
-				aggregateCol.addRow(cb, wft);
+				aggregateCol.addText(cb, wft);
 				view = cb;
 			}
 			if (view!=null) {
@@ -457,8 +457,8 @@ public class WF_Table extends WF_List  {
 			}
 			if (varGrId==null) {
 				Log.e("vortex","found no variable with suffix: "+variableSuffix);
-				o.addRow("");
-				o.addRedText("Could not add variables with suffix: "+variableSuffix+". No instances found. Check spelling and case");
+				o.addText("");
+				o.addCriticalText("Could not add variables with suffix: "+variableSuffix+". No instances found. Check spelling and case");
 				return;
 			}
 			//Construct variablename. 
@@ -470,8 +470,8 @@ public class WF_Table extends WF_List  {
 					Variable.DataType type = gs.getVariableConfiguration().getnumType(row);
 					if (type != Variable.DataType.bool) {
 						Log.e("vortex", "use of non boolean type variable in simple column. Forbidden!");
-						o.addRow("");
-						o.addRedText("Variable with suffix [" + variableSuffix+ "] is not type Boolean. Only boolean variables are allowed for checkboxes. Please check your XML.");
+						o.addText("");
+						o.addCriticalText("Variable with suffix [" + variableSuffix+ "] is not type Boolean. Only boolean variables are allowed for checkboxes. Please check your XML.");
 						return;
 					}
 				}

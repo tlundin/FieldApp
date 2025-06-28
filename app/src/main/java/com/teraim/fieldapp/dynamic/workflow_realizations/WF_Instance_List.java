@@ -10,6 +10,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventGenerator;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -53,7 +54,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		myKeyHash.remove(variatorColumn);
 		ctx.registerEventListener(this, EventType.onFlowExecuted);
 		ctx.registerEventListener(this, EventType.onSave);
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		this.variatorColumn=variatorColumn;
 		this.entryFormat = format;
 		Log.d("nils","INSTANCE LIST CREATED. VARIATOR: "+variatorColumn);

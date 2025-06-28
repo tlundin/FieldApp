@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.google.gson.reflect.TypeToken;
 import com.teraim.fieldapp.loadermodule.LoadResult;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.io.IOException;
@@ -16,8 +17,9 @@ public class GISListConfiguration extends CI_ConfigurationModule {
     public static final String NAME = "content";
     private List<String> gisTypes = new ArrayList<>();
 
-    public GISListConfiguration(Context context, PersistenceHelper gPh, PersistenceHelper ph, String urlOrPath) {
+    public GISListConfiguration(Context context, PersistenceHelper gPh, PersistenceHelper ph, String urlOrPath, LogRepository debugConsole) {
         super(context,gPh,ph, FileFormat.txt, urlOrPath, "content", "Gis content                ");
+        debugConsole.addGreenText("Parsing GISListConfiguration module");
     }
 
     @Override

@@ -3,22 +3,24 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="8dp"
-    android:gravity="center_vertical"
-    android:background="#CC000000"> <ProgressBar
-    android:id="@+id/progressBar"
-    style="?android:attr/progressBarStyleSmall"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_marginEnd="8dp"/>
+    android:orientation="vertical"  android:padding="8dp"
+    android:background="#CC000000">
 
     <TextView
         android:id="@+id/progress_text"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
         android:text="Loading..."
         android:textColor="@android:color/white"
         android:textSize="14sp"/>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="100"
+        android:progress="0"/>
 
 </LinearLayout>

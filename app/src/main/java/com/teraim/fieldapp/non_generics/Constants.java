@@ -14,7 +14,7 @@ import com.teraim.fieldapp.loadermodule.configurations.GroupsConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "10.0";
+    public static final String VORTEX_VERSION = "10.1";
 
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com/";
@@ -191,7 +191,7 @@ public class Constants {
     public static final String SyncDataURI = "https://synkserver.net/synkserv/SynkServ";
     public static final String SynkStatusURI =      "https://synkserver.net";
 
-    public static List<ConfigurationModule> getCurrentlyKnownModules(Context context, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LoggerI debugConsole) {
+    public static List<ConfigurationModule> getCurrentlyKnownModules(Context context, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LogRepository debugConsole) {
         List<ConfigurationModule> ret = new ArrayList<>();
         //Workflow xml. Named same as bundle.
         final String pathOrURL = server + bundle.toLowerCase() + "/";
@@ -202,58 +202,9 @@ public class Constants {
         ret.add(new GroupsConfiguration(context,globalPh,ph,pathOrURL,bundle,debugConsole));
         //VariableConfiguration depends on the Groups Configuration.
         ret.add(new VariablesConfiguration(context,globalPh,ph,pathOrURL,debugConsole));
-        ret.add(new GISListConfiguration(context,globalPh,ph,pathOrURL+Constants.GIS_CONFIG_WEB_FOLDER +"/"));
+        ret.add(new GISListConfiguration(context,globalPh,ph,pathOrURL+Constants.GIS_CONFIG_WEB_FOLDER +"/", debugConsole));
         return ret;
     }
-
-    public static void getDBImportModules(Context context,
-            final PersistenceHelper globalPh, final PersistenceHelper ph, final String server,
-            final String bundle, final LoggerI debugConsole,final DbHelper db, final Table t, final AsyncLoadDoneCb asyncLoadDoneCb) {
-        final List<ConfigurationModule> ret = new ArrayList<>();
-        //Workflow xml. Named same as bundle.
-        //ret.add(new GisPolygonConfiguration(globalPh,ph,VORTEX_ROOT_DIR+bundle+AIR_PHOTO_FILE_DIR,debugConsole,db));
-        //ret.add(new ImportDataConfiguration(context,globalPh,ph,server,bundle,debugConsole,db,t));
-
-        final String fileFolder = context.getFilesDir()+"/"+bundle+"/gisdata/";
-        final String serverFolder = server+"/"+bundle.toLowerCase()+"/"+Constants.GIS_CONFIG_WEB_FOLDER +"/";
-        //dont load if no update or no connection
-
-        new DownloadFileTask(new WebLoaderCb() {
-
-            @Override
-            public void loaded(List<String> fileNames) {
-                if (fileNames != null)
-                    Log.d("vortex", "loadresult is " + fileNames.toString());
-                getAllConfigurationFileNamesFromWebOrFile(context,fileNames, serverFolder, fileFolder, asyncLoadDoneCb, globalPh, ph, debugConsole, db, ret, t);
-            }
-        })
-                .execute(serverFolder + Constants.GIS_LIST_FILE_NAME);
-    } 		//Try server.
-
-
-
-    private static void getAllConfigurationFileNamesFromWebOrFile(Context context,List<String> fileNames,
-                                                                  String serverFolder, String fileFolder, AsyncLoadDoneCb asyncLoadDoneCb, PersistenceHelper globalPh,PersistenceHelper ph, LoggerI debugConsole,DbHelper db, List<ConfigurationModule> modules, Table t) {
-
-        boolean loadFromWeb=false;
-        //look for contents.txt file on net.
-        if (fileNames!=null) {
-            Log.d("vortex","found GIS files list.");
-            loadFromWeb = true;
-        } else
-            fileNames = getAllConfigurationFileNames(fileFolder);
-        if (fileNames!=null && !fileNames.isEmpty()) {
-            for (String file:fileNames) {
-                modules.add(new GisObjectConfiguration(context,globalPh,ph,serverFolder,file,debugConsole,db,t));
-            }
-        } else
-            Log.d("vortex","found no GIS configuration files.");
-
-
-        asyncLoadDoneCb.onLoadSuccesful(modules);
-    }
-
-
 
 
     private static List<String> getAllConfigurationFileNames(String folderName) {
@@ -275,9 +226,6 @@ public class Constants {
     public static int getHistoricalPictureYear() {
         return Calendar.getInstance().get(Calendar.YEAR)-5;
     }
-
-
-
 
     private interface WebLoaderCb {
 

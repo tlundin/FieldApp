@@ -24,6 +24,7 @@ import android.os.Messenger;
 import android.os.RemoteException;
 
 import androidx.appcompat.widget.AppCompatImageButton;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 import android.util.JsonReader;
@@ -59,7 +60,7 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.gis.TrackerListener;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.synchronization.DataSyncSessionManager;
 import com.teraim.fieldapp.synchronization.framework.SyncAdapter;
@@ -68,6 +69,7 @@ import com.teraim.fieldapp.synchronization.framework.SyncService;
 import com.teraim.fieldapp.utils.BackupManager;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
+import com.teraim.fieldapp.viewmodels.LogViewModel;
 
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -96,7 +98,7 @@ import org.json.JSONObject;
  * @author Terje
  *
  */
-public class MenuActivity extends AppCompatActivity implements TrackerListener {
+public class MenuActivity extends AppCompatActivity implements TrackerListener,LogDialogFragment.LogDialogListener {
 
     public final static String REDRAW = "com.teraim.fieldapp.menu_redraw";
     public static final String INITDONE = "com.teraim.fieldapp.init_done";
@@ -109,7 +111,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private BroadcastReceiver brr;
     private GlobalState gs;
     protected PersistenceHelper globalPh;
-    protected LoggerI debugLogger;
+    private LogViewModel logViewModel;
+    protected LogRepository debugLogger = LogRepository.getInstance();
     private boolean initDone = false, initFailed = false;
     private MenuActivity me;
     private Account mAccount;
@@ -139,6 +142,35 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
     private RequestQueue requestQueue;
     private Timer teamUpdateTimer;
 
+    private void showLogDialog() {
+        LogDialogFragment logDialog = LogDialogFragment.newInstance();
+        logDialog.show(getSupportFragmentManager(), "LogDialog");
+    }
+
+    // 2. Implement the required interface methods
+    @Override
+    public void onBackupDatabaseClicked() {
+        Log.d("CALLBACK", "Activity received backup DB click from dialog.");
+        if (gs != null) {
+            BackupManager.getInstance(gs).backupDatabase("dump");
+        }
+    }
+
+    @Override
+    public void onCrashAppClicked() {
+        Log.d("CALLBACK", "Activity received crash app click from dialog.");
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm Action")
+                .setMessage("Are you sure? This will crash the application.")
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setPositiveButton("Yes, Crash Now", (dialog, whichButton) -> {
+                    String crashme = null;
+                    System.out.println("Crashing deliberately: " + crashme.charAt(0));
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
     private enum GPSQuality {
         red,
         yellow,
@@ -161,6 +193,15 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
         globalPh = new PersistenceHelper(this.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE));
         requestQueue = Volley.newRequestQueue(this.getApplicationContext());
+        logViewModel = new ViewModelProvider(this).get(LogViewModel.class);
+
+
+        logViewModel.getHasNewCriticalEvent().observe(this, hasEvent -> {
+            if (hasEvent != null && hasEvent) {
+                //Log.d("MenuActivity","got new critical event");
+                invalidateOptionsMenu();
+            }
+        });
 
         brr = new BroadcastReceiver() {
             private static final long MIN_REDRAW_DELAY = 5000;
@@ -607,8 +648,21 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
-        super.onPrepareOptionsMenu(menu);
+        MenuItem logMenuItem = mnu[MENU_ITEM_LOG_WARNING];
+        // Make sure the item exists before trying to modify it
+        if (logMenuItem != null) {
+            // Check the ViewModel's state to decide which icon to show
+            Boolean hasEvent = logViewModel.getHasNewCriticalEvent().getValue();
+            if (hasEvent != null && hasEvent) {
+                logMenuItem.setIcon(R.drawable.warning);
+                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+            } else {
+                logMenuItem.setIcon(null); // Or your default icon
+                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+            }
+        }
         refreshStatusRow();
+        super.onPrepareOptionsMenu(menu);
         return true;
     }
 
@@ -680,19 +734,20 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
             }
             else
                 refreshSyncDisplay();
-
             mnu[MENU_ITEM_CONTEXT].setVisible(true);
-            mnu[MENU_ITEM_LOG_WARNING].setVisible(!globalPh.get(PersistenceHelper.LOG_LEVEL).equals("off"));
-            if (debugLogger != null && debugLogger.hasRed()) {
-                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-                mnu[MENU_ITEM_LOG_WARNING].setIcon(R.drawable.warning);
-            }
+            mnu[MENU_ITEM_LOG_WARNING].setVisible(true);
+//            mnu[MENU_ITEM_LOG_WARNING].setVisible(!globalPh.get(PersistenceHelper.LOG_LEVEL).equals("off"));
+//            if (debugLogger != null && debugLogger.hasRed()) {
+//                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+//                mnu[MENU_ITEM_LOG_WARNING].setIcon(R.drawable.warning);
+//            }
             mnu[MENU_ITEM_SETTINGS].setVisible(true);
             mnu[MENU_ITEM_ABOUT].setVisible(true);
 
 
         }
     }
+
 
     Handler GPShandler=null;
     private void monitorGPS(boolean on) {
@@ -887,118 +942,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
             case MENU_ITEM_LOG_WARNING:
                 mnu[MENU_ITEM_LOG_WARNING].setIcon(null);
-                final Dialog dialog = new Dialog(this);
-                dialog.setContentView(R.layout.log_dialog_popup);
-                dialog.setTitle("Session Log");
-                if (dialog.getWindow() != null) {
-                    dialog.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                            android.view.ViewGroup.LayoutParams.MATCH_PARENT);
-                    // Optional: Remove default dialog padding/background dimming if needed
-                     dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-                     dialog.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND);
-                }
-                final TextView tv = dialog.findViewById(R.id.logger);
-                final ScrollView sv = dialog.findViewById(R.id.logScroll);
-                Typeface type = Typeface.createFromAsset(getAssets(),
-                        "clacon.ttf");
-                tv.setTypeface(type);
-                final LoggerI log = GlobalState.getInstance().getInstance().getLogger();
-                log.setOutputView(tv);
-                //trigger redraw.
-                log.draw();
-                //Button close=(Button)dialog.findViewById(R.id.log_close);
-                dialog.show();
-				/*close.setOnClickListener(new OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						dialog.dismiss();
-						log.setOutputView(null);
-					}
-				});
-				*/
-                Button clear = dialog.findViewById(R.id.log_clear);
-                clear.setOnClickListener(v -> {
-                    log.clear();
-                    //if(gs!=null && gs.getVariableCache()!=null)
-                    //   gs.getVariableCache().printCache();
-                    //List<PeriodicSync> l = ContentResolver.getPeriodicSyncs(mAccount, Start.AUTHORITY);
-                    //for (PeriodicSync p:l) {
-                    //    Log.d("marko","Period: "+p.period+" isSyncable: "+ContentResolver.getIsSyncable(mAccount, Start.AUTHORITY)+" isPending? "+ContentResolver.isSyncPending(mAccount,Start.AUTHORITY));
-                    //}
-                });
-                Button scrollD = dialog.findViewById(R.id.scrollDown);
-                scrollD.setOnClickListener(v -> sv.post(() -> sv.fullScroll(ScrollView.FOCUS_DOWN)));
-                Button printDBButton = dialog.findViewById(R.id.printdb);
-                Button crashLog = dialog.findViewById(R.id.crashlog);
-                AppCompatImageButton closeButton = dialog.findViewById(R.id.button_close);
-                closeButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        // Dismiss the dialog when the button is clicked
-                        if (dialog.isShowing()) {
-                            dialog.dismiss();
-                        }
-                    }
-                });
-                printDBButton.setOnClickListener(v -> {
-                    if (gs != null)
-                        BackupManager.getInstance(gs).backupDatabase("dump");
-                });
-
-                crashLog.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        new AlertDialog.Builder(MenuActivity.this) // Use context here
-                                .setTitle("Confirm Action")
-                                .setMessage("Are you sure? This will crash the application.")
-                                .setIcon(android.R.drawable.ic_dialog_alert) // Optional warning icon
-                                .setPositiveButton("Yes, Crash Now", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int whichButton) {
-                                        // User confirmed - > Execute the crash code
-                                        String crashme = null;
-                                        // This line will cause a NullPointerException
-                                        System.out.println("Crashing deliberately: " + crashme.charAt(0));
-                                    }
-                                })
-                                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int whichButton) {
-                                        // User cancelled - Do nothing, dialog dismisses automatically
-                                    }
-                                })
-                                .show();
-                    }
-                });
-/*
-
-                printLog.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick (View v){
-                        printLog(log.getLogText());
-                    }
-                    private void printLog(CharSequence logText) {
-                        if (logText == null || logText.length() == 0)
-                            return;
-                        try {
-                            String fileName = "log.txt";
-                            File[] externalStorageVolumes =
-                                    ContextCompat.getExternalFilesDirs(gs.getContext(), null);
-                            File primaryExternalStorage = externalStorageVolumes[0];
-                            File outputFile = new File(primaryExternalStorage + globalPh.get(PersistenceHelper.BUNDLE_NAME) + "/backup/", fileName);
-                            BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-                            writer.write(logText.toString());
-                            Toast.makeText(MenuActivity.this,
-                                    "LOG successfully written to backup folder. Name: " + fileName,
-                                    Toast.LENGTH_LONG).show();
-                            writer.close();
-                        } catch (IOException e) {
-                            Log.e("Exception", "File write failed: " + e.toString());
-                        }
-
-                    }
-                });
-*/
-
-
+                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                showLogDialog();
                 break;
 
             case MENU_ITEM_SETTINGS:
@@ -1164,7 +1109,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener {
 
                         } else {
                             Log.d("vortex", "Synk server is not running");
-                            GlobalState.getInstance().getLogger().addCriticalText("Sync service is not up...");
+                            LogRepository.getInstance().addCriticalText("Sync service is not up...");
                         }
                     }
                 } else {

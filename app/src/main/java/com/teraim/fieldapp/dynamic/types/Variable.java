@@ -241,7 +241,7 @@ public class Variable implements Serializable {
 	        }
 	    }));
 	    */
-		//GlobalState.getInstance().getLogger().addRow("Insert db time used "+(System.currentTimeMillis()-mil)+"");
+		//LogRepository.getInstance().addRow("Insert db time used "+(System.currentTimeMillis()-mil)+"");
 	}
 
 	public void setValueNoSync(String value) {

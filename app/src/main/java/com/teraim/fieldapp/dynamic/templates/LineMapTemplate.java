@@ -200,8 +200,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
             tmp = s.split("=");
             if (tmp == null || tmp.length != 2) {
                 Log.e("nils", "found corrupt element: " + s);
-                o.addRow("");
-                o.addRedText("Variabeln Avgränsning:AvgrTyp saknar värden.");
+                o.addCriticalText("Variabeln Avgränsning:AvgrTyp saknar värden.");
                 avgrValueA[c] = "null";
                 avgrTyper[c] = "****";
             } else {
@@ -622,8 +621,8 @@ enum Linjetyp {
 						metA = meterEnEd.getText();
 
 						if (metA.length()==0||metS.length()==0) {
-							o.addRow("");
-							o.addRedText("Avstånd meter tom");
+							o.addText("");
+							o.addCriticalText("Avstånd meter tom");
 							error = true;
 							new AlertDialog.Builder(LineMapTemplate.this.getActivity())
 									.setTitle("FEL: Slut värde fattas")
@@ -638,8 +637,8 @@ enum Linjetyp {
 									} )
 									.show();
 						} else if (Integer.parseInt(metS.toString())>Integer.parseInt(metA.toString())) {
-							o.addRow("");
-							o.addRedText("Start längre bort än Slut");
+							o.addText("");
+							o.addCriticalText("Start längre bort än Slut");
 							error = true;
 							new AlertDialog.Builder(LineMapTemplate.this.getActivity())
 									.setTitle("Fel värden")
@@ -684,8 +683,8 @@ enum Linjetyp {
 	private void jumpToWorkFlow(String start, String end, String linjeObjLabel,Linjetyp typ) {
 		Variable currentMeter = varCache.getVariable(NamedVariables.CURRENT_METER);
 		if (currentYear==null||varCache.getVariableValue(null,"Current_Ruta")==null||currentLinje==null||currentMeter==null) {
-			o.addRow("");
-			o.addRedText("Could not start workflow "+linjeObjLabel+
+			o.addText("");
+			o.addCriticalText("Could not start workflow "+linjeObjLabel+
 					"_wf, since no value exist for one of [Current_year, Current_ruta, Current_Linje, Current_Meter]");
 		} else {
 			currentMeter.setValue(start);
@@ -725,8 +724,8 @@ enum Linjetyp {
 						Log.d("nils","Should have started "+"wf_"+linjeObjLabel);
 					}
 					else {
-						o.addRow("");
-						o.addRedText("Couldn't find workflow named "+"wf_"+linjeObjLabel);
+						o.addText("");
+						o.addCriticalText("Couldn't find workflow named "+"wf_"+linjeObjLabel);
 						Log.e("nils","Couldn't find workflow named"+"wf_"+linjeObjLabel);
 					}
 				}

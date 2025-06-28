@@ -25,26 +25,24 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.loadermodule.ModuleLoaderCb;
 import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataIni;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataJgw;
 import com.teraim.fieldapp.loadermodule.configurations.AirPhotoMetaDataXML;
-import com.teraim.fieldapp.log.LoggerI;
-import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
+import com.teraim.fieldapp.log.LogRepository;
+import com.teraim.fieldapp.viewmodels.GisViewModel;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
-import com.teraim.fieldapp.utils.Tools.Unit;
 import com.teraim.fieldapp.utils.Tools.WebLoaderCb;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.Executors;
 
 public class CreateGisBlock extends Block {
 
@@ -52,7 +50,7 @@ public class CreateGisBlock extends Block {
 	private transient GlobalState gs;
 	private transient Cutout cutOut = null;
 	private transient WF_Context myContext;
-	private transient LoggerI o;
+	private transient LogRepository o;
 	private transient WF_Gis_Map gis = null;
 	private transient List<MapGisLayer> mapLayers;
 	private transient AsyncResumeExecutorI cb;
@@ -61,6 +59,8 @@ public class CreateGisBlock extends Block {
 	private transient boolean aborted = false;
 	private transient Rect r = null;
 	private transient String cachedImgFilePath="";
+
+	private transient List<String> picNames;
 	private static final int MAX_NUMBER_OF_PICS = 100;
 	private final String name,source,containerId,N,E,S,W;
 	private boolean isVisible = false;
@@ -97,6 +97,32 @@ public class CreateGisBlock extends Block {
 	 * @return true if loaded. False if executor should pause.
 	 */
 
+	public void loadMetaAndCreateView(GisViewModel.GisResult result, WF_Context context, AsyncResumeExecutorI callback) {
+		this.myContext = context;
+		this.cb = callback;
+		this.gs = GlobalState.getInstance();
+		this.o = gs.getLogger();
+		this.mapLayers = new ArrayList<>();
+
+		// Since the files are already downloaded, we just create the MapGisLayer objects.
+		List<String> pictures = getPicNames();
+		for(int i=0; i<pictures.size(); i++) {
+			String picName = pictures.get(i);
+			MapGisLayer mapLayer;
+			if (picName.equals(result.masterPicName)) {
+				mapLayer = new MapGisLayer(GisConstants.DefaultTag, picName);
+			} else {
+				mapLayer = new MapGisLayer("bg" + (i), picName);
+			}
+			mapLayers.add(mapLayer);
+		}
+
+		// Now, continue with your existing logic to load the metadata file.
+		PersistenceHelper globalPh = gs.getGlobalPreferences();
+		final String serverFileRootDir = globalPh.get(PersistenceHelper.SERVER_URL) + globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase() + "/extras/";
+		loadImageMetaData(result.masterPicName, serverFileRootDir, result.cacheFolder);
+	}
+
 	public boolean create(WF_Context myContext,final AsyncResumeExecutorI cb) {
 		mapLayers  = new ArrayList<MapGisLayer>();
 		aborted = false;
@@ -115,8 +141,7 @@ public class CreateGisBlock extends Block {
 
 		if (sourceE==null ) {
 			Log.e("vortex","Image url evaluates to null! GisImageView will not load");
-			o.addRow("");
-			o.addRedText("GisImageView failed to load. No picture defined or failure to parse: "+source);
+			o.addCriticalText("GisImageView failed to load. No picture defined or failure to parse: "+source);
 			//continue execution immediately.
 			return true;
 		}
@@ -141,10 +166,13 @@ public class CreateGisBlock extends Block {
 			final boolean isLast = (i == picNames.length-1);
 			final int I = i;
 			final String picName = picNames[i];
+
 			Tools.onLoadCacheImage(serverFileRootDir, picName, cacheFolder, new WebLoaderCb() {
+				Integer prx = 0;
 				@Override
 				public void progress(int bytesRead) {
-
+					prx += bytesRead;
+					Log.d("vortex","Progress: "+prx+" bytes");
 				}
 				@Override
 				public void loaded(Boolean result) {
@@ -153,18 +181,18 @@ public class CreateGisBlock extends Block {
 							Log.d("vortex", "picture " + picName + " now in cache.");
 							MapGisLayer mapLayer;
 							if (picName.equals(masterPicName)) {
-								mapLayer = new MapGisLayer(gis, GisConstants.DefaultTag, picName);
+								mapLayer = new MapGisLayer(GisConstants.DefaultTag, picName);
 
 							} else
-								mapLayer = new MapGisLayer(gis, "bg" + (I), picName);
+								mapLayer = new MapGisLayer("bg" + (I), picName);
 							Log.d("vortex", "Added layer: " + mapLayer.getLabel());
 							mapLayers.add(mapLayer);
 						} else {
 							Log.e("vortex", "Picture not found. "+serverFileRootDir+picName);
 							String image_failed_to_load = ctx.getResources().getString(R.string.image_failed_to_load);
 							if (gs.getGlobalPreferences().getB(PersistenceHelper.DEVELOPER_SWITCH)) {
-								o.addRow("");
-								o.addRedText(image_failed_to_load + serverFileRootDir + picName);
+								
+								o.addCriticalText(image_failed_to_load + serverFileRootDir + picName);
 							}
 							if (picName.equals(masterPicName)) {
 								aborted = true;
@@ -187,6 +215,7 @@ public class CreateGisBlock extends Block {
 
 
 	private void createAfterLoad(PhotoMeta photoMeta, final String cacheFolder, final String fileName) {
+		Log.d("GisTrace", "createAfterLoad: Loading bitmap for final fileName: " + fileName);
 		this.photoMetaData=photoMeta;
 		cachedImgFilePath = cacheFolder+fileName;
 		final Container myContainer = myContext.getContainer(containerId);
@@ -274,15 +303,15 @@ public class CreateGisBlock extends Block {
 			}, 0);
 
 		} else {
-			o.addRow("");
+			
 			if (photoMetaData ==null) {
 				Log.e("vortex","Photemetadata null! Cannot add GisImageView!");
-				o.addRedText("Adding GisImageView to "+containerId+" failed. Photometadata missing (the boundaries of the image on the map)");
+				o.addCriticalText("Adding GisImageView to "+containerId+" failed. Photometadata missing (the boundaries of the image on the map)");
 				cb.abortExecution("Adding GisImageView to "+containerId+" failed. Photometadata missing (the boundaries of the image on the map)");
 			}
 			else {
 				Log.e("vortex","Container null! Cannot add GisImageView!");
-				o.addRedText("Adding GisImageView to "+containerId+" failed. Container cannot be found in template");
+				o.addCriticalText("Adding GisImageView to "+containerId+" failed. Container cannot be found in template");
 				cb.abortExecution("Missing container for GisImageView: "+containerId);
 			}
 		}
@@ -301,6 +330,23 @@ public class CreateGisBlock extends Block {
 			Log.e("vortex","Found tags for photo meta");
 			createAfterLoad(new PhotoMeta(N,E,S,W),cacheFolder,picName);
 		}
+	}
+	public void reset() {
+			this.picNames=null;
+	}
+	public List<String> getPicNames() {
+		if (picNames == null) {
+			picNames = new ArrayList<>();
+			final String picsString = Expressor.analyze(sourceE);
+			if (picsString != null) {
+				if (picsString.contains(",")) {
+					Collections.addAll(picNames, picsString.split(","));
+				} else {
+					picNames.add(picsString);
+				}
+			}
+		}
+		return picNames;
 	}
 
 	//User parser to parse and cache xml.
@@ -365,8 +411,8 @@ public class CreateGisBlock extends Block {
 								if (gisResult != null && gisResult.error != null) {
 									errorMessage = gisResult.error.getMessage();
 								}
-								o.addRow("");
-								o.addRedText(errorMessage);
+								
+								o.addCriticalText(errorMessage);
 								Log.e("vortex", "Failed to parse image meta. " + errorMessage);
 								cb.abortExecution(errorMessage);
 							}

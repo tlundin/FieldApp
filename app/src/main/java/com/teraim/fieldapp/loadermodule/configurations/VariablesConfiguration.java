@@ -10,7 +10,7 @@ import com.teraim.fieldapp.dynamic.types.Table.ErrCode;
 import com.teraim.fieldapp.loadermodule.CSVConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -27,7 +27,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 
 	
 	private final SpinnerDefinition sd=new SpinnerDefinition();
-	private final LoggerI o;
+	private final LogRepository o;
     private Table myTable=null;
 	private List<String> cheaderL;
 	private boolean scanHeader;
@@ -37,10 +37,10 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 	private int groupIndex;
 
 
-	public VariablesConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LoggerI debugConsole) {
+	public VariablesConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, LogRepository debugConsole) {
 		super(context, globalPh,ph, serverOrFile,VariablesConfiguration.NAME,"Variables module      ");
 		this.o = debugConsole;
-		o.addRow("Parsing Variables.csv file");
+		o.addGreenText("Parsing VariablesConfiguration module");
 
 	}
 
@@ -104,8 +104,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 			Log.d("vortex","header is: "+row);			
 			String[] varPatternHeaderS = row.split(",");
 			if (varPatternHeaderS==null||varPatternHeaderS.length<Constants.VAR_PATTERN_ROW_LENGTH) {
-				o.addRow("");
-				o.addRedText("Header corrupt in Variables.csv: "+ Arrays.toString(varPatternHeaderS));
+				o.addCriticalText("Header corrupt in Variables.csv: "+ Arrays.toString(varPatternHeaderS));
 				return new LoadResult(this,ErrorCode.ParseError,"Corrupt header");
 			}
 			//Remove duplicte group column and varname if group file present. 
@@ -131,8 +130,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 						}
 				}
 				if (!foundFunctionalGroupHeader||!foundVarNameHeader) {
-					o.addRow("");
-					o.addRedText("Could not find required columns "+VariableConfiguration.Col_Functional_Group+" or "+VariableConfiguration.Col_Variable_Name);
+					o.addCriticalText("Could not find required columns "+VariableConfiguration.Col_Functional_Group+" or "+VariableConfiguration.Col_Variable_Name);
 					return new LoadResult(this,ErrorCode.ParseError,"Corrupt header");
 				}
 
@@ -146,13 +144,11 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 			List<List<String>> elems;
 			String[] r = Tools.split(row);
 			if (r==null|| r.length<Constants.VAR_PATTERN_ROW_LENGTH) {
-				o.addRow("");
-				o.addRedText("Too short row or row null in Variable.csv.");
+				o.addCriticalText("Too short row or row null in Variable.csv.");
 				if (r!=null) {
-					o.addRow("");
-					o.addRedText("Row length: "+r.length+". Expected length: "+Constants.VAR_PATTERN_ROW_LENGTH);
+					o.addCriticalText("Row length: "+r.length+". Expected length: "+Constants.VAR_PATTERN_ROW_LENGTH);
 				} else
-					o.addRow("NULL!!!");
+					o.addText("Row is null");
 				return new LoadResult(this,ErrorCode.ParseError,"Parse error, row: "+currentRow+1);
 			} else {	
 				for(int i=0;i<r.length;i++) {
@@ -165,7 +161,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 				if (pGroup==null || pGroup.trim().length()==0) {
 					//Log.d("nils","found variable "+r[pNameIndex]+" in varpattern");							
 					myTable.addRow(trr);
-					//o.addRow("Generated variable(1): ["+r[pNameIndex]+"]");
+					//o.addText("Generated variable(1): ["+r[pNameIndex]+"]");
 					//Log.d("vortex","Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
 				} else {
 					//Log.d("nils","found group name: "+pGroup);
@@ -175,7 +171,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 						//If the variable has a group,add it 
 						//Log.d("nils","Group "+pGroup+" in line#"+rowC+" does not exist in config file. Will use name: "+varPatternName);								
 						String name = pGroup.trim()+Constants.VariableSeparator+varPatternName.trim();
-						//o.addRow("Generated variable(2): ["+name+"]");
+						//o.addText("Generated variable(2): ["+name+"]");
 						trr.set(pNameIndex, name);
 						myTable.addRow(trr);
 					} else {
@@ -184,8 +180,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 							String cFileNamePart = elem.get(nameIndex);
 
 							if (varPatternName==null) {
-								o.addRow("");
-								o.addRedText("varPatternNamepart evaluates to null at line#"+(currentRow+1)+" in varpattern file");
+								o.addCriticalText("varPatternNamepart evaluates to null at line#"+(currentRow+1)+" in varpattern file");
 							} else {
 								String fullVarName = pGroup.trim()+Constants.VariableSeparator+(cFileNamePart!=null?cFileNamePart.trim()+Constants.VariableSeparator:"")+varPatternName.trim();
 								//Remove duplicate elements from Config File row.
@@ -197,22 +192,22 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 								varPatternL.addAll(elemCopy);
 								//Replace name column with full name.
 								varPatternL.set(pNameIndex, fullVarName);
-								//o.addRow("Generated variable(3): ["+fullVarName+"]");
+								//o.addText("Generated variable(3): ["+fullVarName+"]");
 								ErrCode err = myTable.addRow(varPatternL);
 								if (err!=ErrCode.ok) {
 									switch (err) {
 									case keyError:
-										o.addRow("");
-										o.addRedText("KEY ERROR!");
+										
+										o.addCriticalText("KEY ERROR!");
 										break;
 									case tooFewColumns:
-										o.addRow("");
-										o.addRedText("TOO FEW COLUMNS!");
+										
+										o.addCriticalText("TOO FEW COLUMNS!");
 										return new LoadResult(this,ErrorCode.ParseError);
 									case tooManyColumns:
-										o.addRow("");
-										o.addRedText("TOO MANY COLUMNS!");
-										o.addRedText("row not inserted. Something wrong at line "+currentRow);
+										
+										o.addCriticalText("TOO MANY COLUMNS!");
+										o.addCriticalText("row not inserted. Something wrong at line "+currentRow);
 										break;
 									}
 								}

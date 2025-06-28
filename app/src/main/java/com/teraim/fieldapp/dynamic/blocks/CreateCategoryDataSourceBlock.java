@@ -7,7 +7,7 @@ import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import org.achartengine.model.CategorySeries;
 import java.util.Arrays;
@@ -46,7 +46,7 @@ public class CreateCategoryDataSourceBlock extends Block {
 
 					colors[j++] = c;
 				} catch (IllegalArgumentException e) {
-					WorkFlowBundleConfiguration.debugConsole.addCriticalText("Non existing color: "+colorName);
+					LogRepository.getInstance().addCriticalText("Non existing color: "+colorName);
 				}
 			}
 		}
@@ -55,7 +55,7 @@ public class CreateCategoryDataSourceBlock extends Block {
 	public void create(WF_Context myContext) {
 		Variable v;
 		VariableCache cache = GlobalState.getInstance().getVariableCache();
-		LoggerI o = GlobalState.getInstance().getLogger();
+		LogRepository o = LogRepository.getInstance();
 
 
 		myContext.addChartDataSource(myChart, new SimpleChartDataSource() {

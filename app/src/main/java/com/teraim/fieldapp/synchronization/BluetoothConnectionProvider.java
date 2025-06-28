@@ -13,7 +13,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.exceptions.BluetoothDevicesNotPaired;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.synchronization.ConnectionListener.ConnectionEvent;
 
@@ -44,7 +44,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 	//Convenience
 	private final GlobalState gs;
-	private final LoggerI o;
+	private final LogRepository o;
 	private final Context ctx;
 
 	//Threads
@@ -114,7 +114,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 
 			Log.d("vortex","Bluetooth on create");
-			o.addRow("BlueTooth starting ");
+			o.addText("BlueTooth starting ");
 
 	}
 
@@ -156,15 +156,15 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 				try {
 					mClient = startClient(partner);
 					if (mClient == null) {
-						o.addRow("");
-						o.addRedText("Bluetooth Connection failed: Partner named "+partner+" not found");
+						o.addText("");
+						o.addCriticalText("Bluetooth Connection failed: Partner named "+partner+" not found");
 						broadcastEvent(ConnectionEvent.connectionFailedNamedPartnerMissing);
 					} else
 						mServer = startServer();
 				} catch (BluetoothDevicesNotPaired e) {
 					broadcastEvent(ConnectionEvent.connectionFailedNoPartner);
-					o.addRow("");
-					o.addRedText("Bluetooth Connection failed: No paired device");
+					o.addText("");
+					o.addCriticalText("Bluetooth Connection failed: No paired device");
 					e.printStackTrace();
 				}
 
@@ -426,9 +426,9 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 					startConnectedThread(mmSocket);
 				} else {
 					cancel();
-					o.addRow("");
+					o.addText("");
 					Log.d("vortex","Gave up, no more attempts");
-					o.addRedText("Bluetooth connection failed. Make sure that both devices have turned on Bluetooth and that they are within reach of eachother!");
+					o.addCriticalText("Bluetooth connection failed. Make sure that both devices have turned on Bluetooth and that they are within reach of eachother!");
 				}
 			}
 		}
@@ -518,8 +518,8 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 					if (e instanceof StreamCorruptedException) {							
 						broadcastEvent(ConnectionEvent.restartRequired);
-						o.addRow("");
-						o.addRedText("Bluetooth: Stream corrupted. It is recommended that you restart your devices before attempting a new connection.");
+						o.addText("");
+						o.addCriticalText("Bluetooth: Stream corrupted. It is recommended that you restart your devices before attempting a new connection.");
 					} else if (e instanceof IOException) {
 						broadcastEvent(ConnectionEvent.connectionBroken);
 					}

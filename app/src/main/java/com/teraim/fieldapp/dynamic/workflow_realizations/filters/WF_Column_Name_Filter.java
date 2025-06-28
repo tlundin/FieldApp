@@ -2,6 +2,7 @@ package com.teraim.fieldapp.dynamic.workflow_realizations.filters;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.Iterator;
 import java.util.List;
@@ -53,8 +54,8 @@ public class WF_Column_Name_Filter extends WF_Filter {
 
 		}
 		if (!totMatch) {
-			o = GlobalState.getInstance().getLogger();
-			o.addRow("");
+			o = LogRepository.getInstance();
+			o.addText("");
 			o.addYellowText("No matches found in Column filter. Column used: ["+columnToMatch+"]");
 		}
 

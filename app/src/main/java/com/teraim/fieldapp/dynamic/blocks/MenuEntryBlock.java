@@ -34,7 +34,7 @@ public class MenuEntryBlock extends Block {
 		Context ctx = wf_context.getContext();
 		try {
 			if (wf == null)
-				gs.getLogger().addRedText("Workflow "+target+" not found!!");
+				gs.getLogger().addCriticalText("Workflow "+target+" not found!!");
 			else {
 				String label = wf.getLabel();
 				gs.getDrawerMenu().addItem(label,wf);

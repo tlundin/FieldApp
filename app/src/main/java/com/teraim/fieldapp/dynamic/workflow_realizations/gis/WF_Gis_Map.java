@@ -43,7 +43,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
-import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -62,7 +61,7 @@ import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.non_generics.Constants;
-import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -617,10 +616,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
                     Log.d("bortex", "team is visible! Adding layer for team "+team);
-                    final GisLayer teamLayer = new GisLayer(this, "Team", "Team", true, false, true,true);
+                    final GisLayer teamLayer = new GisLayer( "Team", "Team", true, false, true,true);
                     myLayers.add(teamLayer);
                 } //else {
-                //o = GlobalState.getInstance().getLogger();
+                //o = LogRepository.getInstance();
                 //Log.d("vortex", "no team but team is set to show. alarm!");
                 //o.addRow("");
                 //o.addRedText("Team name missing. Cannot show team members.");
@@ -641,48 +640,23 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
     private void setupRefreshObserver() {
-        viewModel.finalProcessStatus.observe(myContext.getFragmentActivity(), event -> {
+        viewModel.onSuccessEvent.observe(myContext.getFragmentActivity(), event -> {
             if (event == null) return;
 
-            // Get the content of the event. It will be null if it has already been handled.
-            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
-            if (workflowResult == null) {
-                // Event was already handled (e.g., on screen rotation), so do nothing.
-                return;
-            }
+            // Use getContentIfNotHandled() to ensure the operation runs only once.
+            ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
 
-            // Only react to the specific workflow we care about on this screen.
-            if (viewModel.getCurrentWorkflow() instanceof RefreshGisWorkflow) {
+            if (result != null) {
 
-                switch (workflowResult.status()) {
-                    case LOADING:
-                        // Show a loading indicator and disable the button.
-                        refreshB.setClickable(false);
-                        // You could also animate the refresh icon here
-                        // refreshB.setImageResource(R.drawable.refresh_selector);
-                        break;
+                if (myContext.getCurrentGis() != null) {
+                    // These heavy operations are now protected from repeated calls.
+                    myContext.refreshGisObjects();
+                    gisImageView.redraw();
 
-                    case SUCCESS:
-                        // This block will now execute only ONCE per success event.
-                        Log.d("vortex", "DB updated successfully via new framework.");
-
-                        if (myContext.getCurrentGis() != null) {
-                            // These heavy operations are now protected from repeated calls.
-                            myContext.refreshGisObjects();
-                            gisImageView.redraw();
-
-                            refreshB.setClickable(true);
-                            Toast.makeText(ctx, R.string.refresh_completed, Toast.LENGTH_SHORT).show();
-                        }
-                        globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
-                        break;
-
-                    case FAILURE:
-                        Log.e("vortex", "DB update failed via new framework.");
-                        Toast.makeText(ctx, "Failed to refresh map data.", Toast.LENGTH_SHORT).show();
-                        refreshB.setClickable(true);
-                        break;
+                    refreshB.setClickable(true);
+                    Toast.makeText(ctx, R.string.refresh_completed, Toast.LENGTH_SHORT).show();
                 }
+                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
             }
         });
     }

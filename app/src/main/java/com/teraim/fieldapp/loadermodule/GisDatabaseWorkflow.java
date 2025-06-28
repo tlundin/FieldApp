@@ -12,7 +12,7 @@ import com.teraim.fieldapp.loadermodule.configurations.GroupsConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -28,7 +28,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
     private final Context context;
     private final PersistenceHelper globalPh;
     private final PersistenceHelper ph;
-    private final LoggerI debugConsole;
+    private final LogRepository debugConsole;
     private final String bundleName, url, gisPath;
 
     // A pre-filtered list of modules to download, can be null.
@@ -45,7 +45,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         this.context = context;
         this.globalPh = globalPh;
         this.ph = ph;
-        this.debugConsole = GlobalState.getInstance().getLogger();
+        this.debugConsole = LogRepository.getInstance();
         this.bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
         this.url = globalPh.get(PersistenceHelper.SERVER_URL) + bundleName.toLowerCase(Locale.ROOT) + "/";
         this.gisPath = url + Constants.GIS_CONFIG_WEB_FOLDER + "/";
@@ -89,7 +89,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         initialModules.add(new SpinnerConfiguration(context, globalPh, ph, url, debugConsole));
         initialModules.add(new GroupsConfiguration(context, globalPh, ph, url, bundleName, debugConsole));
         initialModules.add(new VariablesConfiguration(context, globalPh, ph, url, debugConsole));
-        initialModules.add(new GISListConfiguration(context, globalPh, ph, gisPath));
+        initialModules.add(new GISListConfiguration(context, globalPh, ph, gisPath, debugConsole));
 
         stageCount = 1;
         return new LoadJob(LoadStage.FILES, initialModules);
@@ -122,7 +122,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         return null;
     }
 
-    private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, List<String> gisTypes, LoggerI debugConsole) {
+    private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, List<String> gisTypes, LogRepository debugConsole) {
         DbHelper myDb = new DbHelper(context.getApplicationContext(), t, globalPh, ph, bundleName);
         List<ConfigurationModule> modules = new ArrayList<>();
         if (gisTypes != null) {

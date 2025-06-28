@@ -15,6 +15,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.gis.CurrStatVar;
 import com.teraim.fieldapp.gis.GisImageView;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
@@ -46,7 +47,7 @@ public class GisLayer {
 
 
 
-	public GisLayer(WF_Gis_Map myGis, String name, String label, boolean isVisible, boolean isBold,
+	public GisLayer(String name, String label, boolean isVisible, boolean isBold,
 					boolean hasWidget, boolean showLabels) {
 		super();
 		this.name = name;
@@ -305,8 +306,8 @@ public class GisLayer {
 
 
 			if (gpo.getPolygons()==null) {
-				GlobalState.getInstance().getLogger().addRow("");
-				GlobalState.getInstance().getLogger().addRedText("POLY had *NULL* coordinates: "+go.getLabel());
+				LogRepository.getInstance().addText("");
+				LogRepository.getInstance().addCriticalText("POLY had *NULL* coordinates: "+go.getLabel());
 				go.markForDestruction();
 				return;
 			}
@@ -327,8 +328,8 @@ public class GisLayer {
 			GisPathObject gpo = (GisPathObject)go;
 			boolean hasAtleastOneCornerInside = false;
 			if (go.getCoordinates()==null) {
-				GlobalState.getInstance().getLogger().addRow("");
-				GlobalState.getInstance().getLogger().addRedText("Gis object had *NULL* coordinates: "+go.getLabel());
+				LogRepository.getInstance().addText("");
+				LogRepository.getInstance().addCriticalText("Gis object had *NULL* coordinates: "+go.getLabel());
 				go.markForDestruction();
 				return;
 			}
