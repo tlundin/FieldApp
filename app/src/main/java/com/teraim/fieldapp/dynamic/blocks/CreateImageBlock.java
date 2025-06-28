@@ -29,6 +29,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.Tools;
@@ -67,7 +68,7 @@ import java.util.regex.Pattern;
 
 	public void create(WF_Context myContext) {
 		this.myContext = myContext;
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		WF_Container myContainer = (WF_Container)myContext.getContainer(container);
 		Log.d("botox","Source name is "+source);
 		if (myContainer != null && sourceE!=null) {
@@ -99,11 +100,11 @@ import java.util.regex.Pattern;
 			myContext.registerEventListener(this, EventType.onActivityResult);
 		} else {
 			if (source==null || sourceE == null) {
-				o.addRow("");
-				o.addRedText("Failed to add image with block id "+blockId+" - source is either null or evaluates to null: "+source);				
+				o.addText("");
+				o.addCriticalText("Failed to add image with block id "+blockId+" - source is either null or evaluates to null: "+source);				
 			}
-			o.addRow("");
-			o.addRedText("Failed to add image with block id "+blockId+" - missing container "+container);
+			o.addText("");
+			o.addCriticalText("Failed to add image with block id "+blockId+" - missing container "+container);
 		}
 		img.setClickable(true);
 		img.setOnClickListener(new View.OnClickListener() {

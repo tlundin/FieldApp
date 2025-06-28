@@ -19,6 +19,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
@@ -35,14 +36,12 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnActivityResult;
 import com.teraim.fieldapp.loadermodule.LoadResult;
-import com.teraim.fieldapp.log.CriticalOnlyLogger;
-import com.teraim.fieldapp.log.DummyLogger;
-import com.teraim.fieldapp.log.Logger;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.DrawerMenu;
 import com.teraim.fieldapp.ui.MenuActivity;
-import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
+import com.teraim.fieldapp.viewmodels.GisViewModel;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.lang.reflect.Field;
@@ -79,6 +78,7 @@ public class Start extends MenuActivity implements StartProvider {
     private ModuleLoaderViewModel viewModel;
     private FrameLayout progressIndicatorContainer;
     private TextView progressIndicatorText;
+    private ProgressBar progressBar;
     private Start startInstance;
 
 
@@ -111,7 +111,7 @@ public class Start extends MenuActivity implements StartProvider {
         viewModel = new ViewModelProvider(this).get(ModuleLoaderViewModel.class);
         progressIndicatorContainer = findViewById(R.id.progress_indicator_container);
         progressIndicatorText = findViewById(R.id.progress_text);
-
+        progressBar = findViewById(R.id.progressBar);
         // 2. Set up the observers
         setupObservers();
         //This combats an issue on the target panasonic platform having to do with http reading.
@@ -127,6 +127,25 @@ public class Start extends MenuActivity implements StartProvider {
         actionbar.setDisplayHomeAsUpEnabled(true);
         mDrawerMenu = new  DrawerMenu(this,toolbar);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
+
+        // 2. Get the shared ViewModel
+        GisViewModel gisViewModel = new ViewModelProvider(this).get(GisViewModel.class);
+        progressIndicatorContainer = findViewById(R.id.progress_indicator_container);
+
+
+        // 3. Observe the progress state
+        gisViewModel.getProgressState().observe(this, state -> {
+            if (state == null) return;
+
+            if (state.inProgress) {
+                progressIndicatorContainer.setVisibility(View.VISIBLE);
+                progressBar.setProgress(state.percent);
+                progressIndicatorText.setText(state.statusMessage);
+            } else {
+                // Hide the progress bar when done or on error
+                progressIndicatorContainer.setVisibility(View.GONE);
+            }
+        });
 
         // Create a Sync account - REMOVED 2025
         // mAccount = CreateSyncAccount(this);
@@ -264,6 +283,7 @@ public class Start extends MenuActivity implements StartProvider {
             // Permission has already been granted
             if (GlobalState.getInstance() == null) {
                 loading = true;
+                LogRepository.getInstance().addText("[Loading begins]");
                 //Start the login fragment.
                 androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
                 StartupFragment startupFragment = new StartupFragment();
@@ -323,7 +343,7 @@ public class Start extends MenuActivity implements StartProvider {
     //execute workflow.
     public void changePage(Workflow wf, String statusVar) {
         if (wf==null) {
-            debugLogger.addRow("Workflow not defined for button. Check your project XML");
+            debugLogger.addText("Workflow not defined for button. Check your project XML");
             Log.e("vortex","no wf in changepage");
             return;
         }
@@ -349,7 +369,7 @@ public class Start extends MenuActivity implements StartProvider {
         if (cHash.isOk()) {
             Log.d("hash","setting global context to "+cHash);
             GlobalState.getInstance().setDBContext(cHash);
-            debugLogger.addRow("Context now [");
+            debugLogger.addText("Context now [");
             debugLogger.addGreenText(cHash.toString());
             debugLogger.addText("]");
             debugLogger.addText("wf context: "+wf.getContext());
@@ -361,7 +381,7 @@ public class Start extends MenuActivity implements StartProvider {
 
             if (template==null) {
                 template="StartupFragment";
-                label = "Startup";
+                label = "Start";
                 //Get rid of existing StartupFragment from stack
                 getSupportFragmentManager().popBackStack();
             }
@@ -527,31 +547,6 @@ public class Start extends MenuActivity implements StartProvider {
         return mDrawerMenu;
     }
 
-
-
-
-    public LoggerI getLogger() {
-        Log.d("vortex","getlogger - debuglogger is null? "+(debugLogger==null));
-        if (debugLogger==null) {
-            String logLevel = globalPh.get(PersistenceHelper.LOG_LEVEL);
-            if (logLevel == null || logLevel.equals(PersistenceHelper.UNDEFINED) ||
-                    logLevel.equals("normal")) {
-                debugLogger = new Logger(this, "DEBUG");
-                Log.d("vortex","logger normal");
-            }
-            else if (logLevel.equals("off")) {
-                debugLogger = new DummyLogger();
-                Log.d("vortex","logger off");
-            }
-            else {
-                debugLogger = new CriticalOnlyLogger(this);
-                Log.d("vortex","logger critical only");
-            }
-
-        }
-        return debugLogger;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
@@ -589,27 +584,17 @@ public class Start extends MenuActivity implements StartProvider {
 
     private void setupObservers() {
         // This observer handles the VISIBILITY of the progress indicator
-        viewModel.finalProcessStatus.observe(this, event -> { // The LiveData now emits an Event
-            if (event == null) return;
+        viewModel.workflowState.observe(this, result -> {
+            if (result == null) return;
 
-            // Get the content of the event. It will be null if it has already been handled.
-            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
-            if (workflowResult == null) {
-                // Event was already handled, so we don't change the UI state again.
-                return;
-            }
-
-            // Now, we can safely access the status from the unwrapped result
-            switch (workflowResult.status()) { // Use the record's accessor method: status()
+            // This UI just needs to know the current state to show/hide the progress bar.
+            // It will correctly re-evaluate on screen rotation.
+            switch (result.status()) {
                 case LOADING:
-                    Log.d("heppola", "LOADING");
                     progressIndicatorContainer.setVisibility(View.VISIBLE);
                     break;
                 case SUCCESS:
-                    Log.d("heppola", "SUCCESS");
-                    // Fall-through to also hide on success
                 case FAILURE:
-                    // Hide the indicator when the process is complete
                     progressIndicatorContainer.setVisibility(View.GONE);
                     break;
             }

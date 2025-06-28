@@ -12,6 +12,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +34,7 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 														String myTarget, String pattern, Type sumOrCount, boolean isVisible, DisplayFieldBlock format) {
 		super(header,header, descriptionT, myContext, LayoutInflater.from(myContext.getContext()).inflate(format.isHorisontal()?R.layout.selection_field_normal_horizontal:R.layout.selection_field_normal_vertical,null),isVisible,format);
 		this.myContext=myContext;
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		targetList = myContext.getList(myTarget);
 		myType = sumOrCount;
 		myPattern = pattern;
@@ -46,8 +47,7 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 		//	text.setTextColor(Color.parseColor(textColor));
 
 		if (targetList == null) {
-			o.addRow("");
-			o.addRedText("Couldn't create "+header+" since target list: "+myTarget+" does not exist");
+			o.addCriticalText("Couldn't create "+header+" since target list: "+myTarget+" does not exist");
 			Log.e("parser","couldn't create SumAndCountOfVariables - could not find target list "+myTarget);
 		} else {
 			myContext.registerEventListener(this,EventType.onRedraw);
@@ -115,8 +115,7 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 
 		if (allMatchingVariables.isEmpty()) {
 			Log.e("vortex","no variables matching pattern "+myPattern+" in block_add_sum_of_selected_variables_display with target "+targetList.getId());
-			o.addRow("");
-			o.addRedText("no variables matching pattern "+myPattern+" in block_add_sum_of_selected_variables_display with target "+targetList.getId());
+			o.addCriticalText("no variables matching pattern "+myPattern+" in block_add_sum_of_selected_variables_display with target "+targetList.getId());
 		}
 
 		for (Variable v:allMatchingVariables) {
@@ -142,12 +141,10 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 
 		if (sum==0) {
 			variablesWithNoValue+="]";
-			o.addRow("");
 			o.addYellowText("Sum zero in Count/Add Block. with pattern ["+myPattern+"] No value found for:");
-			o.addRow(variablesWithNoValue);
+			o.addText(variablesWithNoValue);
 			Log.d("vortex","VARIABLES WITH NO VALUE:"+variablesWithNoValue);
 		} else {
-			o.addRow("");
 			o.addGreenText("Found match(es) in Count/Add Block with pattern ["+myPattern+"]");
 		}
 

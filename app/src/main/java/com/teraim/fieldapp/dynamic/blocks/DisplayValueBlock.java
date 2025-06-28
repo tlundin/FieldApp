@@ -41,8 +41,7 @@ public class DisplayValueBlock extends DisplayFieldBlock implements EventGenerat
 		myContainer.add(vf);
 		vf.onEvent(new WF_Event_OnSave(namn));
 		}  else {
-			o.addRow("");
-			o.addRedText("Failed to add display value block with id "+blockId+" - missing container "+containerId);
+			o.addCriticalText("Failed to add display value block with id "+blockId+" - missing container "+containerId);
 		}
 			
 	}

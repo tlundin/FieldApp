@@ -8,7 +8,7 @@ import com.teraim.fieldapp.dynamic.types.SimpleChartDataSource;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 
 import org.achartengine.model.CategorySeries;
 import org.achartengine.model.XYMultipleSeriesDataset;
@@ -44,14 +44,13 @@ public class CreateTwoDimensionalDataSourceBlock extends Block {
 	public void create(WF_Context myContext) {
 		Variable v;
 		VariableCache cache = GlobalState.getInstance().getVariableCache();
-		LoggerI o = GlobalState.getInstance().getLogger();
+		LogRepository o = LogRepository.getInstance();
 		if (myVariables==null) {
 			myVariables = new ArrayList<Variable>();
 			for (String variable : myVariableNames) {
 				v = cache.getVariable(variable);
 				if (v == null) {
-					o.addRow("");
-					o.addRedText("Variable " + variable + " not found when creating datasource in block " + blockId);
+					o.addCriticalText("Variable " + variable + " not found when creating datasource in block " + blockId);
 					return;
 				}
 

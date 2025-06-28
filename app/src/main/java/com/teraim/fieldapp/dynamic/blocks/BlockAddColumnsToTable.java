@@ -6,6 +6,7 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
@@ -37,11 +38,10 @@ public class BlockAddColumnsToTable extends Block {
 	
 	public void create(WF_Context myContext) {
 		PageWithTable myTable = (PageWithTable) myContext.getTemplate();
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		if (myTable==null) {
 			Log.e("vortex","Did not find target table "+target+" in blockAddColumn, create");
-			o.addRow("");
-			o.addRedText("Did not find target table "+target+" when trying to add column "+name+". Operation cancelled");
+			o.addCriticalText("Did not find target table "+target+" when trying to add column "+name+". Operation cancelled");
 			return;
 		}
 		

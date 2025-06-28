@@ -29,7 +29,7 @@
 //import com.teraim.fieldapp.loadermodule.ModuleRegistry;
 //import com.teraim.fieldapp.loadermodule.Workflow_I;
 //import com.teraim.fieldapp.non_generics.Constants;
-//import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
+//import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 //import com.teraim.fieldapp.utils.Connectivity;
 //import com.teraim.fieldapp.utils.PersistenceHelper;
 //import com.teraim.fieldapp.utils.Tools;

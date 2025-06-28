@@ -17,7 +17,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.Tools;
@@ -47,7 +47,7 @@ public class AddGisFilter extends Block implements GisFilter {
 	public AddGisFilter(String id, String nName, String label, String targetObjectType,String targetLayer,
 			String expression, String imgSource, 
 			String radius, String color, String polyType, String fillType,
-			boolean hasWidget, LoggerI o) {
+			boolean hasWidget, LogRepository o) {
 		super();
         this.nName = nName;
 		this.label = label;
@@ -73,8 +73,7 @@ public class AddGisFilter extends Block implements GisFilter {
 				else if (polyType.toUpperCase().equals("TRIANGLE"))
 					this.polyType=PolyType.triangle;
 				else {
-				o.addRow("");
-				o.addRedText("Unknown polytype: ["+polyType+"]. Will default to circle");
+				o.addCriticalText("Unknown polytype: ["+polyType+"]. Will default to circle");
 				}
 			}
 		}
@@ -123,8 +122,7 @@ public class AddGisFilter extends Block implements GisFilter {
 					//layersL.setVisibility(View.VISIBLE);
 				}
 			} else {
-				o.addRow("");
-				o.addRedText("Cannot add GisFilter in Block "+blockId+". Cannot find the Layer. Make sure this block comes AFTER the AddGisLayer Block");
+				o.addCriticalText("Cannot add GisFilter in Block "+blockId+". Cannot find the Layer. Make sure this block comes AFTER the AddGisLayer Block");
 			}
 		}
 	}

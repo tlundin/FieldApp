@@ -8,7 +8,7 @@ import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.loadermodule.CSVConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class GroupsConfiguration extends CSVConfigurationModule {
 
-	private final LoggerI o;
+	private final LogRepository o;
 	private boolean scanHeader;
 	private String[] groupsFileHeaderS;
 	private Map <String, List<List<String>>> groups;
@@ -29,11 +29,11 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 	private int nameIndex = -1;
 	private static GroupsConfiguration singleton=null;
 
-	public GroupsConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, String bundle, LoggerI debugConsole) {
+	public GroupsConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String serverOrFile, String bundle, LogRepository debugConsole) {
 		super(context,globalPh,ph, serverOrFile, "Groups", "Group module            ");
 		o = debugConsole;
 		singleton = null;
-		o.addRow("Parsing Groups.csv file");
+		o.addGreenText("Parsing Groups.csv file");
 	}
 
 	public static GroupsConfiguration getSingleton() {
@@ -59,8 +59,8 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 		//Log.d("vortex","group parsing "+row);
 		//if no header, abort.
 		if (scanHeader && row == null) {
-			o.addRow("");
-			o.addRedText("Header missing. Load cannot proceed");
+			
+			o.addCriticalText("Header missing. Load cannot proceed");
 			return new LoadResult(this,ErrorCode.ParseError);
 		}
 		//Scan header.
@@ -68,8 +68,8 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 			Log.d("vortex","Header for groups is "+row);
 
 			groupsFileHeaderS = row.split(",");
-			o.addRow("Header for Groups file: "+row);
-			o.addRow("Has: "+groupsFileHeaderS.length+" elements");
+			o.addText("Header for Groups file: "+row);
+			o.addText("Has: "+groupsFileHeaderS.length+" elements");
 			scanHeader = false;
 			//Go through varpattern. Generate rows for the master table.
 			//...but first - find the key columns in Artlista.
@@ -84,10 +84,10 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 			}
 
 			if (nameIndex ==-1 || groupIndex == -1) {
-				o.addRow("");
-				o.addRedText("Header missing either name or functional group column. Load cannot proceed");
-				o.addRow("Header:");
-				o.addRow(row);
+				
+				o.addCriticalText("Header missing either name or functional group column. Load cannot proceed");
+				o.addText("Header:");
+				o.addText(row);
 				return new LoadResult(this,ErrorCode.ParseError);
 			}
 		} else {
@@ -107,10 +107,10 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 				}
 				elem.add(Arrays.asList(r));
 			} else {
-				o.addRow("");
-				o.addRedText("Impossible to split row #"+currentRow);
-				o.addRow("ROW that I cannot parse:");
-				o.addRow(row);
+				
+				o.addCriticalText("Impossible to split row #"+currentRow);
+				o.addText("ROW that I cannot parse:");
+				o.addText(row);
 				return new LoadResult(this,ErrorCode.ParseError);
 			}
 		}

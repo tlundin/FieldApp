@@ -265,13 +265,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 						Log.d("vortex","sucessfully created statusbutton "+(button instanceof WF_StatusButton));
 					} else {
 						//button=null;
-						o.addRow("");
+						o.addText("");
 						if (buttonContext==null) {
-							o.addRedText("Statusvariable [" + statusVar + "], has something wrong with its context. Check precompile log.");
+							o.addCriticalText("Statusvariable [" + statusVar + "], has something wrong with its context. Check precompile log.");
 							button = null;
 						}
 						Log.d("abba","buttonContext: "+buttonContext.getContext().toString());
-						//o.addRedText("Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
+						//o.addCriticalText("Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 						Log.e("vortex", "Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 
 					}
@@ -444,11 +444,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 								}
 								if (wf == null) {
 									Log.e("NILS", "Cannot find workflow [" + target + "] referenced by button " + getName());
-									o.addRow("");
-									o.addRow("Cannot find workflow [" + target + "] referenced by button " + getName());
+									o.addText("");
+									o.addText("Cannot find workflow [" + target + "] referenced by button " + getName());
 								} else {
-									o.addRow("");
-									o.addRow("Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
+									o.addText("");
+									o.addText("Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
 									Log.d("Vortex", "Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
 									//If the template called is empty, mark this flow as "caller" to make it possible to refresh its ui after call ends.
 									String calledTemplate = wf.getTemplate();
@@ -523,12 +523,12 @@ public  class ButtonBlock extends Block  implements EventListener {
 										}
 										if (photoFile == null) {
 											Log.e("photo", "failed to take picture");
-											o.addRow("");
-											o.addRedText("Failed to take picture. Permission or memory problem. BlockId: " + ButtonBlock.this.getBlockId());
+											o.addText("");
+											o.addCriticalText("Failed to take picture. Permission or memory problem. BlockId: " + ButtonBlock.this.getBlockId());
 										}
 									} else {
-										o.addRow("");
-										o.addRedText("No target (filename) specified for camera action button. BlockId: " + ButtonBlock.this.getBlockId());
+										o.addText("");
+										o.addCriticalText("No target (filename) specified for camera action button. BlockId: " + ButtonBlock.this.getBlockId());
 									}
 								} else if (onClick.equals("barcode")) {
 									Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -611,8 +611,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 
 								} else {
-									o.addRow("");
-									o.addRedText("Action button had no associated action!");
+									o.addText("");
+									o.addCriticalText("Action button had no associated action!");
 								}
 							}
 
@@ -670,8 +670,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 											} else if (exportMethod.startsWith("upload")) {
 
 												if (!Connectivity.isConnected((Activity) ctx)) {
-													o.addRow("");
-													o.addRedText("Export failed - no network");
+													o.addText("");
+													o.addCriticalText("Export failed - no network");
 													msg = "Check your connection and try again";
 													((Activity) ctx).runOnUiThread(new Runnable() {
 														@Override
@@ -683,8 +683,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 												} else {
 													String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
 													if (exportServerURL == PersistenceHelper.UNDEFINED) {
-														o.addRow("");
-														o.addRedText("Export Server URL not defined - Please configure in the Settings Menu");
+														o.addText("");
+														o.addCriticalText("Export Server URL not defined - Please configure in the Settings Menu");
 														msg = "Export Server URL not defined - Please configure in the Settings Menu";
 													} else {
 														String exportFileEndpoint = exportServerURL + "/upload";
@@ -818,8 +818,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 																					.build();
 																			client.newCall(request).enqueue(this);
 																		} else {
-																			o.addRow("");
-																			o.addRedText("Failed to compress bitmap. Export failed");
+																			o.addText("");
+																			o.addCriticalText("Failed to compress bitmap. Export failed");
 																		}
 																	}
 																}
@@ -899,7 +899,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 				myContainer.add(button);
 			} else if (type == Type.toggle) {
 				final String text =this.getText();
-				o.addRow("Creating Toggle Button with text: "+text);
+				o.addText("Creating Toggle Button with text: "+text);
 				Log.d("cair","Creating Toggle Button with text: "+text);
 				final ToggleButton toggleB = new ToggleButton(ctx);
 				//final ToggleButton toggleB = (ToggleButton)LayoutInflater.from(ctx).inflate(R.layout.toggle_button,null);
@@ -917,11 +917,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 					@Override
 					public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 						if(onClick==null||onClick.trim().length()==0) {
-							o.addRow("");
-							o.addRedText("Button "+text+" has no onClick action!");
+							o.addText("");
+							o.addCriticalText("Button "+text+" has no onClick action!");
 							Log.e("cair","Button clicked ("+text+") but found no action");
 						} else {
-							o.addRow("Togglebutton "+text+" pressed. Executing function "+onClick);
+							o.addText("Togglebutton "+text+" pressed. Executing function "+onClick);
 							Log.d("cair","Togglebutton "+text+" pressed. Executing function "+onClick+" I am checked: "+isChecked);
 							String target = getTarget();
 							if (onClick.startsWith("template")) {
@@ -944,8 +944,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 									for (Drawable dd:myContext.getDrawables()) {
 										Log.d("cair",((WF_Widget)dd).getId());
 									}
-									o.addRow("");
-									o.addRedText("Target for button missing: "+target);
+									o.addText("");
+									o.addCriticalText("Target for button missing: "+target);
 								}
 
 							}
@@ -963,8 +963,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 				myContainer.add(button);
 			}
 		} else {
-			o.addRow("");
-			o.addRedText("Failed to add text field block with id "+blockId+" - missing container "+myContainer);
+			o.addText("");
+			o.addCriticalText("Failed to add text field block with id "+blockId+" - missing container "+myContainer);
 		}
 	}
 

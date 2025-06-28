@@ -1,4 +1,4 @@
-package com.teraim.fieldapp.ui;
+package com.teraim.fieldapp.viewmodels;
 
 import android.util.Log;
 
@@ -27,85 +27,94 @@ import java.util.concurrent.Executors;
 public class ModuleLoaderViewModel extends ViewModel {
 
     /**
-         * A helper class to wrap the final result of a workflow execution.
-         */
-        public record WorkflowResult(LoadingStatus status, ModuleRegistry registry) {
-    }
+     * A helper class to wrap the final result of a workflow execution.
+     * The record provides immutable data.
+     */
+    public record WorkflowResult(LoadingStatus status, ModuleRegistry registry) {}
 
-    // LiveData exposed to the UI layer
-    private final MutableLiveData<Event<WorkflowResult>> _finalProcessStatus = new MutableLiveData<>();
-    public LiveData<Event<WorkflowResult>> finalProcessStatus = _finalProcessStatus;
+    // --- 1. LIVE DATA FOR PERSISTENT STATE ---
+    // Observed by UI that needs to reflect the current state (e.g., progress bars).
+    // Multiple observers can safely listen to this.
+    private final MutableLiveData<WorkflowResult> _workflowState = new MutableLiveData<>();
+    public final LiveData<WorkflowResult> workflowState = _workflowState;
 
+    // --- 2. LIVE DATA FOR ONE-TIME SUCCESS EVENT ---
+    // Observed only by components that need to perform a single, non-repeatable action on success.
+    private final MutableLiveData<Event<WorkflowResult>> _onSuccessEvent = new MutableLiveData<>();
+    public final LiveData<Event<WorkflowResult>> onSuccessEvent = _onSuccessEvent;
+
+    // --- LiveData for progress text remains the same ---
     private final MutableLiveData<String> _progressText = new MutableLiveData<>("");
     public final LiveData<String> progressText = _progressText;
 
-    // Executor for one-off background tasks like loading photo metadata.
     private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
-
     private Workflow_I currentWorkflow;
 
-    /**
-     * Executes a workflow. This version reverts to a fully parallel model where
-     * all modules are dispatched immediately for processing.
-     *
-     * @param workflow The workflow to execute.
-     * @param forceReload If true, all modules will be fetched from the server.
-     */
     public void execute(Workflow_I workflow, boolean forceReload) {
-        if (_finalProcessStatus.getValue() != null && _finalProcessStatus.getValue().peekContent().status == LoadingStatus.LOADING) {
+        // Check the STATE LiveData for a running process
+        if (_workflowState.getValue() != null && _workflowState.getValue().status() == LoadingStatus.LOADING) {
             Log.w("ModuleLoaderViewModel", "Execution request ignored: a workflow is already running.");
             return;
         }
-        _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.LOADING, null)));
+        // Post the initial loading status to the STATE LiveData
+        _workflowState.postValue(new WorkflowResult(LoadingStatus.LOADING, null));
 
         final ModuleRegistry registry = new ModuleRegistry();
         this.currentWorkflow = workflow;
 
-        // The initial setup work now runs directly on the calling thread (main thread).
-        // This may cause a brief "skipped frames" warning but avoids the slowdown and
-        // errors from the previous sequential pre-check model.
         LoadJob initialJob = workflow.getInitialJob();
         if (initialJob == null || initialJob.modules.isEmpty()) {
-            _finalProcessStatus.setValue(new Event<>(new WorkflowResult(LoadingStatus.SUCCESS,registry)));
+            // Handle early success: post to both STATE and EVENT
+            WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
+            _workflowState.setValue(successResult);
+            _onSuccessEvent.setValue(new Event<>(successResult));
             return;
         }
 
-        // Directly call runJob, which will set up the parallel loader.
         runJob(initialJob, forceReload, registry, workflow);
     }
 
-    /**
-     * Runs a specific job in the workflow. This method MUST be called on the main thread
-     * because it sets up LiveData observers.
-     */
     private void runJob(final LoadJob job, final boolean forceReload, final ModuleRegistry registry, final Workflow_I workflow) {
         StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage, forceReload);
 
-        // These observeForever calls are safe because execute() ensures runJob is on the main thread.
+        // IMPORTANT NOTE on observeForever:
+        // This pattern is risky. If the removeObserver call is ever missed due to an error,
+        // it will cause a memory leak. The code below correctly removes it, but a safer,
+        // more modern approach would involve LiveData Transformations or Kotlin Flows.
         loader.progressText.observeForever(_progressText::postValue);
         loader.loadingStatus.observeForever(new Observer<>() {
             @Override
             public void onChanged(LoadCompletionEvent completionEvent) {
-                loader.loadingStatus.removeObserver(this);
-                loader.progressText.removeObserver(_progressText::postValue);
 
                 if (completionEvent.status == LoadingStatus.SUCCESS) {
                     registry.add(job.modules);
                     LoadJob nextJob = workflow.getNextJob(registry);
                     if (nextJob != null && forceReload) {
+                        // This is an intermediate success, recurse to the next job
                         runJob(nextJob, true, registry, workflow);
                     } else {
-                        _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.SUCCESS, registry)));
+                        // This is the FINAL success. Post to both STATE and EVENT streams.
+                        Log.d("ViewModel", "Final SUCCESS. Posting state and event.");
+                        WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
+                        _workflowState.postValue(successResult);
+                        _onSuccessEvent.postValue(new Event<>(successResult));
+                        // Cleanup is crucial when using observeForever
+                        loader.loadingStatus.removeObserver(this);
+                        loader.progressText.removeObserver(_progressText::postValue);
                     }
                 } else {
-                    _finalProcessStatus.postValue(new Event<>(new WorkflowResult(LoadingStatus.FAILURE, null)));
+                    // On failure, we only update the STATE.
+                    Log.d("ViewModel", "FAILURE. Posting state.");
+                    _workflowState.postValue(new WorkflowResult(LoadingStatus.FAILURE, null));
+                    // Cleanup is crucial when using observeForever
+                    loader.loadingStatus.removeObserver(this);
+                    loader.progressText.removeObserver(_progressText::postValue);
                 }
             }
         });
 
         loader.startLoading();
     }
-
     public LiveData<CreateGisBlock.GisResult> loadPhotoMetadata(ConfigurationModule metadataModule, String cacheFolder, String imageFileName) {
         MutableLiveData<CreateGisBlock.GisResult> resultLiveData = new MutableLiveData<>();
         metadataModule.load(singleTaskExecutor, new ModuleLoaderCb() {

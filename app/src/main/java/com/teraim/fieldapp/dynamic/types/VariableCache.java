@@ -5,7 +5,7 @@ import android.util.Log;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Variable.DataType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.DbHelper.TmpVal;
@@ -30,7 +30,7 @@ public class VariableCache {
     //private Map<String,List<Variable>> oldcache = new ConcurrentHashMap<String,List<Variable>>();
     private final Map<Map<String, String>, Map<String, Variable>> newcache = new HashMap<Map<String, String>, Map<String, Variable>>();
     private final GlobalState gs;
-    private final LoggerI o;
+    private final LogRepository o;
     private Map<String, Variable> currentCache, globalCache;
     private Map<String, String> currentHash;
     private DB_Context myDbContext;
@@ -112,9 +112,9 @@ public class VariableCache {
                 preCache.get(uid).put(varId, v);
             }
             p.close();
+
         }
         Log.d("spandex","precache time: "+(System.currentTimeMillis()-time)+" precache size "+preCache.size());
-
     }
 
     public Map<String, Variable> createOrGetCache(Map<String, String> myKeyHash) {
@@ -341,7 +341,6 @@ public class VariableCache {
             List<String> row = gs.getVariableConfiguration().getCompleteVariableDefinition(varId);
             if (row == null) {
                 Log.e("vortex", "Variable definition missing for " + varId);
-                o.addRow("");
                 o.addYellowText("Variable definition missing for " + varId);
                 return null;
 

@@ -432,4 +432,8 @@ public class WF_Context {
     public boolean isCaller() {
 		return isCaller;
 	}
+
+    public boolean isWorkFlowEnded() {
+		return myEndIsNear;
+    }
 }

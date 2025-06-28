@@ -2,7 +2,7 @@ package com.teraim.fieldapp.loadermodule;
 
 import android.content.Context;
 
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -21,19 +21,19 @@ public abstract class XMLConfigurationModule extends ConfigurationModule {
 	protected abstract LoadResult parse(XmlPullParser parser) throws XmlPullParserException, IOException;
 	
 	//Skips entry...return one level up in recursion if end reached.
-	protected void skip(String name,XmlPullParser parser, LoggerI o) throws XmlPullParserException, IOException {
+	protected void skip(String name,XmlPullParser parser, LogRepository o) throws XmlPullParserException, IOException {
 		if (parser.getEventType() != XmlPullParser.START_TAG) {
 			if (o!=null) { 
-				o.addRow("");
-				o.addRedText("IllegalStateException while trying to read START_TAG");
+				
+				o.addCriticalText("IllegalStateException while trying to read START_TAG");
 			}
 			throw new IllegalStateException();
 
 		}
 		if (o!=null) {
-			o.addRow("");
+			
 			if ("workflow".equals(name)) {
-				o.addRedText("Closing tag for workflow missing. Aborting");
+				o.addCriticalText("Closing tag for workflow missing. Aborting");
 				throw new XmlPullParserException("Workflow closing tag missing");
 			} else {		
 			o.addYellowText("Skipped TAG: ["+name+"]");

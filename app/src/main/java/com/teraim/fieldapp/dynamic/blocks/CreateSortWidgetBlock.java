@@ -10,6 +10,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_List;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_SorterWidget;
+import com.teraim.fieldapp.log.LogRepository;
 
 public class CreateSortWidgetBlock extends Block {
 
@@ -38,7 +39,7 @@ public class CreateSortWidgetBlock extends Block {
 
 	public void create(WF_Context ctx) {
 
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		//Identify targetList. If no list, no game.
 		Container myContainer = ctx.getContainer(containerId);
 		if (myContainer != null)  {
@@ -46,19 +47,19 @@ public class CreateSortWidgetBlock extends Block {
 		//Log.d("nils","Sort target is "+target);
             Filterable targetList = ctx.getFilterable(target);
 		if (targetList == null) {
-			o.addRow("");
-			o.addRedText("couldn't create sortwidget - could not find target list: "+target);
+			o.addText("");
+			o.addCriticalText("couldn't create sortwidget - could not find target list: "+target);
 			
 		}
 		else {
-			o.addRow("Adding new SorterWidget of type "+type);
+			o.addText("Adding new SorterWidget of type "+type);
 			myContainer.add(new WF_SorterWidget(name,ctx,type,((WF_List) targetList),((WF_Container)myContainer).getViewGroup(), selF,dispF,selP,isVisible));
 			//myContainer.add(new WF_Widget(buttonPanel));
 		}
 		
 		} else {
-			o.addRow("");
-			o.addRedText("Failed to add sortwidget block with id "+blockId+" - missing container "+containerId);
+			o.addText("");
+			o.addCriticalText("Failed to add sortwidget block with id "+blockId+" - missing container "+containerId);
 		}
 
 	}

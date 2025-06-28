@@ -24,7 +24,7 @@ import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.synchronization.SyncEntry;
 import com.teraim.fieldapp.synchronization.SyncEntryHeader;
@@ -168,11 +168,8 @@ public class DbHelper extends SQLiteOpenHelper {
             return newKeyHash;
         }
         Log.e("vortex","failed to resolve unknown");
-        LoggerI o = GlobalState.getInstance().getLogger();
-        if (o!=null) {
-            o.addRow("");
-            o.addRedText("Failed to resolve unknown in context "+myKeyHash);
-        }
+        LogRepository o = LogRepository.getInstance();
+        o.addCriticalText("Failed to resolve unknown in context "+myKeyHash);
         c.close();
         return null;
     }
@@ -609,14 +606,14 @@ public class DbHelper extends SQLiteOpenHelper {
                 final Report res;
                 if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.getData())) {
                     Log.d("nils", "Exported file succesfully");
-                    LoggerI logger = GlobalState.getInstance().getLogger();
+                    LogRepository logger = LogRepository.getInstance();
                     logger.addCriticalText("Exported to folder: "+exportFolder);
                     c.close();
                     res = r;
                 } else {
                     Log.e("nils", "Export of file failed");
                     c.close();
-                    GlobalState.getInstance().getLogger().addRow("EXPORT FILENAME: [" + exportFolder + exportFileName + "." + exporter.getType() + "]");
+                    LogRepository.getInstance().addText("EXPORT FILENAME: [" + exportFolder + exportFileName + "." + exporter.getType() + "]");
                     res = new Report(ExportReport.FILE_WRITE_ERROR);
                 }
                 final Activity act = (Activity) exporter.getContext();
@@ -1372,20 +1369,20 @@ public class DbHelper extends SQLiteOpenHelper {
         //Create selection String.
 
         //If keyset is null, the variable is potentially global with only name as a key.
-        String selection = "";
+        StringBuilder selection = new StringBuilder();
         if (keySet != null) {
             //Does not exist...need to create.
-            selection = "";
             //1.find the matching column.
             for (String key : keySet.keySet()) {
                 key = getDatabaseColumnName(key);
 
-                selection += key + "= ? and ";
+                selection.append(key);
+                selection.append("= ? and ");
 
             }
         }
-        selection += "var= ?";
-        ret.selection = selection;
+        selection.append("var= ?");
+        ret.selection = selection.toString();
         //Log.d("nils","created new selection: "+selection);
         ret.selectionArgs = createSelectionArgs(keySet, name);
         //Log.d("nils","CREATE SELECTION RETURNS: "+ret.selection+" "+print(ret.selectionArgs));
@@ -1487,7 +1484,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
 
-    public SyncReport insertSyncEntries(SyncReport changes, SyncEntry[] ses, LoggerI o) {
+    public SyncReport insertSyncEntries(SyncReport changes, SyncEntry[] ses, LogRepository o) {
 
         if (ses == null || ses.length==0) {
             Log.d("sync", "syncentry contained no data");
@@ -1634,8 +1631,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     Log.d("bascar","Affected rows in database:" +affectedRows);
 
                 } else {
-                    o.addRow("");
-                    o.addRedText("DB_ERASE Failed. Message corrupt");
+                    o.addCriticalText("DB_ERASE Failed. Message corrupt");
                     changes.faults++;
                 }
             } else {
@@ -1732,7 +1728,7 @@ public class DbHelper extends SQLiteOpenHelper {
         return variableName.startsWith("STATUS:status_ruta");
     }
 
-    public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LoggerI o, SyncStatusListener syncListener) {
+    public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LogRepository o, SyncStatusListener syncListener) {
         if (ses == null) {
             Log.d("sync", "ses är tom! i synchronize");
             return null;
@@ -1903,7 +1899,7 @@ public class DbHelper extends SQLiteOpenHelper {
                             }
                         } else {
                             changes.refused++;
-                            //                        o.addRow("");
+                            //                        o.addText("");
                             //                        o.addYellowText("DB_INSERT REFUSED: " + name + " Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp +" value: "+myValue);
                             //                        Log.d("vortex", "DB_INSERT REFUSED: " + name + " Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp +" value: "+myValue);
                         }
@@ -1987,7 +1983,7 @@ public class DbHelper extends SQLiteOpenHelper {
                             } else {
                                 changes.refused++;
                                 Log.d("sync", "Did not delete.");
-                                //                       o.addRow("");
+                                //                       o.addText("");
                                 //                       o.addYellowText("DB_DELETE REFUSED: " + name);
                                 //                       if (hasValueAlready)
                                 //                           o.addYellowText(" Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp);
@@ -2006,13 +2002,11 @@ public class DbHelper extends SQLiteOpenHelper {
                             int affectedRows = this.erase(keyPairs, pattern);
                             resetCache = true;
                             //Invalidate Cache...purposeless to invalidate only part.
-                            o.addRow("");
                             o.addGreenText("DB_ERASE message executed in sync");
                             changes.deletes += affectedRows;
 
                         } else {
-                            o.addRow("");
-                            o.addRedText("DB_ERASE Failed. Message corrupt");
+                            o.addCriticalText("DB_ERASE Failed. Message corrupt");
                             changes.faults++;
                         }
                     }
@@ -2029,16 +2023,16 @@ public class DbHelper extends SQLiteOpenHelper {
 
             //Add instructions in log if conflicts.
             if (changes.conflicts > 0) {
-                o.addRow("");
-                o.addRedText("You *may* have sync conflicts in the following workflow(s): ");
+                o.addText("");
+                o.addCriticalText("You *may* have sync conflicts in the following workflow(s): ");
                 int i = 1;
                 for (String flow : conflictFlows) {
-                    o.addRow("");
-                    o.addRedText(i + ".: " + flow);
+                    o.addText("");
+                    o.addCriticalText(i + ".: " + flow);
                     i++;
                 }
 
-                o.addRedText("Verify that the values are correct. If not, make corrections and resynchronise!");
+                o.addCriticalText("Verify that the values are correct. If not, make corrections and resynchronise!");
             }
             if (resetCache)
                 vc.reset();
@@ -2340,9 +2334,8 @@ public class DbHelper extends SQLiteOpenHelper {
         Variable gpsCoord = GlobalState.getInstance().getVariableCache().getVariable(go.getKeyHash(), GisConstants.GPS_Coord_Var_Name);
         Variable geoType = GlobalState.getInstance().getVariableCache().getVariable(go.getKeyHash(), GisConstants.Geo_Type);
         if (gpsCoord == null || geoType == null) {
-            LoggerI o = GlobalState.getInstance().getLogger();
-            o.addRow("");
-            o.addRedText("Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
+            LogRepository o = LogRepository.getInstance();
+            o.addCriticalText("Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
             Log.e("vortex", "Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
             return;
         }

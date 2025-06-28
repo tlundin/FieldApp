@@ -60,8 +60,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 				else {
 					if (!addVarCalled) {
 						if (o!=null) {
-							o.addRow("");
-							o.addRedText("Variable not added to entry field. Could you be missing 'block_add_variable_to_entry_field' on clickablefield " + WF_ClickableField_Slider.this.getId());
+							o.addText("");
+							o.addCriticalText("Variable not added to entry field. Could you be missing 'block_add_variable_to_entry_field' on clickablefield " + WF_ClickableField_Slider.this.getId());
 						}
 						Log.e("vortex", "Addvar was never called on clickablefield " + WF_ClickableField_Slider.this.getId());
 					}
@@ -158,8 +158,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			String varId = "<null_value_given>";
 			if (var!=null)
 				varId = var.getId();
-				o.addRow("");
-				o.addRedText("Attempt to add more than one variable to slider entryfield. Variable not added: " +varId);
+				o.addText("");
+				o.addCriticalText("Attempt to add more than one variable to slider entryfield. Variable not added: " +varId);
 
 			return;
 		}
@@ -189,14 +189,14 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 		if (val!=null && (val>max||val<min)) {
 			Log.e("vortex","variable out of boundaries");
-			o.addRow("");
-			o.addRedText("Variable "+var.getId()+" is out of boundaries for slider. Value: "+val+" Min Max: ["+min+","+max+"]");
+			o.addText("");
+			o.addCriticalText("Variable "+var.getId()+" is out of boundaries for slider. Value: "+val+" Min Max: ["+min+","+max+"]");
 			if (val > max)
 				max = val;
 			else
 				min = val;
-			o.addRow("");
-			o.addRedText("Readjusted bonds to [" + min + "," + max + "]");
+			o.addText("");
+			o.addCriticalText("Readjusted bonds to [" + min + "," + max + "]");
 
 		}
 
@@ -212,8 +212,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 		} else {
 			Log.e("vortex", "cannot initialize seekbar! empty? " + myVars.isEmpty());
-			o.addRow("");
-			o.addRedText("Cannot initialize seekbar with variable "+var.getId()+".");
+			o.addText("");
+			o.addCriticalText("Cannot initialize seekbar with variable "+var.getId()+".");
 			return;
 		}
 		Log.d("vortex","Calling initialize seekbar for "+var.getId()+" with value "+var.getValue());
@@ -234,8 +234,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 				});
 				//sb.setProgress(value);
             } catch (NumberFormatException e) {
-				o.addRow("");
-				o.addRedText("The variable used for slider " + this.getId() + " is not containing a numeric value");
+				o.addText("");
+				o.addCriticalText("The variable used for slider " + this.getId() + " is not containing a numeric value");
 			}
 
 		}
@@ -261,8 +261,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			if (var!=null && var.getValue()!=null)
 				return Integer.parseInt(var.getValue());
 		} catch (NumberFormatException e) {
-			o.addRow("");
-			o.addRedText("The variable used for slider " + this.getId() + " is not containing a numeric value: "+var.getValue());
+			o.addText("");
+			o.addCriticalText("The variable used for slider " + this.getId() + " is not containing a numeric value: "+var.getValue());
 		}
 		Log.d("vortex","var null or integer exep in getSliderValue for "+this.getName());
 		return null;

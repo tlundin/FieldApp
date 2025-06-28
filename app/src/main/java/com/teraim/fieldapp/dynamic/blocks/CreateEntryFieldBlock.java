@@ -68,11 +68,11 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 			Log.d("vortex","current hash: "+ gs.getVariableCache().getContext());
 			Variable v = gs.getVariableCache().getVariable(name,initialValue,-1);
 			if (v == null) {
-				o.addRow("");
-				o.addRedText("Failed to create entryfield for block " + blockId);
+				o.addText("");
+				o.addCriticalText("Failed to create entryfield for block " + blockId);
 				Log.d("nils", "Variable " + name + " referenced in block_create_entry_field not found.");
-				o.addRedText("Variable ["+name+"] referenced in block_create_entry_field not found.");
-				o.addRedText("Current DB Context: ["+ gs.getVariableCache().getContext()+"]");
+				o.addCriticalText("Variable ["+name+"] referenced in block_create_entry_field not found.");
+				o.addCriticalText("Current DB Context: ["+ gs.getVariableCache().getContext()+"]");
 			} else	{	
 				myField = new WF_ClickableField_Selection_OnSave(label==null||label.equals("")?v.getLabel():label,
 						al.getDescription(v.getBackingDataSet()),myContext,name,isVisible,autoOpenSpinner,this);
@@ -82,7 +82,7 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 				myContext.addDrawable(v.getId(), myField);
 
 				Log.d("vortex","Adding Entryfield "+v.getId()+" to container "+containerId);
-				o.addRow("Adding Entryfield "+v.getId()+" to container "+containerId);
+				o.addText("Adding Entryfield "+v.getId()+" to container "+containerId);
 				myContainer.add(myField);
 				//				myField.refreshInputFields();	
 				//myField.refresh();
@@ -92,8 +92,8 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 			return v;
 		} else {
 			Log.e("vortex","Container null! Cannot add entryfield!");
-			o.addRow("");
-			o.addRedText("Adding Entryfield for "+name+" failed. Container "+containerId+" not configured");
+			o.addText("");
+			o.addCriticalText("Adding Entryfield for "+name+" failed. Container "+containerId+" not configured");
 			return null;
 		}
 	}

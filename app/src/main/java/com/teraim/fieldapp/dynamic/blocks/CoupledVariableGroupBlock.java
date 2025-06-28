@@ -11,6 +11,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_ClickableField;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_ClickableField_Slider;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Tools;
 
@@ -92,8 +93,8 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
             Log.d("vortex","in onSave with "+ argument);
             if (!Tools.isNumeric(argument)){
                 Log.d("vortex","cannot calibrate...argument evaluates to non numeric: "+ argument);
-                o.addRow("");
-                o.addRedText("Argument to SUM in SliderGroup "+getName()+" is not numeric: "+ argument +" Expr: "+argumentE);
+                o.addText("");
+                o.addCriticalText("Argument to SUM in SliderGroup "+getName()+" is not numeric: "+ argument +" Expr: "+argumentE);
                 return;
             }
             final int sumToReach = Integer.parseInt(argument);
@@ -244,9 +245,9 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         if (isOutside) {
             Log.d("vortex","over Max or below min: "+sumToReach+", "+allSlidersTogether.min
                     +" , "+allSlidersTogether.max);
-            o = GlobalState.getInstance().getLogger();
-            o.addRow("");
-            o.addRedText("Argument to SUM in SliderGroup "+getName()+" is not possible to reach: "+sumToReach+". Outside the range: "+allSlidersTogether.min+" - "+allSlidersTogether.max);
+            o = LogRepository.getInstance();
+            o.addText("");
+            o.addCriticalText("Argument to SUM in SliderGroup "+getName()+" is not possible to reach: "+sumToReach+". Outside the range: "+allSlidersTogether.min+" - "+allSlidersTogether.max);
             return;
         }
         final List<WF_ClickableField_Slider> slidersToCalibrate= new LinkedList<>(sliders);

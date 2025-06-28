@@ -5,6 +5,7 @@ import android.util.Log;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
+import com.teraim.fieldapp.log.LogRepository;
 
 public class AddVariableToEveryListEntryBlock extends Block {
 
@@ -43,9 +44,9 @@ public class AddVariableToEveryListEntryBlock extends Block {
 
 		final WF_Static_List l = myContext.getList(target);
 		if (l==null) {
-			o = GlobalState.getInstance().getLogger();
-			o.addRow("");
-			o.addRedText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
+			o = LogRepository.getInstance();
+			o.addText("");
+			o.addCriticalText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
         } else {
 			Log.d("nils","Calling AddVariableToEveryListEntry for list "+l.getId()+"and suffix "+variableSuffix);
             l.addVariableToEveryListEntry(variableSuffix, displayOut, format, isVisible, showHistorical, initialValue);

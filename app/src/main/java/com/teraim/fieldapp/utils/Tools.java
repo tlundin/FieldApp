@@ -34,23 +34,15 @@ import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.blocks.Block;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.LoadResult;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
-import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.utils.DbHelper.Selection;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -64,7 +56,6 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.StreamCorruptedException;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
@@ -72,9 +63,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -467,7 +455,7 @@ public class Tools {
 		return Unit.nd;
 	}
 
-	private static void createFoldersIfMissing(File file) {
+	public static void createFoldersIfMissing(File file) {
 		final File parent_directory = file.getParentFile();
 
 		if (null != parent_directory)
@@ -812,7 +800,7 @@ public class Tools {
 		VariableConfiguration al = gs.getVariableConfiguration();
 		VariableCache vc = gs.getVariableCache();
 
-		LoggerI o = gs.getLogger();
+		LogRepository o = gs.getLogger();
 		List<String>listValues = al.getListElements(variable.getBackingDataSet());
 		Log.d("nils","Found dynamic list definition for variable "+variable.getId()+": "+listValues);
 
@@ -830,8 +818,8 @@ public class Tools {
 					column[0]=dbColName;
 				} else {
 					Log.d("nils","Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
-					o.addRow("");
-					o.addRedText("Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
+					o.addText("");
+					o.addCriticalText("Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
 					error = true;
 				}
 				if (!error) {
@@ -849,13 +837,13 @@ public class Tools {
 									keySet.put(keyPair[0], valx);
 								else {
 									Log.e("nils","The variable "+keyPair[1]+" used for dynamic list "+variable.getLabel()+" is not returning a value");
-									o.addRow("");
-									o.addRedText("The variable "+keyPair[1]+" used for dynamic list "+variable.getLabel()+" is not returning a value");
+									o.addText("");
+									o.addCriticalText("The variable "+keyPair[1]+" used for dynamic list "+variable.getLabel()+" is not returning a value");
 								}
 							} else {
 								Log.d("nils","Keypair error: "+ Arrays.toString(keyPair));
-								o.addRow("");
-								o.addRedText("Keypair referenced in List definition for variable "+variable.getLabel()+" cannot be read: "+ Arrays.toString(keyPair));
+								o.addText("");
+								o.addCriticalText("Keypair referenced in List definition for variable "+variable.getLabel()+" cannot be read: "+ Arrays.toString(keyPair));
 							}
 						}
 
@@ -1069,8 +1057,8 @@ public class Tools {
 			int hakeE = varString.indexOf(']', hakeS);
 			if (hakeE==-1) {
 				Log.e("vortex","missing end bracket in parseString: "+varString);
-				GlobalState.getInstance().getLogger().addRow("");
-				GlobalState.getInstance().getLogger().addRedText("missing end bracket in parseString: "+varString);
+				LogRepository.getInstance().addText("");
+				LogRepository.getInstance().addCriticalText("missing end bracket in parseString: "+varString);
 				break;
 			}
 			//Log.e("vortex","PARSESTRING: "+varString.substring(hakeS, hakeE));
@@ -1102,7 +1090,7 @@ public class Tools {
 	 */
 
 
-	public static void preCacheImage(String serverFileRootDir, final String fileName, final String cacheFolder, final LoggerI logger) {
+	public static void preCacheImage(String serverFileRootDir, final String fileName, final String cacheFolder, final LogRepository logger) {
 
 		onLoadCacheImage (serverFileRootDir,fileName,cacheFolder,new WebLoaderCb(){
 			@Override
@@ -1110,12 +1098,11 @@ public class Tools {
 				if (logger!=null) {
 
 					if (result) {
-						logger.addRow("Succesfully cached " + fileName);
+						logger.addText("Succesfully cached " + fileName);
 						Log.d("vortex","Cached "+fileName);
 					}
 					else {
-						logger.addRow("");
-						logger.addRedText("Failed to cache "+fileName);
+						logger.addCriticalText("Failed to cache "+fileName);
 						Log.e("vortex","Failed to cache "+fileName);
 					}
 				}
@@ -1276,19 +1263,17 @@ public class Tools {
 			return null;
 	}
 
-	public static void printErrorToLog(LoggerI o, Exception e, String blockP) {
-		o.addRow("");
+	public static void printErrorToLog(LogRepository o, Exception e, String blockP) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		if (blockP != null) {
-			o.addRedText("Error executing BLOCK with "+blockP);
-			o.addRow("");
+			o.addCriticalText("Error executing BLOCK with "+blockP);
 		}
 		if (e!=null) {
 			e.printStackTrace(pw);
 			e.printStackTrace();
 		}
-		o.addRedText(sw.toString());
+		o.addText(sw.toString());
 
 	}
 

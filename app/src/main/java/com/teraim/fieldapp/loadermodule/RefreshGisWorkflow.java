@@ -5,15 +5,11 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Table;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GISListConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GisObjectConfiguration;
-import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
-import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +25,7 @@ public class RefreshGisWorkflow implements Workflow_I {
     private final Context context;
     private final PersistenceHelper globalPh;
     private final PersistenceHelper ph;
-    private final LoggerI debugConsole;
+    private final LogRepository debugConsole;
     private final GlobalState gs;
 
     public RefreshGisWorkflow(Context context, GlobalState gs) {
@@ -82,7 +78,7 @@ public class RefreshGisWorkflow implements Workflow_I {
     private final List<String> provyteTyper = java.util.Arrays.asList("akerkant","hallmarkspolygon","lansgras","kraftledningsvkbio","lansvat",
             "patrullstigsvkbio","akerkant","kraftledning","basiskberghall","patrullstig",
             "hallmarkstorr","lovang","basiskberghallpolygon","slatterang","kalkmark");
-    private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, LoggerI debugConsole,ModuleRegistry registry) {
+    private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, LogRepository debugConsole,ModuleRegistry registry) {
         List<ConfigurationModule> modules = new ArrayList<>();
             for (String provyta : provyteTyper) {
                     Log.d("Workflow", "Adding Module " + provyta);

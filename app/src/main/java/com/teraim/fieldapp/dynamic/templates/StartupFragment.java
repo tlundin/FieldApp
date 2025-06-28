@@ -2,6 +2,7 @@ package com.teraim.fieldapp.dynamic.templates;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
@@ -35,7 +37,7 @@ import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.MenuActivity;
-import com.teraim.fieldapp.ui.ModuleLoaderViewModel;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -131,45 +133,38 @@ public class StartupFragment extends Executor {
 
         // Set up the listener for the reload button
         loadConfigurationButton.setOnClickListener(v -> showReloadDialog());
+        if (GlobalState.getInstance() == null) {
+            viewModel.workflowState.observe(getViewLifecycleOwner(), result -> {
+                if (result == null) return;
+                // This UI just needs to know the current state to show/hide the progress bar.
+                // It will correctly re-evaluate on screen rotation.
+                boolean startupFailed = false;
 
-        // Set up the observer for the final completion status of the loading process
-        // This will now receive a result object containing the ModuleRegistry on success.
-        viewModel.finalProcessStatus.observe(getViewLifecycleOwner(), event -> {
-            // event is now an Event<WorkflowResult> object.
-            // We must get its content, which will be null if it has already been handled.
-            ModuleLoaderViewModel.WorkflowResult workflowResult = event.getContentIfNotHandled();
-
-            // If the result is null, it means the event was already processed.
-            // This elegantly handles configuration changes (like screen rotation).
-            if (workflowResult == null) {
-                Log.d("StartupFragment", "Event was already handled. Ignoring.");
-                return;
-            }
-
-            // Now we can safely use the workflowResult object.
-            switch (workflowResult.status()) {// Corrected: Access status on the unwrapped result
-                case SUCCESS:
-                    // The check for a pre-handled event is now done above.
-                    // This block will only execute ONCE for each new SUCCESS event.
-                    Log.d("StartupFragment", "Load successful. Finalizing setup.");
-                    // Pass the completed ModuleRegistry to the startApplication method.
-                    // Corrected: Access registry on the unwrapped result
-                    startApplication(workflowResult.registry()); // Use .registry() if it's a record
-                    break;
-                case FAILURE:
-                    Log.d("StartupFragment", "Load failed.");
-                    showErrorDialog("An error occurred during loading. Please check your connection and try again.");
-                    break;
-                case LOADING:
-                    // The shared UI indicator in the Activity handles this state.
-                    break;
-            }
-        });
-
-        if (GlobalState.getInstance() !=null && wf!=null) {
-			Log.d("gipp", "Executing workflow main in Startup ");
+                switch (result.status()) {
+                    case LOADING:
+                        Log.d("StartupFragment", "Loading....");
+                        break;
+                    case SUCCESS:
+                        Log.d("StartupFragment", "Load successful. Finalizing setup.");
+                        // Pass the completed ModuleRegistry to the startApplication method.
+                        // Corrected: Access registry on the unwrapped result
+                        startupFailed = startApplication(result.registry()); // Use .registry() if it's a record
+                        break;
+                    case FAILURE:
+                        startupFailed = true;
+                        showErrorDialog("An error occurred during loading. Please check your connection and try again.");
+                        break;
+                }
+                if (startupFailed) {
+                    Intent intent = new Intent();
+                    intent.setAction(MenuActivity.INITFAILED);
+                    LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
+                }
+            });
+        } else {
             run();
-		}
+        }
+
     }
 
     @Override
@@ -196,6 +191,9 @@ public class StartupFragment extends Executor {
         if (loadAllModules && GlobalState.getInstance() != null) {
             GlobalState.destroy();
         }
+        Intent intent = new Intent();
+        intent.setAction(MenuActivity.INITSTARTS);
+        LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
 
         // The fragment's job is now extremely simple:
         // 1. Create the workflow definition.
@@ -211,12 +209,12 @@ public class StartupFragment extends Executor {
      * It initializes the GlobalState and navigates to the main workflow of the app.
      * @param moduleRegistry The completed registry containing all loaded modules.
      */
-    private void startApplication(ModuleRegistry moduleRegistry) {
+    private boolean startApplication(ModuleRegistry moduleRegistry) {
         // This logic is ported from the old LoginConsoleFragment.
         WorkFlowBundleConfiguration wfC = (WorkFlowBundleConfiguration) moduleRegistry.getModule(bundleName);
         if (wfC == null) {
             showErrorDialog("Workflow bundle configuration failed to load. Cannot start application.");
-            return;
+            return true;
         }
 
         List<Workflow> workflows = wfC.getEssence();
@@ -226,11 +224,11 @@ public class StartupFragment extends Executor {
 
         if (t == null) {
             showErrorDialog("Variable configuration (Table) is null. Cannot start application.");
-            return;
+            return true;
         }
 
         DbHelper myDb = new DbHelper(requireActivity().getApplicationContext(), t, globalPh, ph, bundleName);
-        gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, startInstance.getLogger(), myDb, workflows, t, sd, "", imgMetaFormat);
+        gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, myDb, workflows, t, sd, "", imgMetaFormat);
 
         if (gs.getBackupManager().timeToBackup()) {
             gs.getBackupManager().backUp();
@@ -246,6 +244,7 @@ public class StartupFragment extends Executor {
         gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
         startInstance.changePage(wf, null);
+        return false;
     }
 
 
@@ -262,7 +261,7 @@ public class StartupFragment extends Executor {
                             GlobalState.getInstance().getDrawerMenu().clear();
                             GlobalState.destroyInstance();
                         }
-                        startLoadingProcess(true);
+                        Tools.restart(this.getActivity());
                     })
                     .setNegativeButton("Cancel", null)
                     .setIcon(android.R.drawable.ic_dialog_alert)

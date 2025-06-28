@@ -65,18 +65,18 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 			Log.d("vortex","In slider create with hash: "+ gs.getVariableCache().getContext());
 			Variable v = gs.getVariableCache().getVariable(variableName,initialValue,-1);
 			if (v == null) {
-				o.addRow("");
-				o.addRedText("Failed to create entryfield for block " + blockId);
+				o.addText("");
+				o.addCriticalText("Failed to create entryfield for block " + blockId);
 				Log.d("nils", "Variable " + variableName + " referenced in block_create_entry_field not found.");
-				o.addRow("");
-				o.addRedText("Variable ["+variableName+"] referenced in block_create_slider_entry_field "+this.getBlockId()+" not found.");
-				o.addRow("");
-				o.addRedText("Current context: ["+ gs.getVariableCache().getContext()+"]");
+				o.addText("");
+				o.addCriticalText("Variable ["+variableName+"] referenced in block_create_slider_entry_field "+this.getBlockId()+" not found.");
+				o.addText("");
+				o.addCriticalText("Current context: ["+ gs.getVariableCache().getContext()+"]");
 			} else {
 				if (v.getType()!= Variable.DataType.numeric ) {
 					Log.d("vortex","variable "+variableName+" is not numeric in create_slider.");
-					o.addRow("");
-					o.addRedText("Variable ["+variableName+"] referenced in block_create_slider_field "+this.getBlockId()+" is not of type numeric");
+					o.addText("");
+					o.addCriticalText("Variable ["+variableName+"] referenced in block_create_slider_field "+this.getBlockId()+" is not of type numeric");
 					return null;
 				}
 				Log.d("vortex", "current hash: " + gs.getVariableCache().getContext());
@@ -87,7 +87,7 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 				myContext.addDrawable(v.getId(), myField);
 
 				Log.d("vortex", "Adding Entryfield " + getName() + " to container " + containerId);
-				o.addRow("Adding Entryfield " + getName() + " to container " + containerId);
+				o.addText("Adding Entryfield " + getName() + " to container " + containerId);
 				myContainer.add(myField);
 				//				myField.refreshInputFields();	
 				//myField.refresh();
@@ -96,8 +96,8 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 
 		} else {
 			Log.e("vortex","Container null! Cannot add entryfield!");
-			o.addRow("");
-			o.addRedText("Adding Entryfield for "+name+" failed. Container not configured");
+			o.addText("");
+			o.addCriticalText("Adding Entryfield for "+name+" failed. Container not configured");
 
 		}
 		return null;

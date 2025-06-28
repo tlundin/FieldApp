@@ -1,7 +1,5 @@
 package com.teraim.fieldapp.dynamic.blocks;
-
-import com.teraim.fieldapp.log.LoggerI;
-
+import com.teraim.fieldapp.log.LogRepository;
 import java.io.Serializable;
 
 /**
@@ -13,7 +11,7 @@ import java.io.Serializable;
 public abstract  class Block implements Serializable {
 
 	protected final String s_type;
-	protected transient LoggerI o;
+	protected transient LogRepository o;
 	String blockId;
 
 	protected Block() {

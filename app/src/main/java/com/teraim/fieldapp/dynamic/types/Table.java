@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -208,9 +208,7 @@ public class Table implements Serializable {
 				result = row.get(index);
 			//Log.d("nils","found field "+columnName+": "+result+" in class Table");
 		} else {
-			LoggerI o = GlobalState.getInstance().getLogger();
-			o.addRow("");
-			o.addRedText("Did not find column named "+columnName);
+			LogRepository.getInstance().addCriticalText("Did not find column named "+columnName);
 			Log.e("nils","Did NOT find field ["+columnName+"] in class Table. Columns available:");
 			for (int i=0;i<myColumns.size();i++)
 				Log.e("vortex","["+myColumns.get(i)+"]");

@@ -6,7 +6,6 @@ import android.util.Log;
 import com.teraim.fieldapp.dynamic.blocks.BlockCreateListEntriesFromFieldList;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
-import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.Expressor;
 
 import java.io.Serializable;
