@@ -26,7 +26,7 @@ import java.io.File;
  */
 public class BarcodeReader implements EventListener {
 
-    private WF_Context myContext;
+    private transient WF_Context myContext;
     private final BarcodeDetector detector;
     private Variable barCodeTarget;
 

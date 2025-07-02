@@ -9,6 +9,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventGenerator;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 
 import java.util.HashMap;
@@ -40,7 +41,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 	public WF_List_UpdateOnSaveEvent(String id, WF_Context ctx, boolean isVisible, final DisplayFieldBlock format) {
 		super(id, ctx,null,isVisible);
 		ctx.registerEventListener(this, EventType.onSave);
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		long t1 = System.currentTimeMillis();
 		this.myEntryFieldFormat = format;
 	}
@@ -117,11 +118,10 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 				if (v!=null)
 					ef.cfs.addVariable(v, displayOut,format,isVisible,showHistorical);
 				else {
-					o.addRow("");
-					o.addRedText("Variable with suffix "+varSuffix+" was not found when creating list "+this.getId());
-					o.addRow("context: ["+gs.getVariableCache().getContext().toString()+"]");
+					o.addCriticalText("Variable with suffix "+varSuffix+" was not found when creating list "+this.getId());
+					o.addText("context: ["+gs.getVariableCache().getContext().toString()+"]");
 					String namePrefix = al.getFunctionalGroup(myRows.get(0));
-					o.addRow("Group: "+namePrefix);
+					o.addText("Group: "+namePrefix);
 					return true;
 				}
 
@@ -196,8 +196,8 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 				//Log.d("vortex","CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
 				mapmap.get(vs).cfs.addStaticVariable(v, displayOut, format, isVisible, showHistorical);
 			} else {
-				o.addRow("");
-				o.addRedText("Variable with suffix " + vs + " was not found when creating list with id " + getId());
+				o.addText("");
+				o.addCriticalText("Variable with suffix " + vs + " was not found when creating list with id " + getId());
 				Log.e("nils", "Variable with suffix " + vs + " was not found when creating list with id " + getId());
 			}
 			//if (i % 10 == 0) {
@@ -242,8 +242,8 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
                         //Log.d("vortex","CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
                         mapmap.get(vs).cfs.addVariable(v, displayOut, format, isVisible, showHistorical, true);
                     } else {
-                        o.addRow("");
-                        o.addRedText("Variable with suffix " + vs + " was not found when creating list with id " + getId());
+                        o.addText("");
+                        o.addCriticalText("Variable with suffix " + vs + " was not found when creating list with id " + getId());
                         Log.e("nils", "Variable with suffix " + vs + " was not found when creating list with id " + getId());
                     }
                     if (i%10==0) {
@@ -279,8 +279,8 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		EntryField ef = entryFields.get(tfName);
 		if (ef==null) {
 			Log.e("nils","Didnt find entry field "+tfName);
-			o.addRow("");
-			o.addRedText("Did NOT find entryfield referred to as "+tfName);
+			o.addText("");
+			o.addCriticalText("Did NOT find entryfield referred to as "+tfName);
 			return null;
 		}
 
@@ -289,12 +289,12 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 
 		if (v==null) {
 			//try with simple name.
-			o.addRow("Will retry with variable name: "+varNameSuffix);
+			o.addText("Will retry with variable name: "+varNameSuffix);
 			v = varCache.getVariable(varNameSuffix,initialValue,-1);
 			if (v==null) {
 				Log.e("nils","Didnt find variable "+vName+" in AddVariableToList");
-				o.addRow("");
-				o.addRedText("Did NOT find variable referred to as "+vName+" in AddVariableToList");
+				o.addText("");
+				o.addCriticalText("Did NOT find variable referred to as "+vName+" in AddVariableToList");
 				return null;
 			}
 		}

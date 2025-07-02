@@ -29,7 +29,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
-import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import com.teraim.fieldapp.utils.Tools;
@@ -46,17 +46,13 @@ import java.util.regex.Pattern;
  */
 	public class CreateImageBlock extends Block implements EventListener {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 5781622495945524716L;
+	private transient ImageView img = null;
+	private transient WF_Context myContext;
+	private transient String dynImgName;
     private final String container;
 	private final String source;
 	private final String scale;
-	private ImageView img = null;
-	private WF_Context myContext;
 	private final boolean isVisible;
-	private String dynImgName;
 	private final List<EvalExpr> sourceE;
 
 	public CreateImageBlock(String id, String nName, String container,
@@ -72,7 +68,7 @@ import java.util.regex.Pattern;
 
 	public void create(WF_Context myContext) {
 		this.myContext = myContext;
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		WF_Container myContainer = (WF_Container)myContext.getContainer(container);
 		Log.d("botox","Source name is "+source);
 		if (myContainer != null && sourceE!=null) {
@@ -104,11 +100,11 @@ import java.util.regex.Pattern;
 			myContext.registerEventListener(this, EventType.onActivityResult);
 		} else {
 			if (source==null || sourceE == null) {
-				o.addRow("");
-				o.addRedText("Failed to add image with block id "+blockId+" - source is either null or evaluates to null: "+source);				
+				o.addText("");
+				o.addCriticalText("Failed to add image with block id "+blockId+" - source is either null or evaluates to null: "+source);				
 			}
-			o.addRow("");
-			o.addRedText("Failed to add image with block id "+blockId+" - missing container "+container);
+			o.addText("");
+			o.addCriticalText("Failed to add image with block id "+blockId+" - missing container "+container);
 		}
 		img.setClickable(true);
 		img.setOnClickListener(new View.OnClickListener() {
@@ -162,7 +158,7 @@ import java.util.regex.Pattern;
 			new Thread(new Runnable() {
 				public void run() {
 					float ratio = realH/realW;
-					Display display = myContext.getActivity().getWindowManager().getDefaultDisplay();
+					Display display = myContext.getFragmentActivity().getWindowManager().getDefaultDisplay();
 					Point size = new Point();
 					display.getSize(size);
 					Log.d("botox","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
@@ -173,7 +169,7 @@ import java.util.regex.Pattern;
 					Log.d("botox", "insample was "+Tools.calculateInSampleSize(options,x,y));
 					options.inJustDecodeBounds = false;
 					Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR+dynImgName,options);
-					CreateImageBlock.this.myContext.getActivity().runOnUiThread(new Runnable() {
+					CreateImageBlock.this.myContext.getFragmentActivity().runOnUiThread(new Runnable() {
 						public void run() {
 							if(Looper.myLooper() == Looper.getMainLooper())
 								Log.d("botox","In UI thread");

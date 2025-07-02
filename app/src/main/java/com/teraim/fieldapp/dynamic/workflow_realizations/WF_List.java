@@ -172,8 +172,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 	boolean prepareIncrementalDraw(Listable l) {
 		if (l==null || l.getKey()==null) {
 			if (l!=null) {
-				o.addRow("");
-				o.addRedText("Empty EntryField detected with Label "+l.getLabel()+". This is normally due to a duplicate variable. Please check your configuration");
+				o.addCriticalText("Empty EntryField detected with Label "+l.getLabel()+". This is normally due to a duplicate variable. Please check your configuration");
 			}
 			return false;
 		}
@@ -184,8 +183,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 		while (it.hasNext()) {
 			Listable li = it.next();
 			if (li.getKey()==null) {
-				o.addRow("");
-				o.addRedText("Empty EntryField detected with Label "+li.getLabel()+". This is normally due to a duplicate variable. Please check your configuration");
+				o.addCriticalText("Empty EntryField detected with Label "+li.getLabel()+". This is normally due to a duplicate variable. Please check your configuration");
 				it.remove();
 				continue;
 			}

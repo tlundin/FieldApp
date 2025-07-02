@@ -44,9 +44,7 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 		formulaE = Expressor.preCompileExpression(formula);
 		if (formulaE==null)
 		{
-
-			o.addRow("");
-			o.addRedText("Parsing of formula for DisplayValueBlock failed. Formula: "+formula);
+			o.addCriticalText("Parsing of formula for DisplayValueBlock failed. Formula: "+formula);
 			Log.e("vortex","Parsing of formula for DisplayValueBlock failed. Formula: "+formula);
 		}
 		this.format = format;
@@ -71,7 +69,6 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 		String result = Expressor.analyze(formulaE);
 		//Do not evaluate if the expression is evaluated to be a literal or defined as literal.
 		if (result==null) {
-			o.addRow("");
 			o.addText("Formula "+formula+" returned null");
 			((TextView)this.getWidget().findViewById(R.id.outputValueField)).setText("");
 			((TextView)this.getWidget().findViewById(R.id.outputUnitField)).setText("");

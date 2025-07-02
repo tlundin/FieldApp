@@ -1,128 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
     android:animateLayoutChanges="true"
-    android:background="@android:drawable/dialog_holo_light_frame">
+    android:padding="24dp"
+    android:background="?attr/colorSurface" >
 
     <TextView
         android:id="@+id/textView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
         android:text="@string/Export"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Large" />
-
-
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
     <TextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView2"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="38dp"
+        android:layout_marginTop="24dp"
         android:text="@string/Generating"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
-
-    <TextView
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:layout_constraintTop_toBottomOf="@id/textView2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <ImageView
+        android:id="@+id/checkGenerate"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView3"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp"
-        android:id="@+id/progress" />
+        android:layout_marginStart="8dp"
+        android:src="@drawable/checkmark"
+        app:layout_constraintStart_toEndOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="@+id/textView3"
+        app:layout_constraintBottom_toBottomOf="@+id/textView3" />
 
     <TextView
-        android:id="@+id/backup"
+        android:id="@+id/progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/backupHeader"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp" />
+        android:layout_marginTop="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintTop_toBottomOf="@+id/textView3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+    <TextView
+        android:id="@+id/backupHeader"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/Backing_up"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        app:layout_constraintTop_toBottomOf="@+id/progress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <ImageView
+        android:id="@+id/checkBackup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/checkmark"
+        app:layout_constraintStart_toEndOf="@+id/backupHeader"
+        app:layout_constraintTop_toTopOf="@+id/backupHeader"
+        app:layout_constraintBottom_toBottomOf="@+id/backupHeader" />
 
     <TextView
         android:id="@+id/sendHeader"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/backup"
-        android:layout_alignEnd="@+id/textView3"
-        android:layout_marginTop="25dp"
+        android:layout_marginTop="16dp"
         android:text="@string/Forwarding"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium"
-        android:visibility="gone" />
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/backup"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+    <TextView
+        android:id="@+id/backup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintTop_toBottomOf="@+id/backupHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ImageView
+        android:id="@+id/checkSend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:src="@drawable/checkmark"
+        android:visibility="gone"
+        app:layout_constraintStart_toEndOf="@+id/sendHeader"
+        app:layout_constraintTop_toTopOf="@+id/sendHeader"
+        app:layout_constraintBottom_toBottomOf="@+id/sendHeader" />
 
     <TextView
         android:id="@+id/send"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/sendHeader"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="22dp" />
-
-    <ImageView
-        android:src="@drawable/checkmark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/textView3"
-        android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginStart="34dp"
-        android:id="@+id/checkGenerate" />
-
-    <ImageView
-        android:src="@drawable/checkmark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/sendHeader"
-        android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginStart="34dp"
-        android:id="@+id/checkSend" />
-
-    <ImageView
-        android:src="@drawable/checkmark"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/backupHeader"
-        android:layout_toEndOf="@+id/sendHeader"
-        android:layout_marginStart="34dp"
-        android:id="@+id/checkBackup" />
+        android:layout_marginTop="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        app:layout_constraintTop_toBottomOf="@+id/sendHeader"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
-        android:id="@+id/backupHeader"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/progress"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="19dp"
-        android:enabled="false"
-        android:text="@string/Backing_up"
-        android:textAppearance="@android:style/TextAppearance.DeviceDefault.Medium" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="41dp"
         android:id="@+id/outcome"
-        android:background="@drawable/border_black"
-        android:textSize="@dimen/text_size_small"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:layout_below="@+id/send"
-        android:layout_centerHorizontal="true"
-        android:scrollbars = "vertical"
-        android:visibility="gone" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:padding="8dp"
+        android:scrollbars="vertical"
+        android:background="@drawable/themed_border"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:visibility="gone"
+        app:layout_constraintWidth_max="400dp"
+        app:layout_constraintTop_toBottomOf="@+id/send"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <Button
-        android:text="@string/close"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/closeButton"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/outcome"
-        android:layout_centerHorizontal="true"
-        android:id="@+id/closeButton"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="16dp"
+        android:text="@string/close"
+        app:layout_constraintTop_toBottomOf="@id/outcome"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

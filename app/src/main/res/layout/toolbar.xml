@@ -4,7 +4,7 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
-    android:background="@color/primary"
-    app:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+    android:background="?attr/colorPrimary"
     app:popupTheme="@style/AppTheme.PopupMenu"
-    android:popupTheme="@style/AppTheme.PopupMenu" />
+    android:theme="@style/ThemeOverlay.MaterialComponents.Dark.ActionBar"
+    style="@style/MyActionBar" />

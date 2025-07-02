@@ -14,6 +14,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Tools;
 
 import org.achartengine.GraphicalView;
@@ -24,9 +25,9 @@ import org.achartengine.model.CategorySeries;
  */
 public abstract class ChartBlock  extends Block implements EventListener {
 
-    GraphicalView chart;
-    Context ctx;
-    WF_Context myContext;
+    transient GraphicalView chart;
+    transient Context ctx;
+    transient WF_Context myContext;
     private int insertIndex = -1;
     final String label;
     private final String container;
@@ -38,8 +39,8 @@ public abstract class ChartBlock  extends Block implements EventListener {
     private int width;
     final float textSize;
     DataSource myDataSource;
-    private WF_Widget myWidget;
-    private WF_Container myContainer;
+    transient private WF_Widget myWidget;
+    transient private WF_Container myContainer;
     int[] intMargins=null;
 
     ChartBlock(String blockId, String name, String label, String container,
@@ -89,7 +90,7 @@ public abstract class ChartBlock  extends Block implements EventListener {
         myContext.registerEventListener(this, Event.EventType.onFlowExecuted);
         myContext.registerEventListener(this, Event.EventType.onSave);
         Log.d("blio","now listening to onsave");
-        o = GlobalState.getInstance().getLogger();
+        o = LogRepository.getInstance();
 
 
         myContainer = (WF_Container) myContext.getContainer(container);
@@ -161,8 +162,7 @@ public abstract class ChartBlock  extends Block implements EventListener {
                         }
                     });
                 } else {
-                    o.addRow("");
-                    o.addRedText("Failed to add round chart block with id " + blockId + " - missing container " + container);
+                    o.addCriticalText("Failed to add round chart block with id " + blockId + " - missing container " + container);
                     Log.e("vortex","missing container in chartblox...fail");
                     myContext.removeEventListener(this);
                     return;

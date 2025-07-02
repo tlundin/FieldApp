@@ -4,18 +4,19 @@ import android.content.Context;
 import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.utils.PersistenceHelper;
+
+import java.lang.reflect.Type;
 
 //implements the PhotoMeta interface.
 
 public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements PhotoMetaI {
 
     public AirPhotoMetaDataIni(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-                               ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(context,gPh,ph, Type.ini, source, urlOrPath, fileName, moduleName);
+                                String urlOrPath, String fileName, String moduleName) {
+        super(context,gPh,ph, FileFormat.ini, urlOrPath, fileName, moduleName);
     }
 
     @Override
@@ -89,13 +90,18 @@ public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements Photo
     }
 
     @Override
+    protected Type getEssenceType() {
+        // Return the specific class of the object that this module "freezes".
+        return PhotoMeta.class;
+    }
+
+    @Override
     protected void setFrozenVersion(float version) {
 
     }
 
 
 
-    @Override
     public boolean isRequired() {
         return false;
     }

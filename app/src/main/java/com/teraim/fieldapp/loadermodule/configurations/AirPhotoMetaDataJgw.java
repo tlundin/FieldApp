@@ -6,12 +6,11 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.PhotoMetaI;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
+import java.lang.reflect.Type;
 import java.util.Locale;
 
 /**
@@ -24,8 +23,8 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     private final String imgUrlorPath;
     private double Width,Height;
     public AirPhotoMetaDataJgw(Context context, PersistenceHelper gPh, PersistenceHelper ph,
-                               ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(context,gPh, ph, Type.jgw, source, urlOrPath, fileName, moduleName);
+                                String urlOrPath, String fileName, String moduleName) {
+        super(context,gPh, ph, FileFormat.jgw, urlOrPath, fileName, moduleName);
         Log.d("jgw","setting simple version to false");
         Log.d("jgw","urlorpath: "+urlOrPath);
         Log.d("jgw","fileName: "+fileName);
@@ -85,8 +84,6 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     @Override
     public void finalizeMe()  {
 
-
-
         try {
             //pars[n] now contains row n in jgq file.
             double XCellSize = Double.parseDouble(pars[0]);
@@ -115,13 +112,17 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     }
 
     @Override
+    protected Type getEssenceType() {
+        return PhotoMeta.class;
+    }
+
+    @Override
     protected void setFrozenVersion(float version) {
 
     }
 
 
 
-    @Override
     public boolean isRequired() {
         return false;
     }

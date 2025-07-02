@@ -456,8 +456,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
         }
 
         if (var.getType() == null) {
-            o.addRow("");
-            o.addRedText("VARIABLE " + var.getId()
+            o.addText("");
+            o.addCriticalText("VARIABLE " + var.getId()
                     + " HAS NO TYPE. TYPE ASSUMED TO BE NUMERIC");
             var.setType(DataType.numeric);
         }
@@ -504,8 +504,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 if (listValues.startsWith("@file")) {
                     Log.d("nils", "Found complex spinner");
                     if (sd == null) {
-                        o.addRow("");
-                        o.addRedText("Spinner definition file has not loaded. Spinners cannot be created!");
+                        o.addText("");
+                        o.addCriticalText("Spinner definition file has not loaded. Spinners cannot be created!");
                     } else {
                         List<SpinnerElement> elems = sd.get(var.getId().toLowerCase());
                         if (elems == null) {
@@ -513,8 +513,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                     "No spinner elements for variable "
                                             + var.getId());
                             Log.e("nils", "backing row: " + var.getBackingDataSet());
-                            o.addRow("");
-                            o.addRedText("Complex Spinner variable "
+                            o.addText("");
+                            o.addCriticalText("Complex Spinner variable "
                                     + var.getId()
                                     + " is not defining any elements in the configuration file (Spinners.csv). Correct file version?");
 
@@ -542,8 +542,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         Log.d("nils", "Found static list definition for"+var.getLabel()+"..parsing");
                         opt = listValues.split("\\|");
                         if (opt == null || opt.length < 2) {
-                            o.addRow("");
-                            o.addRedText("Could not split List Values for variable "
+                            o.addText("");
+                            o.addCriticalText("Could not split List Values for variable "
                                     + var.getId() + ". Did you use '|' symbol??");
                         } else {
 
@@ -561,8 +561,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                     tmp = s.split("=");
                                     if (tmp == null || tmp.length != 2) {
                                         Log.e("nils", "found corrupt element: " + s);
-                                        o.addRow("");
-                                        o.addRedText("One of the elements in list "
+                                        o.addText("");
+                                        o.addCriticalText("One of the elements in list "
                                                 + var.getId()
                                                 + "has a corrupt element. Comma missing?");
                                         val[c] = "****";
@@ -858,7 +858,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             switch (var.getType()) {
 
                 case bool:
-                    // o.addRow("Adding boolean dy-variable with label "+label+", name "+varId+", type "+var.getType().name()+" and unit "+unit.name());
+                    // o.addText("Adding boolean dy-variable with label "+label+", name "+varId+", type "+var.getType().name()+" and unit "+unit.name());
                     View view = LayoutInflater.from(myContext.getContext()).inflate(
                             R.layout.ja_nej_radiogroup, null);
                     TextView header = view.findViewById(R.id.header);
@@ -1011,7 +1011,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 case numeric:
                 case decimal:
 
-                    // o.addRow("Adding edit field for dy-variable with label "+label+", name "+varId+", type "+numType.name()+" and unit "+unit.name());
+                    // o.addText("Adding edit field for dy-variable with label "+label+", name "+varId+", type "+numType.name()+" and unit "+unit.name());
                     if (var.getType() == DataType.numeric) {
                         if (varV.format != null && varV.format.equals("slider")) {
                             l = LayoutInflater.from(myContext.getContext()).inflate(
@@ -1204,8 +1204,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                 }
                             }
                         } else {
-                            o.addRow("");
-                            o.addRedText("Empty spinner for variable " + v
+                            o.addText("");
+                            o.addCriticalText("Empty spinner for variable " + v
                                     + ". Check your variable configuration.");
                         }
                     }

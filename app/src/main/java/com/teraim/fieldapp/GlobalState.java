@@ -20,14 +20,13 @@ import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnNewVersion;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.expr.Aritmetic;
 import com.teraim.fieldapp.expr.Parser;
 import com.teraim.fieldapp.gis.TrackerListener;
-import com.teraim.fieldapp.loadermodule.Configuration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.loadermodule.ModuleRegistry;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.StatusHandler;
 import com.teraim.fieldapp.synchronization.ConnectionManager;
@@ -44,9 +43,11 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -67,9 +68,9 @@ public class GlobalState {
     private static GlobalState singleton;
 
 
-    private static Context myC = null;
+    private Context myC = null;
+    private final Start startActivity;
     private String imgMetaFormat = Constants.DEFAULT_IMG_FORMAT;
-    private final LoggerI logger;
     private PersistenceHelper ph = null;
     private DbHelper db = null;
     private Parser parser = null;
@@ -81,7 +82,6 @@ public class GlobalState {
     private DrawerMenu myDrawerMenu;
 
     public String TEXT_LARGE;
-    private WF_Context currentContext;
     private String myPartner = "?";
 
     private PersistenceHelper globalPh = null;
@@ -89,43 +89,43 @@ public class GlobalState {
     private final ConnectionManager myConnectionManager;
     private final BackupManager myBackupManager;
 
-
+    private Set<String> provYtaTypes;
+    public static final String KEY_PROVYTA_TYPES = "provYtaTypes";
     private final VariableCache myVariableCache;
     private static Account mAccount;
     private GisObject selectedGop;
     private final CharSequence logTxt;
     private final String userUUID;
+    private ModuleRegistry moduleRegistry;
 
     public static GlobalState getInstance() {
 
         return singleton;
     }
 
-    public static GlobalState createInstance(Context applicationContext, PersistenceHelper globalPh,
-                                             PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
+    public static GlobalState createInstance(Start startActivity, Context applicationContext, PersistenceHelper globalPh,
+                                             PersistenceHelper ph, DbHelper myDb,
                                              List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
         singleton = null;
-        return new GlobalState(applicationContext, globalPh,
-                ph, debugConsole, myDb,
+        return new GlobalState(startActivity, applicationContext, globalPh,
+                ph, myDb,
                 workflows, t, sd, logTxt, imgMetaFormat);
 
     }
 
     //private GlobalState(Context ctx)  {
-    private GlobalState(Context applicationContext, PersistenceHelper globalPh,
-                        PersistenceHelper ph, LoggerI debugConsole, DbHelper myDb,
+    private GlobalState(Start startActivity,Context applicationContext, PersistenceHelper globalPh,
+                        PersistenceHelper ph, DbHelper myDb,
                         List<Workflow> workflows, Table t, SpinnerDefinition sd, CharSequence logTxt, String imgMetaFormat) {
 
         myC = applicationContext;
         this.globalPh = globalPh;
         this.ph = ph;
-
+        this.startActivity = startActivity;
         this.db = myDb;
 
-        this.logger = debugConsole;
         //Parser for rules
         parser = new Parser(this);
-
         artLista = new VariableConfiguration(this, t);
         myWfs = mapWorkflowsToNames(workflows);
         //Event Handler on the Bluetooth interface.
@@ -273,6 +273,32 @@ public class GlobalState {
 
     public boolean serverHasNewVersion() {
         return globalPh.getB(PersistenceHelper.SERVER_PENDING_UPDATE);
+    }
+
+    public void setModuleRegistry(ModuleRegistry moduleRegistry) {
+        this.moduleRegistry = moduleRegistry;
+    }
+    public ModuleRegistry getModuleRegistry() {
+        return moduleRegistry;
+    }
+
+    public void setTitle(String wfLabel) {
+        startActivity.setTitle(wfLabel);
+    }
+
+    public void changePage(Workflow wf, String statusVar) {
+        startActivity.changePage(wf,statusVar);
+    }
+
+    public Set<String> getProvYtaTypes() {
+        if (provYtaTypes == null) {
+            provYtaTypes = new HashSet<>();
+        }
+        return provYtaTypes;
+    }
+
+    public void setProvYtaTypes(Set<String> provYtaTypes) {
+        this.provYtaTypes = provYtaTypes;
     }
 
     public class TeamPosition {
@@ -452,18 +478,10 @@ public class GlobalState {
         return myVariableCache;
     }
 
-    public LoggerI getLogger() {
-        return logger;
+    public LogRepository getLogger() {
+        return LogRepository.getInstance();
     }
-/*
-	public void setCurrentWorkflowContext(WF_Context myContext) {
-		currentContext = myContext;
-	}
 
-	public WF_Context getCurrentWorkflowContext() {
-		return currentContext;
-	}
-*/
     EventListener gisMap = null;
     public void registerUpdateListener(EventListener map) {
         this.gisMap = map;
@@ -669,12 +687,6 @@ public class GlobalState {
 
     //Change current context (side effect) to the context given in the workflow startblock.
     //If no context can be built (missing variable values), return error. Otherwise, return null.
-
-
-    public void setModules(Configuration myModules) {
-    }
-
-
     public static void destroy() {
         singleton = null;
     }
@@ -773,11 +785,7 @@ public class GlobalState {
         return newAccount;
     }
 
-    public void onStart() {
-        //check synk
-        //db.processSyncEntriesIfAny();
 
-    }
 
 
     private String getMyId() {

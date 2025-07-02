@@ -12,12 +12,10 @@ import java.util.List;
  */
 public  class PageDefineBlock extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -5680503647867451267L;
+
 	private String pageName="",pageType=null;
 	private final boolean hasGPS;
+	private final String gpsPriority;
 	private boolean goBackAllowed=true;
 	private final List<EvalExpr>pageLabelE;
 
@@ -26,8 +24,6 @@ public  class PageDefineBlock extends Block {
 		return pageName;
 	}
 	public String getPageType() {
-		if (pageType.equals("TableDefaultTemplate"))
-			return "PageWithTable";
 		return pageType;
 	}
 	public String getPageLabel() {
@@ -36,16 +32,17 @@ public  class PageDefineBlock extends Block {
 	public boolean hasGPS() {
 		return hasGPS;
 	}
+
+	public String gpsPriority() { return gpsPriority; }
 	
-	
-	public PageDefineBlock(String id,String pageName,String pageType,String pageLabel,boolean hasGPS, boolean goBackAllowed) {
+	public PageDefineBlock(String id,String pageName,String pageType,String pageLabel,boolean hasGPS, String gpsPriority, boolean goBackAllowed) {
 		this.pageName =pageName;
 		this.pageType = pageType;
 		this.pageLabelE=Expressor.preCompileExpression(pageLabel);
 		this.blockId=id;
 		this.hasGPS=hasGPS;
 		this.goBackAllowed = goBackAllowed;
-
+		this.gpsPriority = gpsPriority;
 	}
 	public boolean goBackAllowed() {
 		return goBackAllowed;

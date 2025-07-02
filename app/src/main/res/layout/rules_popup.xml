@@ -1,55 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/transparent_blue"
->
-<LinearLayout 
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/background_light"
-    android:layout_margin="10dp"
-    android:orientation="vertical"
+    android:background="?android:attr/colorBackground"
     >
-    <ScrollView 
-    android:layout_width="match_parent"
-    android:layout_height="500dp"
+    <LinearLayout
+        android:id="@+id/button_container"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:paddingVertical="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginHorizontal="16dp">
+
+        <Button
+            android:id="@+id/korrigera"
+            style="?attr/materialButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/back_to_page" />
+
+        <Button
+            android:id="@+id/avsluta"
+            style="?attr/materialButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save_and_exit" />
+
+    </LinearLayout>
+
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/divider"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/button_container"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <ScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/divider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         >
-<LinearLayout 
-    android:id="@+id/pop"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="vertical" >   
-</LinearLayout>
-</ScrollView>
-<View
-    android:layout_width="fill_parent"
-    android:layout_height="2dip"
-    android:background="#000000" />
-<LinearLayout  
-    android:id="@+id/buttons"
-    android:gravity="right"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="@color/white"
-    android:orientation="horizontal"
-    >
 
-    <Button
-        android:id="@+id/avsluta"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/save_and_exit" />
+        <LinearLayout
+            android:id="@+id/pop"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+        </LinearLayout>
 
-    <Button
-        android:id="@+id/korrigera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/back_to_page" />
-    
-</LinearLayout>
+    </ScrollView>
 
-</LinearLayout>
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

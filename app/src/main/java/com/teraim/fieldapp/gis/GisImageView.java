@@ -45,7 +45,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.utils.DbHelper;
@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -574,7 +575,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 					if (rowsAffected>0) {
 						Log.d("claxon","aff: "+rowsAffected);
-						getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + newGisObj.getLabel() + "]");
+						getInstance().getLogger().addText(" erased " + rowsAffected + " entries for GIS object [" + newGisObj.getLabel() + "]");
 						//Create sync entry for all variables with matching keys (no pattern)
 						getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 					}
@@ -617,7 +618,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	private final List<GisObject> candidates = new ArrayList<>();
-
+	private final static Random rnd = new Random();
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
 		super.dispatchDraw(canvas);
@@ -845,9 +846,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 						translateMapToRealCoordinates(touchedGop.getLocation(),riktLinjeEnd);
 					}
 					if (touchedLayer == null) {
-						LoggerI o = getInstance().getLogger();
-						o.addRow("");
-						o.addRedText("The selected gis object with name "+touchedGop.getFullConfiguration().getName()+" is not attached to any layer");
+						LogRepository o = getInstance().getLogger();
+						o.addText("");
+						o.addCriticalText("The selected gis object with name "+touchedGop.getFullConfiguration().getName()+" is not attached to any layer");
 						Log.d("vortex","TOUCHEDLAYER WAS NULL. TouchedGop was: "+touchedGop.getKeyHash());
 					}
 
@@ -865,17 +866,14 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			}
 		} catch(Exception e) {
 			if (getInstance()!=null) {
-				LoggerI o = getInstance().getLogger();
-				if (o!=null) {
-					o.addRow("");
-
-					StringWriter sw = new StringWriter();
-					PrintWriter pw = new PrintWriter(sw);
-					e.printStackTrace(pw);
-					o.addRedText(sw.toString());
-					e.printStackTrace();
-				}
+				LogRepository o = getInstance().getLogger();
+				StringWriter sw = new StringWriter();
+				PrintWriter pw = new PrintWriter(sw);
+				e.printStackTrace(pw);
+				o.addCriticalText(sw.toString());
+				e.printStackTrace();
 			}
+
 		}
 
 		if (newGisObj!=null) {
@@ -1471,14 +1469,14 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				} else {
 					Log.e("grogg", "StatusVariable definition error");
 					LoggerI o = getInstance().getLogger();
-					o.addRow("");
+					o.o.addText("");
 					o.addRedText("StatusVariable definition missing for: "+gop.getStatusVariableId());
 				}
 
 			} else
 				Log.e("grogg",gop.getStatusVariableId()+" is null");
 			*/
-			Start.singleton.changePage(wf,gop.getStatusVariableId());
+			GlobalState.getInstance().changePage(wf,gop.getStatusVariableId());
 
 		}
 	}
@@ -1566,7 +1564,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 			if (rowsAffected>0) {
 				Log.d("claxon","aff: "+rowsAffected);
-				getInstance().getLogger().addRow(" erased " + rowsAffected + " entries for GIS object [" + touchedGop.getLabel() + "]");
+				getInstance().getLogger().addText(" erased " + rowsAffected + " entries for GIS object [" + touchedGop.getLabel() + "]");
 				//Create sync entry for all variables with matching keys (no pattern)
 				getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 			}

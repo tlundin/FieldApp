@@ -176,8 +176,8 @@ public class VariableConfiguration implements Serializable {
 			//Log.d("nils","getvarislocal uses string "+s);
 			return (s != null && s.startsWith("local"));
 		}
-		Log.e("vortex","row was null...cannot determine if local or global. Will default to global");
-		return false;
+		Log.e("vortex","row was null...cannot determine if local or global. Will default to local");
+		return true;
 
 
 	}
@@ -231,9 +231,9 @@ public class VariableConfiguration implements Serializable {
 			else
 				Log.e("nils","TYPE NOT KNOWN: ["+type+"]");
 		}
-		gs.getLogger().addRow("");
+		gs.getLogger().addText("");
 		String myId = getVarName(row);
-		gs.getLogger().addRedText("Type parameter not configured for variable "+myId+" Will default to numeric");
+		gs.getLogger().addCriticalText("Type parameter not configured for variable "+myId+" Will default to numeric");
 		return Variable.DataType.numeric;
 	}
 
@@ -262,7 +262,7 @@ public class VariableConfiguration implements Serializable {
 		//If this is a non-art variable, use varlabel instead.
 		if (res==null) {
 			//Log.d("vortex","failed to find value for column "+Col_Group_Label+ ". Will use varlabel "+this.getVarLabel(row)+" instead.");
-			//gs.getLogger().addRow("");
+			//gs.getLogger().addText("");
 			//gs.getLogger().addYellowText("failed to find value for column "+Col_Group_Label+ ". Will use variable label "+this.getVarLabel(row)+" instead.");
 			res =this.getVarLabel(row);
 		}

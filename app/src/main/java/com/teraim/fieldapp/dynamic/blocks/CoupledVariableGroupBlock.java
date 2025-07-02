@@ -11,6 +11,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_ClickableField;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_ClickableField_Slider;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Tools;
 
@@ -30,14 +31,19 @@ import java.util.Set;
 
 
 public class CoupledVariableGroupBlock extends Block implements EventListener {
+
+    private transient WF_Context myC;
+    private transient boolean active = false;
+    private transient Set<Variable> myVariables;
+    private transient int currentSum = 0;
+    private transient Handler handler = null;
+    private transient Set<WF_ClickableField_Slider> touchedSliders = null;
+    private static final Random r = new Random();
     private final List<Expressor.EvalExpr> argumentE;
     private final String groupName;
     private String function;
     private Integer currentEvaluationOfArg = null;
     private long delay=25;
-
-    private WF_Context myC;
-    private boolean active=false;
 
     public CoupledVariableGroupBlock(String id, String groupName, String function, String argument, String delay) {
         blockId=id;
@@ -87,8 +93,8 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
             Log.d("vortex","in onSave with "+ argument);
             if (!Tools.isNumeric(argument)){
                 Log.d("vortex","cannot calibrate...argument evaluates to non numeric: "+ argument);
-                o.addRow("");
-                o.addRedText("Argument to SUM in SliderGroup "+getName()+" is not numeric: "+ argument +" Expr: "+argumentE);
+                o.addText("");
+                o.addCriticalText("Argument to SUM in SliderGroup "+getName()+" is not numeric: "+ argument +" Expr: "+argumentE);
                 return;
             }
             final int sumToReach = Integer.parseInt(argument);
@@ -124,7 +130,6 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         }
     }
 
-    private Set<Variable> myVariables;
     private boolean isOneofMyVariables(Variable v) {
         if (myVariables.isEmpty()) {
             List<WF_ClickableField_Slider> sliders = myC.getSliderGroupMembers(getName());
@@ -151,10 +156,6 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         return groupName;
     }
 
-    private int currentSum = 0;
-
-
-    private Handler handler =null;
     public void resetCounter() {
         if (handler!=null) {
             handler.removeCallbacksAndMessages(null);
@@ -244,9 +245,9 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         if (isOutside) {
             Log.d("vortex","over Max or below min: "+sumToReach+", "+allSlidersTogether.min
                     +" , "+allSlidersTogether.max);
-            o = GlobalState.getInstance().getLogger();
-            o.addRow("");
-            o.addRedText("Argument to SUM in SliderGroup "+getName()+" is not possible to reach: "+sumToReach+". Outside the range: "+allSlidersTogether.min+" - "+allSlidersTogether.max);
+            o = LogRepository.getInstance();
+            o.addText("");
+            o.addCriticalText("Argument to SUM in SliderGroup "+getName()+" is not possible to reach: "+sumToReach+". Outside the range: "+allSlidersTogether.min+" - "+allSlidersTogether.max);
             return;
         }
         final List<WF_ClickableField_Slider> slidersToCalibrate= new LinkedList<>(sliders);
@@ -385,8 +386,6 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         }
     }
 
-    private final static Random r = new Random();
-
     private void increaseSlider(WF_ClickableField_Slider slider, int remainingDifference) {
         int curr = slider.getPosition();
         int increase = calc(curr, slider.getMin(),slider.getMax());
@@ -443,7 +442,6 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
     //removes a slider and subtracts its current value from the target to reach.
     //This is done when the user has touched a slider. The touched slider should no longer be adjusted.
 
-    private Set<WF_ClickableField_Slider> touchedSliders=null;
     public void removeSliderFromCalibration(WF_ClickableField_Slider slider) {
         if (slider==null)
             return;

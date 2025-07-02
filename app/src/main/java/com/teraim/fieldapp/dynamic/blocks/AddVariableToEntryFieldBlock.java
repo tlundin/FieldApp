@@ -12,7 +12,7 @@ public class AddVariableToEntryFieldBlock extends Block {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -7978000865030730562L;
+
 	private final boolean displayOut;
     private final boolean isVisible;
     private final boolean showHistorical;
@@ -39,8 +39,8 @@ public class AddVariableToEntryFieldBlock extends Block {
 
 		WF_ClickableField myField = (WF_ClickableField)myContext.getDrawable(target);
 		if (myField == null) {
-			o.addRow("");
-			o.addRedText("Couldn't find Entry Field with name "+target+" in AddVariableToEntryBlock" );
+
+			o.addCriticalText("Couldn't find Entry Field with name "+target+" in AddVariableToEntryBlock" );
 			myContext.printD();
 			
 		} else {
@@ -49,8 +49,7 @@ public class AddVariableToEntryFieldBlock extends Block {
 				myField.addVariable(var, displayOut, format,isVisible,showHistorical);
 				return var;
 			} else {
-				o.addRow("");
-				o.addRedText("Couldn't find Variable with name "+namn+" in AddVariableToEntryBlock" );
+				o.addCriticalText("Couldn't find Variable with name "+namn+" in AddVariableToEntryBlock" );
 			}
 
 		}

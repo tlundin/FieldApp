@@ -8,7 +8,7 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.GlobalState;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.ExportDialog;
 
@@ -87,10 +87,9 @@ public class BackupManager {
 	 */
 	public boolean backupDatabase(String backupFileName) {
 		String appName = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
-		LoggerI logger = GlobalState.getInstance().getLogger();
+		LogRepository logger = LogRepository.getInstance();
 		Log.d("vortex","starting backup for "+ctx.getDatabasePath(appName));
-		logger.addCriticalText("Starting backup");
-		logger.draw();
+		logger.addText("Starting backup for "+ctx.getDatabasePath(appName));
 		File dbFile = ctx.getDatabasePath(appName);
 		try {
 			File dir = createOrFindBackupStorageDir();
@@ -123,17 +122,18 @@ public class BackupManager {
 
 		} catch (FileNotFoundException e) {
 			Log.e("vortex","backup failed");
+			logger.addCriticalText("Backup failed");
 			e.printStackTrace();
 			return false;
 		} catch (IOException e) {
 			Log.e("vortex","backup failed");
+			logger.addCriticalText("Backup failed");
 			e.printStackTrace();
 			return false;
 		}
 		Log.d("vortex","backup done");
 		gs.getPreferences().put(PersistenceHelper.TIME_OF_LAST_BACKUP,System.currentTimeMillis());
-		logger.addCriticalText("Backup done");
-		logger.draw();
+		logger.addText("Backup done");
 		return true;
 	}
 	
@@ -158,8 +158,8 @@ public class BackupManager {
 		File dir = new File (backupFolder);
 
 		dir.mkdirs();
-		LoggerI logger = GlobalState.getInstance().getLogger();
-		logger.addCriticalText("Backup to folder:"+backupFolder);
+		LogRepository logger = LogRepository.getInstance();
+		logger.addText("Backup to folder:"+backupFolder);
 		return dir;
 	}
 
@@ -297,12 +297,10 @@ public class BackupManager {
 				return true;
 			}  else {
 				Log.d("vortex","No backup required");
-				gs.getLogger().addRow("");
 				gs.getLogger().addGreenText("Database backup not required");
 			}
 		} else {
 			Log.d("vortex","Autobackup is off");
-			gs.getLogger().addRow("");
 			gs.getLogger().addGreenText("Database auto-backup turned off");
 		}
 		return false;
@@ -310,10 +308,8 @@ public class BackupManager {
 
 	public void backUp() {
 			if (!this.backupDatabase()) {
-				gs.getLogger().addRow("");
-				gs.getLogger().addRedText("Backup of data failed! Please make sure you have configured the backup folder correctly under the config menu.");
+				gs.getLogger().addCriticalText("Backup of data failed! Please make sure you have configured the backup folder correctly under the config menu.");
             } else {
-				gs.getLogger().addRow("");
 				gs.getLogger().addGreenText("Your database has been backed up");
             }
 

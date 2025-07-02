@@ -126,8 +126,8 @@ public class OldPhotosFragment extends Fragment implements OnGesturePerformedLis
 				alertDialog.show();
 					
 				} else {
-					gs.getLogger().addRow("");
-					gs.getLogger().addRedText("The Variable FotoKommentar is missing from Variables.csv!!! Fotokommentarer will not be saved!!");
+					gs.getLogger().addText("");
+					gs.getLogger().addCriticalText("The Variable FotoKommentar is missing from Variables.csv!!! Fotokommentarer will not be saved!!");
 					new AlertDialog.Builder(ctx)
 					.setTitle("Konfigureringsfel")
 					.setMessage("Fotokommentar saknas i variabellistan. Programmet kan inte spara din kommentar") 

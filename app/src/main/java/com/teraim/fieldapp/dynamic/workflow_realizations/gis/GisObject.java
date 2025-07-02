@@ -51,7 +51,8 @@ public class GisObject {
 		this.myCoordinates=myCoordinates;
 		this.statusVariableId=statusVarName;
 		this.statusVariableValue=statusVariableValue;
-
+		//if (statusVariableValue!=null && statusVariableValue.equals(Constants.STATUS_KLAR_I_DB))
+		//	Log.d("plaxxo","status 100 for "+statusVarName+" "+conf.getRawLabel());
 	}
 
 

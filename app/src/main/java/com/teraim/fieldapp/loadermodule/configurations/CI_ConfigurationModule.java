@@ -14,9 +14,9 @@ import java.io.IOException;
 
 public abstract class CI_ConfigurationModule extends ConfigurationModule {
 
-    protected CI_ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, ConfigurationModule.Type type,
-                                     ConfigurationModule.Source source, String urlOrPath, String fileName, String moduleName) {
-        super(context,gPh,ph, type, source, urlOrPath, fileName, moduleName);
+    protected CI_ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, FileFormat fileFormat,
+                                      String urlOrPath, String fileName, String moduleName) {
+        super(context,gPh,ph, fileFormat, urlOrPath, fileName, moduleName);
     }
 
     public abstract LoadResult prepare() throws IOException, Dependant_Configuration_Missing;

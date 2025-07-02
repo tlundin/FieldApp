@@ -12,10 +12,7 @@ import static com.teraim.fieldapp.utils.Expressor.preCompileExpression;
  *
  */
 public  class StartBlock extends Block {
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6860379561128690656L;
+
 	final private String workflowName;
 	final private String[] args;
     private List<EvalExpr> contextE=null;
@@ -26,7 +23,7 @@ public  class StartBlock extends Block {
         this.blockId=id;
 		if (context !=null)
 			contextE = preCompileExpression(context);
-		System.err.println("Bananas: "+((contextE == null)?"null":contextE.toString()));
+		//System.err.println("Bananas: "+((contextE == null)?"null":contextE.toString()));
 
 	}
 

@@ -8,13 +8,13 @@ import android.util.Log;
 
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule.Source;
+import com.teraim.fieldapp.loadermodule.configurations.GISListConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GisObjectConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GroupsConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -36,10 +36,10 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "9.37";
+    public static final String VORTEX_VERSION = "10.5";
 
     public final static String DEFAULT_APP = "Vortex";
-    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com";
+    public static final String DEFAULT_SERVER_URI = "https://www.teraim.com/";
 
     //public static final String EXPORT_SERVER = "https://rlo.slu.se/api/v1/fieldpad";
 
@@ -61,14 +61,11 @@ public class Constants {
     public static final String DEFAULT_IMG_FORMAT = "jgw";
     //Update interval in seconds for location updates.
     public static final int LOCATION_UPDATE_INTERVAL = 10;
+    public static final String RELOAD_DB_MODULES = "reload_database_modules";
 
     public static String UNDEFINED = "undefined";
 
     public static final String Color_Pressed="#4682B4";
-
-
-    public static String[] defaultGroupHeader=new String[] {"Label,Description,Group Name,Variable Name,Internet link,P_Familj,P_Class"};
-
 
     public static final String SYNC_ID = "SYNX";
 
@@ -81,13 +78,8 @@ public class Constants {
     }
 
 
-    public static final String TRUE = "true";
-    public static final String FALSE= "false";
-
     //Static constants
     public static final long MS_MONTH = 2_629_746_000L;
-
-    public static final int KEY_LENGTH = 10;
     public static final String SLU_URL = "https://arbetsplats.slu.se/sites/srh/Landskapsanalys/Faltportal/default.aspx";
     public static final String STATUS_HIGH_PRIORITY = "-1";
     public static final String STATUS_INITIAL = "0";
@@ -103,7 +95,6 @@ public class Constants {
     public static final String VAST = "VAST";
     public static final String AVST = "AVST";
     public static final String SMA = "SMA";
-    public static final String NULL_VALUE = "NULL";
     public static final String NOT_NULL = "*NN*";
 
     //Name of the special variable group used for status variables
@@ -122,20 +113,10 @@ public class Constants {
         return BLUE_UID;
     }
 
-
-    //TODO: REMOVE
-    public static final int MAX_NILS = 16;
-
     public static final int MIN_ABO = 50;
 
     public static final int MAX_ABO = 99;
 
-    //ruta size in meters.
-    public static final float RUTA_SIZE = 3000;
-
-    public static final String CONFIG_FROZEN_FILE_ID = null;
-
-    public static final String TypesFileName = null;
 
     public static boolean isAbo(int pyID) {
         return pyID>=Constants.MIN_ABO && pyID<=Constants.MAX_ABO;
@@ -181,15 +162,6 @@ public class Constants {
         return sdf.format(new Date());
     }
 
-    public static final String GroupFileName = "Groups.csv";
-    public static final String VariablesFileName = "Variables.csv";
-    public static final String SpinnersFileName = "Spinners.csv";
-    public static final String PY_HISTORICAL_FILE_NAME = "Importdata.json";
-
-    public static final String WF_FROZEN_SPINNER_ID = null;
-
-    public static final String WF_FROZEN_FILE_ID = null;
-
     public static final String GLOBAL_PREFS = "GlobalPrefs";
 
     public final static int VAR_PATTERN_ROW_LENGTH = 11;
@@ -197,21 +169,14 @@ public class Constants {
 
     public static final String VariableSeparator = ":";
 
-    //Vibrate when error x milliseconds...
-    public static final long BURR_LENGTH = 250;
-
-
-    public static final String WILD_CARD_MARKER = "%";
-
-
     public final static int TAKE_PICTURE = 133;
     public final static int QR_SCAN_REQUEST = 1111;
 
 
-    private static final String GPS_LIST_FILE_NAME = "content.txt";
+    public static final String GIS_LIST_FILE_NAME = "content.txt";
 
 
-    private static final String GPS_CONFIG_WEB_FOLDER = "gis_objects";
+    public static final String GIS_CONFIG_WEB_FOLDER = "gis_objects";
 
 
     public static final String BLUETOOTH_NAME = "vortex";
@@ -223,103 +188,23 @@ public class Constants {
     //Backup if data older than 24h
     public static final long BACKUP_FREQUENCY = 86_400_000;
 
-    //AWS Cloud
-    //public static final String SyncDataURI =    "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ";
-    //public static final String SynkStatusURI =      "http://slu-beanstalk.eu-west-1.elasticbeanstalk.com/SynkServ?action=get_team_status&team=";
     public static final String SyncDataURI = "https://synkserver.net/synkserv/SynkServ";
     public static final String SynkStatusURI =      "https://synkserver.net";
 
-    //public static final String SynkServerURI = "http://192.168.1.60:8080/com.teraim.synkserv/SynkServ";
-
-    //public static final String SynkServerURI = "https://rlo.slu.se:8443/com.teraim.synkserv_slu_prod/SynkServ";
-
-    //public static final String SynkServerURI = "https://rlotest.slu.se:8080/com.teraim.synkserv/SynkServ";
-
-
-    public static final Object TRANS_ACK = "TRANSACK";
-
-
-
-
-
-
-    public static List<ConfigurationModule> getCurrentlyKnownModules(Context context, Source source, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LoggerI debugConsole) {
+    public static List<ConfigurationModule> getCurrentlyKnownModules(Context context, PersistenceHelper globalPh,PersistenceHelper ph,String server, String bundle, LogRepository debugConsole) {
         List<ConfigurationModule> ret = new ArrayList<>();
         //Workflow xml. Named same as bundle.
-        final String pathOrURL;
-
-        if (source == Source.internet) {
-            pathOrURL = server + bundle.toLowerCase() + "/";
-        }
-        else {
-            Log.d("vortex","Local configuration from folder: "+server);
-            if (server==null || server.isEmpty())
-                pathOrURL = context.getFilesDir()+"/"+bundle.toLowerCase() + "/config/";
-            else
-                pathOrURL=server;
-        }
+        final String pathOrURL = server + bundle.toLowerCase() + "/";
         Log.d("vortex","Parthorurl is now"+pathOrURL);
         String cachePath = context.getFilesDir()+"/"+bundle.toLowerCase(Locale.ROOT) + "/cache/";
-        ret.add(new WorkFlowBundleConfiguration(context,cachePath,source,globalPh,ph,pathOrURL,bundle,debugConsole));
-        ret.add(new SpinnerConfiguration(context,source,globalPh,ph,pathOrURL,debugConsole));
-        ret.add(new GroupsConfiguration(context,source,globalPh,ph,pathOrURL,bundle,debugConsole));
+        ret.add(new WorkFlowBundleConfiguration(context,cachePath,globalPh,ph,pathOrURL,bundle,debugConsole));
+        ret.add(new SpinnerConfiguration(context,globalPh,ph,pathOrURL,debugConsole));
+        ret.add(new GroupsConfiguration(context,globalPh,ph,pathOrURL,bundle,debugConsole));
         //VariableConfiguration depends on the Groups Configuration.
-        ret.add(new VariablesConfiguration(context,source,globalPh,ph,pathOrURL,debugConsole));
-
+        ret.add(new VariablesConfiguration(context,globalPh,ph,pathOrURL,debugConsole));
+        ret.add(new GISListConfiguration(context,globalPh,ph,pathOrURL+Constants.GIS_CONFIG_WEB_FOLDER +"/", debugConsole));
         return ret;
     }
-
-    public static void getDBImportModules(Context context,
-            final PersistenceHelper globalPh, final PersistenceHelper ph, final String server,
-            final String bundle, final LoggerI debugConsole,final DbHelper db, final Table t, final AsyncLoadDoneCb asyncLoadDoneCb) {
-        final List<ConfigurationModule> ret = new ArrayList<>();
-        //Workflow xml. Named same as bundle.
-        //ret.add(new GisPolygonConfiguration(globalPh,ph,VORTEX_ROOT_DIR+bundle+AIR_PHOTO_FILE_DIR,debugConsole,db));
-        //ret.add(new ImportDataConfiguration(context,globalPh,ph,server,bundle,debugConsole,db,t));
-
-        final String fileFolder = context.getFilesDir()+"/"+bundle+"/gisdata/";
-        final String serverFolder = server+"/"+bundle.toLowerCase()+"/"+Constants.GPS_CONFIG_WEB_FOLDER+"/";
-        //dont load if no update or no connection
-
-        new DownloadFileTask(new WebLoaderCb() {
-
-            @Override
-            public void loaded(List<String> fileNames) {
-                if (fileNames != null)
-                    Log.d("vortex", "loadresult is " + fileNames.toString());
-                getAllConfigurationFileNamesFromWebOrFile(context,fileNames, serverFolder, fileFolder, asyncLoadDoneCb, globalPh, ph, debugConsole, db, ret, t);
-            }
-        })
-                .execute(serverFolder + Constants.GPS_LIST_FILE_NAME);
-    } 		//Try server.
-
-
-
-    private static void getAllConfigurationFileNamesFromWebOrFile(Context context,List<String> fileNames,
-                                                                  String serverFolder, String fileFolder, AsyncLoadDoneCb asyncLoadDoneCb, PersistenceHelper globalPh,PersistenceHelper ph, LoggerI debugConsole,DbHelper db, List<ConfigurationModule> modules, Table t) {
-
-        boolean loadFromWeb=false;
-        //look for contents.txt file on net.
-        if (fileNames!=null) {
-            Log.d("vortex","found GIS files list.");
-            loadFromWeb = true;
-        } else
-            fileNames = getAllConfigurationFileNames(fileFolder);
-        if (fileNames!=null && !fileNames.isEmpty()) {
-            for (String file:fileNames) {
-                if (!loadFromWeb)
-                    modules.add(new GisObjectConfiguration(context,globalPh,ph,Source.file,fileFolder,file,debugConsole,db,t));
-                else
-                    modules.add(new GisObjectConfiguration(context,globalPh,ph,Source.internet,serverFolder,file,debugConsole,db,t));
-            }
-        } else
-            Log.d("vortex","found no GIS configuration files.");
-
-
-        asyncLoadDoneCb.onLoadSuccesful(modules);
-    }
-
-
 
 
     private static List<String> getAllConfigurationFileNames(String folderName) {
@@ -341,7 +226,6 @@ public class Constants {
     public static int getHistoricalPictureYear() {
         return Calendar.getInstance().get(Calendar.YEAR)-5;
     }
-
 
     private interface WebLoaderCb {
 

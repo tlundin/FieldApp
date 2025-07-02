@@ -3,264 +3,180 @@ package com.teraim.fieldapp.loadermodule;
 import android.content.Context;
 import android.util.Log;
 
-import com.teraim.fieldapp.FileLoadedCb;
-import com.teraim.fieldapp.GlobalState;
+import androidx.lifecycle.MutableLiveData;
+
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.io.FileNotFoundException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Type;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
 
 
-//Class that describes the specific load behaviour for a certain type of input data.
+/**
+ * A corrected base class for Configuration Modules.
+ * This version uses lazy initialization to prevent blocking the main UI thread and
+ * ensures the loading process correctly handles all outcomes.
+ */
 public abstract class ConfigurationModule {
 
+	// Enums
+	public enum FileFormat { json, xml, csv, ini, jgw, txt }
+	public enum ModuleLoadState { INITIAL, LOADING, FROZEN, ERROR }
 
+	// LiveData for state tracking, initialized with a default value to be thread-safe.
+	public final MutableLiveData<ModuleLoadState> state = new MutableLiveData<>(ModuleLoadState.INITIAL);
 
-    public boolean tryingThawAfterFail,tryingWebAfterFail;
-    public enum Type {
-		json,
-		xml,
-		csv,
-		ini,
-		jgw
-	}
-
-	public enum Source {
-		file,
-		internet
-	}
-	public final Source source;
-	public final Type type;
+	// Module properties
+	public final FileFormat fileFormat;
 	public final String fileName;
-	private String rawData;
-    private final String printedLabel;
-    private final String frozenPath;
-	protected float newVersion;
-	protected final PersistenceHelper globalPh;
-    protected final PersistenceHelper ph;
-	private boolean IamLoaded=false;
-	protected final String versionControl;
-
-	private Integer linesOfRawData;
-	protected Object essence;
-	protected final String baseBundlePath;
-	public boolean isBundle = false;
-	private boolean notFound=false;
+	public final String printedLabel;
 	private final String fullPath;
-	//freezeSteps contains the number of steps required to freeze the object. Should be -1 if not set specifically by specialized classes.
-	protected int freezeSteps=-1;
-	//tells if this module is stored on disk or db.
-	protected boolean isDatabaseModule = false,hasSimpleVersion=true;
+	protected final String baseBundlePath;
 
-	protected ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, Type type, Source source, String urlOrPath, String fileName, String moduleName) {
-		this.source=source;
-		this.type=type;
-		
-		this.fileName=fileName;
-		this.globalPh=gPh;
-		this.ph=ph;
-		this.printedLabel=moduleName;
-		this.baseBundlePath=urlOrPath;
-		fullPath = urlOrPath+fileName+"."+type.name();
-		frozenPath = context.getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+fileName;
-		Log.d("balla","full path "+fullPath);
-		Log.d("balla","base bundle path "+baseBundlePath);
-		this.versionControl = globalPh.get(PersistenceHelper.VERSION_CONTROL);
-	}
+	// Lazily initialized fields to prevent I/O in the constructor
+	protected String frozenPath;
 
-
-	public boolean frozenFileExists() {
-		return new File(frozenPath).isFile() && (getFrozenVersion()!=-1);
-	}
-
-	public abstract float getFrozenVersion();
-
-	public String getFullPath() {
-		return fullPath;
-	}
-
-	public String getURL() {
-		return fullPath;
-	}
-	//Stores version number. Can be different from frozen version during load.
-	public void setNewVersion(float version) {
-		this.newVersion=version;
-		Log.d("vortex","version set to "+version);
-	}
-
-	//Freeze version number when load succesful
-	public void setLoaded(boolean loadStatus) {
-		IamLoaded=loadStatus;
-		setThawActive(false);
-	}
-
-
+	protected float newVersion;
+	protected Object essence;
+	protected int freezeSteps = -1;
+	protected boolean isDatabaseModule = false;
+	protected boolean hasSimpleVersion = true;
+	private boolean IamLoaded = false;
 	private boolean isThawing = false;
+	private boolean notFound = false;
+	private String rawData;
+	private Integer linesOfRawData;
 
-	public void setThawActive(boolean t) {
-		isThawing=t;
-	}
-	public boolean isThawing() {
-		return isThawing;
-	}
+	protected boolean isBundle = false;
+	// Helpers and context
+	private final Context context;
+	protected final PersistenceHelper globalPh;
+	protected final PersistenceHelper ph;
 
-	public void setNotFound() {
-		isThawing=false;
-		notFound=true;
-	}
 
-	protected abstract void setFrozenVersion(float version);
-
-	public abstract boolean isRequired();
-
-	public boolean isLoaded() {
-		// :)
-		return IamLoaded||notFound;
-	}
-	
-	public boolean isMissing() {
-		return notFound;
-	}
-
-	public void cancelLoader() {
-		if (mLoader!=null) {
-			Log.e("vortex","Cancelled mLoader!");
-			mLoader.cancel(true);
-			mLoader = null;
-		}
-	}
-	private Loader mLoader=null;
-
-	public void load(FileLoadedCb moduleLoader) {
-		if (source == Source.internet) {
-			mLoader = new WebLoader(null, null, moduleLoader, versionControl);
-		}
-		else 
-			mLoader = new FileLoader(null, null, moduleLoader,versionControl);
-		mLoader.execute(this);
+	protected ConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph, FileFormat fileFormat, String urlOrPath, String fileName, String moduleName) {
+		// --- LEAN CONSTRUCTOR ---
+		// The constructor should only assign values and perform no I/O.
+		this.context = context;
+		this.globalPh = gPh;
+		this.ph = ph;
+		this.fileFormat = fileFormat;
+		this.fileName = fileName;
+		this.printedLabel = moduleName;
+		this.baseBundlePath = urlOrPath;
+		this.fullPath = urlOrPath + fileName + "." + fileFormat.name();
+		initLazyFields();
 	}
 
+	/**
+	 * The single, robust loading method. It handles both cache and network paths.
+	 * @param executor The executor service to run tasks on.
+	 * @param cb The callback to report completion or failure.
+	 * @param forceReload If true, the cache check is skipped.
+	 */
+	public void load(ExecutorService executor, final ModuleLoaderCb cb, boolean forceReload) {
+		state.postValue(ModuleLoadState.LOADING);
 
-	public String getRawData() {
-		return rawData;
-	}
-	public void setRawData(String data, Integer tot) {
-		rawData = data;
-		this.linesOfRawData = tot;
-	}
-
-	protected Integer getNumberOfLinesInRawData() {
-		// TODO Auto-generated method stub
-		return linesOfRawData;
-	}
-
-
-	public void setLoadedFromFrozenCopy() {
-		//load the data from frozen
-		IamLoaded=true;
-	}
-
-
-	public String getFileName() {
-		return fileName;
-	}
-
-	public String getLabel() {
-		return printedLabel;
-	}
-
-	//Freeze this configuration. counter is used by some dependants.
-	public void freeze(int counter) {
-		this.setEssence();
-		if (essence!=null) {
-            Runnable r = new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					
-					try {
-						Tools.witeObjectToFile(essence, frozenPath);
-					} catch (IOException e) {
-
-						GlobalState gs = GlobalState.getInstance();
-						if (gs!=null) {
-							gs.getLogger().addRow("");
-							StringWriter sw = new StringWriter();
-							PrintWriter pw = new PrintWriter(sw);
-							e.printStackTrace(pw);		
-							gs.getLogger().addRedText(sw.toString());
-						}
-						e.printStackTrace();
-					}
+		executor.submit(() -> {
+			// 1. Check for a cached version first, unless forced to reload.
+			if (!forceReload) {
+				if (thawSynchronously().errCode == ErrorCode.thawed) {
+					Log.d("ConfigModule", "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
+					// FIX: Always invoke the callback on success to notify the loader.
+					cb.onFileLoaded(new LoadResult(this, ErrorCode.thawed));
+					return; // Stop execution here.
 				}
-			};
+			}
+			// 2. If no valid cache, or if forced, proceed with network download.
+			Log.d("ConfigModule", "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
+			// Assuming DataLoader performs the synchronous network request.
+			LoadResult networkResult = DataLoader.loadAndParseAndFreeze(this);
+			if (networkResult.errCode == ErrorCode.frozen ) {
+				cb.onFileLoaded(networkResult);
+			} else {
+				cb.onError(networkResult);
+			}
+		});
+	}
 
-			Thread t = new Thread(r);
-			t.start();
-
+	/**
+	 * Initializes fields that require I/O, ensuring it happens on a background thread.
+	 */
+	private void initLazyFields() {
+		if (frozenPath == null) {
+			String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+			frozenPath = context.getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/" + fileName;
 		}
 	}
 
 	public LoadResult thawSynchronously() {
+		Type essenceType = getEssenceType();
+		Log.d("ConfigModule", "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName() + "");
+		if (essenceType == null) {
+			Log.e("ConfigModule", "getEssenceType() returned null for " + this.getClass().getSimpleName());
+			return new LoadResult(this, ErrorCode.thawFailed);
+		}
 
-		//A database module is by default saved already.
-		if (isDatabaseModule)
-			return new LoadResult(this,ErrorCode.thawed);
-		else {
-			this.setThawActive(true);
-			Object result = Tools.readObjectFromFile(this.frozenPath);
-			this.setThawActive(false);
+		Object result = Tools.readObjectFromFileAsJson(this.frozenPath, essenceType);
+
+		if (result != null) {
 			setEssence(result);
-			return new LoadResult(this,result == null?ErrorCode.thawFailed:ErrorCode.thawed);
+			return new LoadResult(this, ErrorCode.thawed);
+		} else {
+			setFrozenVersion(-1);
+			return new LoadResult(this, ErrorCode.thawFailed);
 		}
-
 	}
 
-	public boolean thaw(ModuleLoader caller) {
-
-		//A database module is by default saved already.
-		if (isDatabaseModule)
-			return true;
-        else {
-			//Unthaw asynchronously
-			this.setThawActive(true);
-			Tools.readObjectFromFileAsync(this.frozenPath, this, caller);
-			return false;
-		}
-
+	public void freeze(int counter) {
+		setEssence();
+		if (essence != null) {
+			Tools.writeObjectToFileAsJson(essence, frozenPath);
+        }
 	}
 
-
-
-	public Object getEssence() {
-		return essence;
-	}
-
-	//Must set essence before freeze.
+	// Abstract methods to be implemented by subclasses
+	protected abstract Type getEssenceType();
+	public abstract float getFrozenVersion();
+	protected abstract void setFrozenVersion(float version);
 	protected abstract void setEssence();
+	public abstract boolean isRequired();
 
-    //If thawed, set essence from file.
-    public void setEssence(Object result) {
-        this.essence=result;
-    }
-
-
+	// Getters and Setters
+	public String getURL() { return fullPath; }
+	public String getLabel() { return printedLabel; }
+	public void setNewVersion(float version) { this.newVersion = version; }
+	public void setEssence(Object result) { this.essence = result; }
+	public Object getEssence() { return essence; }
+	public boolean frozenFileExists() {
+		initLazyFields();
+		return new File(frozenPath).isFile() && (getFrozenVersion()!=-1);
+	}
+	public String getFileName() { return fileName; }
+	public String getRawData() { return rawData; }
+	public void setRawData(String data, Integer tot) {
+		rawData = data;
+		this.linesOfRawData = tot;
+	}
+	protected Integer getNumberOfLinesInRawData() { return linesOfRawData; }
+	public boolean isLoaded() { return IamLoaded||notFound; }
+	public void setLoaded(boolean loadStatus) {
+		IamLoaded=loadStatus;
+		setThawActive(false);
+	}
+	public boolean isThawing() { return isThawing; }
+	public void setThawActive(boolean t) { isThawing=t; }
+	public boolean isMissing() { return notFound; }
+	public void setNotFound() {
+		isThawing=false;
+		notFound=true;
+	}
 	public void deleteFrozen() {
 		new File(this.frozenPath).delete();
 	}
-
-
-
-
-
-
-
-
 }
