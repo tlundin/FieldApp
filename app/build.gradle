@@ -17,7 +17,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
-        coreLibraryDesugaringEnabled true
+        coreLibraryDesugaringEnabled = true
     }
     buildTypes {
         release {
@@ -25,7 +25,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
         }
     }
-    namespace 'com.teraim.fieldapp'
+    namespace = 'com.teraim.fieldapp'
+    buildFeatures {
+        buildConfig = true
+    }
 }
 
 dependencies {
