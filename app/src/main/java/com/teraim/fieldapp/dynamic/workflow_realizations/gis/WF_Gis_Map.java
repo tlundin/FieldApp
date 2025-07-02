@@ -9,10 +9,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.PorterDuff;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.ActionMode;
@@ -41,9 +39,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.core.content.ContextCompat;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
-import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -59,14 +59,11 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Widget;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.gis.GisImageView;
-import com.teraim.fieldapp.loadermodule.Configuration;
-import com.teraim.fieldapp.loadermodule.ConfigurationModule;
-import com.teraim.fieldapp.loadermodule.ModuleLoader;
-import com.teraim.fieldapp.log.Logger;
-import com.teraim.fieldapp.log.PlainLogger;
+import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
+import com.teraim.fieldapp.loadermodule.Workflow_I;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
-import com.teraim.fieldapp.ui.AsyncLoadDoneCb;
-import com.teraim.fieldapp.ui.LoginConsoleFragment;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
@@ -77,7 +74,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 
 /**
  *
@@ -106,13 +102,13 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final ImageButton objectMenuB;
     private final ImageButton zoomB;
     private final ImageButton centerB;
+    private final ModuleLoaderViewModel viewModel;
     private Animation popupShow,layersPopupShow;
     private final Animation popupHide;
     private Animation layersPopupHide;
     private final GisObjectsMenu gisObjectMenu;
     private final View gisObjectsPopUp;
     private final View layersPopup;
-    private final View refreshPopup;
     private boolean gisObjMenuOpen=false;
     private boolean animationRunning=false;
     private final Map<String,List<FullGisObjectConfiguration>> myGisObjectTypes;
@@ -196,10 +192,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final CreateGisBlock myDaddy;
     private final PhotoMeta photoMeta;
 
-    private void dismissPopup() {
-        refreshPopup.setVisibility(View.GONE);
-    }
-
     @SuppressLint({"ClickableViewAccessibility", "InflateParams"})
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
@@ -230,19 +222,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         layersPopup = li.inflate(R.layout.layers_menu_pop,null);
 
-        refreshPopup = li.inflate(R.layout.refresh_pop,null);
-
-        TextView refreshTextView = refreshPopup.findViewById(R.id.refresh_txt);
-
-        Button dismissButton = refreshPopup.findViewById(R.id.dismiss_button);
-        if (dismissButton != null) {
-            dismissButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    dismissPopup(); // Call helper method to dismiss
-                }
-            });
-        }
+        viewModel = new ViewModelProvider(myContext.getFragmentActivity()).get(ModuleLoaderViewModel.class);
 
         gisObjectMenu = gisObjectsPopUp.findViewById(R.id.gisObjectsMenu);
         NudgeView nudgeMenu = createMenuL.findViewById(R.id.gisNudgeButtonMenu);
@@ -299,8 +279,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         });
         gisObjectsPopUp.setVisibility(View.GONE);
         layersPopup.setVisibility(View.GONE);
-        refreshPopup.setVisibility(View.GONE);
-        mapView.addView(refreshPopup);
         mapView.addView(gisObjectsPopUp);
         mapView.addView(layersPopup);
         //LinearLayout filtersL = (LinearLayout)mapView.findViewById(R.id.FiltersL);
@@ -334,39 +312,18 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         if (gs.serverHasNewVersion())
             refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
         refreshB.setOnClickListener(v -> {
-            Log.d("vortex","refresh clicked");
+            Log.d("vortex", "Refresh clicked. Starting refresh workflow.");
             refreshB.setImageResource(R.drawable.refresh_selector);
-            refreshPopup.setVisibility(View.VISIBLE);
-            Constants.getDBImportModules(gs.getContext(),globalPh, localPh, globalPh.get(PersistenceHelper.SERVER_URL), globalPh.get(PersistenceHelper.BUNDLE_NAME), gs.getLogger(), gs.getDb(), gs.getVariableConfiguration().getTable(), new AsyncLoadDoneCb() {
-                public void onLoadSuccesful(List<ConfigurationModule> modules) {
-                    Configuration dbModules = new Configuration(modules);
-                    if (modules != null) {
-                        PlainLogger refreshOut = new PlainLogger(gs.getContext(), "Refresh");
-                        refreshOut.setOutputView(refreshTextView);
-                        refreshB.setClickable(false);
-                        ModuleLoader myDBLoader = new ModuleLoader("_map", dbModules, refreshOut, globalPh, false, gs.getLogger(), new ModuleLoader.ModuleLoaderListener() {
-                            @Override
-                            public void loadSuccess(String loaderId, boolean majorVersionChange, CharSequence loadText, boolean socketBroken) {
-                                Log.d("vortex"," DB updated");
-                                myContext.refreshGisObjects();
-                                gisImageView.redraw();
-                                refreshPopup.setVisibility(View.GONE);
-                                refreshB.setClickable(true);
-                                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
-                            }
+            // Create the specific workflow for this task
+            Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
 
-                            @Override
-                            public void loadFail(String loaderId) {
-                                Log.d("vortex"," fail");
-                                refreshB.setClickable(true);
-                            }
-                        }, gs.getContext().getApplicationContext());
-                        myDBLoader.loadModules(false, false);
-                    } else
-                        Log.e("vortex", "null returned from getDBImportModules");
-                }
-            });
+            // Tell the ViewModel to execute it, always forcing a reload for a refresh.
+            viewModel.execute(refreshWorkflow, true);
         });
+        // Set up an observer to react to the result of the ViewModel's execution
+        setupRefreshObserver();
+
+
 
         layerB = layersPopup.findViewById(R.id.btn_Layers);
 
@@ -531,7 +488,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             Log.d("vortex","Cutout layers has "+myLayers.size()+" members");
             myDaddy.setCutOut(r,geoR,myLayers);
             //myContext.getTemplate().restart();
-            Start.singleton.changePage(myContext.getWorkflow(), null);
+            GlobalState.getInstance().changePage(myContext.getWorkflow(), null);
 
 
         });
@@ -573,9 +530,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                             //trigger pop on fragment.
                             gisImageView.unSelectGop();
                             // New way, using AndroidX FragmentManager
-                            if (myContext.getActivity() instanceof androidx.fragment.app.FragmentActivity) {
-                                ((androidx.fragment.app.FragmentActivity) myContext.getActivity()).getSupportFragmentManager().popBackStackImmediate();
-                            }
+                             myContext.getFragmentActivity().getSupportFragmentManager().popBackStackImmediate();
+
 
                         }
                         //startScrollOut();
@@ -662,10 +618,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
                     Log.d("bortex", "team is visible! Adding layer for team "+team);
-                    final GisLayer teamLayer = new GisLayer(this, "Team", "Team", true, false, true,true);
+                    final GisLayer teamLayer = new GisLayer( "Team", "Team", true, false, true,true);
                     myLayers.add(teamLayer);
                 } //else {
-                //o = GlobalState.getInstance().getLogger();
+                //o = LogRepository.getInstance();
                 //Log.d("vortex", "no team but team is set to show. alarm!");
                 //o.addRow("");
                 //o.addRedText("Team name missing. Cannot show team members.");
@@ -685,7 +641,30 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     }
 
 
+    private void setupRefreshObserver() {
+        viewModel.onSuccessEvent.observe(myContext.getFragmentActivity(), event -> {
+            if (event == null) return;
 
+            // Use getContentIfNotHandled() to ensure the operation runs only once.
+            ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
+
+            if (result != null) {
+                if (myContext.getCurrentGis() != null) {
+                    // These heavy operations are now protected from repeated calls.
+                    myContext.refreshGisObjects();
+                    gisImageView.redraw();
+                    refreshB.setClickable(true);
+                    int n_provytor = 0;
+                    if (GlobalState.getInstance().getProvYtaTypes() != null)
+                        n_provytor =GlobalState.getInstance().getProvYtaTypes().size();
+                    LogRepository.getInstance().addColorText("Refresh completed.", ContextCompat.getColor(ctx, R.color.purple));
+                    Toast.makeText(ctx, ctx.getString(R.string.refresh_completed) +" "+n_provytor+" "+ctx.getString(R.string.layers), Toast.LENGTH_SHORT).show();
+                } else
+                    LogRepository.getInstance().addColorText("Refresh before map ready",ContextCompat.getColor(ctx, R.color.purple));
+                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
+            }
+        });
+    }
 
     public void setZoomButtonVisible(boolean visible) {
         if (!visible)

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.Iterator;
 import java.util.List;
@@ -49,8 +50,7 @@ public class WF_Column_RegExp_Filter extends WF_Filter {
 
 		}
 		if (noMatchAtAll) {
-			o = GlobalState.getInstance().getLogger();
-			o.addRow("");
+			o = LogRepository.getInstance();
 			o.addYellowText("No matches found in Regexp filter. Column used: ["+columnToMatch+"]");
 		}
 

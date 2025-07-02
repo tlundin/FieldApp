@@ -16,7 +16,7 @@ import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_StatusButton;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.DelyteManager;
 import com.teraim.fieldapp.non_generics.NamedVariables;
@@ -195,7 +195,7 @@ public class Expressor {
     //Operands are transformed into functions. Below a name mapping.
     private final static String[] Operands = new String[]	     {"=",">","<","+","-","*","/",">=","<=","<>","=>","=<"};
     private final static String[] OperandFunctions= new String[]	 {"eq","gt","lt","add","subtract","multiply","divide","gte","lte","neq","gte","lte"};
-    private static LoggerI o;
+    private static LogRepository o;
     private static Map<String,String> currentKeyChain=null;
     private static Set<Variable> variables=null;
     //TODO solution for the  string reverse for string a+b..
@@ -240,7 +240,7 @@ public class Expressor {
         if (expression==null) {
             return null;
         }
-        o = WorkFlowBundleConfiguration.debugConsole;
+        o = LogRepository.getInstance();
         //Log.d("franco","Precompiling: "+expression);
         List<Token> result = tokenize(expression);
         //printTokens(result);
@@ -254,8 +254,8 @@ public class Expressor {
                 if (rez!=null) {
                     endResult.add(rez);
                 } else {
-                    o.addRow("");
-                    o.addRedText("Subexpr evaluated to null while evaluating "+expression);
+                    
+                    o.addCriticalText("Subexpr evaluated to null while evaluating "+expression);
                     System.err.println("Tokenstream evaluated to null for: "+streamAnalyzer.getFaultyTokens());
                 }
             }
@@ -263,17 +263,17 @@ public class Expressor {
                 //StringBuilder sb = new StringBuilder();
                 //for (EvalExpr e:endResult)
                 //	sb.append(e);
-                //o.addRow("");
-                //o.addRow("Precompiled: "+sb);
+                //
+                //o.addText("Precompiled: "+sb);
                 //Log.d("franco","Precompiled: "+endResult.toString());
                 return endResult;
             }
 
         }
-        o.addRow("");
-        o.addRedText("failed to precompile: "+expression);
-        o.addRow("");
-        o.addRedText("End Result: "+endResult);
+        
+        o.addCriticalText("failed to precompile: "+expression);
+        
+        o.addCriticalText("End Result: "+endResult);
         Log.e("vortex","failed to precompile: "+expression);
         Log.e("vortex","End Result: "+endResult);
         printTokens(result);
@@ -328,10 +328,10 @@ public class Expressor {
     public static String analyze(List<EvalExpr> expressions, Map<String,String> evalContext) {
 
 
-        o = GlobalState.getInstance().getLogger();
+        o = LogRepository.getInstance();
         if (expressions == null) {
-            o.addRow("");
-            o.addRedText("Expression was null in Analyze. This is likely due to a syntax error in the original formula");
+            
+            o.addCriticalText("Expression was null in Analyze. This is likely due to a syntax error in the original formula");
             return null;
         }
         //evaluate in default context.
@@ -394,17 +394,17 @@ public class Expressor {
         }
         Expressor.targetList=targetList;
 
-        o = GlobalState.getInstance().getLogger();
+        o = LogRepository.getInstance();
         currentKeyChain = evalContext;
         // Log.d("Vortex","Class "+expr.getClass().getCanonicalName());
         Object eval = expr.eval();
         //Log.d("Vortex","BoolExpr: "+expr.toString()+" evaluated to "+eval);
-        //o.addRow("Expression "+expr.toString()+" evaluated to "+eval);
+        //o.addText("Expression "+expr.toString()+" evaluated to "+eval);
         variables = null;
         if (eval !=null && !(eval instanceof Boolean)) {
             Log.e("vortex","eval was not bool back in analyzeBoolean...likely missing [..]?");
-            o.addRow("");
-            o.addRedText("The expression "+expr.toString()+" evaluated to: '"+eval.getClass()+"' but must be Boolean. Missing [ ] around the expression can cause this");
+            
+            o.addCriticalText("The expression "+expr.toString()+" evaluated to: '"+eval.getClass()+"' but must be Boolean. Missing [ ] around the expression can cause this");
             return false;
         } else
             return (Boolean)eval;
@@ -665,7 +665,6 @@ public class Expressor {
     //check rules between token pairs.
     private static boolean testTokens(List<Token> result) {
         //Rule 1: op op
-        o = WorkFlowBundleConfiguration.debugConsole;
         boolean valueF=false,booleanF=false;
         Token current=null,prev=null;
         int pos=-1,lparC=0,rparC=0;
@@ -716,7 +715,7 @@ public class Expressor {
                     //check if function
                     if (current.type == TokenType.leftparenthesis) {
                         if (x==null) {
-                            o.addRedText("Syntax Error: Function "+prev.str+" does not exist!");
+                            o.addCriticalText("Syntax Error: Function "+prev.str+" does not exist!");
                             return false;
                         }
                         if (isFunction(x)) {
@@ -730,8 +729,8 @@ public class Expressor {
                             if (parent == TokenType.booleanFunction)
                                 booleanF = true;
                         } else {
-                            o.addRow("");
-                            o.addRedText("The token "+prev.str+" is used as function, but is in fact a "+prev.type);
+                            
+                            o.addCriticalText("The token "+prev.str+" is used as function, but is in fact a "+prev.type);
                             return false;
                         }
                     }
@@ -748,8 +747,8 @@ public class Expressor {
 
                 }
                 if (!found) {
-                    o.addRow("");
-                    o.addRedText("Syntax Error: Operator "+prev.str+" does not exist.");
+                    
+                    o.addCriticalText("Syntax Error: Operator "+prev.str+" does not exist.");
                     System.err.println("Syntax Error: Operator "+prev.str+" does not exist.");
                     return false;
                 }
@@ -761,8 +760,8 @@ public class Expressor {
         }
         //Check for unbalanced paranthesis
         if (lparC!=rparC) {
-            o.addRow("");
-            o.addRedText("Unequal number of left and right parenthesis. Left: "+lparC+" right: "+rparC);
+            
+            o.addCriticalText("Unequal number of left and right parenthesis. Left: "+lparC+" right: "+rparC);
             System.err.println("Rule 2. Equal number of left and right parenthesis. Left: "+lparC+" right: "+rparC);
             return false;
         }
@@ -825,7 +824,6 @@ public class Expressor {
 
         }
     }
-
     //marker class
     abstract static class Expr implements Serializable {
         private static final long serialVersionUID = -1968204853256767316L;
@@ -843,17 +841,9 @@ public class Expressor {
         EvalExpr(TokenType t) {
             super(t);
         }
-
-        /**
-         *
-         */
         private static final long serialVersionUID = 1L;
-
         abstract Object eval();
-
-
     }
-
     public static class Atom extends EvalExpr {
         final Token myToken;
         Atom(Token t) {
@@ -887,7 +877,7 @@ public class Expressor {
                     value = v.getValue();
                     //Log.d("vortex","Atom variable ["+v.getId()+"] Type "+v.getType()+" Value: "+value);
                     if (v.getType()!= DataType.text && Tools.isNumeric(value)) {
-                        Log.d("vortex","numeric");
+                        //Log.d("vortex","numeric");
                         double d = Double.parseDouble(value);
                         if (v.getType()== Variable.DataType.decimal || value.contains(".") || d>Integer.MAX_VALUE || d<Integer.MIN_VALUE)
                             return d;
@@ -909,7 +899,7 @@ public class Expressor {
                             return null;
                         }
                     }
-                    Log.d("vortex","literal");
+                    //Log.d("vortex","literal");
                     if (value.isEmpty()) {
                         Log.e("vortex","empty literal...returning null");
                         return null;
@@ -960,7 +950,7 @@ public class Expressor {
 
     }
 
-    private static class Convoluted extends EvalExpr {
+    protected static class Convoluted extends EvalExpr {
         final EvalExpr arg1,arg2;
         final Operand operator;
 
@@ -1096,14 +1086,14 @@ public class Expressor {
                                 break;
                             default:
                                 System.err.println("Unsupported operand: " + op);
-                                o.addRow("");
-                                o.addRedText("Unsupported arithmetic operator: " + op);
+                                
+                                o.addCriticalText("Unsupported arithmetic operator: " + op);
                                 break;
                         }
                     } else {
                         System.err.println("Unsupported arithmetic operand: " + operator.getType());
-                        o.addRow("");
-                        o.addRedText("Unsupported arithmetic operand: " + operator.getType());
+                        
+                        o.addCriticalText("Unsupported arithmetic operand: " + operator.getType());
                     }
                     Log.e("vortex","RESULT: "+res);
                     return res;
@@ -1134,8 +1124,8 @@ public class Expressor {
                                 default:
 
                                     System.err.println("Unsupported boolean operand: "+op);
-                                    o.addRow("");
-                                    o.addRedText("Unsupported boolean operator: "+op);
+                                    
+                                    o.addCriticalText("Unsupported boolean operator: "+op);
                                     break;
                             }
                         }
@@ -1168,16 +1158,16 @@ public class Expressor {
                                 return !arg1S.equals(arg2S);
                             default:
                                 System.err.println("Unsupported literal operand: "+op);
-                                o.addRow("");
-                                o.addRedText("Unsupported literal operator: "+op+" a1: "+arg1S+" a2: "+arg2S);
+                                
+                                o.addCriticalText("Unsupported literal operator: "+op+" a1: "+arg1S+" a2: "+arg2S);
                                 break;
                         }
                     }
                 }
             } catch (ClassCastException e) {
                 Log.d("vortex","Classcast exception for expression "+this.toString()+"arg1: "+arg1v);
-                o.addRow("");
-                o.addRedText("Illegal arguments (wrong type) in expression: " +this.toString()+". Missing $ operator?");
+                
+                o.addCriticalText("Illegal arguments (wrong type) in expression: " +this.toString()+". Missing $ operator?");
 
             }
             return null;
@@ -1192,7 +1182,7 @@ public class Expressor {
                 return ((Float) arg).doubleValue();
             if (arg instanceof String)
                 return Double.parseDouble((String)arg);
-            o.addRedText("I never get here...Object is a "+arg.getClass());
+            o.addCriticalText("I never get here...Object is a "+arg.getClass());
             return -1;
         }
 
@@ -1240,7 +1230,7 @@ public class Expressor {
     }
 
     //cut out function from full expression.
-    private static class Function extends EvalExpr {
+    protected static class Function extends EvalExpr {
         //try to build a function from the tokens in the beg. of the given token stream.
 
         private static final int No_Null = 1;
@@ -1481,8 +1471,8 @@ public class Expressor {
                             return value;
                         } else {
                             Log.e("vortex","Variable not found for literal: ["+evalArgs.get(0)+"]");
-                            o.addRow("");
-                            o.addRedText("Variable not found in historical: ["+evalArgs.get(0)+"]");
+                            
+                            o.addCriticalText("Variable not found in historical: ["+evalArgs.get(0)+"]");
                         }
                     } else
                         Log.e("vortex","Argument failed nonull literal"+evalArgs.get(0));
@@ -1513,12 +1503,12 @@ public class Expressor {
                                     String historicalValue = histVars.get(name);
                                     if (historicalValue==null) {
                                         Log.d("vortex","hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
-                                        o.addRow("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
+                                        o.addText("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
                                         return false;
                                     } else {
                                         if (!historicalValue.equals(value)) {
                                             Log.d("vortex","hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
-                                            o.addRow("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
+                                            o.addText("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
 
                                             return false;
                                         }
@@ -1578,8 +1568,8 @@ public class Expressor {
                                 }
                             } else {
                                 Log.e("vortex", "cannot apply function to non list variable");
-                                o.addRow("");
-                                o.addRedText("Cannot apply function "+getType()+"to non list variable "+evalArgs.get(0));
+                                
+                                o.addCriticalText("Cannot apply function "+getType()+"to non list variable "+evalArgs.get(0));
                             }
                         }
                     }
@@ -1632,10 +1622,7 @@ public class Expressor {
                                 statusVariableName=Constants.STATUS_VARIABLES_GROUP_NAME+":"+statusVariableName;
                             }
                             cp = GlobalState.getInstance().getDb().getLastVariableInstance(GlobalState.getInstance().getDb().createSelection(GlobalState.getInstance().getVariableCache().getContext().getContext(), statusVariableName));
-
-
                             if (cp != null) {
-
                                 while (cp.next()) {
                                     Log.d("statusvar", "picker return for " + evalArgs.get(0) + " is\n" + cp.getKeyColumnValues());
                                     empty = false;
@@ -1655,16 +1642,14 @@ public class Expressor {
                                         continue;
                                     }
                                 }
-
-
+                                cp.close();
                             }
                         }
                         if (cp==null || empty) {
-                            o.addRow("");
-                            o.addRedText("getStatusVariableValues finds no match with argument "+ evalArgs.get(0));
+                            
+                            o.addCriticalText("getStatusVariableValues finds no match with argument "+ evalArgs.get(0));
                             Log.e("vortex","found no results in getStatusVariableValues for variable "+ evalArgs.get(0));
                         }
-
                         if (combinedStatus != null) {
                             if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                                 Log.d("vortex","found one that is not done!");
@@ -1756,8 +1741,8 @@ public class Expressor {
                                 }
                                 boolean isDeveloper = GlobalState.getInstance().getGlobalPreferences().getB(PersistenceHelper.DEVELOPER_SWITCH);
                                 if (isDeveloper) {
-                                    o.addRow("Export done");
-                                    o.addRow("");
+                                    o.addText("Export done");
+                                    
                                     o.addText(msg);
                                 }
 
@@ -1826,15 +1811,15 @@ public class Expressor {
                         Log.d("vortex", "running getDelytaArea function");
                         DelyteManager dym = DelyteManager.getInstance();
                         if (dym == null) {
-                            o.addRow("");
-                            o.addRedText("Cannot calculate delyta area...no provyta selected");
+                            
+                            o.addCriticalText("Cannot calculate delyta area...no provyta selected");
                             return null;
                         }
                         float area = dym.getArea((Integer)evalArgs.get(0));
                         if (area == 0) {
                             Log.e("vortex","area 0 in getdelytaarea");
-                            o.addRow("Area 0");
-                            o.addRedText("Either Delyta "+evalArgs.get(0)+" does not exist or area is 0 (in function getDelytaArea)");
+                            o.addText("Area 0");
+                            o.addCriticalText("Either Delyta "+evalArgs.get(0)+" does not exist or area is 0 (in function getDelytaArea)");
                             return null;
                         }
                         return Float.toString(area/100);
@@ -1924,7 +1909,7 @@ public class Expressor {
                                     } else {
 
                                         if (!res && getType() == TokenType.allHaveValue) {
-                                            o.addRow("");
+                                            
                                             o.addYellowText("allHaveValue failed on expression " + formula);
                                             Log.e("vortex", "allHaveValue failed on " + formula);
                                             return false;
@@ -1933,7 +1918,7 @@ public class Expressor {
                                                 continue;
                                             else {
                                                 if (getType() == TokenType.hasValue) {
-                                                    o.addRow("");
+                                                    
                                                     o.addGreenText("hasvalue succeeded on expression " + formula);
                                                     Log.d("vortex", "hasvalue succeeded on expression " + formula);
                                                     return (true);
@@ -1951,8 +1936,8 @@ public class Expressor {
                                     String[] varNameA = al.getVarName(row).split(Constants.VariableSeparator);
                                     int size = varNameA.length;
                                     if (size < 3) {
-                                        o.addRow("");
-                                        o.addRedText("This variable has no Functional Group...cannot apply hasSame function. Variable id: " + Arrays.toString(varNameA));
+                                        
+                                        o.addCriticalText("This variable has no Functional Group...cannot apply hasSame function. Variable id: " + Arrays.toString(varNameA));
                                         Log.e("vortex", "This is not a group variable...stopping.");
                                         return null;
                                     } else {
@@ -1996,7 +1981,7 @@ public class Expressor {
                                     if (vCompare == null && vz == null || vCompare != null && vz != null)
                                         continue;
                                     else {
-                                        o.addRow("hasSame difference detected for " + key + ". Stopping");
+                                        o.addText("hasSame difference detected for " + key + ". Stopping");
                                         Log.e("vortex", "Diffkey values for " + key + ": " + (vCompare == null ? "null" : vCompare) + " " + (vz == null ? "null" : vz));
                                         return false;
                                     }
@@ -2008,18 +1993,18 @@ public class Expressor {
 
                         } else if (getType() == TokenType.hasValue) {
                             //Hasvalue fails since none of the variables fullfilled the criteria
-                            o.addRow("");
+                            
                             o.addYellowText("hasvalue failed to find any match");
                             Log.e("vortex", "hasValue failed. No match found");
                             return false;
                         } else {
                             if (!allNull) {
-                                o.addRow("");
+                                
                                 o.addYellowText("allHaveValue succeeded!");
                                 Log.e("vortex", "allHaveValue succeeded!");
                                 return true;
                             } else {
-                                o.addRow("");
+                                
                                 o.addYellowText("allHaveValue failed - no values");
                                 Log.e("vortex", "allHaveValue failed on empty list");
                                 return false;
@@ -2037,8 +2022,8 @@ public class Expressor {
                         return value != null;
                     } else {
                         Log.e("vortex","Variable not found for literal: ["+evalArgs.get(0)+"]");
-                        o.addRow("");
-                        o.addRedText("Variable not found in Has(): ["+evalArgs.get(0)+"]");
+                        
+                        o.addCriticalText("Variable not found in Has(): ["+evalArgs.get(0)+"]");
                         return null;
                     }
                     //return checkPreconditions(evalArgs,1,No_Null);
@@ -2059,10 +2044,10 @@ public class Expressor {
                             Log.d("bortex","used targetlist for hasX!");
                         }
                         if (rows == null || rows.size() == 0) {
-                            o.addRow("");
-                            o.addRedText("Filter returned empty list in HASx construction. Filter: " + getType());
-                            o.addRow("");
-                            o.addRedText("Check your pattern: " + evalArgs.get(0));
+                            
+                            o.addCriticalText("Filter returned empty list in HASx construction. Filter: " + getType());
+                            
+                            o.addCriticalText("Check your pattern: " + evalArgs.get(0));
                             return null;
                         }
                         float rowC = rows.size();
@@ -2071,33 +2056,33 @@ public class Expressor {
                             String value = varCache.getVariableValue(currentKeyChain, al.getVarName(row));
                             if (value == null) {
                                 if (getType() == TokenType.hasAll) {
-                                    o.addRow("");
+                                    
                                     o.addYellowText("hasAll filter stopped on variable " + al.getVarName(row) + " that is missing a value");
                                     return false;
                                 } else
                                     failC++;
                             } else if (getType() == TokenType.hasSome) {
-                                o.addRow("");
+                                
                                 o.addYellowText("hasSome filter succeeded on variable " + al.getVarName(row) + " that has value " + value);
                                 return true;
                             }
                         }
                         if (failC == rowC && getType() == TokenType.hasSome) {
-                            o.addRow("");
+                            
                             o.addYellowText("hasSome filter failed. No variables with values found for "+evalArgs.get(0));
                             return false;
                         }
                         if (getType() == TokenType.hasAll) {
-                            o.addRow("");
+                            
                             o.addYellowText("hasAll filter succeeded.");
                             return true;
                         }
                         if (failC <= rowC / 2) {
-                            o.addRow("");
+                            
                             o.addYellowText("hasMost filter succeeded. Filled in: " + (int) ((failC / rowC) * 100f) + "%");
                             return true;
                         }
-                        o.addRow("");
+                        
                         o.addYellowText("hasMost filter failed. Not filled in: " + (int) ((failC / rowC) * 100f) + "%");
                         return false;
                     }
@@ -2132,22 +2117,22 @@ public class Expressor {
 
             }
             Log.e("vortex","no boolean value found for "+obj);
-            o.addRedText("no boolean value found for "+obj);
+            o.addCriticalText("no boolean value found for "+obj);
             return null;
         }
          */
         private boolean checkPreconditions(List<Object> evaluatedArgumentsList,int cardinality, int flags) {
             if ((flags==No_Null || flags== No_Null_Numeric || flags == No_Null_Literal || flags == No_Null_Boolean)
                     && evaluatedArgumentsList.contains(null)) {
-                //o.addRow("");
-                //o.addRedText("Argument in function '"+getType().toString()+"' is null, but function does not allow NULL arguments.");
+                //
+                //o.addCriticalText("Argument in function '"+getType().toString()+"' is null, but function does not allow NULL arguments.");
                 Log.e("Vortex","Argument in function '"+getType().toString()+"' is null");
 
                 return false;
             }
             if (cardinality!=-1 && cardinality!=evaluatedArgumentsList.size()) {
-                o.addRow("");
-                o.addRedText("Too many or too few arguments for function '"+getType().toString()+"'. Should be "+cardinality+" argument(s), not "+evaluatedArgumentsList.size()+"!");
+                
+                o.addCriticalText("Too many or too few arguments for function '"+getType().toString()+"'. Should be "+cardinality+" argument(s), not "+evaluatedArgumentsList.size()+"!");
                 Log.e("Vortex","Too many or too few arguments for function '"+getType().toString()+"'. Should be "+cardinality+" argument(s), not "+evaluatedArgumentsList.size()+"!");
                 return false;
             }
@@ -2156,8 +2141,8 @@ public class Expressor {
                     if ((obj instanceof Double)||(obj instanceof Integer)||(obj instanceof Float)) {
                         continue;
                     } else {
-                        o.addRow("");
-                        o.addRedText("Type error. Non numeric argument for function '"+getType().toString()+"'. Argument is a "+obj.getClass().getSimpleName());
+                        
+                        o.addCriticalText("Type error. Non numeric argument for function '"+getType().toString()+"'. Argument is a "+obj.getClass().getSimpleName());
                         Log.e("Vortex","Type error. Non numeric argument for function '"+getType().toString()+"'. Argument is a "+obj.getClass().getSimpleName());
                         return false;
                     }
@@ -2168,8 +2153,8 @@ public class Expressor {
             if (flags == No_Null_Literal) {
                 for (Object obj:evaluatedArgumentsList) {
                     if (!(obj instanceof String)) {
-                        o.addRow("");
-                        o.addRedText("Type error. Non literal argument for function '" + getType().toString() + "'.");
+                        
+                        o.addCriticalText("Type error. Non literal argument for function '" + getType().toString() + "'.");
                         Log.e("Vortex","Type error. Non literal argument for function '"+getType().toString()+"'.");
                         return false;
                     }
@@ -2179,8 +2164,8 @@ public class Expressor {
                 for (Object obj:evaluatedArgumentsList) {
                     //Log.d("vortex","In null_numeric with "+obj);
                     if (obj !=null && !(obj instanceof Double)&&!(obj instanceof Integer)&&!(obj instanceof Float)) {
-                        o.addRow("");
-                        o.addRedText("Type error. Not null & not numeric argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
+                        
+                        o.addCriticalText("Type error. Not null & not numeric argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
                         Log.e("Vortex","Type error. Not null & not numeric argument for function '"+getType().toString()+"'.");
                         return false;
                     }
@@ -2189,8 +2174,8 @@ public class Expressor {
             if (flags == Null_Literal) {
                 for (Object obj:evaluatedArgumentsList) {
                     if (obj !=null && !(obj instanceof String)) {
-                        o.addRow("");
-                        o.addRedText("Type error. Not null & Non literal argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
+                        
+                        o.addCriticalText("Type error. Not null & Non literal argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
                         Log.e("Vortex","Type error. Not null & Non literal argument for function '"+getType().toString()+"'.");
                         return false;
                     }
@@ -2200,8 +2185,8 @@ public class Expressor {
                 for (Object obj:evaluatedArgumentsList) {
                     if (!(obj instanceof Boolean)) {
                         Log.e("Vortex","Type error. Non boolean argument for function '"+getType().toString()+ "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
-                        o.addRow("");
-                        o.addRedText("Type error. Non boolean argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
+                        
+                        o.addCriticalText("Type error. Non boolean argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());
                         return false;
                     }
                 }
@@ -2209,8 +2194,8 @@ public class Expressor {
             if (flags == Null_Boolean) {
                 for (Object obj:evaluatedArgumentsList) {
                     if (obj !=null && !(obj instanceof String || !obj.equals("true") || !obj.equals("false") ) ) {
-                        o.addRow("");
-                        o.addRedText("Type error. Non boolean argument for function '" + getType().toString() + "'.");
+                        
+                        o.addCriticalText("Type error. Non boolean argument for function '" + getType().toString() + "'.");
                         Log.e("Vortex","Type error. Not null & Non boolean argument for function '"+getType().toString()+"'.");
                         return false;
                     }
@@ -2396,11 +2381,11 @@ public class Expressor {
 
     private static void printfail(Expr rez, Expr arg2, Expr op) throws ExprEvaluationException {
         if (o!=null) {
-            o.addRow("");
-            o.addRedText("Missing or wrong parameters. This is likely caused by a misplaced paranthesis.");
-            o.addRedText("arg1: "+rez);
-            o.addRedText("arg2: "+arg2);
-            o.addRedText("operator: "+op);
+            
+            o.addCriticalText("Missing or wrong parameters. This is likely caused by a misplaced paranthesis.");
+            o.addCriticalText("arg1: "+rez);
+            o.addCriticalText("arg2: "+arg2);
+            o.addCriticalText("operator: "+op);
         }
 
         System.err.println("Missing or wrong parameters. This is likely caused by a misplaced paranthesis.");

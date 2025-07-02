@@ -13,7 +13,7 @@ public class AddVariableToListEntry extends Block {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -2748537558779469614L;
+
 	private boolean isVisible = true;
     private boolean isDisplayed=false;
     private boolean showHistorical=false;

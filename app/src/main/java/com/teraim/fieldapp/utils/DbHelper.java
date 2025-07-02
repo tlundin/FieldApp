@@ -24,7 +24,7 @@ import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.synchronization.SyncEntry;
 import com.teraim.fieldapp.synchronization.SyncEntryHeader;
@@ -52,8 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-@SuppressWarnings("SyntaxError")
 public class DbHelper extends SQLiteOpenHelper {
 
     /* Database Version*/ private static final int DATABASE_VERSION = 18;/* Books table name*/
@@ -164,18 +164,75 @@ public class DbHelper extends SQLiteOpenHelper {
         if (!newKeyHash.isEmpty()) {
             if (ar!=null)
                 newKeyHash.put(ar,arval);
+            c.close();
             return newKeyHash;
         }
         Log.e("vortex","failed to resolve unknown");
-        LoggerI o = GlobalState.getInstance().getLogger();
-        if (o!=null) {
-            o.addRow("");
-            o.addRedText("Failed to resolve unknown in context "+myKeyHash);
-        }
+        LogRepository o = LogRepository.getInstance();
+        o.addCriticalText("Failed to resolve unknown in context "+myKeyHash);
+        c.close();
         return null;
     }
 
-    public Map<String,String> createNotNullSelection(String[] rowKHA, Map<String, String> myKeyHash) {
+    public Map<String, String> createNotNullSelection(String[] rowKHA, Map<String, String> myKeyHash) {
+
+        // The new key-hash to return
+        Map<String, String> myNewKeyHash = new HashMap<>();
+
+        // Use lists to build the query parts dynamically and safely
+        List<String> selectionClauses = new ArrayList<>();
+        List<String> selectionArgs = new ArrayList<>();
+        List<String> columnsToSelect = new ArrayList<>();
+
+        for (String key : rowKHA) {
+            String dbColumnName = getDatabaseColumnName(key);
+            columnsToSelect.add(dbColumnName);
+
+            String existingValue = myKeyHash.get(key);
+
+            if (existingValue == null) {
+                // Add a "IS NOT NULL" clause, which does not require a selection argument.
+                selectionClauses.add(dbColumnName + " IS NOT NULL");
+            } else {
+                // Add a "= ?" placeholder for the value.
+                selectionClauses.add(dbColumnName + " = ?");
+                // Add the value to the arguments list. This prevents SQL injection.
+                selectionArgs.add(existingValue);
+            }
+        }
+
+        // Join the individual clauses with " AND "
+        String finalSelection = String.join(" AND ", selectionClauses);
+        String[] finalColumns = columnsToSelect.toArray(new String[0]);
+        String[] finalSelectionArgs = selectionArgs.toArray(new String[0]);
+
+        // Use try-with-resources to ensure the Cursor is always closed automatically.
+        try (Cursor c = db().query(true, TABLE_VARIABLES, finalColumns, finalSelection, finalSelectionArgs, null, null, null, "1")) {
+
+            if (c.moveToNext()) {
+                for (String colName : c.getColumnNames()) {
+                    // Get the value using the column name for clarity
+                    String value = c.getString(c.getColumnIndexOrThrow(colName));
+                    myNewKeyHash.put(getRealColumnNameFromDatabaseName(colName), value);
+                }
+            }
+
+            // The original code logged an error if more than one result was found.
+            // This check is maintained. The "LIMIT 1" in the query makes this less likely,
+            // but it's good practice to keep the verification.
+            if (c.moveToNext()) {
+                Log.e("vortex", "Query returned more than one result, which was not expected!");
+            }
+
+        } catch (Exception e) {
+            Log.e("vortex", "Error executing database query in createNotNullSelection", e);
+            // Depending on requirements, you might want to return null or an empty map on error.
+        }
+
+        Log.d("vortex", "Returning keyhash after query: " + myNewKeyHash);
+        return myNewKeyHash;
+    }
+/*    public Map<String,String> createNotNullSelection_old(String[] rowKHA, Map<String, String> myKeyHash) {
 
         String query = "";
         String cols = "";
@@ -216,7 +273,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         Log.d ("vortex","now after C with keyhash: "+myNewKeyHash);
         return myNewKeyHash;
-    }
+    }*/
 
 
 
@@ -405,17 +462,6 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d("nils", "Key: " + e + "Value:" + realColumnNameToDB.get(e));
 
     }
-/*
-    public void fixYearNull() {
-        String colYear = getDatabaseColumnName(YEAR);
-        //add year to rows missing year
-        if (!colYear.equals(getDatabaseColumnName(YEAR)))
-            db().execSQL("update variabler set " + colYear + "= '" + Calendar.getInstance().get(Calendar.YEAR) + "' where " + colYear + " is null");
-
-    }
-*/
-
-
 
     private boolean staticColumn(String col) {
         for (String staticCol : VAR_COLS) {
@@ -560,14 +606,14 @@ public class DbHelper extends SQLiteOpenHelper {
                 final Report res;
                 if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.getData())) {
                     Log.d("nils", "Exported file succesfully");
-                    LoggerI logger = GlobalState.getInstance().getLogger();
-                    logger.addCriticalText("Exported to folder: "+exportFolder);
+                    LogRepository logger = LogRepository.getInstance();
+                    logger.addText("Exported to folder: "+exportFolder);
                     c.close();
                     res = r;
                 } else {
                     Log.e("nils", "Export of file failed");
                     c.close();
-                    GlobalState.getInstance().getLogger().addRow("EXPORT FILENAME: [" + exportFolder + exportFileName + "." + exporter.getType() + "]");
+                    LogRepository.getInstance().addText("EXPORT FILENAME: [" + exportFolder + exportFileName + "." + exporter.getType() + "]");
                     res = new Report(ExportReport.FILE_WRITE_ERROR);
                 }
                 final Activity act = (Activity) exporter.getContext();
@@ -1323,20 +1369,20 @@ public class DbHelper extends SQLiteOpenHelper {
         //Create selection String.
 
         //If keyset is null, the variable is potentially global with only name as a key.
-        String selection = "";
+        StringBuilder selection = new StringBuilder();
         if (keySet != null) {
             //Does not exist...need to create.
-            selection = "";
             //1.find the matching column.
             for (String key : keySet.keySet()) {
                 key = getDatabaseColumnName(key);
 
-                selection += key + "= ? and ";
+                selection.append(key);
+                selection.append("= ? and ");
 
             }
         }
-        selection += "var= ?";
-        ret.selection = selection;
+        selection.append("var= ?");
+        ret.selection = selection.toString();
         //Log.d("nils","created new selection: "+selection);
         ret.selectionArgs = createSelectionArgs(keySet, name);
         //Log.d("nils","CREATE SELECTION RETURNS: "+ret.selection+" "+print(ret.selectionArgs));
@@ -1438,7 +1484,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
 
-    public SyncReport insertSyncEntries(SyncReport changes, SyncEntry[] ses, LoggerI o) {
+    public SyncReport insertSyncEntries(SyncReport changes, SyncEntry[] ses, LogRepository o) {
 
         if (ses == null || ses.length==0) {
             Log.d("sync", "syncentry contained no data");
@@ -1585,8 +1631,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     Log.d("bascar","Affected rows in database:" +affectedRows);
 
                 } else {
-                    o.addRow("");
-                    o.addRedText("DB_ERASE Failed. Message corrupt");
+                    o.addCriticalText("DB_ERASE Failed. Message corrupt");
                     changes.faults++;
                 }
             } else {
@@ -1683,7 +1728,7 @@ public class DbHelper extends SQLiteOpenHelper {
         return variableName.startsWith("STATUS:status_ruta");
     }
 
-    public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LoggerI o, SyncStatusListener syncListener) {
+    public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LogRepository o, SyncStatusListener syncListener) {
         if (ses == null) {
             Log.d("sync", "ses är tom! i synchronize");
             return null;
@@ -1854,7 +1899,7 @@ public class DbHelper extends SQLiteOpenHelper {
                             }
                         } else {
                             changes.refused++;
-                            //                        o.addRow("");
+                            //                        o.addText("");
                             //                        o.addYellowText("DB_INSERT REFUSED: " + name + " Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp +" value: "+myValue);
                             //                        Log.d("vortex", "DB_INSERT REFUSED: " + name + " Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp +" value: "+myValue);
                         }
@@ -1938,7 +1983,7 @@ public class DbHelper extends SQLiteOpenHelper {
                             } else {
                                 changes.refused++;
                                 Log.d("sync", "Did not delete.");
-                                //                       o.addRow("");
+                                //                       o.addText("");
                                 //                       o.addYellowText("DB_DELETE REFUSED: " + name);
                                 //                       if (hasValueAlready)
                                 //                           o.addYellowText(" Timestamp incoming: " + s.getTimeStamp() + " Time existing: " + timestamp);
@@ -1957,13 +2002,11 @@ public class DbHelper extends SQLiteOpenHelper {
                             int affectedRows = this.erase(keyPairs, pattern);
                             resetCache = true;
                             //Invalidate Cache...purposeless to invalidate only part.
-                            o.addRow("");
                             o.addGreenText("DB_ERASE message executed in sync");
                             changes.deletes += affectedRows;
 
                         } else {
-                            o.addRow("");
-                            o.addRedText("DB_ERASE Failed. Message corrupt");
+                            o.addCriticalText("DB_ERASE Failed. Message corrupt");
                             changes.faults++;
                         }
                     }
@@ -1980,16 +2023,16 @@ public class DbHelper extends SQLiteOpenHelper {
 
             //Add instructions in log if conflicts.
             if (changes.conflicts > 0) {
-                o.addRow("");
-                o.addRedText("You *may* have sync conflicts in the following workflow(s): ");
+                o.addText("");
+                o.addCriticalText("You *may* have sync conflicts in the following workflow(s): ");
                 int i = 1;
                 for (String flow : conflictFlows) {
-                    o.addRow("");
-                    o.addRedText(i + ".: " + flow);
+                    o.addText("");
+                    o.addCriticalText(i + ".: " + flow);
                     i++;
                 }
 
-                o.addRedText("Verify that the values are correct. If not, make corrections and resynchronise!");
+                o.addCriticalText("Verify that the values are correct. If not, make corrections and resynchronise!");
             }
             if (resetCache)
                 vc.reset();
@@ -2291,9 +2334,8 @@ public class DbHelper extends SQLiteOpenHelper {
         Variable gpsCoord = GlobalState.getInstance().getVariableCache().getVariable(go.getKeyHash(), GisConstants.GPS_Coord_Var_Name);
         Variable geoType = GlobalState.getInstance().getVariableCache().getVariable(go.getKeyHash(), GisConstants.Geo_Type);
         if (gpsCoord == null || geoType == null) {
-            LoggerI o = GlobalState.getInstance().getLogger();
-            o.addRow("");
-            o.addRedText("Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
+            LogRepository o = LogRepository.getInstance();
+            o.addCriticalText("Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
             Log.e("vortex", "Insert failed for GisObject " + go.getLabel() + " since one or both of the required variables " + GisConstants.GPS_Coord_Var_Name + " and " + GisConstants.Geo_Type + " is missing from Variables.csv. Please add these and check spelling");
             return;
         }
@@ -2413,7 +2455,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
-    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV(Map<String, String> keyChain) {
+/*    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV_old(Map<String, String> keyChain) {
         final List<String> selectionArgs = new ArrayList<String>();
         final String AR = getDatabaseColumnName("år");
         boolean hist = false;
@@ -2477,27 +2519,88 @@ public class DbHelper extends SQLiteOpenHelper {
             //Log.d("vortex","historical selloArgs: "+selectionArgs);
             selArgs = selectionArgs.toArray(new String[selectionArgs.size()]);
             Cursor d = db().query(true, TABLE_VARIABLES, new String[]{VARID, "value"}, selection.toString(), selArgs, null, null, null, null);
-            histC = d.getCount();
-//            Log.d("vortex", "Got " + histC + " results in hist ");
+            //histC = d.getCount();
+            //Log.d("vortex", "Got " + histC + " results in hist ");
             while (d.moveToNext())
                 getTmpVal(d.getString(0), tmp).hist = d.getString(1);
             d.close();
         }
-
-
-//        Log.d("vortex", "Tmpval has " + tmp.values().size() );
-        /*
-			for (String v:tmp.keySet()) {
-					TmpVal tv = tmp.get(v);
-					Log.e("vortex","VAR: "+v+" NORM: "+tv.norm);
-			}
-
-        */
-
-
         return tmp;
+    }*/
 
+    public Map<String, TmpVal> preFetchValuesForAllMatchingKeyV(Map<String, String> keyChain) {
+        // 1. Preparation: Translate external keys to database column names.
+        final String yearColumn = getDatabaseColumnName("år");
+        final Map<String, String> dbColumnFilters = (keyChain != null)
+                ? keyChain.entrySet().stream()
+                .collect(Collectors.toMap(e -> getDatabaseColumnName(e.getKey()), Map.Entry::getValue))
+                : new HashMap<>();
 
+        // 2. Query Building: Create the WHERE clause and arguments dynamically and safely.
+        final List<String> selectionParts = new ArrayList<>();
+        final List<String> selectionArgs = new ArrayList<>();
+        final boolean isHistoricalQuery = Constants.HISTORICAL_TOKEN_IN_DATABASE.equals(dbColumnFilters.get(yearColumn));
+
+        for (int i = 1; i <= NO_OF_KEYS; i++) {
+            String key = "L" + i;
+            String filterValue = dbColumnFilters.get(key);
+
+            if (filterValue != null) {
+                // Handle the year column specially to query both normal and historical values in one go.
+                if (key.equals(yearColumn) && !isHistoricalQuery) {
+                    selectionParts.add(key + " IN (?, ?)");
+                    selectionArgs.add(Constants.getYear()); // Current year
+                    selectionArgs.add(Constants.HISTORICAL_TOKEN_IN_DATABASE); // Historical token
+                } else if ("?".equals(filterValue)) {
+                    selectionParts.add(key + " NOT NULL");
+                } else {
+                    selectionParts.add(key + " = ?");
+                    selectionArgs.add(filterValue);
+                }
+            } else {
+                selectionParts.add(key + " IS NULL");
+            }
+        }
+
+        String selection = String.join(" AND ", selectionParts);
+        String[] finalSelectionArgs = selectionArgs.toArray(new String[0]);
+        String[] columnsToFetch = {VARID, "value", yearColumn}; // Fetch the year column to differentiate results.
+
+        Map<String, TmpVal> results = new HashMap<>();
+
+        // 3. Execution: Use try-with-resources to guarantee the Cursor is always closed.
+        try (Cursor cursor = db().query(true, TABLE_VARIABLES, columnsToFetch, selection, finalSelectionArgs, null, null, null, null)) {
+            int varIdIndex = cursor.getColumnIndexOrThrow(VARID);
+            int valueIndex = cursor.getColumnIndexOrThrow("value");
+            int yearIndex = cursor.getColumnIndexOrThrow(yearColumn);
+
+            while (cursor.moveToNext()) {
+                String varId = cursor.getString(varIdIndex);
+                String value = cursor.getString(valueIndex);
+                String yearValue = cursor.getString(yearIndex);
+
+                // Using computeIfAbsent is a cleaner way to get-or-create the TmpVal object.
+                TmpVal tmpVal = results.computeIfAbsent(varId, k -> new TmpVal());
+
+                // Populate either the historical or normal value based on the year column's data.
+                if (Constants.HISTORICAL_TOKEN_IN_DATABASE.equals(yearValue)) {
+                    tmpVal.hist = value;
+                } else {
+                    tmpVal.norm = value;
+                }
+
+                // If the original query was for historical, the historical value is also the "normal" one.
+                if (isHistoricalQuery) {
+                    tmpVal.norm = tmpVal.hist;
+                }
+            }
+        } catch (Exception e) {
+            // Log the exception, e.g., Log.e("DatabaseError", "Failed to fetch values", e);
+            // Depending on requirements, you might want to re-throw or return an empty map.
+            return new HashMap<>(); // Return empty map on failure
+        }
+
+        return results;
     }
 
 
@@ -2717,6 +2820,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d("berokk","faultInKeys: "+ sr.faultInKeys);
         Log.d("berokk","faultInValues: "+ sr.faultInValues);
         Log.d("berokk","refused: "+ sr.refused);
+        Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
         Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
 
     }

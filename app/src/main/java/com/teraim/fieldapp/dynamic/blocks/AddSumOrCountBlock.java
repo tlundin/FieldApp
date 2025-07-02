@@ -6,6 +6,7 @@ import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Not_ClickableField_SumAndCountOfVariables;
+import com.teraim.fieldapp.log.LogRepository;
 
 /**Blocks that so far implements only signal
  * 
@@ -16,17 +17,17 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -4139158043307360229L;
+
 	private final String containerId;
     private final String label;
     private final String myPattern;
     private final String target;
     private final String result;
-	private final WF_Not_ClickableField_SumAndCountOfVariables.Type type;
+	private transient WF_Not_ClickableField_SumAndCountOfVariables.Type type;
 	private final String format;
 
 	private boolean isVisible = true;
-	private VariableConfiguration al;
+	private transient VariableConfiguration al;
 	public AddSumOrCountBlock(String id,String containerId, String label,String postLabel,
 			String filter, String target,
 			WF_Not_ClickableField_SumAndCountOfVariables.Type sumOrCount,String result,
@@ -44,10 +45,8 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
 
 	}
 
-	//TODO: CHECK ON POSTLABEL
-
 	public void create(WF_Context myContext) {
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		
 
 		Container myContainer = myContext.getContainer(containerId);
@@ -59,13 +58,13 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
 					this);
 
 			if (result == null) {
-				o.addRow("");
-				o.addRedText("Error in XML: block_add_sum_of_selected_variables_display is missing a result parameter for:"+label);
+				o.addText("");
+				o.addCriticalText("Error in XML: block_add_sum_of_selected_variables_display is missing a result parameter for:"+label);
 			} else {
 				Variable v = GlobalState.getInstance().getVariableCache().getVariable(result);
 				if (v==null) {
-					o.addRow("");
-					o.addRedText("Error in block_add_sum_of_selected_variables_display: missing variable for result parameter: "+result);
+					o.addText("");
+					o.addCriticalText("Error in block_add_sum_of_selected_variables_display: missing variable for result parameter: "+result);
 				} else 
 					field.addVariable(v, true,format,true);			
 			}
@@ -81,8 +80,8 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
 
 			myContainer.add(field);
 		} else {
-			o.addRow("");
-			o.addRedText("Cannot add block_add_sum_of_selected_variables_display: missing container");
+			o.addText("");
+			o.addCriticalText("Cannot add block_add_sum_of_selected_variables_display: missing container");
 			
 		}
 	}

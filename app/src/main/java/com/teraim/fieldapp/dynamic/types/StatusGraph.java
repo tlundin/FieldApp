@@ -38,8 +38,4 @@ class StatusGraph implements Serializable {
 			
 	}
 	
-	public void parseRule(RuleBlock rbl) {
-				rbl.getRule();
-	}
-	
 }

@@ -9,9 +9,6 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.utils.Tools.Unit;
 
 public class DisplayValueBlock extends DisplayFieldBlock implements EventGenerator {
-
-	private static final long serialVersionUID = 9151756426062334462L;
-
 	private final String namn;
 	private final String label;
 	private final String formula;
@@ -44,12 +41,8 @@ public class DisplayValueBlock extends DisplayFieldBlock implements EventGenerat
 		myContainer.add(vf);
 		vf.onEvent(new WF_Event_OnSave(namn));
 		}  else {
-			o.addRow("");
-			o.addRedText("Failed to add display value block with id "+blockId+" - missing container "+containerId);
+			o.addCriticalText("Failed to add display value block with id "+blockId+" - missing container "+containerId);
 		}
 			
 	}
-
-
-
 }

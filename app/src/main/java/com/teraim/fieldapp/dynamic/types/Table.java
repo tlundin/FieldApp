@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,9 +19,6 @@ import java.util.TreeMap;
 
 public class Table implements Serializable {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1183209171210448314L;
 	//The table is a Map of key=Header,value=List of Data.
 	private final Map<String,List<String>> colTable=new TreeMap<String,List<String>>(String.CASE_INSENSITIVE_ORDER);
@@ -211,9 +208,7 @@ public class Table implements Serializable {
 				result = row.get(index);
 			//Log.d("nils","found field "+columnName+": "+result+" in class Table");
 		} else {
-			LoggerI o = GlobalState.getInstance().getLogger();
-			o.addRow("");
-			o.addRedText("Did not find column named "+columnName);
+			LogRepository.getInstance().addCriticalText("Did not find column named "+columnName);
 			Log.e("nils","Did NOT find field ["+columnName+"] in class Table. Columns available:");
 			for (int i=0;i<myColumns.size();i++)
 				Log.e("vortex","["+myColumns.get(i)+"]");

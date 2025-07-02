@@ -7,7 +7,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisConstants;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.NamedVariables;
 import com.teraim.fieldapp.ui.ExportDialogInterface;
 import com.teraim.fieldapp.utils.DbHelper.DBColumnPicker;
@@ -38,7 +38,7 @@ public class GeoJSONExporter extends Exporter {
 	@Override
 	public Report writeVariables(DBColumnPicker cp) {
 
-		LoggerI o = GlobalState.getInstance().getLogger();
+		LogRepository o = LogRepository.getInstance();
         StringWriter sw = new StringWriter();
 		writer = new JsonWriter(sw);
 		try {
@@ -72,8 +72,8 @@ public class GeoJSONExporter extends Exporter {
 					String uid=null,sub=null;
 					currentHash = cp.getKeyColumnValues();
 					if (currentHash==null) {
-						o.addRow("");
-						o.addRedText("Missing keyHash!");
+						o.addText("");
+						o.addCriticalText("Missing keyHash!");
 						Log.e("vortex","Missing keyHash!");
 						continue;
 					}
@@ -125,7 +125,7 @@ public class GeoJSONExporter extends Exporter {
 								boolean isLocal = gs.getVariableConfiguration().isLocal(gs.getVariableConfiguration().getCompleteVariableDefinition(name));
 								if (isLocal) {
 									//Log.d("vortex","skipping "+name+" since it is marked local");
-									//o.addRow("skipping "+name+" since it is marked local");
+									//o.addText("skipping "+name+" since it is marked local");
 
 								} else {
 									gisObjM.put(name, cp.getVariable().value);
@@ -134,12 +134,12 @@ public class GeoJSONExporter extends Exporter {
 								}
 							}
 							else {
-								o.addRow("");
-								o.addRedText("Variable name was null!");
+								o.addText("");
+								o.addCriticalText("Variable name was null!");
 							}
 						} else {
-							o.addRow("");
-							o.addRedText("Variable was null!");
+							o.addText("");
+							o.addCriticalText("Variable was null!");
 						}
 					}
 					if (ctx != null)
@@ -183,8 +183,8 @@ public class GeoJSONExporter extends Exporter {
 						String[] polygons = null;
 						if (coordinates == null) {
 							//Try to find the object from historical. If not possible, sound alert.
-							//o.addRow("");
-							//o.addRedText("Object " + keyUID + " is missing GPS Coordinates!!!");
+							//o.addText("");
+							//o.addCriticalText("Object " + keyUID + " is missing GPS Coordinates!!!");
 							Log.e("fortex", "Object " + keyUID + " is missing GPS Coordinates!!!");
 
 							//for (String mKey : gisObjM.keySet()) {
@@ -207,23 +207,23 @@ public class GeoJSONExporter extends Exporter {
 							}
 							if (coordinates==null) {
 								if (uidFromGlobal !=null) {
-									o.addRow("");
-									o.addRedText("Failed to find replacement coord with " + uidFromGlobal + " for [" + keyUID + "]");
+									o.addText("");
+									o.addCriticalText("Failed to find replacement coord with " + uidFromGlobal + " for [" + keyUID + "]");
 								} else
 									Log.d("vortex","uidfromglobal failed for "+keyUID);
 								coordLess.add(keyUID);
 								continue;
 							} else {
-								o.addRow("");
+								o.addText("");
 								o.addCriticalText("Found replacement coords with "+uidFromGlobal+" ["+keyUID+"]");
 								String objectId = GlobalState.getInstance().getDb().findVarFromUID(uidFromGlobal,GisConstants.ObjectID);
 								String geoT= GlobalState.getInstance().getDb().findVarFromUID(uidFromGlobal,GisConstants.Geo_Type);
 								if (objectId!=null) {
-									o.addRow("Found object ID...");
+									o.addText("Found object ID...");
 									gisObjM.put(GisConstants.ObjectID,objectId);
 								}
 								if (geoT!=null) {
-									o.addRow("Found geotype...: "+geoT);
+									o.addText("Found geotype...: "+geoT);
 									gisObjM.put(GisConstants.Geo_Type,geoT);
 								}
 							}
@@ -249,8 +249,8 @@ public class GeoJSONExporter extends Exporter {
 							}
 						if (geoType==null){
 							Log.d("brex","WRONG: "+polygons[0]);
-							o.addRow("");
-							o.addRedText("Failed to assign geotype for " + keyUID+" with polygons length = "+polygons.length+" and coordinates "+coordinates);
+							o.addText("");
+							o.addCriticalText("Failed to assign geotype for " + keyUID+" with polygons length = "+polygons.length+" and coordinates "+coordinates);
 							continue;
 						}
 						boolean isPoly= "Polygon".equalsIgnoreCase(geoType);
@@ -364,8 +364,8 @@ public class GeoJSONExporter extends Exporter {
 					}
 
 				} else {
-					o.addRow("");
-					o.addRedText("GisObjects was null!");
+					o.addText("");
+					o.addCriticalText("GisObjects was null!");
 					return new Report(ExportReport.NO_DATA);
 				}
 				//End of array.
@@ -376,8 +376,8 @@ public class GeoJSONExporter extends Exporter {
 				Log.d("nils","finished writing JSON");
 				//Log.d("nils", sw.toString());
 				if (!coordLess.isEmpty()&&globalPh.getB(PersistenceHelper.DEVELOPER_SWITCH)) {
-					o.addRow("");
-					o.addRedText("No coordinates found for these objects:");
+					o.addText("");
+					o.addCriticalText("No coordinates found for these objects:");
 					for (String keyUID:coordLess) {
 						o.addCriticalText(keyUID);
 					}
@@ -386,7 +386,7 @@ public class GeoJSONExporter extends Exporter {
 			}else
 				Log.e("vortex","EMPTY!!!");
 		} catch (Exception e) {
-			Tools.printErrorToLog(GlobalState.getInstance().getLogger(), e, null);
+			Tools.printErrorToLog(LogRepository.getInstance(), e, null);
 			cp.close();
 		} finally {
 			cp.close();

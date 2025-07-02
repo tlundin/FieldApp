@@ -17,6 +17,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import com.google.android.material.navigation.NavigationView;
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -85,16 +86,16 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 
 	}
 
-	public void addHeader(String label, int bgColor,int textColor) {
+	public void addHeader(String label) {
 		Menu menu = navigationView.getMenu();
 		currentSubMenu = menu.addSubMenu(Menu.NONE, Menu.NONE, Menu.NONE, label);
 	}
 
-	public void addItem(String label, Workflow wf,int bgColor,int textColor) {
+	public void addItem(String label, Workflow wf) {
 		if (currentSubMenu == null) {
 			// Handle cases where addItem is called before addHeader, maybe add to a default section or throw an error
 			// For this example, let's add a default header if none exists
-			addHeader("Vecka "+Constants.getWeekNumber(), android.R.color.transparent, android.R.color.black);
+			addHeader("Vecka "+Constants.getWeekNumber());
 		}
 
 		int itemId = nextItemId++;
@@ -127,7 +128,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 		Workflow workflow = workflowMap.get(item.getItemId());
 		if (workflow != null) {
 			// Use the workflow object to determine which fragment to load
-			Start.singleton.changePage(workflow,null);
+			GlobalState.getInstance().changePage(workflow,null);
 			// Highlight the selected item
 			navigationView.setCheckedItem(item.getItemId());
 

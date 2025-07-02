@@ -5,14 +5,10 @@ import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
+import com.teraim.fieldapp.log.LogRepository;
 
 public class AddGisLayerBlock extends Block {
 
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -4149408006972701777L;
 	private final String name;
     private final String label;
     private final String target;
@@ -42,14 +38,13 @@ public class AddGisLayerBlock extends Block {
 		if (gisMap instanceof WF_Gis_Map) {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
 			if (!myGis.isZoomLevel()) {
-			final GisLayer gisLayer = new GisLayer(myGis,name,label,isVisible,isBold,hasWidget,showLabels);
+			final GisLayer gisLayer = new GisLayer(name,label,isVisible,isBold,hasWidget,showLabels);
 			myGis.addLayer(gisLayer);
 			}
 		} else {
 			if (gisMap==null) {
-				o = GlobalState.getInstance().getLogger();
-				o.addRow("");
-				o.addRedText("The target map in Gislayerblock "+getBlockId()+" is not found so the layer is not added");
+				o = LogRepository.getInstance();
+				o.addCriticalText("The target map in Gislayerblock "+getBlockId()+" is not found so the layer is not added");
 			}
 		}
 		

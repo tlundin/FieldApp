@@ -8,9 +8,10 @@ package com.teraim.fieldapp.dynamic.workflow_realizations;
  */
 
 
-import android.app.Activity;
 import android.content.Context;
 import android.util.Log;
+
+import androidx.fragment.app.FragmentActivity;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.Start;
@@ -39,11 +40,11 @@ import java.util.Set;
 
 public class WF_Context {
 
-	private final Context ctx;
+	private final FragmentActivity ctx;
 	private final List<WF_Static_List> lists= new ArrayList<>();
 	private final Map<String,Drawable> drawables;
 	private List<WF_Container> containers;
-	private final Executor myTemplate;
+	private transient Executor myTemplate;
 	private final EventBroker eventBroker;
 	private final Set<Rule> rules=new HashSet<Rule>();
 	private final Set<Integer> executedBlocks = new HashSet<Integer>();
@@ -62,9 +63,10 @@ public class WF_Context {
 	private final Map<String,List<WF_ClickableField_Slider>> sliderGroupM=new HashMap<String, List<WF_ClickableField_Slider>>();
 	private final Map<String,CoupledVariableGroupBlock> mySliderGroups = new HashMap<String, CoupledVariableGroupBlock>();
 	private final Map<String,DataSource> chartGroupM = new HashMap<String, DataSource>();
+	private String gpsPriority="low";
 
 
-	public WF_Context(Context ctx,Executor e,int rootContainerId) {
+	public WF_Context(FragmentActivity ctx, Executor e) {
 		this.ctx=ctx;
 		myTemplate = e;
 		eventBroker = new EventBroker(ctx);
@@ -92,8 +94,8 @@ public class WF_Context {
 		executedBlocks.clear();
 	}
 	
-	public Activity getActivity() {
-		return (Activity)ctx;
+	public FragmentActivity getFragmentActivity() {
+		return ctx;
 	}
 
 	public List<WF_Static_List> getLists() {
@@ -192,7 +194,7 @@ public class WF_Context {
 		isCaller = false;
 		if (hasMenu) {
 			hasMenu = false;
-			Start.singleton.getDrawerMenu().clear();
+			GlobalState.getInstance().getDrawerMenu().clear();
 		}
 
 	}
@@ -316,8 +318,13 @@ public class WF_Context {
 	public boolean hasGPSTracker() {
 		return hasGPSTracker;
 	}
-	public void enableGPS() {
+	public boolean hasHighGPS() {
+		return gpsPriority.equals("high");
+	}
+	public void enableGPS(String gpsPriority) {
 		hasGPSTracker = true;
+		if (gpsPriority!=null)
+			this.gpsPriority = gpsPriority;
 	}
 
 	public void disableGPS() {
@@ -431,4 +438,8 @@ public class WF_Context {
     public boolean isCaller() {
 		return isCaller;
 	}
+
+    public boolean isWorkFlowEnded() {
+		return myEndIsNear;
+    }
 }

@@ -6,7 +6,6 @@ import android.util.Log;
 import com.teraim.fieldapp.dynamic.blocks.BlockCreateListEntriesFromFieldList;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
-import com.teraim.fieldapp.log.LoggerI;
 import com.teraim.fieldapp.utils.Expressor;
 
 import java.io.Serializable;
@@ -19,15 +18,11 @@ public class Rule implements Serializable {
      */
     private static final long serialVersionUID = -1965204853256767316L;
     private final String target;
-    private String action;
     private final String errorMsg;
     private final String label;
     private final String id;
     private Expressor.EvalExpr condition;
-    private Context ctx;
     private Type myType;
-    private boolean initDone = false;
-    private LoggerI o;
     private int myTargetBlockId=-1;
     private final String conditionS=null;
     //Old rule engine for back compa.
@@ -55,7 +50,7 @@ public class Rule implements Serializable {
         } catch (NumberFormatException e) {}
     }
 
-    private WF_Context ruleContext=null;
+    private transient WF_Context ruleContext=null;
     private BlockCreateListEntriesFromFieldList myBlock=null;
 
     public void setTarget(WF_Context myContext, BlockCreateListEntriesFromFieldList bl) {

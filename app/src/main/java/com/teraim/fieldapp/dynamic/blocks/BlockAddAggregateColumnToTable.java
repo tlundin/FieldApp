@@ -6,17 +6,13 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 
 import java.util.List;
 
 public class BlockAddAggregateColumnToTable extends Block {
 
-
-	/**
-	 *
-	 */
-	private static final long serialVersionUID = -3041902713022605254L;
 	private Expressor.EvalExpr expressionE=null;
 
 	private final String target;
@@ -50,11 +46,10 @@ public class BlockAddAggregateColumnToTable extends Block {
 
 	public void create(WF_Context myContext) {
 		PageWithTable myTable = (PageWithTable) myContext.getTemplate();
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		if (myTable==null) {
 			Log.e("vortex","Did not find target table "+target+" in BlockAddAggregateColumnToTable, create");
-			o.addRow("");
-			o.addRedText("Did not find target table "+target+" when trying to add AggregateColumn with block ID: "+blockId+". Operation cancelled");
+			o.addCriticalText("Did not find target table "+target+" when trying to add AggregateColumn with block ID: "+blockId+". Operation cancelled");
 			return;
 		}
 		

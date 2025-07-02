@@ -10,11 +10,12 @@ import com.teraim.fieldapp.dynamic.types.ValuePair;
 import com.teraim.fieldapp.loadermodule.JSONConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadResult;
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,14 +25,14 @@ import java.util.Set;
 
 public class ImportDataConfiguration extends JSONConfigurationModule {
 
-	private final LoggerI o;
+	private final LogRepository o;
 	private final DbHelper myDb;
     private Map<String,String> keyz;
 	private final Table varTable;
 
-	public ImportDataConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String server, String bundle, LoggerI debugConsole,
+	public ImportDataConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String server, String bundle, LogRepository debugConsole,
 								   DbHelper myDb, Table t) {
-		super(context,globalPh,ph, Source.internet, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");
+		super(context,globalPh,ph, server+bundle.toLowerCase()+"/", "Importdata","Historical data module");
 		this.o = debugConsole;
 		this.myDb = myDb;
 		isDatabaseModule=true;
@@ -46,12 +47,16 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 	}
 
 	@Override
+	protected Type getEssenceType() {
+		return ImportDataConfiguration.class;
+	}
+
+	@Override
 	protected void setFrozenVersion(float version) {
 		ph.put(PersistenceHelper.CURRENT_VERSION_OF_HISTORY_FILE,version);
 
 	}
 
-	@Override
 	public boolean isRequired() {
 		return false;
 	}
@@ -82,10 +87,10 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 			}
 			state = State.readingKeys;
 			Log.d("vortex","found date time version "+ meta.get("date")+","+ meta.get("time")+","+ meta.get("version"));
-			o.addRow("Import file date time version: ["+ meta.get("date")+"],["+ meta.get("time")+"],["+ meta.get("version")+"]");
+			o.addText("Import file date time version: ["+ meta.get("date")+"],["+ meta.get("time")+"],["+ meta.get("version")+"]");
 			//jArray = jObject.getJSONArray("source");
 			//Erase old history
-			o.addRow("");
+			o.addText("");
 			o.addYellowText("Deleting existing historical data..");
 			if (!myDb.deleteHistory())
 				return new LoadResult(this,ErrorCode.Aborted,"Database is missing column 'år', cannot continue");
@@ -254,12 +259,12 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 		essence = null;
 		Log.e("vortex","SKIPPED KEYS:\n"+skipped.toString());
 		Log.e("vortex","Keys Found:\n"+allKeys.toString());
-		o.addRow("");
+		o.addText("");
 		if (skipped.isEmpty())
 			o.addGreenText("No unknown keys..");
 		else
-			o.addRow("Unknown keys: "+skipped.toString());
-		o.addRow("");
+			o.addText("Unknown keys: "+skipped.toString());
+		o.addText("");
 		o.addGreenText("Keys Found:\n"+allKeys.toString());
 
 
@@ -280,11 +285,11 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 			Log.d("vortex","Transaction ends");
 			myDb.endTransactionSuccess();
 			if (missingVariables !=null && !missingVariables.isEmpty()) {
-				o.addRow("");
-				o.addRedText("Variables not found:");
+				o.addText("");
+				o.addCriticalText("Variables not found:");
 				for (String var:missingVariables) {
-					o.addRow("");
-					o.addRedText(var);				
+					o.addText("");
+					o.addCriticalText(var);				
 				}
 				Log.e("vortex","Variables not found:\n"+missingVariables.toString());
 			}
@@ -300,8 +305,8 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 				success = myDb.fastHistoricalInsert(e.keys,
 						v.mkey,v.mval);
 				if (!success) {
-					o.addRow("");
-					o.addRedText("Row: "+counter+". Insert failed. Variable: "+v.mkey);
+					o.addText("");
+					o.addCriticalText("Row: "+counter+". Insert failed. Variable: "+v.mkey);
 				}
 
 			}

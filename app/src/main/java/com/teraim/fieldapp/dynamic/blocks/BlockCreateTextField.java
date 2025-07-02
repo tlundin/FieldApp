@@ -4,6 +4,7 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_TextBlockWidget;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 
@@ -14,7 +15,7 @@ public class BlockCreateTextField extends Block {
 	/**
 	 * 
 	 */
-	private static final long serialVersionUID = -1134485697631003990L;
+
 	private final String background;
     private final String containerId;
 	private boolean isVisible = true;
@@ -54,15 +55,14 @@ public class BlockCreateTextField extends Block {
 	
 	
 	public void create(WF_Context ctx) {
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		//Identify targetList. If no list, no game.
 		Container myContainer = ctx.getContainer(containerId);
 		if (myContainer != null)  {
 			myContainer.add(new WF_TextBlockWidget(ctx,Expressor.analyze(labelE),background,blockId,isVisible,textSize,horizontalMargin, verticalMargin));
-			o.addRow("Added new TextField with ID"+blockId);
+			o.addText("Added new TextField with ID"+blockId);
 		} else {
-			o.addRow("");
-			o.addRedText("Failed to add text field block with id "+blockId+" - missing container "+containerId);
+			o.addCriticalText("Failed to add text field block with id "+blockId+" - missing container "+containerId);
 		}
 		
 	}	

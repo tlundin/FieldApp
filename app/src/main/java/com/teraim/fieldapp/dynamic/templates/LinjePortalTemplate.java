@@ -243,8 +243,8 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 				tmp = s.split("=");
 				if (tmp == null || tmp.length != 2) {
 					Log.e("nils", "found corrupt element: " + s);
-					o.addRow("");
-					o.addRedText("Variabeln Avgränsning:AvgrTyp saknar värden.");
+					o.addText("");
+					o.addCriticalText("Variabeln Avgränsning:AvgrTyp saknar värden.");
 					avgrValueA[c] = "null";
 					avgrTyper[c] = "****";
 				} else {
@@ -749,8 +749,8 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 						metA = meterEnEd.getText();
 
 						if (metA.length()==0||metS.length()==0) {
-							o.addRow("");
-							o.addRedText("Avstånd meter tom");
+							o.addText("");
+							o.addCriticalText("Avstånd meter tom");
 							error = true;
 							new AlertDialog.Builder(LinjePortalTemplate.this.getActivity())
 							.setTitle("FEL: Slut värde fattas")
@@ -765,8 +765,8 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 							} )
 							.show();
 						} else if (Integer.parseInt(metS.toString())>Integer.parseInt(metA.toString())) {
-							o.addRow("");
-							o.addRedText("Start längre bort än Slut");
+							o.addText("");
+							o.addCriticalText("Start längre bort än Slut");
 							error = true;
 							new AlertDialog.Builder(LinjePortalTemplate.this.getActivity())
 							.setTitle("Fel värden")
@@ -811,8 +811,8 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 	private void jumpToWorkFlow(String start, String end, String linjeObjLabel,Linjetyp typ) {
 		Variable currentMeter = varCache.getVariable(NamedVariables.CURRENT_METER);
 		if (currentYear==null||varCache.getVariableValue(null,"Current_Ruta")==null||currentLinje==null||currentMeter==null) {
-			o.addRow("");
-			o.addRedText("Could not start workflow "+linjeObjLabel+
+			o.addText("");
+			o.addCriticalText("Could not start workflow "+linjeObjLabel+
 					"_wf, since no value exist for one of [Current_year, Current_ruta, Current_Linje, Current_Meter]");
 		} else {
 			currentMeter.setValue(start);
@@ -848,12 +848,12 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 					Workflow wf = gs.getWorkflow("wf_"+linjeObjLabel);
 
 					if (wf!=null) {
-						Start.singleton.changePage(wf, null);
+						gs.changePage(wf, null);
 						Log.d("nils","Should have started "+"wf_"+linjeObjLabel);
 					} 
 					else {
-						o.addRow("");
-						o.addRedText("Couldn't find workflow named "+"wf_"+linjeObjLabel);
+						o.addText("");
+						o.addCriticalText("Couldn't find workflow named "+"wf_"+linjeObjLabel);
 						Log.e("nils","Couldn't find workflow named"+"wf_"+linjeObjLabel);
 					}
 				}

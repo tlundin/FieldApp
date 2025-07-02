@@ -15,6 +15,7 @@ import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.workflow_realizations.filters.WF_Column_Name_Filter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.filters.WF_Column_Name_Filter.FilterType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.filters.WF_Filter;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.Collections;
 import java.util.List;
@@ -25,15 +26,15 @@ import java.util.TreeSet;
 public class WF_SorterWidget extends WF_Widget {
 
 
-    private WF_Filter existing=null;
-	private final WF_List targetList;
-	private ToggleButton previousButton=null;
+    private transient WF_Filter existing=null;
+	private transient WF_List targetList;
+	private transient ToggleButton previousButton=null;
 
 	public WF_SorterWidget(String name,WF_Context ctx, final String type, final WF_List targetList,final ViewGroup container,final String selectionField, final String displayField,String selectionPattern,boolean isVisible) {
 		super(name,new LinearLayout(ctx.getContext()),isVisible,ctx);
 		LinearLayout buttonPanel;
 
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		LayoutParams lp;
 		int orientation =  ((LinearLayout)container).getOrientation();
 		if (orientation==LinearLayout.HORIZONTAL)
@@ -168,13 +169,13 @@ public class WF_SorterWidget extends WF_Widget {
 							}
 						}
 						else {
-							o.addRow("");
-							o.addRedText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
+							o.addText("");
+							o.addCriticalText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
 							Log.e("vortex","SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the row is shorter:"+row.size());
 							Log.e("vortex","Current row: "+row.toString() );
-							o.addRow("");
-							o.addRow("Current Columns:"+t.getColumnHeaders().toString());
-							o.addRow("Current row: "+row.toString() );
+							o.addText("");
+							o.addText("Current Columns:"+t.getColumnHeaders().toString());
+							o.addText("Current row: "+row.toString() );
 						}
 					}
 					//Add a wildcard button.
@@ -192,13 +193,13 @@ public class WF_SorterWidget extends WF_Widget {
 
 
 				} else{
-					o.addRow("");
-					o.addRedText("Could not find column <display_field>: "+displayField+" in WF_SorterWidget. Check your xml for block_create_sort_widget");
+					o.addText("");
+					o.addCriticalText("Could not find column <display_field>: "+displayField+" in WF_SorterWidget. Check your xml for block_create_sort_widget");
 
 				}
 			} else {
-				o.addRow("");
-				o.addRedText("Found no rows for selection: ["+selectionField+"] and pattern ["+selectionPattern+"] in WF_SorterWidget. Check your xml for block_create_sort_widget");
+				o.addText("");
+				o.addCriticalText("Found no rows for selection: ["+selectionField+"] and pattern ["+selectionPattern+"] in WF_SorterWidget. Check your xml for block_create_sort_widget");
 			}
 		} else if (type.equals("column_toggle") ) {
 			final CompoundButton.OnCheckedChangeListener dl = (button, isChecked) -> {
@@ -241,13 +242,13 @@ public class WF_SorterWidget extends WF_Widget {
 
 						}
 						else {
-							o.addRow("");
-							o.addRedText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
+							o.addText("");
+							o.addCriticalText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
 							Log.e("vortex","SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the row is shorter:"+row.size());
 							Log.e("vortex","Current row: "+row.toString() );
-							o.addRow("");
-							o.addRow("Current Columns:"+t.getColumnHeaders().toString());
-							o.addRow("Current row: "+row.toString() );
+							o.addText("");
+							o.addText("Current Columns:"+t.getColumnHeaders().toString());
+							o.addText("Current row: "+row.toString() );
 						}
 					}
 					//Add a wildcard button.
@@ -268,13 +269,13 @@ public class WF_SorterWidget extends WF_Widget {
 
 
 				} else{
-					o.addRow("");
-					o.addRedText("Could not find column <display_field>: "+displayField+" in WF_SorterWidget. Check your xml for block_create_sort_widget");
+					o.addText("");
+					o.addCriticalText("Could not find column <display_field>: "+displayField+" in WF_SorterWidget. Check your xml for block_create_sort_widget");
 
 				}
 			} else {
-				o.addRow("");
-				o.addRedText("Found no rows for selection: ["+selectionField+"] and pattern ["+selectionPattern+"] in WF_SorterWidget. Check your xml for block_create_sort_widget");
+				o.addText("");
+				o.addCriticalText("Found no rows for selection: ["+selectionField+"] and pattern ["+selectionPattern+"] in WF_SorterWidget. Check your xml for block_create_sort_widget");
 			}
 		}
 		else 

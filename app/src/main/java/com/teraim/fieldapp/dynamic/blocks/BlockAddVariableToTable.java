@@ -6,13 +6,11 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
+import com.teraim.fieldapp.log.LogRepository;
 
 public class BlockAddVariableToTable extends Block {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -6892340768823185014L;
+
 	private String target=null;
     private String variableSuffix=null;
     private String format=null;
@@ -40,10 +38,9 @@ public class BlockAddVariableToTable extends Block {
 	public void create(WF_Context myContext) {
 
 		PageWithTable table = (PageWithTable)myContext.getTemplate();
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		if (table==null) {
-			o.addRow("");
-			o.addRedText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
+			o.addCriticalText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
 		} else {
 			Log.d("nils","Calling AddVariableToTable for "+variableSuffix);
 			table.addVariableToEveryCell(variableSuffix, displayOut,format,isVisible,showHistorical,initialValue);

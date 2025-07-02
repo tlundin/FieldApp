@@ -15,6 +15,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_List_UpdateOnSaveEve
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_TimeOrder_Sorter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.filters.WF_OnlyWithValue_Filter;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +26,7 @@ import java.util.logging.LogRecord;
 
 public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
+
     private static final Map <String,List<List<String>>> cacheMap=new HashMap <String,List<List<String>>>();
     private final String id;
     private final String type;
@@ -32,6 +34,11 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
     private final String selectionPattern;
     private final String selectionField;
     private final String variatorColumn;
+
+
+    private transient WF_Static_List myList = null;
+    private transient List<AddVariableToEveryListEntryBlock> associatedVariablesList;
+    private transient List<AddFilter>associatedFiltersList;
 
     public BlockCreateListEntriesFromFieldList(String id,String namn, String type,
                                                String containerId, String selectionPattern, String selectionField,String variatorColumn,
@@ -47,13 +54,9 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
         this.variatorColumn=variatorColumn;
     }
 
-    private static final long serialVersionUID = -5618217142115636962L;
-
-    private WF_Static_List myList = null;
-
     public void create(WF_Context myContext) {
         //prefetch values from db.
-        o = GlobalState.getInstance().getLogger();
+        o = LogRepository.getInstance();
         associatedFiltersList=null;
         associatedVariablesList=null;
 
@@ -62,18 +65,18 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
             boolean isVisible = true;
             if (type.equals("selected_values_list")) {
-                o.addRow("This is a selected values type list. Adding Time Order sorter.");
+                o.addText("This is a selected values type list. Adding Time Order sorter.");
                 myList = new WF_List_UpdateOnSaveEvent(id, myContext, isVisible, this);
                 myList.addSorter(new WF_TimeOrder_Sorter());
-                o.addRow("Adding Filter Type: only instantiated");
+                o.addText("Adding Filter Type: only instantiated");
                 myList.addFilter(new WF_OnlyWithValue_Filter(id));
             } else {
                 if (type.equals("selection_list")) {
-                    o.addRow("This is a selection list. Adding Alphanumeric sorter.");
+                    o.addText("This is a selection list. Adding Alphanumeric sorter.");
                     myList = new WF_List_UpdateOnSaveEvent(id, myContext, isVisible, this);
                     myList.addSorter(new WF_Alphanumeric_Sorter());
                 } else if (type.equals("instance_list")) {
-                    o.addRow("instance selection list. Time sorter.");
+                    o.addText("instance selection list. Time sorter.");
                     myList = new WF_Instance_List(id, myContext, variatorColumn, isVisible, this);
                     myList.addSorter(new WF_IndexOrder_Sorter());
                 } else {
@@ -90,8 +93,8 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
             }
         } else {
-            o.addRow("");
-            o.addRedText("Failed to add list entries block with id " + blockId + " - missing container " + containerId);
+            o.addText("");
+            o.addCriticalText("Failed to add list entries block with id " + blockId + " - missing container " + containerId);
         }
 
     }
@@ -120,8 +123,8 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
                 }
                 if (rows.size() == 0) {
                     Log.e("vortex", "Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
-                    o.addRow("");
-                    o.addRedText("Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
+                    o.addText("");
+                    o.addCriticalText("Selectionfield: " + selectionField + " selectionPattern: " + selectionPattern + " returns zero rows! List cannot be created");
                     al.getTable().printTable();
                 } else {
                     myList.setRows(rows);
@@ -153,8 +156,7 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
 
 
-    private List<AddVariableToEveryListEntryBlock> associatedVariablesList;
-    private List<AddFilter>associatedFiltersList;
+
 
     public void associateVariableBlock(AddVariableToEveryListEntryBlock bl) {
         if (associatedVariablesList==null)

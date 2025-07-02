@@ -135,4 +135,5 @@
 	<string name="ladda_styrfiler">Ladda om styrfiler</string>
 	<string name="ladda_descr">Om du fortsätter så kommer Appen starta om och ersätta alla styrfiler </string>
     <string name="exit_app">Tryck ok för att stänga appen</string>
+    <string name="refresh_completed">Uppdaterade</string>
 </resources>

@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.Executor;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.ConfirmCallBack;
 import com.teraim.fieldapp.ui.MenuActivity;
@@ -23,6 +23,8 @@ import java.util.List;
  */
 public class DataSyncSessionManager implements ConnectionListener,SyncStatusListener {
 
+	private final LogRepository o;
+
 	enum State {
 		initial,
 		waiting_for_confirmation,
@@ -35,12 +37,11 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
     private final ConnectionProvider mConnection;
 	private final UIProvider ui;
 	private boolean lock = false;
-	private final LoggerI o;
 	private State mState = State.initial;
 
 	private DataSyncSessionManager(Context ctx, UIProvider ui) {
         //setup connection if missing. Asynch callback.
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 
 		this.ui = ui;
 
@@ -149,10 +150,10 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 		if (message instanceof SyncEntry[]) {
 			SyncEntry[] ses = (SyncEntry[])message;
 			ui.alert("Inserting data");
-			o.addRow("");
+			o.addText("");
 			o.addGreenText("[BT MESSAGE -->Received SYNCENTRIES: "+ses.length+"]");
 			syncReport = gs.getDb().synchronise(ses, ui,o,this);	
-			o.addRow("");
+			o.addText("");
 			o.addGreenText("[BT MESSAGE -->Sending SyncSuccesful");
 			send(new SyncSuccesful(((SyncEntryHeader)ses[0]).timeStampOfLastEntry,syncReport));
 
@@ -163,7 +164,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 			Log.d("vortex","[BT MESSAGE -->Received SyncSuccesful message]");
 			if (ssf!=null && ssf.getLastEntrySent()>0) {
 				GlobalState.getInstance().getDb().syncDone(ssf.getLastEntrySent());
-				o.addRow("");
+				o.addText("");
 				o.addGreenText("[BT MESSAGE -->Received SyncSuccesful message!]");
 				gs.sendEvent(MenuActivity.REDRAW);
 				partnerSyncReport=ssf.getChangesDone();
@@ -232,16 +233,16 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 						err=true;
 						versionText.append(debugTxt);
 						versionText.insert(0,"*WARNING*: Version mismatch:\n");
-						o.addRow("");
-						o.addRedText("[BT MESSAGE -->PING. VERSION MISMATCH!");
-						o.addRow(versionText.toString());
+						o.addText("");
+						o.addCriticalText("[BT MESSAGE -->PING. VERSION MISMATCH!");
+						o.addText(versionText.toString());
 
 					} else if(!mYear.equals(pYear)) {
 						versionText.append(debugTxt);
 						versionText.insert(0,"*WARNING*: Year mismatch:\n");
-						o.addRow("");
-						o.addRedText("[BT MESSAGE -->PING. TIME MISMATCH!");
-						o.addRow(versionText.toString());
+						o.addText("");
+						o.addCriticalText("[BT MESSAGE -->PING. TIME MISMATCH!");
+						o.addText(versionText.toString());
 						err=true;
 					
 					} else if (!mPartner.equals(sp.getPartner())) {
@@ -249,9 +250,9 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 						nameErr=true;
 						versionText.append(debugTxt);
 						versionText.insert(0,"*WARNING*: Partner name mismatch.\nExisting: "+mPartner+". New: "+sp.getPartner());
-						o.addRow("");
-						o.addRedText("[BT MESSAGE -->PING. NAME MISMATCH!");
-						o.addRow("Existing: "+mPartner+". New: "+sp.getPartner());
+						o.addText("");
+						o.addCriticalText("[BT MESSAGE -->PING. NAME MISMATCH!");
+						o.addText("Existing: "+mPartner+". New: "+sp.getPartner());
 					}
 					
 					if (!err){
@@ -259,7 +260,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 						if (isDeveloper)
 							versionText.append(debugTxt);
 						versionText.append("\n\nPartner (").append(sp.getPartner()).append(") found.\nConfirm to start sync");
-						o.addRow("");
+						o.addText("");
 						o.addGreenText("[BT MESSAGE -->PING. VERSIONS OK");
 
 					} else {
@@ -322,14 +323,14 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 				mState = DataSyncSessionManager.State.sending_data;
 
 				if (entries!=null) {
-					o.addRow("");
+					o.addText("");
 					o.addGreenText("[BT MESSAGE -->SENDING "+entries.length+" ENTRIES");
 					ui.alert("Sending "+entries.length+" entries (this can take a long time and the operation locks the ui on some devices. Please be patient and wait)");
 					send(entries);
 					ui.alert("Entries sent. Waiting for data.");
 				}
 				else {
-					o.addRow("");
+					o.addText("");
 					o.addGreenText("[BT MESSAGE -->SENDING NOTHING TO SYNC");
 					ui.alert("Nothing to sync. Waiting for data.");
 					send(new NothingToSync());
@@ -340,14 +341,14 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 				if (!messageCache.isEmpty()) {
 					Log.d("sync","found cached messages..will call handle");
 					for (Object obj:messageCache) {
-						o.addRow("");
+						o.addText("");
 						o.addGreenText("Handling cached message: "+obj.toString());
 						handle(obj);
 					}
 				}
 				//If sync not done, we still expect more messages..
 				if (!pSyncDone || !mSyncDone) {
-					o.addRow("");
+					o.addText("");
 					o.addYellowText("Still not done..");
 				}
 			}
@@ -364,11 +365,11 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 		Log.d("vortex", "in send entries");
 		if (mConnection!=null && mConnection.isOpen()) {
 			mConnection.write(entries);
-			o.addRow("");
+			o.addText("");
 			o.addGreenText("[BT MESSAGE -->Send succesful!");
 		} else {
-			o.addRow("");
-			o.addRedText("[BT MESSAGE -->Send not possible! Connection was closed!");
+			o.addText("");
+			o.addCriticalText("[BT MESSAGE -->Send not possible! Connection was closed!");
 			ui.alert("Error: Cannot send data, connection is closed");
 		}
 	}
@@ -413,7 +414,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 		boolean requestAll = gs.getPreferences().get(PersistenceHelper.TIME_OF_LAST_SYNC).equals(PersistenceHelper.UNDEFINED);
 
 		//send(new PingMessage(myName,myLag,bundleVersion,softwareVersion,requestAll));
-		o.addRow("");
+		o.addText("");
 		o.addGreenText("[BT MESSAGE -->SENDING PING");
 		send(gs.isMaster()?new MasterPing(myName,myApp,myTeam,appVersion,softwareVersion,requestAll,myTime):new SlavePing(myName,myApp,myTeam,appVersion,softwareVersion,requestAll,myTime));
 

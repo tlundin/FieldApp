@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import androidx.fragment.app.Fragment;
-import android.app.FragmentManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -18,30 +16,33 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewConfiguration;
+import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.dynamic.Executor;
+import com.teraim.fieldapp.dynamic.templates.StartupFragment;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnActivityResult;
 import com.teraim.fieldapp.loadermodule.LoadResult;
-import com.teraim.fieldapp.log.CriticalOnlyLogger;
-import com.teraim.fieldapp.log.DummyLogger;
-import com.teraim.fieldapp.log.Logger;
-import com.teraim.fieldapp.log.LoggerI;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.DrawerMenu;
-import com.teraim.fieldapp.ui.LoginConsoleFragment;
 import com.teraim.fieldapp.ui.MenuActivity;
+import com.teraim.fieldapp.viewmodels.GisViewModel;
+import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
-import com.teraim.fieldapp.utils.Tools;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -51,20 +52,15 @@ import java.util.Arrays;
  * @author Terje
  *
  */
-public class Start extends MenuActivity {
-
-    public static boolean alive = false;
+public class Start extends MenuActivity implements StartProvider {
 
     //	private Map<String,List<String>> menuStructure;
 
     private final AsyncTask<GlobalState, Integer, LoadResult> histT=null;
-    public static Start singleton;
     private DrawerMenu mDrawerMenu;
 
     private androidx.appcompat.app.ActionBarDrawerToggle mDrawerToggle;
     private boolean loading = false;
-
-
 
     // Constants
     // The authority for the sync adapter's content provider
@@ -77,10 +73,13 @@ public class Start extends MenuActivity {
     public static final long SYNC_INTERVAL = 60;
     // Instance fields
     // Account mAccount;
+    private static  boolean shouldLoadDbModules;
 
-    private ContentResolver mResolver;
-
-
+    private ModuleLoaderViewModel viewModel;
+    private FrameLayout progressIndicatorContainer;
+    private TextView progressIndicatorText;
+    private ProgressBar progressBar;
+    private Start startInstance;
 
 
     /**
@@ -92,7 +91,7 @@ public class Start extends MenuActivity {
         super.onCreate(savedInstanceState); // <<-- MOVE THIS TO THE TOP
 
         // Setup handler for uncaught exceptions.
-        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
+/*        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
         {
             @Override
             public void uncaughtException (Thread thread, Throwable e)
@@ -100,15 +99,27 @@ public class Start extends MenuActivity {
                 Log.e("vortex","Uncaught Exception detected in thread {"+thread+"} Exce: "+ e);
                 handleUncaughtException (thread, e);
             }
-        });
+        });*/
 
         Log.d("nils","in START onCreate");
-        singleton = this;
+        startInstance = this;
+        shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
+
+        // 1. Get references to the ViewModel and the new UI elements
+        viewModel = new ViewModelProvider(this).get(ModuleLoaderViewModel.class);
+        progressIndicatorContainer = findViewById(R.id.progress_indicator_container);
+        progressIndicatorText = findViewById(R.id.progress_text);
+        progressBar = findViewById(R.id.progressBar);
+        // 2. Set up the observers
+        setupObservers();
         //This combats an issue on the target panasonic platform having to do with http reading.
         //System.setProperty("http.keepAlive", "false");
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar == null) {
+            Log.e("START_ACTIVITY_ERROR", "findViewById(R.id.toolbar) returned NULL. This is the root cause of the crash. Check for build cache issues or ID typos.");
+        }
         setSupportActionBar(toolbar);
         ActionBar actionbar = getSupportActionBar();
         assert actionbar != null;
@@ -116,6 +127,25 @@ public class Start extends MenuActivity {
         actionbar.setDisplayHomeAsUpEnabled(true);
         mDrawerMenu = new  DrawerMenu(this,toolbar);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
+
+        // 2. Get the shared ViewModel
+        GisViewModel gisViewModel = new ViewModelProvider(this).get(GisViewModel.class);
+        progressIndicatorContainer = findViewById(R.id.progress_indicator_container);
+
+
+        // 3. Observe the progress state
+        gisViewModel.getProgressState().observe(this, state -> {
+            if (state == null) return;
+
+            if (state.inProgress) {
+                progressIndicatorContainer.setVisibility(View.VISIBLE);
+                progressBar.setProgress(state.percent);
+                progressIndicatorText.setText(state.statusMessage);
+            } else {
+                // Hide the progress bar when done or on error
+                progressIndicatorContainer.setVisibility(View.GONE);
+            }
+        });
 
         // Create a Sync account - REMOVED 2025
         // mAccount = CreateSyncAccount(this);
@@ -201,8 +231,6 @@ public class Start extends MenuActivity {
     @Override
     protected void onStart() {
         Log.d("nils","In START onStart");
-        if(GlobalState.getInstance()!=null)
-            GlobalState.getInstance().onStart();
         super.onStart();
     }
 
@@ -253,27 +281,18 @@ public class Start extends MenuActivity {
 
         } else {
             // Permission has already been granted
-
             if (GlobalState.getInstance() == null) {
                 loading = true;
-
-                //Create a global logger.
-
-
+                LogRepository.getInstance().addText("[Loading begins]");
                 //Start the login fragment.
                 androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
-                /*
-                for (int i = 0; i < fm.getBackStackEntryCount(); ++i) {
-                    fm.popBackStack();
-                }
-
-                 */
-                //	private ArrayList<String> rutItems;
-                //	private ArrayList<String> wfItems;
-                LoginConsoleFragment loginFragment = new LoginConsoleFragment();
-                //Don't add loginfragment to backstack.
+                StartupFragment startupFragment = new StartupFragment();
+                Bundle args = new Bundle();
+                //This boolean will be set to true if the user made a change to the configuration, otherwise false.
+                args.putBoolean(Constants.RELOAD_DB_MODULES, shouldLoadDbModules);
+                startupFragment.setArguments(args);
                 fm.beginTransaction()
-                        .replace(R.id.content_frame, loginFragment)
+                        .replace(R.id.content_frame, startupFragment)
                         .addToBackStack("login")
                         .commit();
 
@@ -316,24 +335,22 @@ public class Start extends MenuActivity {
         //getSupportActionBar().setTitle(title);
         if (title != null)
         {
-            // font color set to primary_light
-            getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
+            getSupportActionBar( ).setTitle( title );
+            //getSupportActionBar( ).setTitle( android.text.Html.fromHtml( "<font color='#d7ccc8'>" + title + "</font>" ) );
         }
     }
 
     //execute workflow.
     public void changePage(Workflow wf, String statusVar) {
         if (wf==null) {
-            debugLogger.addRow("Workflow not defined for button. Check your project XML");
+            debugLogger.addText("Workflow not defined for button. Check your project XML");
             Log.e("vortex","no wf in changepage");
             return;
         }
-        GlobalState gs = GlobalState.getInstance();
-        if (gs == null) {
-            Log.e("vortex","Global State is null in change page. App needs to restart");
-            Tools.restart(this);
+        if(GlobalState.getInstance() == null) {
+            Log.d("vortex", "Global state is null in changepage - cannot continue");
+            return;
         }
-
         if (isFinishing()) {
             Log.d("vortex","This activity is finishing! Cannot continue");
             return;
@@ -345,38 +362,34 @@ public class Start extends MenuActivity {
             template = "DefaultTemplate";
 
         //Set context.
-        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"]");
+        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"] with template "+wf.getTemplate());
         DB_Context cHash = DB_Context.evaluate(wf.getContext());
 
         //if Ok err is null.
         if (cHash.isOk()) {
             Log.d("hash","setting global context to "+cHash);
-            gs.setDBContext(cHash);
-
-            debugLogger.addRow("Context now [");
+            GlobalState.getInstance().setDBContext(cHash);
+            debugLogger.addText("Context now [");
             debugLogger.addGreenText(cHash.toString());
             debugLogger.addText("]");
             debugLogger.addText("wf context: "+wf.getContext());
 
-            //gs.setRawHash(r.rawHash);
-            //gs.setKeyHash(r.keyHash);
-            //No template. This flow does not have a ui. Hand over to Executor.
             Fragment fragmentToExecute;
             Bundle args = new Bundle();
             args.putString("workflow_name", wf.getName());
             args.putString("status_variable", statusVar);
 
-
             if (template==null) {
-                template = "EmptyTemplate";
+                template="StartupFragment";
                 label = "Start";
+                //Get rid of existing StartupFragment from stack
+                getSupportFragmentManager().popBackStack();
             }
-
 
             fragmentToExecute = wf.createFragment(template);
             fragmentToExecute.setArguments(args);
+            changePage(fragmentToExecute, label);
 
-            changePage(fragmentToExecute,label);
 
             //show error message.
         } else
@@ -384,23 +397,14 @@ public class Start extends MenuActivity {
     }
     public void changePage(Fragment newPage, String label) {
         androidx.fragment.app.FragmentManager fragmentManager = getSupportFragmentManager();
-
         FragmentTransaction ft = fragmentManager.beginTransaction();
-
         ft
                 .replace(R.id.content_frame, newPage)
                 .addToBackStack(label)
                 .commit();
         setTitle(label);
-
-
     }
 
-
-
-    /* (non-Javadoc)
-     * @see android.app.Activity#onActivityResult(int, int, android.content.Intent)
-     */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         Log.d("vortex","IN ONACTIVITY RESULT ");
@@ -412,9 +416,6 @@ public class Start extends MenuActivity {
 
         super.onActivityResult(requestCode, resultCode, data);
     }
-
-
-
 
     @Override
     public void onDestroy() {
@@ -462,7 +463,7 @@ public class Start extends MenuActivity {
                 return false;
             } else
                 Log.d("gipp", "current content fragment: "+currentContentFrameFragment.getClass().getName());
-            if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.EmptyTemplate")) {
+            if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.StartupFragment")) {
                 String dialogText = getString(R.string.exit_app);
                 new AlertDialog.Builder(this)
                         .setTitle("Exit")
@@ -546,34 +547,10 @@ public class Start extends MenuActivity {
         return mDrawerMenu;
     }
 
-
-
-
-    public LoggerI getLogger() {
-        Log.d("vortex","getlogger - debuglogger is null? "+(debugLogger==null));
-        if (debugLogger==null) {
-            String logLevel = globalPh.get(PersistenceHelper.LOG_LEVEL);
-            if (logLevel == null || logLevel.equals(PersistenceHelper.UNDEFINED) ||
-                    logLevel.equals("normal")) {
-                debugLogger = new Logger(this, "DEBUG");
-                Log.d("vortex","logger normal");
-            }
-            else if (logLevel.equals("off")) {
-                debugLogger = new DummyLogger();
-                Log.d("vortex","logger off");
-            }
-            else {
-                debugLogger = new CriticalOnlyLogger(this);
-                Log.d("vortex","logger critical only");
-            }
-
-        }
-        return debugLogger;
-    }
-
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
         switch (requestCode) {
             case PERMISSION_ALL: {
                 // If request is cancelled, the result arrays are empty.
@@ -603,6 +580,45 @@ public class Start extends MenuActivity {
         } else {
             Log.w("StartActivity", "ActionBar not found, cannot set visibility.");
         }
+    }
+
+    private void setupObservers() {
+        // This observer handles the VISIBILITY of the progress indicator
+        viewModel.workflowState.observe(this, result -> {
+            if (result == null) return;
+
+            // This UI just needs to know the current state to show/hide the progress bar.
+            // It will correctly re-evaluate on screen rotation.
+            switch (result.status()) {
+                case LOADING:
+                    LogRepository.getInstance().addColorText("Workflowstate is now LOADING",getColor(R.color.purple));
+                    progressIndicatorContainer.setVisibility(View.VISIBLE);
+                    break;
+                case SUCCESS:
+                    LogRepository.getInstance().addColorText("Workflowstate is now SUCCESS",getColor(R.color.purple));
+                    progressIndicatorContainer.setVisibility(View.GONE);
+                    break;
+                case FAILURE:
+                    LogRepository.getInstance().addColorText("Workflowstate is now FAILURE",getColor(R.color.purple));
+                    progressIndicatorContainer.setVisibility(View.GONE);
+                    break;
+            }
+        });
+
+        // This observer updates the TEXT of the indicator.
+        // It does not need changes as it observes a different LiveData source.
+        viewModel.progressText.observe(this, text -> {
+            if (text != null && !text.isEmpty()) {
+                // We'll just show the first line of the detailed progress for a clean look
+                String firstLine = text.split("\n")[0];
+                progressIndicatorText.setText(firstLine);
+            }
+        });
+    }
+
+    @Override
+    public Start getStartInstance() {
+        return startInstance;
     }
     /*
     @Override

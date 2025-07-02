@@ -7,6 +7,7 @@ import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.templates.PageWithTable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +21,6 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
     private String selectionField=null;
     private String selectionPattern=null;
     private String variatorColumn=null;
-	String typeField=null,keyField = null;
 	private static final Map <String,List<List<String>>> cacheMap=new WeakHashMap<String,List<List<String>>>();
 
 	public BlockCreateTableEntriesFromFieldList(String id, String type,String target,
@@ -37,13 +37,12 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 	}
 
 	public void create(WF_Context myContext) {
-		o = GlobalState.getInstance().getLogger();
+		o = LogRepository.getInstance();
 		PageWithTable myTable = (PageWithTable) myContext.getTemplate();
 
 		if (myTable==null) {
 			Log.e("vortex","could not find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
-			o.addRow("");
-			o.addRedText("could not find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
+			o.addCriticalText("could not find table "+target+" in createTableEntriesFromFieldList, block "+blockId);
 			return;
 		}
 		VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();
@@ -52,8 +51,7 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 				rows  = al.getTable().getRowsContaining(selectionField, selectionPattern);
 			if (rows==null||rows.size()==0) {
 				Log.e("vortex","Selectionfield: "+selectionField+" selectionPattern: "+selectionPattern+" returns zero rows! List cannot be created");
-				o.addRow("");
-				o.addRedText("Selectionfield: "+selectionField+" selectionPattern: "+selectionPattern+" returns zero rows! List cannot be created");
+				o.addCriticalText("Selectionfield: "+selectionField+" selectionPattern: "+selectionPattern+" returns zero rows! List cannot be created");
 			} else {		
 				cacheMap.put(blockId, rows);
 				Log.d("vortex","Number of rows in CreateEntrieFromList "+rows.size());
@@ -66,10 +64,6 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 	}
 
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = -1074961225196569424L;
 
 
 

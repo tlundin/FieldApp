@@ -15,6 +15,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.gis.CurrStatVar;
 import com.teraim.fieldapp.gis.GisImageView;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
@@ -46,7 +47,7 @@ public class GisLayer {
 
 
 
-	public GisLayer(WF_Gis_Map myGis, String name, String label, boolean isVisible, boolean isBold,
+	public GisLayer(String name, String label, boolean isVisible, boolean isBold,
 					boolean hasWidget, boolean showLabels) {
 		super();
 		this.name = name;
@@ -236,28 +237,22 @@ public class GisLayer {
 
 		for (String key:gops.keySet()) {
 			Set<GisObject> bag = gops.get(key);
-
 			Iterator<GisObject> iterator = bag.iterator();
-
-
 			while (iterator.hasNext()) {
 				GisObject go = iterator.next();
 				//Mark this object if it is visible.
 				markIfUseful(go,gisImageView);
 				if (go.isDefect())
 					iterator.remove();
-
-
 			}
 			//Log.d("bloon","Bag: "+key+" size: "+bag.size());
 			int c=0;
 			for (GisObject gop:bag) {
 				if (gop.isUseful()) {
+					//if (key.equals("Hallmarkstorr"))
+					//	Log.d("plaxxo","Useful: "+ gop.getLabel()+" key: "+gop.getKeyHash()+" statusVar "+gop.getStatusVariableId()+" value "+gop.getStatusVariableValue());
 					//Log.d("grogg","Useful: "+ gob.getLabel()+" key: "+gob.getKeyHash());
 					c++;
-
-
-
 					if (currStat !=null) {
 						//Log.d("grogg","currstid "+currStat.id);
 						if (currStat.id.equals(gop.getKeyHash().get("uid"))) {
@@ -278,7 +273,7 @@ public class GisLayer {
                 }
 
 			}
-			Log.d("grogg","bag has "+c+" useful members");
+			Log.d("grogg","bag "+key+" has "+c+" useful members");
 		}
 	}
 
@@ -311,8 +306,8 @@ public class GisLayer {
 
 
 			if (gpo.getPolygons()==null) {
-				GlobalState.getInstance().getLogger().addRow("");
-				GlobalState.getInstance().getLogger().addRedText("POLY had *NULL* coordinates: "+go.getLabel());
+				LogRepository.getInstance().addText("");
+				LogRepository.getInstance().addCriticalText("POLY had *NULL* coordinates: "+go.getLabel());
 				go.markForDestruction();
 				return;
 			}
@@ -333,8 +328,8 @@ public class GisLayer {
 			GisPathObject gpo = (GisPathObject)go;
 			boolean hasAtleastOneCornerInside = false;
 			if (go.getCoordinates()==null) {
-				GlobalState.getInstance().getLogger().addRow("");
-				GlobalState.getInstance().getLogger().addRedText("Gis object had *NULL* coordinates: "+go.getLabel());
+				LogRepository.getInstance().addText("");
+				LogRepository.getInstance().addCriticalText("Gis object had *NULL* coordinates: "+go.getLabel());
 				go.markForDestruction();
 				return;
 			}

@@ -13,10 +13,9 @@ import org.achartengine.renderer.SimpleSeriesRenderer;
 
 public class RoundChartBlock extends ChartBlock  {
 
+
 	private String startAngle;
-
-	private SimpleChartDataSource myDataSource;
-
+	private transient SimpleChartDataSource myDataSource;
 
 
 	public RoundChartBlock(String blockId, String name, String label, String container,
@@ -79,8 +78,8 @@ public class RoundChartBlock extends ChartBlock  {
 
 
 		} else {
-			o.addRow("");
-			o.addRedText("Failed to add round chart block with id " + blockId + " - missing datasource!");
+			o.addText("");
+			o.addCriticalText("Failed to add round chart block with id " + blockId + " - missing datasource!");
 			Log.e("vortex","Failed to add round chart block with id " + blockId + " - missing datasource!");
 			myContext.removeEventListener(this);
 			return;

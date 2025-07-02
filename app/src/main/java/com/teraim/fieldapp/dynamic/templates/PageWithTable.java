@@ -86,7 +86,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private ImageButton infoPanelCloseButton;
     private String currentlyDisplayedInfoLabel = null;
 
-    private WF_Context myContext;
+    private transient WF_Context myContext;
     private LayoutInflater inflater;
     private int rowNumber = 0;
 
@@ -302,7 +302,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void applyRowFilters() {
-        Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
+        //Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
         for (Listable item : masterTableRowsDataList) {
@@ -373,7 +373,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
         Collections.sort(displayedTableRowsDataList, Comparator.comparing(o -> ((o != null && o.getLabel() != null) ? o.getLabel() : ""), String.CASE_INSENSITIVE_ORDER));
         if (tableBodyAdapter != null) {
-            Log.d("PageWithTable", "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
+            //Log.d("PageWithTable", "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
             tableBodyAdapter.notifyDataSetChanged();
         }
         refreshColumnVisibilitiesInUI();
@@ -531,14 +531,14 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             String varGrId=null;
             if (varIds==null) { Log.e("vortex","No varIds for "+wft.getLabel()); continue; }
             else { for (String varGr:varIds) { if (varGr.endsWith(variableSuffix)) { varGrId = varGr; break; } } }
-            if (varGrId==null) { Log.e("vortex","no var for suffix: "+variableSuffix +" for row "+wft.getLabel()); if (o != null) { o.addRow(""); o.addRedText("Could not add var with suffix: "+variableSuffix); } continue; }
+            if (varGrId==null) { Log.e("vortex","no var for suffix: "+variableSuffix +" for row "+wft.getLabel()); if (o != null) { o.addText(""); o.addCriticalText("Could not add var with suffix: "+variableSuffix); } continue; }
             if (tableTypeSimple && gs != null && gs.getVariableConfiguration() != null) {
                 List<String> rowDef = gs.getVariableConfiguration().getCompleteVariableDefinition(varGrId);
                 if (rowDef != null) {
                     Variable.DataType type = gs.getVariableConfiguration().getnumType(rowDef);
                     if (type != Variable.DataType.bool) {
                         Log.e("vortex", "Non-boolean var in simple column.");
-                        if (o != null) o.addRedText("Var [" + variableSuffix+ "] not Boolean.");
+                        if (o != null) o.addCriticalText("Var [" + variableSuffix+ "] not Boolean.");
                         return;
                     }
                 }
@@ -745,7 +745,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             if (aggregationFunction == null) throw new IllegalArgumentException("Aggregation function is null");
             aggF = AggregateFunction.valueOf(aggregationFunction.toUpperCase());
         } catch (Exception e) {
-            if (o != null) {o.addRow(""); o.addRedText("Agg func '"+aggregationFunction+"' invalid.");}
+            if (o != null) {o.addText(""); o.addCriticalText("Agg func '"+aggregationFunction+"' invalid.");}
             else {Log.e("PageWithTable", "Agg func '"+aggregationFunction+"' invalid and logger 'o' is null.");}
             return;
         }
@@ -779,9 +779,9 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
     }
 
-    public void addRow(List<String> rowData) {
-        if (rowData == null) { Log.w("PageWithTable", "addRow null data"); return; }
-        if (inflater == null || myContext == null) { Log.e("PageWithTable", "inflater or myContext null in addRow"); return; }
+    public void addText(List<String> rowData) {
+        if (rowData == null) { Log.w("PageWithTable", "addText null data"); return; }
+        if (inflater == null || myContext == null) { Log.e("PageWithTable", "inflater or myContext null in addText"); return; }
 
         WF_Table_Row_Recycle rowWidget = new WF_Table_Row_Recycle(this, (rowNumber++) + "", inflater.inflate(R.layout.table_row, null), myContext, true);
         rowWidget.addEntryField(rowData);
@@ -851,7 +851,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             s.add(al.getVarName(row));
         }
         for (String rowKey : uRows.keySet()) {
-            addRow(uRows.get(rowKey));
+            addText(uRows.get(rowKey));
         }
     }
 
@@ -930,7 +930,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         dummyRowsToAdd.add(Arrays.asList("Fig Newton", "60", "true", "Fruit F", "90"));
 
         for(List<String> row : dummyRowsToAdd) {
-            addRow(row); // addRow now adds to master and calls applyRowFilters
+            addText(row); // addText now adds to master and calls applyRowFilters
         }
         // applyRowFilters(); // Initial filter application after all data is added
     }
