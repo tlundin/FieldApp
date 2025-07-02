@@ -591,10 +591,15 @@ public class Start extends MenuActivity implements StartProvider {
             // It will correctly re-evaluate on screen rotation.
             switch (result.status()) {
                 case LOADING:
+                    LogRepository.getInstance().addColorText("Workflowstate is now LOADING",getColor(R.color.purple));
                     progressIndicatorContainer.setVisibility(View.VISIBLE);
                     break;
                 case SUCCESS:
+                    LogRepository.getInstance().addColorText("Workflowstate is now SUCCESS",getColor(R.color.purple));
+                    progressIndicatorContainer.setVisibility(View.GONE);
+                    break;
                 case FAILURE:
+                    LogRepository.getInstance().addColorText("Workflowstate is now FAILURE",getColor(R.color.purple));
                     progressIndicatorContainer.setVisibility(View.GONE);
                     break;
             }

@@ -103,6 +103,9 @@ public class DB_Context implements Serializable {
 
 							if (kv==null||kv.length<2) {
 								err = "Context "+eContext+" cannot be evaluated, likely due to a missing variable value. Evaluation: "+cContext;
+								if (cContext.contains("author=")) {
+									err = "Context ["+eContext+"] cannot be evaluated, likely due to missing username. This is a serious error if you intend to export data";
+								}
 								break;
 							} else {
 								String arg = kv[0].trim();

@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.viewmodels;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -20,6 +21,7 @@ import com.teraim.fieldapp.loadermodule.ModuleRegistry;
 import com.teraim.fieldapp.loadermodule.PhotoMetaI;
 import com.teraim.fieldapp.loadermodule.StatefulModuleLoader;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,6 +56,7 @@ public class ModuleLoaderViewModel extends ViewModel {
         // Check the STATE LiveData for a running process
         if (_workflowState.getValue() != null && _workflowState.getValue().status() == LoadingStatus.LOADING) {
             Log.w("ModuleLoaderViewModel", "Execution request ignored: a workflow is already running.");
+            LogRepository.getInstance().addColorText("Execution request ignored: a workflow is already running.", Color.parseColor("#E6E6FA"));
             return;
         }
         // Post the initial loading status to the STATE LiveData
@@ -65,6 +68,7 @@ public class ModuleLoaderViewModel extends ViewModel {
         LoadJob initialJob = workflow.getInitialJob();
         if (initialJob == null || initialJob.modules.isEmpty()) {
             // Handle early success: post to both STATE and EVENT
+            LogRepository.getInstance().addColorText("Load ended: no initial job", Color.parseColor("#E6E6FA"));
             WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
             _workflowState.setValue(successResult);
             _onSuccessEvent.setValue(new Event<>(successResult));
@@ -88,12 +92,14 @@ public class ModuleLoaderViewModel extends ViewModel {
 
                 if (completionEvent.status == LoadingStatus.SUCCESS) {
                     registry.add(job.modules);
+                    LogRepository.getInstance().addColorText("ModuleLoader succeeded. Loaded " + job.modules.size() + " modules.", Color.parseColor("#E6E6FA"));
                     LoadJob nextJob = workflow.getNextJob(registry);
                     if (nextJob != null && forceReload) {
-                        // This is an intermediate success, recurse to the next job
+                        LogRepository.getInstance().addColorText("ModuleLoader: continue - next job has " + nextJob.modules.size() + " modules", Color.parseColor("#E6E6FA"));
                         runJob(nextJob, true, registry, workflow);
                     } else {
                         // This is the FINAL success. Post to both STATE and EVENT streams.
+                        LogRepository.getInstance().addColorText("ViewModel has finished loading.", Color.parseColor("#E6E6FA"));
                         Log.d("ViewModel", "Final SUCCESS. Posting state and event.");
                         WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
                         _workflowState.postValue(successResult);
@@ -105,6 +111,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                 } else {
                     // On failure, we only update the STATE.
                     Log.d("ViewModel", "FAILURE. Posting state.");
+                    LogRepository.getInstance().addCriticalText("ModuleLoader failed.");
                     _workflowState.postValue(new WorkflowResult(LoadingStatus.FAILURE, null));
                     // Cleanup is crucial when using observeForever
                     loader.loadingStatus.removeObserver(this);

@@ -1,5 +1,7 @@
 package com.teraim.fieldapp.dynamic.templates;
 
+import static androidx.core.content.ContextCompat.getColor;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -120,7 +122,7 @@ public class StartupFragment extends Executor {
         oldAppVersion = ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
 
         appNameTextView.setText(bundleName);
-        appVersionTextView.setText(oldAppVersion == -1 ? "[No version]" : String.valueOf(oldAppVersion));
+        appVersionTextView.setText(oldAppVersion == -1 ? "[...]" : String.valueOf(oldAppVersion));
         engineVersionTextView.setText("Vortex Engine " + Constants.VORTEX_VERSION);
 
         // Load background and logo images asynchronously
@@ -147,15 +149,18 @@ public class StartupFragment extends Executor {
 
                 switch (result.status()) {
                     case LOADING:
+                        LogRepository.getInstance().addColorText("StartupFragment received workflowstate Loading",getColor(requireContext(),R.color.purple));
                         Log.d("StartupFragment", "Loading....");
+
                         break;
                     case SUCCESS:
-                        Log.d("StartupFragment", "Load successful. Finalizing setup.");
+                        LogRepository.getInstance().addColorText("StartupFragment received workflowstate success",getColor(requireContext(),R.color.purple));
                         // Pass the completed ModuleRegistry to the startApplication method.
                         // Corrected: Access registry on the unwrapped result
                         startupFailed = startApplication(result.registry()); // Use .registry() if it's a record
                         if (!startupFailed && loadAllModules) {
                             Set<String> provyteTypes = gisDatabaseWorkflowInstance.getCollectedProvYtaTypes();
+                            LogRepository.getInstance().addColorText("Setting provyte types: " + provyteTypes.toString(), getColor(requireContext(), R.color.purple));
                             GlobalState.getInstance().setProvYtaTypes(provyteTypes);
                             persistProvYtaTypes(provyteTypes);
                             Log.d("StartupFragment", "ProvYta types set and persisted after full load.");
@@ -163,6 +168,7 @@ public class StartupFragment extends Executor {
                         break;
                     case FAILURE:
                         startupFailed = true;
+                        LogRepository.getInstance().addColorText("StartupFragment received workflowstate Failure",getColor(requireContext(),R.color.purple));
                         showErrorDialog("An error occurred during loading. Please check your connection and try again.");
                         break;
                 }
@@ -294,6 +300,8 @@ public class StartupFragment extends Executor {
                 .setPositiveButton("Ok", null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+        LogRepository.getInstance().addText(message);
+        LogRepository.getInstance().addCriticalText("***Startup Aborted***");
     }
 
     private void loadStaticImages() {

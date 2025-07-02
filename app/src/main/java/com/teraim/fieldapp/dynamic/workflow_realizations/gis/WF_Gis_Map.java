@@ -39,6 +39,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.GlobalState;
@@ -60,6 +61,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfig
 import com.teraim.fieldapp.gis.GisImageView;
 import com.teraim.fieldapp.loadermodule.RefreshGisWorkflow;
 import com.teraim.fieldapp.loadermodule.Workflow_I;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
@@ -647,7 +649,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
 
             if (result != null) {
-
                 if (myContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
                     myContext.refreshGisObjects();
@@ -656,8 +657,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     int n_provytor = 0;
                     if (GlobalState.getInstance().getProvYtaTypes() != null)
                         n_provytor =GlobalState.getInstance().getProvYtaTypes().size();
+                    LogRepository.getInstance().addColorText("Refresh completed.", ContextCompat.getColor(ctx, R.color.purple));
                     Toast.makeText(ctx, ctx.getString(R.string.refresh_completed) +" "+n_provytor+" "+ctx.getString(R.string.layers), Toast.LENGTH_SHORT).show();
-                }
+                } else
+                    LogRepository.getInstance().addColorText("Refresh before map ready",ContextCompat.getColor(ctx, R.color.purple));
                 globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
             }
         });

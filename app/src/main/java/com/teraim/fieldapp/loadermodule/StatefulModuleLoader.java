@@ -1,10 +1,12 @@
 package com.teraim.fieldapp.loadermodule;
 
+import android.graphics.Color;
 import android.util.Log;
 
 import androidx.lifecycle.MutableLiveData;
 
 import com.teraim.fieldapp.loadermodule.LoadResult.ErrorCode;
+import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -58,6 +60,8 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     public void startLoading() {
         if (modules.isEmpty()) {
             // If there are no modules, this job is instantly successful.
+            LogRepository.getInstance().addColorText("Immediate exit - no modules to load", Color.parseColor("#E6E6FA"));
+
             loadingStatus.setValue(new LoadCompletionEvent(LoadingStatus.SUCCESS, this.stage));
             return;
         }
@@ -65,6 +69,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
         progressText.setValue("Starting stage: " + stage + "...");
         for (ConfigurationModule module : modules) {
             // The loader acts as the callback for each module's async operations.
+            LogRepository.getInstance().addColorText("Loading module: " + module.getLabel() + "...", Color.parseColor("#E6E6FA"));
             module.load(executor, this, forceReload);
         }
     }
@@ -73,6 +78,8 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     public void onFileLoaded(LoadResult result) {
         ConfigurationModule module = result.module;
         module.state.postValue(ConfigurationModule.ModuleLoadState.FROZEN);
+        LogRepository.getInstance().addColorText("Loading state changed: " + module.getLabel() + "...["+result.errCode+"]", Color.parseColor("#E6E6FA"));
+
         switch (result.errCode) {
             case loaded:
             case frozen:
@@ -105,12 +112,13 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
         // This is the old, incorrect position for the update
         // updateProgress();
         Log.d("StatefulModuleLoader", "checkIfAllDone"+" modules in progress "+modulesInProgress.get());
+
         if (modulesInProgress.decrementAndGet() == 0) {
             // --- This block now executes only for the very last module ---
 
             // 1. First, update the progress text to its FINAL state.
             // This queues the last UI text update on the main thread.
-            updateProgress();
+            updateProgress(modulesInProgress);
 
             // 2. Then, determine the overall result.
             boolean hasErrors = modules.stream()
@@ -120,22 +128,26 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
             // This will be queued on the main thread AFTER the final progress update.
             if (hasErrors) {
                 loadingStatus.postValue(new LoadCompletionEvent(LoadingStatus.FAILURE, this.stage));
+                LogRepository.getInstance().addColorText("Module load failed", Color.parseColor("#E6E6FA"));
+
             } else {
                 loadingStatus.postValue(new LoadCompletionEvent(LoadingStatus.SUCCESS, this.stage));
+                LogRepository.getInstance().addColorText("Module load succeeded", Color.parseColor("#E6E6FA"));
             }
 
             // Clean up this job's resources.
             executor.shutdownNow();
         } else {
             // If we are not done yet, we can still update the progress.
-            updateProgress();
+            updateProgress(modulesInProgress);
         }
     }
     /**
      * Generates and posts a summary string for the UI to display progress.
      */
-    private void updateProgress() {
+    private void updateProgress(AtomicInteger modulesInProgress) {
         Log.d("StatefulModuleLoader", "updateProgress");
+        LogRepository.getInstance().addColorText("Modules in progress ["+modulesInProgress.get()+"]", Color.parseColor("#E6E6FA"));
         StringBuilder sb = new StringBuilder();
         long completed = modules.stream().filter(m ->
                 m.state.getValue() != ConfigurationModule.ModuleLoadState.INITIAL &&
