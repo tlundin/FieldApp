@@ -67,47 +67,14 @@
             android:title="@string/resetCache"
             android:key="reset_cache"
             android:summary="@string/reset_cache_d"/>
-        <ListPreference
-            android:defaultValue="Major"
-            android:entries="@array/versionArray"
-            android:entryValues="@array/versionValues"
-            android:key="version_control"
-            android:title="@string/Version_control" />
-        <ListPreference
-            android:defaultValue="Internet"
-            android:entries="@array/syncMethodArray"
-            android:entryValues="@array/syncMethodValues"
-            android:key="sync_method"
-            android:title="@string/Sync_method" />
-        <EditTextPreference
-            android:dialogMessage="@string/Backup_dm"
-            android:dialogTitle="Backup folder"
-            android:key="backup_location"
-            android:summary="@string/Backup_folder_s"
-            android:title="@string/Backup_folder" />
+
         <CheckBoxPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:dialogMessage=""
             android:dialogTitle=""
             android:key="auto_backup"
             android:summary="@string/Automatic_backup_s"
             android:title="@string/Automatic_backup" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:key="show_author"
-            android:summary="@string/show_author_s"
-            android:title="@string/show_author_t" />
-        <CheckBoxPreference
-            android:defaultValue="false"
-            android:title="@string/config_from_server"
-            android:summary="@string/local_config_s"
-            android:key="local_config" />
-        <EditTextPreference
-            android:dialogMessage="Folder for configuration files"
-            android:title="Folder"
-            android:summary="@string/s_folder_summary"
-            android:key="file_picker"
-            />
 
     </PreferenceCategory>
 

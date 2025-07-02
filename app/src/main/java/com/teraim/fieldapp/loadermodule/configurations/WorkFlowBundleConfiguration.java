@@ -2341,7 +2341,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	 */
 	private PageDefineBlock readPageDefineBlock(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addText("Parsing block: block_define_page...");
-		String pageType=null,label="",id=null;
+		String pageType=null,label="",id=null,gpsPriority="low";
 		boolean hasGPS=false,goBackAllowed=true,hasSatNav = false;
 		parser.require(XmlPullParser.START_TAG, null,"block_define_page");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -2355,9 +2355,14 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					break;
 				case "type":
 					pageType = readText("type", parser);
+					if (pageType != null && pageType.length()==0)
+						pageType = null;
 					break;
 				case "gps_on":
 					hasGPS = readText("gps_on", parser).equals("true");
+					break;
+				case "gps_priority":
+					gpsPriority = readText("gps_priority", parser);
 					break;
 				case "allow_OS_page_back":
 					goBackAllowed = readText("allow_OS_page_back", parser).equals("true");
@@ -2372,7 +2377,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 		}
 		checkForNull("block_ID",id,"type",pageType,"label",label);
-		return new PageDefineBlock(id,"root", pageType,label,hasGPS,goBackAllowed);
+		return new PageDefineBlock(id,"root", pageType,label,hasGPS,gpsPriority,goBackAllowed);
 	}
 
 

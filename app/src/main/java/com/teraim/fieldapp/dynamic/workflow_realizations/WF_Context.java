@@ -63,6 +63,7 @@ public class WF_Context {
 	private final Map<String,List<WF_ClickableField_Slider>> sliderGroupM=new HashMap<String, List<WF_ClickableField_Slider>>();
 	private final Map<String,CoupledVariableGroupBlock> mySliderGroups = new HashMap<String, CoupledVariableGroupBlock>();
 	private final Map<String,DataSource> chartGroupM = new HashMap<String, DataSource>();
+	private String gpsPriority="low";
 
 
 	public WF_Context(FragmentActivity ctx, Executor e) {
@@ -317,8 +318,13 @@ public class WF_Context {
 	public boolean hasGPSTracker() {
 		return hasGPSTracker;
 	}
-	public void enableGPS() {
+	public boolean hasHighGPS() {
+		return gpsPriority.equals("high");
+	}
+	public void enableGPS(String gpsPriority) {
 		hasGPSTracker = true;
+		if (gpsPriority!=null)
+			this.gpsPriority = gpsPriority;
 	}
 
 	public void disableGPS() {

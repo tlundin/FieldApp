@@ -442,7 +442,7 @@ public class Tools {
 
 	public static Unit convertToUnit(String unit) {
 		if (unit == null) {
-			Log.d("unit","translates to undefined");
+			//Log.d("unit","translates to undefined");
 			return Unit.nd;
 		}
 		Unit[] units = Unit.values();

@@ -140,7 +140,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 	}
 
 	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,String exportFormat,String exportMethod, boolean enabled, String buttonContextS, String statusContextS,boolean requestSync, String imgFilter) {
-		Log.d("NILS","In NEW for Button "+name+" with context: "+buttonContextS);
+		//Log.d("NILS","Button "+name+" with context: "+buttonContextS);
 		this.blockId=id;
 		this.textE = Expressor.preCompileExpression(lbl);
 		this.onClick=action;

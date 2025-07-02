@@ -273,9 +273,7 @@ public class CreateGisBlock extends Block {
 
 					Bitmap bmp = Tools.getScaledImageRegion(myContext.getContext(),cachedImgFilePath,r);
 					if (bmp!=null) {
-
 						gis = new WF_Gis_Map(CreateGisBlock.this,r,blockId, mapView, isVisible, bmp,myContext,photoMetaData,avstRL,myLayers,r.width(),r.height());
-
 						//need to throw away the reference to myLayers.
 						myLayers=null;
 						myContainer.add(gis);
@@ -292,8 +290,6 @@ public class CreateGisBlock extends Block {
 						for (GisLayer gl:mapLayers) {
 							gis.addLayer(gl);
 						}
-
-
 						cb.continueExecution("gis");
 					} else {
 						Log.e("vortex","Failed to create map image. Will exit");

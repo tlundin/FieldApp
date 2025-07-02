@@ -63,6 +63,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
@@ -617,7 +618,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	private final List<GisObject> candidates = new ArrayList<>();
-
+	private final static Random rnd = new Random();
 	@Override
 	protected void dispatchDraw(Canvas canvas) {
 		super.dispatchDraw(canvas);

@@ -43,9 +43,11 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
@@ -87,7 +89,8 @@ public class GlobalState {
     private final ConnectionManager myConnectionManager;
     private final BackupManager myBackupManager;
 
-
+    private Set<String> provYtaTypes;
+    public static final String KEY_PROVYTA_TYPES = "provYtaTypes";
     private final VariableCache myVariableCache;
     private static Account mAccount;
     private GisObject selectedGop;
@@ -285,6 +288,17 @@ public class GlobalState {
 
     public void changePage(Workflow wf, String statusVar) {
         startActivity.changePage(wf,statusVar);
+    }
+
+    public Set<String> getProvYtaTypes() {
+        if (provYtaTypes == null) {
+            provYtaTypes = new HashSet<>();
+        }
+        return provYtaTypes;
+    }
+
+    public void setProvYtaTypes(Set<String> provYtaTypes) {
+        this.provYtaTypes = provYtaTypes;
     }
 
     public class TeamPosition {

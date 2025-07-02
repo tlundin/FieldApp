@@ -129,7 +129,7 @@ public class ModuleLoaderViewModel extends ViewModel {
             }
             @Override
             public void onError(LoadResult result) {
-                resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Error loading metadata: " + result.errorMessage)));
+                resultLiveData.postValue(new CreateGisBlock.GisResult(new Exception("Error loading metadata " + result.errorMessage)));
             }
         }, true);
         return resultLiveData;

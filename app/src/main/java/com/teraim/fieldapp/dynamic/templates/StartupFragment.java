@@ -35,6 +35,7 @@ import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
+import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
@@ -45,8 +46,11 @@ import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 
 /**
@@ -65,13 +69,14 @@ public class StartupFragment extends Executor {
 
     // ViewModel for handling background loading tasks
     private ModuleLoaderViewModel viewModel;
-
+    private static final String KEY_PROVYTE_TYPES = "provYtaTypes";
     // Helpers and State
     private PersistenceHelper globalPh, ph;
     private String bundleName;
     private float oldAppVersion = -1;
     private boolean loadAllModules = false;
     private Start startInstance;
+    private GisDatabaseWorkflow gisDatabaseWorkflowInstance;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -149,6 +154,12 @@ public class StartupFragment extends Executor {
                         // Pass the completed ModuleRegistry to the startApplication method.
                         // Corrected: Access registry on the unwrapped result
                         startupFailed = startApplication(result.registry()); // Use .registry() if it's a record
+                        if (!startupFailed && loadAllModules) {
+                            Set<String> provyteTypes = gisDatabaseWorkflowInstance.getCollectedProvYtaTypes();
+                            GlobalState.getInstance().setProvYtaTypes(provyteTypes);
+                            persistProvYtaTypes(provyteTypes);
+                            Log.d("StartupFragment", "ProvYta types set and persisted after full load.");
+                        }
                         break;
                     case FAILURE:
                         startupFailed = true;
@@ -180,6 +191,10 @@ public class StartupFragment extends Executor {
                 loadAllModules = true;
             }
             startLoadingProcess(loadAllModules); // 'false' means this is not a forced reload
+        } else {
+            // If GlobalState is already initialized, ensure provyteTypes are loaded from persistence
+            // in case the app was killed and restarted.
+            loadProvYtaTypesFromPersistence();
         }
     }
 
@@ -197,11 +212,11 @@ public class StartupFragment extends Executor {
 
         // The fragment's job is now extremely simple:
         // 1. Create the workflow definition.
-        Workflow_I myWorkflow = new GisDatabaseWorkflow(getContext(), globalPh, ph);
+        gisDatabaseWorkflowInstance = new GisDatabaseWorkflow(getContext(), globalPh, ph);
 
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
-        viewModel.execute(myWorkflow, loadAllModules);
+        viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules);
     }
 
     /**
@@ -260,6 +275,8 @@ public class StartupFragment extends Executor {
                         if (GlobalState.getInstance() != null) {
                             GlobalState.getInstance().getDrawerMenu().clear();
                             GlobalState.destroyInstance();
+                            // Clear persisted provYtaTypes as they will be re-generated
+                            ph.remove(KEY_PROVYTE_TYPES);
                         }
                         Tools.restart(this.getActivity());
                     })
@@ -348,11 +365,36 @@ public class StartupFragment extends Executor {
         // Mark initialization as complete
         globalPh.put(PersistenceHelper.FIRST_TIME_KEY, "Initialized");
         globalPh.put(PersistenceHelper.TIME_OF_FIRST_USE, System.currentTimeMillis());
+        LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
     }
 
-    //endregion
+    /**
+     * Persists the set of provyte types to local preferences.
+     * @param provYtaTypes The set of provyte types to persist.
+     */
+    private void persistProvYtaTypes(Set<String> provYtaTypes) {
+        if (ph != null && provYtaTypes != null) {
+            String provYtaTypesString = String.join(",", provYtaTypes);
+            ph.put(KEY_PROVYTE_TYPES, provYtaTypesString);
+            Log.d("StartupFragment", "Persisted ProvYta types: " + provYtaTypesString);
+        }
+    }
 
-    //region Executor Overrides
+    /**
+     * Loads the set of provyte types from local preferences and sets them in GlobalState.
+     */
+    private void loadProvYtaTypesFromPersistence() {
+        if (ph != null && GlobalState.getInstance() != null) {
+            String provYtaTypesString = ph.get(KEY_PROVYTE_TYPES, "");
+            Set<String> loadedProvYtaTypes = new HashSet<>();
+            if (!provYtaTypesString.isEmpty()) {
+                loadedProvYtaTypes.addAll(Arrays.asList(provYtaTypesString.split(",")));
+            }
+            GlobalState.getInstance().setProvYtaTypes(loadedProvYtaTypes);
+            Log.d("StartupFragment", "Loaded ProvYta types from persistence: " + loadedProvYtaTypes.toString());
+        }
+    }
+
 
     @Override
     public boolean execute(String function, String target) {

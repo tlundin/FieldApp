@@ -110,4 +110,5 @@ public class PersistenceHelper {
 		return sp;
 	}
 
+	public void remove(String key) { sp.edit().remove(key).apply(); }
 }

@@ -311,7 +311,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
         refreshB.setOnClickListener(v -> {
             Log.d("vortex", "Refresh clicked. Starting refresh workflow.");
-
+            refreshB.setImageResource(R.drawable.refresh_selector);
             // Create the specific workflow for this task
             Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
 
@@ -652,9 +652,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     // These heavy operations are now protected from repeated calls.
                     myContext.refreshGisObjects();
                     gisImageView.redraw();
-
                     refreshB.setClickable(true);
-                    Toast.makeText(ctx, R.string.refresh_completed, Toast.LENGTH_SHORT).show();
+                    int n_provytor = 0;
+                    if (GlobalState.getInstance().getProvYtaTypes() != null)
+                        n_provytor =GlobalState.getInstance().getProvYtaTypes().size();
+                    Toast.makeText(ctx, ctx.getString(R.string.refresh_completed) +" "+n_provytor+" "+ctx.getString(R.string.layers), Toast.LENGTH_SHORT).show();
                 }
                 globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
             }
