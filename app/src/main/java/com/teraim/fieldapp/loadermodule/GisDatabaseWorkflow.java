@@ -18,9 +18,11 @@ import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class GisDatabaseWorkflow implements Workflow_I {
 
@@ -33,7 +35,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
 
     // A pre-filtered list of modules to download, can be null.
     private final List<ConfigurationModule> modulesToDownload;
-
+    private Set<String> collectedProvYtaTypes = new HashSet<>();
     private int stageCount = 0;
 
     /**
@@ -113,13 +115,18 @@ public class GisDatabaseWorkflow implements Workflow_I {
             List<ConfigurationModule> databaseModules = createDBModules(context, gisPath, bundleName, t, gisList, debugConsole);
 
             if (databaseModules.isEmpty()) {
+                collectProvYtaTypes(registry);
                 return null; // No more jobs to run, workflow is complete.
             }
 
             return new LoadJob(LoadStage.DATABASES, databaseModules);
+        } else if (stageCount == 2) {
+            stageCount = 3; // Advance to the next stage, indicating completion of DB modules
+            collectProvYtaTypes(registry);
+            return null; // No more jobs to run, workflow is complete.
         }
-        // After stage 2, there are no more jobs.
         return null;
+
     }
 
     private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, List<String> gisTypes, LogRepository debugConsole) {
@@ -132,5 +139,31 @@ public class GisDatabaseWorkflow implements Workflow_I {
             }
         }
         return modules;
+    }
+    /**
+     * Collects all GisObjectConfiguration modules and their isProvYta status.
+     * This method is called after all database modules have been processed.
+     * @param registry The ModuleRegistry containing all loaded modules.
+     */
+    private void collectProvYtaTypes(ModuleRegistry registry) {
+        collectedProvYtaTypes.clear(); // Clear previous collection if any
+        for (ConfigurationModule module : registry.getAllModules()) {
+            if (module instanceof GisObjectConfiguration) {
+                GisObjectConfiguration gisObjectConfig = (GisObjectConfiguration) module;
+                if (gisObjectConfig.isProvYta()) {
+                    collectedProvYtaTypes.add(gisObjectConfig.getFileName());
+                    Log.d("Workflow", "Collected provYta type: " + gisObjectConfig.getFileName());
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns the set of collected provyte types.
+     * This method should be called by the client (StartupFragment) after the workflow has completed.
+     * @return A Set of strings representing provyte types.
+     */
+    public Set<String> getCollectedProvYtaTypes() {
+        return collectedProvYtaTypes;
     }
 }

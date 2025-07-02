@@ -76,12 +76,13 @@ public class SpinnerConfiguration extends CSVConfigurationModule {
 						o.addText("List had "+c+" members");
 					c=0;			
 					o.addText("Adding new spinner list with ID "+curId);
+					Log.d("vortex","Added new spinner element. ID "+curId);
 					sl = new ArrayList<SpinnerElement>();
 					sd.add(id, sl);
 					curId = id;
 		
 				}
-				Log.d("vortex","Added new spinner element. ID "+curId);
+				//Log.d("vortex","Added new spinner element. ID "+curId);
 				sl.add(sd.new SpinnerElement(r[1],r[2],r[3],r[4]));
 				c++;
 			}

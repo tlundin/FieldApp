@@ -157,7 +157,7 @@ public class BackupManager {
 
 		dir.mkdirs();
 		LogRepository logger = LogRepository.getInstance();
-		logger.addCriticalText("Backup to folder:"+backupFolder);
+		logger.addText("Backup to folder:"+backupFolder);
 		return dir;
 	}
 

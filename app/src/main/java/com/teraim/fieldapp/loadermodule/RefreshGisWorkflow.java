@@ -13,6 +13,7 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import okhttp3.internal.Util;
 
@@ -64,6 +65,7 @@ public class RefreshGisWorkflow implements Workflow_I {
         List<ConfigurationModule> databaseModules = createDBModules(context, gisPath, bundleName, t, debugConsole, registry);
 
         if (databaseModules.isEmpty()) {
+            Log.d("Workflow", "No GIS modules to refresh.");
             return null; // Nothing to refresh.
         }
 
@@ -75,9 +77,7 @@ public class RefreshGisWorkflow implements Workflow_I {
         // This workflow only has one stage, so this method always returns null.
         return null;
     }
-    private final List<String> provyteTyper = java.util.Arrays.asList("akerkant","hallmarkspolygon","lansgras","kraftledningsvkbio","lansvat",
-            "patrullstigsvkbio","akerkant","kraftledning","basiskberghall","patrullstig",
-            "hallmarkstorr","lovang","basiskberghallpolygon","slatterang","kalkmark");
+    private final Set<String> provyteTyper = GlobalState.getInstance().getProvYtaTypes();
     private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, LogRepository debugConsole,ModuleRegistry registry) {
         List<ConfigurationModule> modules = new ArrayList<>();
             for (String provyta : provyteTyper) {

@@ -56,8 +56,6 @@ public class LogDialogFragment extends DialogFragment {
         Button backupDbButton = view.findViewById(R.id.button_backup_db);
         Button crashAppButton = view.findViewById(R.id.button_crash_app);
 
-        // --- THE MAGIC: OBSERVE THE VIEWMODEL ---
-        // No more setOutputView() or draw()! The UI updates automatically.
         logViewModel.getLogContent().observe(getViewLifecycleOwner(), charSequence -> {
             logTextView.setText(charSequence);
             // Optional: Automatically scroll down when new content is added

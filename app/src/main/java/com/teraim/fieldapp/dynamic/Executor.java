@@ -27,6 +27,7 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -315,8 +316,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			Log.e("vortex","globalstate null in executor, exit");
 		} else {
 			if (myContext != null) {
-				if (myContext.hasGPSTracker())
-					startLocationUpdates(createLocationRequest(), locationCallback);
+				if (myContext.hasGPSTracker()) {
+					LocationRequest lr = myContext.hasHighGPS() ? createHighFrequencyLocationRequest() : createLowFrequencyLocationRequest();
+					startLocationUpdates(lr, locationCallback);
+				}
 				resetContext();
 				//make sure the correct map is updated.
 				if (myContext.hasMap())
@@ -329,11 +332,22 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		super.onResume();
 	}
 
-	protected LocationRequest createLocationRequest() {
-		LocationRequest locationRequest = LocationRequest.create();
-		locationRequest.setInterval(1000);
-		locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-		return locationRequest;
+	private LocationRequest createHighFrequencyLocationRequest() {
+		return new LocationRequest.Builder(
+				Priority.PRIORITY_HIGH_ACCURACY,
+				1000L // 1 second
+		)
+				.setMinUpdateIntervalMillis(500L) // Fastest update if other apps request
+				.build();
+	}
+
+	private LocationRequest createLowFrequencyLocationRequest() {
+		return new LocationRequest.Builder(
+				Priority.PRIORITY_BALANCED_POWER_ACCURACY, // Optimizes for power, may not use GPS often
+				60000L // 1 minute
+		)
+				.setMaxUpdateDelayMillis(5 * 60 * 1000L) // Allow batching up to 5 minutes
+				.build();
 	}
 
 	private void startLocationUpdates(LocationRequest locationRequest, LocationCallback locationCallback) {
@@ -558,7 +572,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					PageDefineBlock bl = (PageDefineBlock) b;
 					Log.d("vortex", "Found pagedefine!");
 					if (bl.hasGPS()) {
-						myContext.enableGPS();
+						myContext.enableGPS(bl.gpsPriority());
 						o.addText("GPS scanning started");
 						Log.d("vortex", "GPS scanning started");
 					} else {
@@ -1191,6 +1205,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	public void onLocationChanged(Location location) {
+		Log.d("fenris","Recieved location update at "+Tools.getCurrentTime());
 		if (location!=null && myX!=null) {
 			SweLocation myL = Geomatte.convertToSweRef(location.getLatitude(),location.getLongitude());
 
