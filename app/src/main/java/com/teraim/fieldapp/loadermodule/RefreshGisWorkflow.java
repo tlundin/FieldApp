@@ -3,7 +3,10 @@ package com.teraim.fieldapp.loadermodule;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.GlobalState;
+import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.configurations.GISListConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GisObjectConfiguration;
@@ -53,6 +56,7 @@ public class RefreshGisWorkflow implements Workflow_I {
         GISListConfiguration gisListModule = (GISListConfiguration) registry.getModule(GISListConfiguration.NAME);
         if (gisListModule == null) {
             Log.e("Workflow", "Cannot refresh GIS modules: GISListConfiguration is not loaded.");
+            LogRepository.getInstance().addCriticalText("Cannot refresh GIS modules: The gis list ('content' file) is missing from device storage.");
             return null;
         }
 
@@ -66,9 +70,13 @@ public class RefreshGisWorkflow implements Workflow_I {
 
         if (databaseModules.isEmpty()) {
             Log.d("Workflow", "No GIS modules to refresh.");
+            LogRepository.getInstance().addColorText("Found no GIS modules to refresh.", ContextCompat.getColor(context, R.color.purple));
             return null; // Nothing to refresh.
         }
-
+        LogRepository.getInstance().addColorText("Refresh started for GIS modules:", ContextCompat.getColor(context, R.color.purple));
+        for (ConfigurationModule module : databaseModules) {
+            LogRepository.getInstance().addColorText(" - " + module.getLabel(), ContextCompat.getColor(context, R.color.purple));
+        }
         return new LoadJob(LoadStage.PROVYTOR, databaseModules);
     }
 
