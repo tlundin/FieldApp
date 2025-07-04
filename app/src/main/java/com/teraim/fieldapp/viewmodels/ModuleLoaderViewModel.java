@@ -11,6 +11,7 @@ import androidx.lifecycle.ViewModel;
 import com.teraim.fieldapp.dynamic.blocks.CreateGisBlock;
 import com.teraim.fieldapp.dynamic.types.Event;
 import com.teraim.fieldapp.dynamic.types.PhotoMeta;
+import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.LoadCompletionEvent;
 import com.teraim.fieldapp.loadermodule.LoadJob;
@@ -32,7 +33,7 @@ public class ModuleLoaderViewModel extends ViewModel {
      * A helper class to wrap the final result of a workflow execution.
      * The record provides immutable data.
      */
-    public record WorkflowResult(LoadingStatus status, ModuleRegistry registry) {}
+    public record WorkflowResult(LoadingStatus status, ModuleRegistry registry, WF_Context myContext) {}
 
     // --- 1. LIVE DATA FOR PERSISTENT STATE ---
     // Observed by UI that needs to reflect the current state (e.g., progress bars).
@@ -51,16 +52,17 @@ public class ModuleLoaderViewModel extends ViewModel {
 
     private final ExecutorService singleTaskExecutor = Executors.newSingleThreadExecutor();
     private Workflow_I currentWorkflow;
-
-    public void execute(Workflow_I workflow, boolean forceReload) {
+    private WF_Context myContext;
+    public void execute(Workflow_I workflow, boolean forceReload, WF_Context myContext) {
         // Check the STATE LiveData for a running process
+        this.myContext=myContext;
         if (_workflowState.getValue() != null && _workflowState.getValue().status() == LoadingStatus.LOADING) {
             Log.w("ModuleLoaderViewModel", "Execution request ignored: a workflow is already running.");
             LogRepository.getInstance().addColorText("Execution request ignored: a workflow is already running.", Color.parseColor("#E6E6FA"));
             return;
         }
         // Post the initial loading status to the STATE LiveData
-        _workflowState.postValue(new WorkflowResult(LoadingStatus.LOADING, null));
+        _workflowState.postValue(new WorkflowResult(LoadingStatus.LOADING, null,myContext));
 
         final ModuleRegistry registry = new ModuleRegistry();
         this.currentWorkflow = workflow;
@@ -69,7 +71,7 @@ public class ModuleLoaderViewModel extends ViewModel {
         if (initialJob == null || initialJob.modules.isEmpty()) {
             // Handle early success: post to both STATE and EVENT
             LogRepository.getInstance().addColorText("Load ended: no initial job", Color.parseColor("#E6E6FA"));
-            WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
+            WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry,myContext);
             _workflowState.setValue(successResult);
             _onSuccessEvent.setValue(new Event<>(successResult));
             return;
@@ -101,7 +103,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                         // This is the FINAL success. Post to both STATE and EVENT streams.
                         LogRepository.getInstance().addColorText("ViewModel has finished loading.", Color.parseColor("#E6E6FA"));
                         Log.d("ViewModel", "Final SUCCESS. Posting state and event.");
-                        WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry);
+                        WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry,myContext);
                         _workflowState.postValue(successResult);
                         _onSuccessEvent.postValue(new Event<>(successResult));
                         // Cleanup is crucial when using observeForever
@@ -112,7 +114,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                     // On failure, we only update the STATE.
                     Log.d("ViewModel", "FAILURE. Posting state.");
                     LogRepository.getInstance().addCriticalText("ModuleLoader failed.");
-                    _workflowState.postValue(new WorkflowResult(LoadingStatus.FAILURE, null));
+                    _workflowState.postValue(new WorkflowResult(LoadingStatus.FAILURE, null,null));
                     // Cleanup is crucial when using observeForever
                     loader.loadingStatus.removeObserver(this);
                     loader.progressText.removeObserver(_progressText::postValue);
