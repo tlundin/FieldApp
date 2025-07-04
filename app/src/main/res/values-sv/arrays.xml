@@ -19,7 +19,7 @@
     </string-array>
     <string-array name="log_levels">
         <item>Normal</item>
-        <item>Kritiska</item>
+        <item>Bara allvarliga</item>
     </string-array>
     <string-array name="log_level_values">
         <item>normal</item>

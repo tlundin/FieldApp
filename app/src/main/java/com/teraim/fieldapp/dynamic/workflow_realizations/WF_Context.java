@@ -360,7 +360,7 @@ public class WF_Context {
 	}
 	
 	public void refreshGisObjects() {
-		myTemplate.refreshGisObjects();
+		myTemplate.refreshGisObjects(this);
 	}
 	
 	public void setContextVariables(List<String> contextVars) {

@@ -6,7 +6,6 @@ import android.util.JsonToken;
 import android.util.Log;
 import android.util.MalformedJsonException;
 
-import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Table;
@@ -42,7 +41,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     private String myType;
     private final Table varTable;
     private boolean isDebug = false;
-    private boolean isProvYta = false;
+    private boolean isProvYtaOrTrakt = false;
 
 
     public GisObjectConfiguration(Context context, PersistenceHelper globalPh, PersistenceHelper ph, String fileLocation, String fileName, LogRepository debugConsole, DbHelper myDb, Table t) {
@@ -536,8 +535,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                 GisConstants.GPS_Coord_Var_Name,coordS)) {
             ;
             o.addCriticalText("Row: "+counter+". Insert failed for "+GisConstants.GPS_Coord_Var_Name+". Hash: "+go.getKeyHash().toString());
-
-
         }
         if (isDebug) {
 
@@ -555,7 +552,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             if (key.equalsIgnoreCase(NamedVariables.PYSTATUS) || key.equalsIgnoreCase(NamedVariables.TRAKTSTATUS)) {
                 String statusVariableName= Constants.STATUS_VARIABLES_GROUP_NAME+":"+"status_"+myType.toLowerCase();
                 //Log.d("fenris","status variable found, setting "+statusVariableName);
-                myDb.fastInsert(go.getKeyHash(), statusVariableName, attr.get(key));
+                myDb.fastInsert(new HashMap<>(go.getKeyHash()), statusVariableName, attr.get(key));
                 /*
                 DbHelper.DBColumnPicker cp = myDb.getLastVariableInstance(myDb.createSelection(go.getKeyHash(), statusVariableName));
                 if (cp != null) {
@@ -577,8 +574,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                     //Log.d("vortex","key missing: "+key);
                 }
             }
-            if (key.equalsIgnoreCase(NamedVariables.PROVYTE_TYP)) {
-                this.isProvYta = true;
+            if (key.equalsIgnoreCase(NamedVariables.PROVYTE_TYP) || (key.equalsIgnoreCase(NamedVariables.GIS_TYPE) && attr.get(key).equalsIgnoreCase("trakter"))) {
+                this.isProvYtaOrTrakt = true;
             }
         }
 
@@ -610,8 +607,8 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
     }
 
 
-    public boolean isProvYta() {
-        return isProvYta;
+    public boolean isProvYtaOrTrakt() {
+        return isProvYtaOrTrakt;
     }
 
 }

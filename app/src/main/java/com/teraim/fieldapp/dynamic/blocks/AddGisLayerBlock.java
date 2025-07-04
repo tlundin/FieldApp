@@ -1,5 +1,7 @@
 package com.teraim.fieldapp.dynamic.blocks;
 
+import android.util.Log;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
@@ -39,6 +41,7 @@ public class AddGisLayerBlock extends Block {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
 			if (!myGis.isZoomLevel()) {
 			final GisLayer gisLayer = new GisLayer(name,label,isVisible,isBold,hasWidget,showLabels);
+			Log.d("fenris","Adding layer "+name+" with myObj"+gisLayer.hashCode());
 			myGis.addLayer(gisLayer);
 			}
 		} else {

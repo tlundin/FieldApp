@@ -1188,17 +1188,17 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	//Refresh all the gislayers.
-	public void refreshGisObjects() {
+	public void refreshGisObjects(WF_Context context) {
 		for (Block b: wf.getBlocks()) {
 			AddGisPointObjects bl;
 			if (b instanceof AddGisPointObjects) {
 				bl = ((AddGisPointObjects) b);
-				bl.create(myContext, true);
+				bl.create(context, true);
 			}
 		}
-		for (GisLayer layer :myContext.getCurrentGis().getLayers()) {
+		for (GisLayer layer :context.getCurrentGis().getLayers()) {
 			//Log.d("grogg","In refreshgisobjects");
-			layer.filterLayer(myContext.getCurrentGis().getGis());
+			layer.filterLayer(context.getCurrentGis().getGis());
 		}
 
 
