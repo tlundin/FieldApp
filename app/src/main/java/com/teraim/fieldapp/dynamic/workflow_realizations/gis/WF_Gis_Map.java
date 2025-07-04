@@ -317,7 +317,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
 
             // Tell the ViewModel to execute it, always forcing a reload for a refresh.
-            viewModel.execute(refreshWorkflow, true);
+            viewModel.execute(refreshWorkflow, true,myContext);
         });
         // Set up an observer to react to the result of the ViewModel's execution
         setupRefreshObserver();
@@ -650,8 +650,9 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (result != null) {
                 if (myContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
-                    myContext.refreshGisObjects(myContext);
-                    gisImageView.redraw();
+                    myContext.refreshGisObjects(result.myContext());
+                    result.myContext().getCurrentGis().refreshB.setClickable(true);
+                    result.myContext().getCurrentGis().getGis().redraw();
                     refreshB.setClickable(true);
                     int n_provytor = 0;
                     if (GlobalState.getInstance().getProvYtaTypes() != null)

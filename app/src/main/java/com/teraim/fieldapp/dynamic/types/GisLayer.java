@@ -87,7 +87,7 @@ public class GisLayer {
 
 	public void addObjectBag(String key, Set<GisObject> myGisObjects, boolean dynamic) {
 		boolean merge = false;
-		Log.d("maga", "in add objbag for layer "+label+" with key " + key);
+		//Log.d("maga", "in add objbag for layer "+label+" with key " + key);
 		if (myObjects == null) {
 			//Log.d("bortex", "myObjects null...creating. Mygisobjects: " + myGisObjects + " dynamic: " + dynamic);
 			myObjects = new HashMap<String, Set<GisObject>>();
@@ -96,10 +96,10 @@ public class GisLayer {
 		Set<GisObject> existingBag = myObjects.get(key);
 		//If no objects found we add an empty set provided none exist.
 		if (myGisObjects == null && existingBag == null) {
-			Log.d("maga", "Added empty set to layer: " + getId() + " of type " + key);
+			//Log.d("maga", "Added empty set to layer: " + getId() + " of type " + key);
 			myObjects.put(key, new HashSet<GisObject>());
 		} else {
-			Log.d("maga", "Adding a new bag to myObjs " + name + "to myOBjects "+myObjects.hashCode()+ "for layer "+this.hashCode());
+			//Log.d("maga", "Adding a new bag to myObjs " + name + "to myOBjects "+myObjects.hashCode()+ "for layer "+this.hashCode());
 			myObjects.put(key, myGisObjects);
 			this.hasDynamic = dynamic;
 		}

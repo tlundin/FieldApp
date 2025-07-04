@@ -221,7 +221,7 @@ public class StartupFragment extends Executor {
 
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
-        viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules);
+        viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules, myContext);
     }
 
     /**

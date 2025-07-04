@@ -426,8 +426,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 									if (!dynamic) {
 										StaticGisPoint gisPoint = new StaticGisPoint(this, map1, new SweLocation(storedVar1.value), statusVarP.first, statusVarP.second);
 										myGisObjects.add(gisPoint);
-										if (map1.get("trakt").equals("3303"))
-											Log.d("maga","AddGisP "+gisPoint.hashCode()+" statusvar is 1. "+statusVarP.first+" 2. "+statusVarP.second+"");
+											//if (map1.get("trakt").equals("3303"))
+											//Log.d("maga","AddGisP "+gisPoint.hashCode()+" statusvar is 1. "+statusVarP.first+" 2. "+statusVarP.second+"");
 									} else {
 										myGisObjects.add(new DynamicGisPoint(this, map1, v1, statusVarP.first, statusVarP.second));
 									}
@@ -466,22 +466,21 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			//Add bag to layer.
 			GisLayer myLayer = myContext.getCurrentGis().getLayerFromId(target);
 			if (myLayer !=null) {
-				Log.d("maga","adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
+				//Log.d("maga","adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
 				myLayer.addObjectBag(nName,myGisObjects,dynamic);
-				Log.d("maga","layer has "+myLayer.getGisBags().keySet());
+				//Log.d("maga","layer has "+myLayer.getGisBags().keySet());
 				Set<GisObject> tr = myLayer.getGisBags().get("traktobjekt");
 				if (tr!=null) {
-					Log.d("maga", "layer has " + tr.size() + " trakter");
-					for (GisObject g:tr)
-						if (g.getLabel().equals("3303")) {
-							Log.d("maga", "found 3303: " + g.hashCode() + " with statusvalue " + g.getStatusVariableValue());
-
-						}
+					//Log.d("maga", "layer has " + tr.size() + " trakter");
+//					for (GisObject g:tr)
+//						if (g.getLabel().equals("3303")) {
+//							Log.d("maga", "found 3303: " + g.hashCode() + " with statusvalue " + g.getStatusVariableValue());
+//
+//						}
 				}
 
 			} else {
 				Log.e("vortex","Could not find layer ["+target+"] for type "+nName);
-				
 				o.addCriticalText("Could not find layer ["+target+"]. This means that type "+nName+" was not added");
 			}
 		}
