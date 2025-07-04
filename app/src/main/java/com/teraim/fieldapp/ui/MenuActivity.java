@@ -942,7 +942,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
             case MENU_ITEM_LOG_WARNING:
                 mnu[MENU_ITEM_LOG_WARNING].setIcon(null);
-                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
                 showLogDialog();
                 break;
 

@@ -77,6 +77,7 @@ public class ConfigMenu extends AppCompatActivity {
 		private EditTextPreference appPref;
 		private CheckBoxPreference devFuncPref;
 		private AlertDialog progressDialog; // Use AlertDialog for progress display
+		private CheckBoxPreference logPref;
 
 		// Note: onActivityResult is deprecated. For a modern approach, consider using the Activity Result APIs.
 		// However, for a direct migration, this will still function.
@@ -222,6 +223,7 @@ public class ConfigMenu extends AppCompatActivity {
 			appPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[] {filter}));
 
 
+
 //			EditTextPreference backupPref = findPreference(PersistenceHelper.BACKUP_LOCATION);
 //			if (backupPref.getText() == null || backupPref.getText().isEmpty()) {
 //				File[] externalStorageVolumes =
@@ -231,14 +233,27 @@ public class ConfigMenu extends AppCompatActivity {
 //			}
 //			backupPref.setSummary(backupPref.getText());
 
-			ListPreference logLevels = findPreference(PersistenceHelper.LOG_LEVEL);
-			logLevels.setSummary(logLevels.getEntry());
+			ListPreference logPref = (ListPreference) findPreference(PersistenceHelper.LOG_LEVEL);
+			if (logPref != null) {
+				// Set initial summary based on current selection
+				setSummaryForListPreference(logPref, logPref.getValue());
 
-			Preference button = findPreference("reset_cache");
+				// Set a listener to update the summary when the preference changes
+				logPref.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+					@Override
+					public boolean onPreferenceChange(Preference preference, Object newValue) {
+						String selectedValue = (String) newValue;
+						setSummaryForListPreference((ListPreference) preference, selectedValue);
+						return true; // Allow the preference to be saved
+					}
+				});
+			}
+
+			Preference clearCacheButton = findPreference("reset_cache");
 			final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 
-			button.setOnPreferenceClickListener(preference -> {
+			clearCacheButton.setOnPreferenceClickListener(preference -> {
 				new AlertDialog.Builder(requireActivity())
 						.setTitle(getResources().getString(R.string.resetCache))
 						.setMessage(getResources().getString(R.string.reset_cache_warn))
@@ -413,5 +428,23 @@ public class ConfigMenu extends AppCompatActivity {
 				progressDialog = null;
 			}
 		}
+		private void setSummaryForListPreference(ListPreference preference, String selectedValue) {
+			if (selectedValue != null) {
+				// Find the entry that corresponds to the selected value
+				int index = preference.findIndexOfValue(selectedValue);
+				if (index >= 0 && index < preference.getEntries().length) {
+					// Get the displayed entry (e.g., "Normal", "Critical Only")
+					CharSequence entry = preference.getEntries()[index];
+					preference.setSummary(entry);
+				} else {
+					// Fallback if somehow the value doesn't match an entry
+					preference.setSummary(selectedValue);
+				}
+			} else {
+				// Handle case where no value is set (e.g., first time opening settings)
+				preference.setSummary(R.string.select_log_level);
+			}
+		}
+
 	}
 }

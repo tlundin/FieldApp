@@ -11,7 +11,7 @@ android {
     compileSdkVersion 34
     defaultConfig {
         applicationId "com.teraim.fieldapp"
-        minSdkVersion 24  //Change back to 24
+        minSdkVersion 29  //Change back to 24
         targetSdkVersion 34
     }
     compileOptions {
