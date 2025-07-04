@@ -948,10 +948,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
             case MENU_ITEM_SETTINGS:
                 //close drawer menu if open
-                if (gs.getDrawerMenu() != null)
-                    gs.getDrawerMenu().closeDrawer();
-                if (isSynkServiceRunning())
-                    stopSync();
+                if (gs != null) {
+                    if (gs.getDrawerMenu() != null)
+                        gs.getDrawerMenu().closeDrawer();
+                    if (isSynkServiceRunning())
+                        stopSync();
+                }
                 Intent intent = new Intent(getBaseContext(), ConfigMenu.class);
                 startActivity(intent);
                 return true;

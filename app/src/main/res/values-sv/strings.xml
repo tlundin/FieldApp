@@ -136,4 +136,5 @@
 	<string name="ladda_descr">Om du fortsätter så kommer Appen starta om och ersätta alla styrfiler </string>
     <string name="exit_app">Tryck ok för att stänga appen</string>
     <string name="refresh_completed">Uppdaterade</string>
+    <string name="cleaning_up_please_wait">Städar...</string>
 </resources>

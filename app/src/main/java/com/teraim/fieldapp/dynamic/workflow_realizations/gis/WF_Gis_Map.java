@@ -196,9 +196,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
         super(id, mapView, isVisible, myContext);
-
+        Log.d("maga","In WF_Gis_Map create with context "+myContext.toString());
         GlobalState gs = GlobalState.getInstance();
-
         this.myContext=myContext;
         this.myDaddy=createGisBlock;
         //This is a zoom level if layers are imported.
@@ -651,7 +650,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (result != null) {
                 if (myContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
-                    myContext.refreshGisObjects();
+                    myContext.refreshGisObjects(myContext);
                     gisImageView.redraw();
                     refreshB.setClickable(true);
                     int n_provytor = 0;

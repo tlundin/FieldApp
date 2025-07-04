@@ -33,7 +33,6 @@ import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.loadermodule.GisDatabaseWorkflow;
 import com.teraim.fieldapp.loadermodule.ModuleRegistry;
-import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
@@ -159,7 +158,7 @@ public class StartupFragment extends Executor {
                         // Corrected: Access registry on the unwrapped result
                         startupFailed = startApplication(result.registry()); // Use .registry() if it's a record
                         if (!startupFailed && loadAllModules) {
-                            Set<String> provyteTypes = gisDatabaseWorkflowInstance.getCollectedProvYtaTypes();
+                            Set<String> provyteTypes = gisDatabaseWorkflowInstance.getMapObjectsToRefresh();
                             LogRepository.getInstance().addColorText("Setting provyte types: " + provyteTypes.toString(), getColor(requireContext(), R.color.purple));
                             GlobalState.getInstance().setProvYtaTypes(provyteTypes);
                             persistProvYtaTypes(provyteTypes);

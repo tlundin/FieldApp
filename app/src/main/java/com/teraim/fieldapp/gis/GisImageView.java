@@ -384,7 +384,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					Log.e("bortex","no team members found");
 				else {
 					Log.d("bortex", "found " + teamMembers.size()+" team members");
-					layer.addObjectBag("Team", teamMembers, true, this);
+					layer.addObjectBag("Team", teamMembers, true);
 				}
 
 			}
@@ -717,8 +717,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
 									String statusColor = gop.getStatusColor();
-									if (statusColor != null)
+									if (statusColor != null) {
+
 										color = statusColor;
+									} else
+										Log.d("fenris", "gop " + gop.getLabel() + " null ");
 
 									if (filters != null && !filters.isEmpty()) {
 
@@ -752,7 +755,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 										xy = gop.getTranslatedLocation();
 									}
 									if (xy != null) {
-										//Log.d("maga","drawing "+gop.getLabel());
+										if (gop.getLabel() !=null && gop.getLabel().equals("3303"))
+											Log.d("maga","drawing "+gop.getLabel()+" with status "+gop.getStatusVariableValue()+ " and hash "+gop.hashCode()+ "from gisbagmap "+bagOfObjects.hashCode()+" from layer "+layerO.hashCode());
 										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, borderColor,style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
 
 										if (layerO.showLabels()) {
