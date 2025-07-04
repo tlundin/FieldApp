@@ -84,6 +84,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     private final Context ctx;
 
+
     public static enum Table_Timestamps {
         LABEL,
         VALUE,
@@ -2232,7 +2233,7 @@ public class DbHelper extends SQLiteOpenHelper {
         for (String v : valA) {
             valAs.append(v + ",");
         }
-        Log.e("vortex", "Deleted " + affRows + " entries in deleteAllVariablesUsingKey. Query: " + queryP + " vals " + valAs);
+        Log.d("vortex", "Deleted " + affRows + " entries in deleteAllVariablesUsingKey. Query: " + queryP + " vals " + valAs);
         return affRows;
     }
 
@@ -2264,7 +2265,21 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         return true;
     }
-
+    public void cleanDatabase() {
+        //Erase all old status variables
+        Map<String, String> keyHash = new HashMap<String, String>();
+        keyHash.put("år", Constants.getYear());
+        keyHash.put("var", "STATUS:status_trakter");
+        deleteAllVariablesUsingKey(keyHash);
+        Set<String> pyTypes = GlobalState.getInstance().getProvYtaTypes();
+        if (pyTypes != null) {
+            for (String pyType : pyTypes) {
+                keyHash.put("var", "STATUS:status_" + pyType);
+                deleteAllVariablesUsingKey(keyHash);
+                Log.d("vortex", "Erased status variables for " + pyType);
+            }
+        }
+    }
 
     public boolean fastInsert(Map<String, String> key, String varId, String value) {
         valuez.clear();
@@ -2359,6 +2374,55 @@ public class DbHelper extends SQLiteOpenHelper {
     public DBColumnPicker getAllVariableInstances(Selection s) {
         Cursor c = db().query(TABLE_VARIABLES, null, s.selection,
                 s.selectionArgs, null, null, null, null);//"timestamp DESC","1");
+        return new DBColumnPicker(c);
+    }
+    public DBColumnPicker getLatestVariableInstancesByUid(Selection s) {
+        String uidColumnName = this.getDatabaseColumnName("uid");
+        // Assuming your timestamp column (inserted by fastInsertStat) is named "timestamp"
+        String timestampColumnName = "timestamp";
+
+        // Build the SQL query using ROW_NUMBER()
+        // This query selects all columns from TABLE_VARIABLES
+        // It partitions (groups) the rows by the unique UID,
+        // orders them by timestamp in descending order (latest first),
+        // and assigns a row number. Finally, it filters to keep only the first row (rn = 1)
+        // for each UID group.
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT * FROM (");
+        queryBuilder.append("SELECT *, ROW_NUMBER() OVER (PARTITION BY ").append(uidColumnName);
+        queryBuilder.append(" ORDER BY ").append(timestampColumnName).append(" DESC) AS rn ");
+        queryBuilder.append("FROM ").append(TABLE_VARIABLES);
+
+        String[] finalSelectionArgs = null;
+
+        // Apply the selection 's' as a WHERE clause to filter the initial set of rows
+        // before determining the latest by UID.
+        if (s != null && s.selection != null && !s.selection.isEmpty()) {
+            queryBuilder.append(" WHERE ").append(s.selection);
+            finalSelectionArgs = s.selectionArgs; // Pass the arguments for the WHERE clause
+        }
+        queryBuilder.append(") WHERE rn = 1"); // Filter to get only the latest row for each UID
+
+        String sqlQuery = queryBuilder.toString();
+
+        // For debugging: print the generated SQL query and arguments
+        Log.d("DB_HELPER", "SQL for getLatestVariableInstancesByUid: " + sqlQuery);
+        if (finalSelectionArgs != null) {
+            Log.d("DB_HELPER", "Selection Args for getLatestVariableInstancesByUid: " + java.util.Arrays.toString(finalSelectionArgs));
+        }
+
+        Cursor c = null;
+        try {
+            SQLiteDatabase database = db();
+            c = database.rawQuery(sqlQuery, finalSelectionArgs);
+        } catch (Exception e) {
+            Log.e("DB_HELPER", "Error fetching latest variable instances by UID: " + e.getMessage(), e);
+            if (c != null) {
+                c.close();
+            }
+            return null; // Or throw an exception, depending on your error handling policy
+        }
+
         return new DBColumnPicker(c);
     }
 

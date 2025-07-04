@@ -137,4 +137,5 @@
     <string name="ladda_descr">If you continue, the App will restart and replace all your existing configuration files with the latest versions.</string>
     <string name="exit_app">This will exit the application</string>
     <string name="refresh_completed">Refresh completed</string>
+    <string name="cleaning_up_please_wait">Cleaning up...</string>
 </resources>

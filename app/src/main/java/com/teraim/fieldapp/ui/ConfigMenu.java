@@ -14,6 +14,9 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -38,6 +41,8 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ConfigMenu is now an AppCompatActivity that hosts the SettingsFragment.
@@ -71,6 +76,7 @@ public class ConfigMenu extends AppCompatActivity {
 		private EditTextPreference userPref;
 		private EditTextPreference appPref;
 		private CheckBoxPreference devFuncPref;
+		private AlertDialog progressDialog; // Use AlertDialog for progress display
 
 		// Note: onActivityResult is deprecated. For a modern approach, consider using the Activity Result APIs.
 		// However, for a direct migration, this will still function.
@@ -229,24 +235,53 @@ public class ConfigMenu extends AppCompatActivity {
 			logLevels.setSummary(logLevels.getEntry());
 
 			Preference button = findPreference("reset_cache");
+			final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+
 			button.setOnPreferenceClickListener(preference -> {
 				new AlertDialog.Builder(requireActivity())
 						.setTitle(getResources().getString(R.string.resetCache))
 						.setMessage(getResources().getString(R.string.reset_cache_warn))
 						.setIcon(android.R.drawable.ic_dialog_alert)
-						.setCancelable(false)
+						.setCancelable(false) // User cannot dismiss warning dialog easily
 						.setPositiveButton(R.string.ok, (dialog, which) -> {
-							String bundleName = requireActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
-							if (!bundleName.isEmpty()) {
-								Log.d("vortex", "Erasing cache for " + bundleName);
-								int n = Tools.eraseFolder(requireContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT) + "/cache/");
-								//erase allfrozen flag
-								SharedPreferences sharedPrefs = requireActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE);
-								PersistenceHelper ph = new PersistenceHelper(sharedPrefs);
-								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
-								Toast.makeText(getActivity(), n + " " + getResources().getString(R.string.reset_cache_toast), Toast.LENGTH_LONG).show();
-								askForRestart();
-							}
+							// Show the progress/loading dialog
+							showProgressDialog();
+
+							// Execute the cleanup on a background thread
+							executorService.execute(() -> {
+								String bundleName = requireActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
+								int n = 0; // To store the count of erased files
+
+								if (!bundleName.isEmpty()) {
+									Log.d("vortex", "Erasing cache for " + bundleName);
+									// Perform file system cleanup
+									n = Tools.eraseFolder(requireContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT) + "/cache/");
+
+									// Erase all frozen flag
+									SharedPreferences sharedPrefs = requireActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE);
+									PersistenceHelper ph = new PersistenceHelper(sharedPrefs);
+									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader", false);
+
+									GlobalState gs = GlobalState.getInstance();
+									if (gs != null) {
+										if (gs.getDb() != null) {
+											Log.d("vortex", "cleaning database");
+											// Perform database cleanup
+											gs.getDb().cleanDatabase();
+										}
+									}
+								}
+
+								final int finalN = n; // Need final variable for lambda
+								// Update UI on the main thread after cleanup is done
+								requireActivity().runOnUiThread(() -> {
+									dismissProgressDialog(); // Dismiss the loading dialog
+
+									Toast.makeText(getActivity(), finalN + " " + getResources().getString(R.string.reset_cache_toast), Toast.LENGTH_LONG).show();
+									askForRestart();
+								});
+							});
 						})
 						.setNegativeButton(R.string.cancel, (dialog, which) -> {})
 						.show();
@@ -354,6 +389,29 @@ public class ConfigMenu extends AppCompatActivity {
 
 		private boolean isEmpty(String s) {
 			return s == null || s.isEmpty();
+		}
+
+		private void showProgressDialog() {
+			// Using AlertDialog with a custom layout for a more modern look than ProgressDialog
+			AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+			LayoutInflater inflater = getLayoutInflater();
+			View dialogView = inflater.inflate(R.layout.dialog_progress, null); // You'll need to create dialog_progress.xml
+			TextView messageText = dialogView.findViewById(R.id.progress_message); // Assuming you have a TextView with this ID
+			messageText.setText(getResources().getString(R.string.cleaning_up_please_wait)); // Create this string resource
+
+			builder.setView(dialogView);
+			builder.setCancelable(false); // Important: User cannot dismiss it
+			progressDialog = builder.create();
+			progressDialog.show();
+
+		}
+
+		// Helper method to dismiss the progress dialog
+		private void dismissProgressDialog() {
+			if (progressDialog != null && progressDialog.isShowing()) {
+				progressDialog.dismiss();
+				progressDialog = null;
+			}
 		}
 	}
 }

@@ -85,23 +85,21 @@ public class GisLayer {
 	//TODO: Potentially split incoming objects into two bags. one for static and one for changeable. 
 	//This would speed up CRUD for map objects.
 
-	public void addObjectBag(String key, Set<GisObject> myGisObjects, boolean dynamic, GisImageView gisView) {
+	public void addObjectBag(String key, Set<GisObject> myGisObjects, boolean dynamic) {
 		boolean merge = false;
-		Log.d("bortex", "in add objbag for layer "+label+" with key " + key);
+		Log.d("maga", "in add objbag for layer "+label+" with key " + key);
 		if (myObjects == null) {
 			//Log.d("bortex", "myObjects null...creating. Mygisobjects: " + myGisObjects + " dynamic: " + dynamic);
 			myObjects = new HashMap<String, Set<GisObject>>();
 
 		}
-
 		Set<GisObject> existingBag = myObjects.get(key);
 		//If no objects found we add an empty set provided none exist.
 		if (myGisObjects == null && existingBag == null) {
-			Log.d("bortex", "Added empty set to layer: " + getId() + " of type " + key);
+			Log.d("maga", "Added empty set to layer: " + getId() + " of type " + key);
 			myObjects.put(key, new HashSet<GisObject>());
 		} else {
-			Iterator<GisObject> iterator = myGisObjects.iterator();
-			Log.d("bortex", "Adding a new bag of type " + key);
+			Log.d("maga", "Adding a new bag to myObjs " + name + "to myOBjects "+myObjects.hashCode()+ "for layer "+this.hashCode());
 			myObjects.put(key, myGisObjects);
 			this.hasDynamic = dynamic;
 		}
@@ -119,6 +117,10 @@ public class GisLayer {
 	}
 
 	public Map<String,Set<GisObject>> getGisBags() {
+		if (myObjects !=null)
+			Log.d("fenris","returning myObjs "+name+" obj "+myObjects.hashCode()+ "for layer "+this.hashCode());
+		else
+			Log.d("fenris", "returning myObjs "+name+" obj null");
 		return myObjects;
 	}
 
@@ -226,17 +228,15 @@ public class GisLayer {
 
 	public void filterLayer(GisImageView gisImageView) {
 
-
-		Map<String, Set<GisObject>> gops = getGisBags();
-		if (gops == null) {
-			Log.e("vortex","Layer "+ getLabel()+" has no bags. Exiting filterlayer");
+		if (myObjects == null) {
+			Log.e("fenris","Layer "+ getLabel()+" has no bags. Exiting filterlayer");
 			return;
 		}
-		CurrStatVar currStat = gisImageView.getCurrentStatusVariable();
+		//CurrStatVar currStat = gisImageView.getCurrentStatusVariable();
 		//Log.d("grogg","In filterAndCopy for layer "+getLabel()+" layer has "+gops.size()+" bags." );
 
-		for (String key:gops.keySet()) {
-			Set<GisObject> bag = gops.get(key);
+		for (String key:myObjects.keySet()) {
+			Set<GisObject> bag = myObjects.get(key);
 			Iterator<GisObject> iterator = bag.iterator();
 			while (iterator.hasNext()) {
 				GisObject go = iterator.next();
@@ -248,30 +248,8 @@ public class GisLayer {
 			//Log.d("bloon","Bag: "+key+" size: "+bag.size());
 			int c=0;
 			for (GisObject gop:bag) {
-				if (gop.isUseful()) {
-					//if (key.equals("Hallmarkstorr"))
-					//	Log.d("plaxxo","Useful: "+ gop.getLabel()+" key: "+gop.getKeyHash()+" statusVar "+gop.getStatusVariableId()+" value "+gop.getStatusVariableValue());
-					//Log.d("grogg","Useful: "+ gob.getLabel()+" key: "+gob.getKeyHash());
+				if (gop.isUseful())
 					c++;
-					if (currStat !=null) {
-						//Log.d("grogg","currstid "+currStat.id);
-						if (currStat.id.equals(gop.getKeyHash().get("uid"))) {
-							String valS = currStat.v.getValue();
-							if (valS != null) {
-								if (!valS.equals(gop.getStatusVariableValue())) {
-									Map<String, String> keyHash = gop.getKeyHash();
-									Log.d("grogg", "Statuserror for " + gop.getLabel());
-									Log.d("grogg", "wfclick keyhash is " + keyHash + " for " + gop.getLabel());
-									gop.setStatusVariableValue(currStat.v.getValue());
-								}
-							}
-						}
-					}
-
-					} else {
-                  //Log.d("grogg","Useless: "+gop.getKeyHash());
-                }
-
 			}
 			Log.d("grogg","bag "+key+" has "+c+" useful members");
 		}

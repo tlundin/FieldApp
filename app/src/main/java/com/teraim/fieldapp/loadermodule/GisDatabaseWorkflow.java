@@ -3,8 +3,6 @@ package com.teraim.fieldapp.loadermodule;
 import android.content.Context;
 import android.util.Log;
 
-import com.teraim.fieldapp.GlobalState;
-import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.loadermodule.configurations.GISListConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.GisObjectConfiguration;
@@ -35,7 +33,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
 
     // A pre-filtered list of modules to download, can be null.
     private final List<ConfigurationModule> modulesToDownload;
-    private Set<String> collectedProvYtaTypes = new HashSet<>();
+    private Set<String> mapObjectsToRefresh = new HashSet<>();
     private int stageCount = 0;
 
     /**
@@ -146,13 +144,14 @@ public class GisDatabaseWorkflow implements Workflow_I {
      * @param registry The ModuleRegistry containing all loaded modules.
      */
     private void collectProvYtaTypes(ModuleRegistry registry) {
-        collectedProvYtaTypes.clear(); // Clear previous collection if any
+        mapObjectsToRefresh.clear(); // Clear previous collection if any
+        //add any static types
         for (ConfigurationModule module : registry.getAllModules()) {
             if (module instanceof GisObjectConfiguration) {
                 GisObjectConfiguration gisObjectConfig = (GisObjectConfiguration) module;
-                if (gisObjectConfig.isProvYta()) {
-                    collectedProvYtaTypes.add(gisObjectConfig.getFileName());
-                    Log.d("Workflow", "Collected provYta type: " + gisObjectConfig.getFileName());
+                if (gisObjectConfig.isProvYtaOrTrakt()) {
+                    mapObjectsToRefresh.add(gisObjectConfig.getFileName());
+                    Log.d("Workflow", "Collected types to refresh: " + gisObjectConfig.getFileName());
                 }
             }
         }
@@ -163,7 +162,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
      * This method should be called by the client (StartupFragment) after the workflow has completed.
      * @return A Set of strings representing provyte types.
      */
-    public Set<String> getCollectedProvYtaTypes() {
-        return collectedProvYtaTypes;
+    public Set<String> getMapObjectsToRefresh() {
+        return mapObjectsToRefresh;
     }
 }
