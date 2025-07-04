@@ -359,8 +359,8 @@ public class WF_Context {
 		myTemplate.restart();
 	}
 	
-	public void refreshGisObjects(WF_Context my_context) {
-		myTemplate.refreshGisObjects(my_context);
+	public void refreshGisObjects() {
+		myTemplate.refreshGisObjects(this);
 	}
 	
 	public void setContextVariables(List<String> contextVars) {

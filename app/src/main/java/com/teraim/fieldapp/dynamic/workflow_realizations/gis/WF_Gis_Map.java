@@ -643,17 +643,16 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private void setupRefreshObserver() {
         viewModel.onSuccessEvent.observe(myContext.getFragmentActivity(), event -> {
             if (event == null) return;
-
             // Use getContentIfNotHandled() to ensure the operation runs only once.
             ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
-
-            if (result != null) {
-                if (myContext.getCurrentGis() != null) {
+            if (result != null && result.myContext() != null) {
+                WF_Context prevContext = result.myContext();
+                if (prevContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
-                    myContext.refreshGisObjects(result.myContext());
-                    result.myContext().getCurrentGis().refreshB.setClickable(true);
-                    result.myContext().getCurrentGis().getGis().redraw();
-                    refreshB.setClickable(true);
+                    prevContext.refreshGisObjects();
+                    prevContext.getCurrentGis().refreshB.setClickable(true);
+                    prevContext.getCurrentGis().getGis().redraw();
+                    //refreshB.setClickable(true);
                     int n_provytor = 0;
                     if (GlobalState.getInstance().getProvYtaTypes() != null)
                         n_provytor =GlobalState.getInstance().getProvYtaTypes().size();

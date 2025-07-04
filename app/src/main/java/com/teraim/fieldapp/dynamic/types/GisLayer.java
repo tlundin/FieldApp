@@ -117,10 +117,6 @@ public class GisLayer {
 	}
 
 	public Map<String,Set<GisObject>> getGisBags() {
-		if (myObjects !=null)
-			Log.d("fenris","returning myObjs "+name+" obj "+myObjects.hashCode()+ "for layer "+this.hashCode());
-		else
-			Log.d("fenris", "returning myObjs "+name+" obj null");
 		return myObjects;
 	}
 

@@ -2233,7 +2233,7 @@ public class DbHelper extends SQLiteOpenHelper {
         for (String v : valA) {
             valAs.append(v + ",");
         }
-        Log.d("vortex", "Deleted " + affRows + " entries in deleteAllVariablesUsingKey. Query: " + queryP + " vals " + valAs);
+        //Log.d("vortex", "Deleted " + affRows + " entries in deleteAllVariablesUsingKey. Query: " + queryP + " vals " + valAs);
         return affRows;
     }
 
@@ -2246,7 +2246,7 @@ public class DbHelper extends SQLiteOpenHelper {
         try {
             Log.d("nils", "deleting all historical values");
             int rows = db().delete(TABLE_VARIABLES, getDatabaseColumnName("år") + "= ?", new String[]{Constants.HISTORICAL_TOKEN_IN_DATABASE});
-            Log.d("nils", "Deleted " + rows + " rows of history");
+            //Log.d("nils", "Deleted " + rows + " rows of history");
         } catch (SQLiteException e) {
             Log.d("nils", "not a nils db");
             return false;
@@ -2406,10 +2406,10 @@ public class DbHelper extends SQLiteOpenHelper {
         String sqlQuery = queryBuilder.toString();
 
         // For debugging: print the generated SQL query and arguments
-        Log.d("DB_HELPER", "SQL for getLatestVariableInstancesByUid: " + sqlQuery);
-        if (finalSelectionArgs != null) {
-            Log.d("DB_HELPER", "Selection Args for getLatestVariableInstancesByUid: " + java.util.Arrays.toString(finalSelectionArgs));
-        }
+        //Log.d("DB_HELPER", "SQL for getLatestVariableInstancesByUid: " + sqlQuery);
+        //if (finalSelectionArgs != null) {
+        //    Log.d("DB_HELPER", "Selection Args for getLatestVariableInstancesByUid: " + java.util.Arrays.toString(finalSelectionArgs));
+        //}
 
         Cursor c = null;
         try {

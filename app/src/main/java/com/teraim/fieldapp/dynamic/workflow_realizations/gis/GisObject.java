@@ -133,7 +133,7 @@ public class GisObject {
 		int statusValue = Integer.parseInt(statusVariableValue);
 		//Log.d("fenris","statvar "+statusVariableId+" value was "+statusVariableValue+" statval is "+statusValue);
 		if (statusVariableId.equals("STATUS:status_trakter")) {
-			Log.d("fenris","gop "+this.getLabel()+" object "+this.hashCode()+" has status "+statusVariableValue);
+			//Log.d("fenris","gop "+this.getLabel()+" object "+this.hashCode()+" has status "+statusVariableValue);
 			if (statusVariableValue.equals(Constants.STATUS_HIGH_PRIORITY))
 					return "#9900ff";
 			else if (statusVariableValue.equals(Constants.STATUS_INITIAL))

@@ -469,16 +469,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				//Log.d("maga","adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
 				myLayer.addObjectBag(nName,myGisObjects,dynamic);
 				//Log.d("maga","layer has "+myLayer.getGisBags().keySet());
-				Set<GisObject> tr = myLayer.getGisBags().get("traktobjekt");
-				if (tr!=null) {
-					//Log.d("maga", "layer has " + tr.size() + " trakter");
-//					for (GisObject g:tr)
-//						if (g.getLabel().equals("3303")) {
-//							Log.d("maga", "found 3303: " + g.hashCode() + " with statusvalue " + g.getStatusVariableValue());
-//
-//						}
-				}
-
 			} else {
 				Log.e("vortex","Could not find layer ["+target+"] for type "+nName);
 				o.addCriticalText("Could not find layer ["+target+"]. This means that type "+nName+" was not added");

@@ -717,16 +717,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
 
 									String statusColor = gop.getStatusColor();
-									if (statusColor != null) {
-
+									if (statusColor != null)
 										color = statusColor;
-									} else
-										Log.d("fenris", "gop " + gop.getLabel() + " null ");
-
 									if (filters != null && !filters.isEmpty()) {
-
 										//Log.d("vortex","has filter!");
-
 										for (GisFilter filter : filters) {
 											if (filter.isActive()) {
 												//Log.d("vortex","Filter active!");
