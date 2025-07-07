@@ -786,15 +786,15 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				source = readText("source",parser);
 			} else if (name.equals("is_visible")) {
 				isVisible = readText("is_visible",parser).equals("true");
-			}else if (name.equalsIgnoreCase("TopN")) {
+			} else if (name.equalsIgnoreCase("TopN")) {
 				N = readText("TopN",parser);
-			}else if (name.equalsIgnoreCase("TopE")) {
+			} else if (name.equalsIgnoreCase("TopE")) {
 				W = readText("TopE",parser);
-			}else if (name.equalsIgnoreCase("BottomE")) {
+			} else if (name.equalsIgnoreCase("BottomE")) {
 				E = readText("BottomE",parser);
-			}else if (name.equalsIgnoreCase("BottomN")) {
+			} else if (name.equalsIgnoreCase("BottomN")) {
 				S = readText("BottomN",parser);
-			}else if (name.equals("car_navigation_on")) {
+			} else if (name.equals("car_navigation_on")) {
 				hasSatNav = readText("car_navigation_on",parser).equals("true");
 			} else if (name.equals("team")) {
 				showTeam = readText("team",parser).equals("true");

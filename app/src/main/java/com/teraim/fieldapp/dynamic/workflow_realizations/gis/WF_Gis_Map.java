@@ -430,7 +430,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         ImageButton carNavB = mapView.findViewById(R.id.carNavB);
 
-        if (!myContext.hasSatNav())
+        if (!myContext.hasCarNavigation())
             carNavB.setVisibility(View.GONE);
         else {
 

@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
@@ -25,6 +27,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -41,6 +44,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table_Row_Recycle;
 import com.teraim.fieldapp.ui.TableBodyAdapter;
 import com.teraim.fieldapp.utils.Expressor;
+import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
@@ -52,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -59,8 +64,8 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-
-public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager {
+import com.google.android.flexbox.FlexboxLayout;
+public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager,OnFilterSelectedListener {
 
     private HorizontalScrollView stickyHeaderScrollView;
     private LinearLayout stickyHeaderLinearLayout;
@@ -79,10 +84,11 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private Map<String, Map<String, String>> allInstances;
 
     private ViewGroup my_root;
-    private LinearLayout filterPanel, filterRowTop, filterRow1, filterRow2;
-
+    private LinearLayout filterPanel, filterRow1, filterRow2;
+    private FlexboxLayout filterRowTop;
     private CardView infoPanelCard;
     private TextView infoPanelText;
+
     private ImageButton infoPanelCloseButton;
     private String currentlyDisplayedInfoLabel = null;
 
@@ -103,6 +109,10 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private List<ToggleButton> topFilterGroup = new ArrayList<>();
     private List<ToggleButton> alphabetFilterButtons = new ArrayList<>(); // To manage alpha buttons as a group
     private String activeTopFilter = "Växter";
+
+    private List<String> topButtonLabels;
+    private List<String> availableFilterLabels;
+    private PersistenceHelper globalPh;
 
     public static class ColumnDefinition {
         public String label, key, type, backgroundColor, textColor;
@@ -131,8 +141,32 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         filterRow2 = view.findViewById(R.id.filterRow2);
 
         gs = GlobalState.getInstance();
-        if (gs != null) al = gs.getVariableConfiguration();
-        else Log.e("PageWithTable", "GlobalState is null in onCreateView!");
+        ;
+        if (gs != null) {
+            al = gs.getVariableConfiguration();
+            globalPh = gs.getGlobalPreferences();
+        } else
+            Log.e("PageWithTable", "GlobalState is null in onCreateView!");
+        topButtonLabels = new ArrayList<>();
+        if (globalPh != null) {
+            String savedFiltersString = globalPh.get(PersistenceHelper.FILTER_BUTTON_LIST);
+            if (savedFiltersString != null && !savedFiltersString.isEmpty()) {
+                // Split the string back into a list
+                String[] filtersArray = savedFiltersString.split(",");
+                for (String filter : filtersArray) {
+                    topButtonLabels.add(filter.trim()); // Add and trim whitespace
+                }
+                Log.d("PageWithTable", "Loaded filters: " + savedFiltersString);
+            } else {
+                // If no saved filters, use default
+                topButtonLabels.add("Växter");
+                Log.d("PageWithTable", "No saved filters, using default: Växter");
+            }
+        } else {
+            // Fallback if globalPh is not yet initialized (e.g., in a constructor)
+            topButtonLabels.add("Växter");
+            Log.e("PageWithTable", "globalPh is null during initialization, using default filters.");
+        }
         myContext = getCurrentContext();
         if (myContext == null) Log.e("PageWithTable", "myContext is null in onCreateView!");
 
@@ -143,6 +177,18 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             Log.e("PageWithTable", "Cannot initialize headerRow.");
         }
         if (myContext != null) myContext.addContainers(getContainers());
+
+        availableFilterLabels = new ArrayList<>();
+        List<String> filterList = al.getTable().getColumn("P_Familj");
+        if (filterList != null) {
+            Set<String> uniqueEntries = filterList.stream()
+                .filter(entry -> !entry.isEmpty()) // Filter out empty strings
+                .collect(Collectors.toSet());      // Collect the results into a Set
+            System.out.println("Unique entries (using Streams): " + uniqueEntries);
+            for (String entry : uniqueEntries) {
+                availableFilterLabels.add(entry);
+            }
+        }
 
         setupFilterButtons();
 
@@ -163,7 +209,60 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         return view;
     }
 
+
+    // Add this new method to your Fragment/Activity (if not already present)
+
+    private void showFilterSelectionDialog() {
+        // We'll create this DialogFragment in the next step
+        FilterSelectionDialogFragment dialog = FilterSelectionDialogFragment.newInstance(
+                new ArrayList<>(topButtonLabels), // Pass a copy of current top filters
+                new ArrayList<>(availableFilterLabels) // Pass a copy of current available filters
+        );
+        dialog.setTargetFragment(this, 0); // If using Fragment for callback
+        dialog.show(getParentFragmentManager(), "FilterSelectionDialog");
+    }
+    @Override
+    public void onFiltersApplied(List<String> newTopFilters, List<String> newAvailableFilters) {
+        this.topButtonLabels.clear();
+        this.topButtonLabels.addAll(newTopFilters);
+
+        this.availableFilterLabels.clear();
+        this.availableFilterLabels.addAll(newAvailableFilters);
+
+        // --- Save the updated topButtonLabels to persistence ---
+        if (globalPh != null) {
+            // Join the list elements into a single string, separated by commas
+            String filtersString = String.join(",", this.topButtonLabels);
+            globalPh.put(PersistenceHelper.FILTER_BUTTON_LIST, filtersString);
+            Log.d("PageWithTable", "Saved filters: " + filtersString);
+        } else {
+            Log.e("PageWithTable", "globalPh is null, cannot save filters.");
+        }
+
+        // Re-setup the filter buttons to reflect changes
+        setupFilterButtons();
+        applyRowFilters();
+    }
+
+    private ToggleButton createFilterToggleButton(Context context, String text, boolean useWeight) {
+        ToggleButton tb = new ToggleButton(context);
+        tb.setTextOn(text); tb.setTextOff(text); tb.setText(text); tb.setChecked(false);
+        tb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        LinearLayout.LayoutParams params;
+        if (useWeight) {
+            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
+        } else {
+            params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        }
+       // int marginInDp = 2;
+        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
+        //params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
+        tb.setLayoutParams(params);
+        //tb.setPadding(8, 4, 8, 4);
+        return tb;
+    }
     private void setupFilterButtons() {
+
         if (filterRowTop == null || filterRow1 == null || filterRow2 == null || getContext() == null) {
             Log.e("PageWithTable", "A filter row or Context is null, cannot create filter buttons.");
             return;
@@ -171,9 +270,10 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
         activeAlphabeticalFilter = null; topFilterGroup.clear(); alphabetFilterButtons.clear();
 
-        // Top Row: Växter, Mossor, Lavar
-        String[] topButtonLabels = {"Växter", "Mossor", "Lavar"};
-        for (String label : topButtonLabels) {
+        // Top Row: Växter, Mossor, Lavar (now dynamically from topButtonLabels list)
+        ToggleButton firstTopToggleButton = null; // To store a reference to the first one for height
+
+        for (String label : topButtonLabels) { // Use the List<String> here
             ToggleButton tb = createFilterToggleButton(getContext(), label, false);
             tb.setOnClickListener(v -> {
                 for (ToggleButton otherButton : topFilterGroup) {
@@ -190,13 +290,48 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
                 applyRowFilters();
             });
-            filterRowTop.addView(tb);
+            // Use FlexboxLayout.LayoutParams for children of FlexboxLayout (filterRowTop)
+            FlexboxLayout.LayoutParams tbParams = new FlexboxLayout.LayoutParams(
+                    FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                    FlexboxLayout.LayoutParams.WRAP_CONTENT
+            );
+            int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+            tbParams.setMargins(margin, margin, margin, margin); // Add some margin between buttons
+            filterRowTop.addView(tb, tbParams);
             topFilterGroup.add(tb);
+
+            // Capture the first ToggleButton created to get its height later
+            if (firstTopToggleButton == null) {
+                firstTopToggleButton = tb;
+            }
         }
         if (!topFilterGroup.isEmpty()) {
-            topFilterGroup.get(0).setChecked(true);
-            activeTopFilter = topButtonLabels[0];
+            activeTopFilter = topButtonLabels.get(0); // Use .get(0) for List
+            topFilterGroup.get(0).setChecked(true); // Set checked state after activeTopFilter is set
         }
+
+        // --- Create and add the spacer first ---
+        View spacer = new View(getContext()); // Use getContext() or requireContext()
+        // Use FlexboxLayout.LayoutParams for the spacer within FlexboxLayout
+        FlexboxLayout.LayoutParams spacerParams = new FlexboxLayout.LayoutParams(
+                0,
+                0 // CHANGED FROM WRAP_CONTENT TO 0 (0dp)
+        );
+        spacerParams.setFlexGrow(1.0f); // This is the equivalent of layout_weight="1" in Flexbox
+        filterRowTop.addView(spacer, spacerParams);
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        // Inflate the FAB from its layout XML
+        final FloatingActionButton roundButton = (FloatingActionButton) inflater.inflate(R.layout.round_button_layout, null, false);
+
+        // --- Add the ClickListener for the round button ---
+        roundButton.setOnClickListener(v -> {
+            showFilterSelectionDialog(); // This method will open our dialog
+        });
+
+        // Add the round button (FAB) to the FlexboxLayout after the spacer
+        // This ensures it's always the rightmost element
+        filterRowTop.addView(roundButton);
+
 
         // Alphabetical Filters (4 groups)
         String[] alphaButtonLabels = {"A-F", "G-L", "M-R", "S-Ö"};
@@ -220,7 +355,14 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 }
                 applyRowFilters();
             });
-            filterRow1.addView(tb);
+            // Use LinearLayout.LayoutParams for children of LinearLayout (filterRow1)
+            LinearLayout.LayoutParams tbParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+            tbParams.setMargins(margin, margin, margin, margin);
+            filterRow1.addView(tb, tbParams);
             alphabetFilterButtons.add(tb);
         }
 
@@ -230,45 +372,71 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             filterHideRowsWithNoEntries = rrButton.isChecked();
             applyRowFilters();
         });
-        filterRow2.addView(rrButton);
-    }
-
-    private ToggleButton createFilterToggleButton(Context context, String text, boolean useWeight) {
-        ToggleButton tb = new ToggleButton(context);
-        tb.setTextOn(text); tb.setTextOff(text); tb.setText(text); tb.setChecked(false);
-        tb.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        LinearLayout.LayoutParams params;
-        if (useWeight) {
-            params = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
-        } else {
-            params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-        }
-       // int marginInDp = 2;
-        //int marginInPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, marginInDp, getResources().getDisplayMetrics());
-        //params.setMargins(marginInPx, marginInPx, marginInPx, marginInPx);
-        tb.setLayoutParams(params);
-        //tb.setPadding(8, 4, 8, 4);
-        return tb;
+        // Use LinearLayout.LayoutParams for children of LinearLayout (filterRow2)
+        LinearLayout.LayoutParams rrParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+        rrParams.setMargins(margin, margin, margin, margin);
+        filterRow2.addView(rrButton, rrParams);
     }
 
     public void onRowHeaderClicked(List<String> row) {
         if (al == null || infoPanelCard == null || infoPanelText == null) return;
+
         String rowLabel = al.getEntryLabel(row);
         String extraInfo = al.getDescription(row);
         String url = al.getUrl(row);
-        if (infoPanelCard.getVisibility() == View.VISIBLE && rowLabel.equals(currentlyDisplayedInfoLabel)) {
+
+        // If the info panel is already visible for the same row, hide it.
+        if (infoPanelCard.getVisibility() == View.VISIBLE && rowLabel != null && rowLabel.equals(currentlyDisplayedInfoLabel)) {
             hideInfoPanel();
             return;
         }
+
+        // If no extra info and no URL, hide panel and show toast.
         if ((extraInfo == null || extraInfo.isEmpty()) && (url == null || url.isEmpty())) {
             hideInfoPanel();
             Toast.makeText(getContext(), "No extra information available.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // --- Prepare the bold row header prefix as a Spanned object ---
+        Spanned boldRowLabelSpanned = null;
+        if (rowLabel != null && !rowLabel.isEmpty()) {
+            // Use Html.fromHtml to parse the bold tag directly
+            boldRowLabelSpanned = Html.fromHtml("<b>" + rowLabel + "</b>. ", Html.FROM_HTML_MODE_LEGACY);
+        }
+
+        // Get the main info text
         String infoText = (extraInfo != null) ? extraInfo : "";
+
+        // Handle URL case
         if (url != null && !url.isEmpty()) {
             final String linkPlaceholder = " info";
-            SpannableString spannableString = new SpannableString(infoText + linkPlaceholder);
+
+            // Use SpannableStringBuilder to build the final text
+            SpannableStringBuilder ssb = new SpannableStringBuilder();
+            int currentLength = 0; // Track the length of content added so far
+
+            // Append bold prefix if it exists
+            if (boldRowLabelSpanned != null) {
+                ssb.append(boldRowLabelSpanned);
+                currentLength += boldRowLabelSpanned.length();
+            }
+
+            // Append the main info text
+            ssb.append(infoText);
+            currentLength += infoText.length();
+
+            // The linkPlaceholder will be appended after infoText.
+            // Its start index is the current total length.
+            final int linkStartIndex = currentLength;
+            ssb.append(linkPlaceholder);
+            // Its end index is the total length of the SpannableStringBuilder after appending.
+            final int linkEndIndex = ssb.length();
+
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override
                 public void onClick(View textView) {
@@ -281,15 +449,24 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                     }
                 }
             };
-            int startIndex = infoText.length();
-            int endIndex = startIndex + linkPlaceholder.length();
-            spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            infoPanelText.setText(spannableString);
-            infoPanelText.setMovementMethod(LinkMovementMethod.getInstance());
+
+            // Apply the span using the calculated indices
+            // No need for the explicit bounds check here, as ssb.setSpan handles it with the correct indices.
+            ssb.setSpan(clickableSpan, linkStartIndex, linkEndIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            infoPanelText.setText(ssb);
+            infoPanelText.setMovementMethod(LinkMovementMethod.getInstance()); // Essential for clickable spans
         } else {
-            infoPanelText.setText(infoText);
-            infoPanelText.setMovementMethod(null);
+            // No URL, just display bold prefix followed by infoText
+            SpannableStringBuilder ssb = new SpannableStringBuilder();
+            if (boldRowLabelSpanned != null) {
+                ssb.append(boldRowLabelSpanned);
+            }
+            ssb.append(infoText);
+            infoPanelText.setText(ssb);
+            infoPanelText.setMovementMethod(null); // Remove movement method if no link
         }
+
         infoPanelCard.setVisibility(View.VISIBLE);
         currentlyDisplayedInfoLabel = rowLabel;
     }
@@ -312,32 +489,28 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
                 boolean shouldDisplay = true;
 
-                if (al != null) {
-                    if ("Mossor".equals(activeTopFilter)) {
-                        String relevantColumnValue = al.getColumn("P_Mossor", rowWidget.getRowData());
-                        if (relevantColumnValue == null || !relevantColumnValue.contains("Mossor")) {
-                            shouldDisplay = false;
-                        }
-                    } else if ("Lavar".equals(activeTopFilter)) {
-                        String relevantColumnValue = al.getColumn("P_Lavar", rowWidget.getRowData());
-                        if (relevantColumnValue == null || !relevantColumnValue.contains("Lavar")) {
-                            shouldDisplay = false;
-                        }
-                    } else if ("Växter".equals(activeTopFilter)) {
-                        String mossorValue = al.getColumn("P_Mossor", rowWidget.getRowData());
-                        String lavarValue = al.getColumn("P_Lavar", rowWidget.getRowData());
-                        boolean isMossor = mossorValue != null && mossorValue.contains("Mossor");
-                        boolean isLavar = lavarValue != null && lavarValue.contains("Lavar");
-                        if (isMossor || isLavar) {
+                // 1) Use activeTopFilter dynamically
+                // 2) Look for value in "P_Familj" column
+                // 3) "Växter" means no top filter applied
+                if (al != null && activeTopFilter != null) { // Ensure al is not null and a top filter is selected
+                    if ("Växter".equals(activeTopFilter)) {
+                        // If "Växter" is the active filter, this means all rows should be shown
+                        // as far as the 'top' filter is concerned. So, shouldDisplay remains true.
+                    } else {
+                        String relevantColumnValue = al.getColumn("P_Familj", rowWidget.getRowData());
+                        // If the P_Familj value is null OR it does NOT contain the activeTopFilter string,
+                        // then this row should NOT be displayed by this filter.
+                        if (relevantColumnValue == null || !relevantColumnValue.contains(activeTopFilter)) {
                             shouldDisplay = false;
                         }
                     }
                 }
 
                 if (!shouldDisplay) {
-                    continue;
+                    continue; // Skip to the next item if the top filter already excluded it
                 }
 
+                // Alphabetical Filter (remains unchanged)
                 String rowLabel = rowWidget.getLabel();
                 if (activeAlphabeticalFilter != null) {
                     if (rowLabel == null || rowLabel.isEmpty()) {
@@ -346,25 +519,33 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                         char firstChar = Character.toUpperCase(rowLabel.charAt(0));
                         boolean matchesAlpha = false;
                         if (activeAlphabeticalFilter.length() >= 3 && activeAlphabeticalFilter.charAt(1) == '-') { // e.g., "A-F"
-                            char startRange = activeAlphabeticalFilter.charAt(0); char endRange = activeAlphabeticalFilter.charAt(2);
-                            if (firstChar >= startRange && firstChar <= endRange) { matchesAlpha = true; }
+                            char startRange = activeAlphabeticalFilter.charAt(0);
+                            char endRange = activeAlphabeticalFilter.charAt(2);
+                            if (firstChar >= startRange && firstChar <= endRange) {
+                                matchesAlpha = true;
+                            }
                         } else if (activeAlphabeticalFilter.equals("S-Ö")) {
-                            if (firstChar >= 'S' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') { matchesAlpha = true; }
+                            // For S-Ö, check 'S' or Swedish special characters
+                            if (firstChar >= 'S' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') {
+                                matchesAlpha = true;
+                            }
                         }
                         if (!matchesAlpha) shouldDisplay = false;
                     }
                 }
 
                 if (!shouldDisplay) {
-                    continue;
+                    continue; // Skip to the next item if the alphabetical filter already excluded it
                 }
 
+                // Hide Rows With No Entries Filter (remains unchanged)
                 if (filterHideRowsWithNoEntries) {
                     if (!rowWidget.hasAnyCheckedNonAggregateSimpleCell(columnDefinitions)) {
                         shouldDisplay = false;
                     }
                 }
 
+                // If all filters pass, add the row to the displayed list
                 if (shouldDisplay) {
                     displayedTableRowsDataList.add(rowWidget);
                 }
@@ -379,6 +560,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         refreshColumnVisibilitiesInUI();
     }
 
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -386,7 +568,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (al == null && gs != null) al = gs.getVariableConfiguration();
         if (gs == null) Log.e("PageWithTable", "GlobalState is null in onViewCreated!");
         if (al == null) Log.e("PageWithTable", "VariableConfiguration (al) is null in onViewCreated!");
-
         if (wf != null) { Log.d("PageWithTable","Executing workflow!!"); run(); }
         else {
             Log.d("PageWithTable","No workflow found in onViewCreated. Loading dummy data.");
