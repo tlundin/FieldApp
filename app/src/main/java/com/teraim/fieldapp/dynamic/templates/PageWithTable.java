@@ -2,14 +2,14 @@ package com.teraim.fieldapp.dynamic.templates;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -25,6 +25,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
@@ -41,6 +42,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table_Row_Recycle;
 import com.teraim.fieldapp.ui.TableBodyAdapter;
 import com.teraim.fieldapp.utils.Expressor;
+import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
@@ -52,15 +54,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
-
-public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager {
+import com.google.android.flexbox.FlexboxLayout;
+public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager,OnFilterSelectedListener {
 
     private HorizontalScrollView stickyHeaderScrollView;
     private LinearLayout stickyHeaderLinearLayout;
@@ -79,10 +81,11 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private Map<String, Map<String, String>> allInstances;
 
     private ViewGroup my_root;
-    private LinearLayout filterPanel, filterRowTop, filterRow1, filterRow2;
-
+    private LinearLayout filterRow1, filterRow2;
+    private FlexboxLayout filterRowTop;
     private CardView infoPanelCard;
     private TextView infoPanelText;
+
     private ImageButton infoPanelCloseButton;
     private String currentlyDisplayedInfoLabel = null;
 
@@ -102,7 +105,14 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private boolean filterHideRowsWithNoEntries = false;
     private List<ToggleButton> topFilterGroup = new ArrayList<>();
     private List<ToggleButton> alphabetFilterButtons = new ArrayList<>(); // To manage alpha buttons as a group
-    private String activeTopFilter = "Växter";
+    private String activeTopFilter;
+
+    private List<String> topButtonLabels;
+    private List<String> availableFilterLabels;
+    private List<String> availableColumnFilterLabels;
+
+    List<String> masterFamilyFilters = new ArrayList<>();
+    private PersistenceHelper globalPh;
 
     public static class ColumnDefinition {
         public String label, key, type, backgroundColor, textColor;
@@ -125,14 +135,50 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         View view = inflater.inflate(R.layout.template_page_with_table, container, false);
 
         my_root = view.findViewById(R.id.myRoot);
-        filterPanel = view.findViewById(R.id.filterPanel);
         filterRowTop = view.findViewById(R.id.filterRowTop);
         filterRow1 = view.findViewById(R.id.filterRow1);
         filterRow2 = view.findViewById(R.id.filterRow2);
 
         gs = GlobalState.getInstance();
-        if (gs != null) al = gs.getVariableConfiguration();
-        else Log.e("PageWithTable", "GlobalState is null in onCreateView!");
+        if (gs != null) {
+            al = gs.getVariableConfiguration();
+            globalPh = gs.getGlobalPreferences();
+        } else {
+            Log.e("PageWithTable", "GlobalState is null in onCreateView!");
+        }
+
+        topButtonLabels = new ArrayList<>();
+        // Initialize topFilterGroup here if it's not done in constructor
+        if (topFilterGroup == null) {
+            topFilterGroup = new ArrayList<>();
+        }
+        // Initialize alphabetFilterButtons here if it's not done in constructor
+        if (alphabetFilterButtons == null) {
+            alphabetFilterButtons = new ArrayList<>();
+        }
+
+
+        if (globalPh != null) {
+            String savedFiltersString = globalPh.get(PersistenceHelper.FILTER_BUTTON_LIST);
+            if (savedFiltersString != null && !savedFiltersString.isEmpty()) {
+                // Split the string back into a list
+                String[] filtersArray = savedFiltersString.split(",");
+                for (String filter : filtersArray) {
+                    topButtonLabels.add(filter.trim());
+                }
+                Log.d("PageWithTable", "Loaded filters: " + savedFiltersString);
+            } else {
+                // If no saved filters, explicitly add "Växter", "Lavar", and "Mossor"
+                topButtonLabels.add("P_Växter");
+                topButtonLabels.add("P_Lavar");
+                topButtonLabels.add("P_Mossor");
+                Log.d("PageWithTable", "No saved filters, using default dynamic filters: Växter, Lavar, Mossor");
+            }
+        } else {
+            topButtonLabels.add("P_Växter");
+            Log.e("PageWithTable", "globalPh is null during initialization, using default dynamic filters.");
+        }
+
         myContext = getCurrentContext();
         if (myContext == null) Log.e("PageWithTable", "myContext is null in onCreateView!");
 
@@ -144,7 +190,42 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
         if (myContext != null) myContext.addContainers(getContainers());
 
-        setupFilterButtons();
+        availableFilterLabels = new ArrayList<>();
+        // Assuming al.getTable() and al.getTable().getColumn("P_Familj") exist
+        if (al != null && al.getTable() != null) {
+            List<String> filterList = al.getTable().getColumn("P_Familj");
+            if (filterList != null) {
+                Set<String> uniqueEntries = filterList.stream()
+                        .filter(entry -> !entry.isEmpty())
+                        .collect(Collectors.toSet());
+                System.out.println("Unique entries (using Streams): " + uniqueEntries);
+                for (String entry : uniqueEntries) {
+                    // Ensure "Växter", "Mossor", "Lavar" are not added to availableFilterLabels
+                    // if they are considered "fixed" or "special" family filters.
+                    // For now, assuming P_Familj might return these and they should be managed.
+                    availableFilterLabels.add(entry);
+                    masterFamilyFilters.add(entry);
+                }
+            }
+        }
+
+
+        availableColumnFilterLabels = new ArrayList<>();
+        availableColumnFilterLabels.add("Växter");
+        if (al != null) {
+            List<String> allColumnHeaders = al.getTable().getColumnHeaders();
+            if (allColumnHeaders != null) {
+                for (String header : allColumnHeaders) {
+                    if (header != null && header.startsWith("P_") && !header.equals("P_Familj")) {
+                        availableColumnFilterLabels.add(header);
+                    }
+                }
+            }
+        }
+        Log.d("PageWithTable", "Collected Column Filters (onCreateView): " + availableColumnFilterLabels.toString());
+
+
+        setupFilterButtons(); // This will now use the class-level availableColumnFilterLabels
 
         stickyHeaderScrollView = view.findViewById(R.id.sticky_header_scroll_view);
         stickyHeaderLinearLayout = view.findViewById(R.id.sticky_header_linear_layout);
@@ -163,74 +244,76 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         return view;
     }
 
-    private void setupFilterButtons() {
-        if (filterRowTop == null || filterRow1 == null || filterRow2 == null || getContext() == null) {
-            Log.e("PageWithTable", "A filter row or Context is null, cannot create filter buttons.");
-            return;
-        }
-        filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
-        activeAlphabeticalFilter = null; topFilterGroup.clear(); alphabetFilterButtons.clear();
+    // --- The setupFilterButtons method will be updated next ---
 
-        // Top Row: Växter, Mossor, Lavar
-        String[] topButtonLabels = {"Växter", "Mossor", "Lavar"};
-        for (String label : topButtonLabels) {
-            ToggleButton tb = createFilterToggleButton(getContext(), label, false);
-            tb.setOnClickListener(v -> {
-                for (ToggleButton otherButton : topFilterGroup) {
-                    otherButton.setChecked(otherButton == tb);
-                }
-                tb.setChecked(true);
-                activeTopFilter = label;
 
-                // When top filter changes, inactivate all alphabetical filters
-                for (ToggleButton alphaButton : alphabetFilterButtons) {
-                    alphaButton.setChecked(false);
-                }
-                activeAlphabeticalFilter = null; // Clear the active alphabetical filter state
+    // Add this new method to your Fragment/Activity (if not already present)
 
-                applyRowFilters();
-            });
-            filterRowTop.addView(tb);
-            topFilterGroup.add(tb);
-        }
-        if (!topFilterGroup.isEmpty()) {
-            topFilterGroup.get(0).setChecked(true);
-            activeTopFilter = topButtonLabels[0];
-        }
+    private void showFilterSelectionDialog() {
+        // The collection of availableColumnFilterLabels is now done in onCreateView,
+        // so we just use the class-level field here.
+        // Log the collected column filters for now
+        Log.d("PageWithTable", "Collected Column Filters: " + availableColumnFilterLabels.toString());
 
-        // Alphabetical Filters (4 groups)
-        String[] alphaButtonLabels = {"A-F", "G-L", "M-R", "S-Ö"};
-        for (int i = 0; i < alphaButtonLabels.length; i++) {
-            final String label = alphaButtonLabels[i];
-            ToggleButton tb = createFilterToggleButton(getContext(), label, true);
-            tb.setOnClickListener(v -> {
-                boolean isNowChecked = tb.isChecked();
-                // De-select all other alphabetical buttons
-                for (ToggleButton otherButton : alphabetFilterButtons) {
-                    if (otherButton != tb) {
-                        otherButton.setChecked(false);
-                    }
-                }
-                // If the user clicked an already checked button, it becomes unchecked.
-                // The state is already toggled by the system, so we just need to update our logic.
-                if (isNowChecked) {
-                    activeAlphabeticalFilter = label;
-                } else {
-                    activeAlphabeticalFilter = null; // All alpha filters are now off
-                }
-                applyRowFilters();
-            });
-            filterRow1.addView(tb);
-            alphabetFilterButtons.add(tb);
+        FilterSelectionDialogFragment dialog = FilterSelectionDialogFragment.newInstance(
+                new ArrayList<>(topButtonLabels), // Pass a copy of current top filters
+                new ArrayList<>(availableFilterLabels), // Pass a copy of current available filters
+                new ArrayList<>(availableColumnFilterLabels) // Pass a copy of the collected column filters
+        );
+        // If this class is a Fragment, use setTargetFragment
+        dialog.setTargetFragment(this, 0);
+        // If this class is an Activity, you might use an interface directly
+        // dialog.setSelectionListener(this); // Assuming your Activity implements OnFilterSelectedListener
+        dialog.show(getParentFragmentManager(), "FilterSelectionDialog");
+    }
+    @Override
+    public void onFiltersApplied(List<String> newTopFilters, List<String> newAvailableFiltersFromDialog) { // newAvailableFiltersFromDialog is currently empty
+        // 1. Update the topButtonLabels with the new selection from the dialog
+        this.topButtonLabels.clear();
+        this.topButtonLabels.addAll(newTopFilters);
+
+        // 2. Reconstruct availableFilterLabels based on the updated topButtonLabels
+        // This is crucial because the dialog no longer manages initialAvailableFamilyFilters directly.
+        this.availableFilterLabels.clear(); // Clear the old list
+
+        // Use a Set for efficient lookup of filters currently in the top row
+        Set<String> currentTopFiltersSet = new HashSet<>(this.topButtonLabels);
+
+        // Re-populate availableFilterLabels with family filters that are NOT in currentTopFilters
+        // You need a master list of all *possible* family filters here.
+        // Example: If "Mossor" and "Lavar" are the only other family filters besides "Växter"
+        // and "Växter" is now handled as a column filter in availableColumnFilterLabels.
+        // Let's assume you have a master list of all potential family filters, e.g.,
+        // private List<String> allMasterFamilyFilters = Arrays.asList("Mossor", "Lavar");
+        // (You would initialize this list in your PageWithTable's constructor or onCreateView)
+
+        // For this example, let's just add "Mossor" and "Lavar" if they are not in top filters.
+        // In a real app, you'd iterate over your true master list of family filters.
+
+
+
+        for (String familyFilter : masterFamilyFilters) {
+            if (!currentTopFiltersSet.contains(familyFilter)) {
+                this.availableFilterLabels.add(familyFilter);
+            }
         }
 
-        // RR button on the second row
-        ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
-        rrButton.setOnClickListener(v -> {
-            filterHideRowsWithNoEntries = rrButton.isChecked();
-            applyRowFilters();
-        });
-        filterRow2.addView(rrButton);
+        // Note: The availableColumnFilterLabels list (class field) remains unchanged as it's a master list.
+
+        // 3. Save the updated topButtonLabels to persistence
+        if (globalPh != null) {
+            String filtersString = String.join(",", this.topButtonLabels);
+            globalPh.put(PersistenceHelper.FILTER_BUTTON_LIST, filtersString);
+            Log.d("PageWithTable", "Saved filters: " + filtersString);
+        } else {
+            Log.e("PageWithTable", "globalPh is null, cannot save filters.");
+        }
+
+        // 4. Re-setup the filter buttons to reflect changes in the UI
+        setupFilterButtons();
+
+        // 5. Explicitly apply filters after UI is re-setup
+        applyRowFilters();
     }
 
     private ToggleButton createFilterToggleButton(Context context, String text, boolean useWeight) {
@@ -250,25 +333,244 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         //tb.setPadding(8, 4, 8, 4);
         return tb;
     }
+    private void setupFilterButtons() {
+        // Ensure these are cast correctly when initialized in your Fragment/Activity's onCreateView or onCreate
+        // Example:
+        // filterRowTop = view.findViewById(R.id.filterRowTop); // Cast as FlexboxLayout
+        // filterRow1 = view.findViewById(R.id.filterRow1);     // Cast as LinearLayout
+        // filterRow2 = view.findViewById(R.id.filterRow2);     // Cast as LinearLayout
+
+        if (filterRowTop == null || filterRow1 == null || filterRow2 == null || getContext() == null) {
+            Log.e("PageWithTable", "A filter row or Context is null, cannot create filter buttons.");
+            return;
+        }
+        filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
+        // activeAlphabeticalFilter = null; // This is now managed by its own listener
+        topFilterGroup.clear(); alphabetFilterButtons.clear();
+
+        // --- Add the permanent "ALL" filter button first ---
+        ToggleButton allButton = createFilterToggleButton(getContext(), "ALL", false);
+        allButton.setOnClickListener(v -> {
+            // De-select all other top filter buttons
+            for (ToggleButton otherButton : topFilterGroup) {
+                if (otherButton != allButton) { // Ensure "ALL" button doesn't uncheck itself
+                    otherButton.setChecked(false);
+                }
+            }
+            allButton.setChecked(true); // Ensure "ALL" is checked
+            activeTopFilter = "ALL"; // Set the active filter to "ALL"
+
+            // --- FIX: Removed lines that incorrectly reset alphabetical and RR filters ---
+            // activeAlphabeticalFilter = null;
+            // for (ToggleButton alphaButton : alphabetFilterButtons) { alphaButton.setChecked(false); }
+            // filterHideRowsWithNoEntries = false;
+
+            applyRowFilters(); // Apply the filter
+        });
+        // Add to filterRowTop directly, NOT to topFilterGroup (as it's not managed by dialog)
+        FlexboxLayout.LayoutParams allButtonParams = new FlexboxLayout.LayoutParams(
+                FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                FlexboxLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+        allButtonParams.setMargins(margin, margin, margin, margin);
+        filterRowTop.addView(allButton, allButtonParams);
+
+
+        // Top Row: Växter, Mossor, Lavar (now dynamically from topButtonLabels list)
+        // These are the *dynamic* top filters, managed by the dialog
+        ToggleButton firstDynamicTopToggleButton = null; // To store a reference for height calculation
+
+        for (String label : topButtonLabels) { // Use the List<String> here
+            // Skip "ALL" if it somehow made it into topButtonLabels (it shouldn't from dialog)
+            if ("ALL".equals(label)) continue;
+
+            ToggleButton tb = createFilterToggleButton(getContext(), label, false);
+            tb.setOnClickListener(v -> {
+                // De-select all other top filter buttons, including "ALL"
+                for (ToggleButton otherButton : topFilterGroup) {
+                    otherButton.setChecked(otherButton == tb);
+                }
+                allButton.setChecked(false); // De-select "ALL" when another filter is chosen
+                tb.setChecked(true);
+                activeTopFilter = label;
+
+                // When a dynamic top filter changes, it should NOT affect alphabetical filters.
+                // Removed: for (ToggleButton alphaButton : alphabetFilterButtons) { alphaButton.setChecked(false); }
+                // Removed: activeAlphabeticalFilter = null;
+
+                applyRowFilters();
+            });
+            FlexboxLayout.LayoutParams tbParams = new FlexboxLayout.LayoutParams(
+                    FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                    FlexboxLayout.LayoutParams.WRAP_CONTENT
+            );
+            tbParams.setMargins(margin, margin, margin, margin);
+            filterRowTop.addView(tb, tbParams);
+            topFilterGroup.add(tb); // Add to topFilterGroup for management by this class
+
+            if (firstDynamicTopToggleButton == null) {
+                firstDynamicTopToggleButton = tb;
+            }
+        }
+
+        // Set initial active filter and checked state
+        if (activeTopFilter == null) { // If no filter was previously active
+            allButton.setChecked(true);
+            activeTopFilter = "ALL";
+        } else {
+            // Check if the previously active filter is "ALL"
+            if ("ALL".equals(activeTopFilter)) {
+                allButton.setChecked(true);
+            } else {
+                // Check the corresponding dynamic button if it exists
+                boolean foundActive = false;
+                for (ToggleButton tb : topFilterGroup) {
+                    if (tb.getText().toString().equals(activeTopFilter)) {
+                        tb.setChecked(true);
+                        foundActive = true;
+                        break;
+                    }
+                }
+                // Fallback: If the previously active filter is no longer in topButtonLabels,
+                // default to "ALL" being selected.
+                if (!foundActive) {
+                    allButton.setChecked(true);
+                    activeTopFilter = "ALL";
+                }
+            }
+        }
+
+
+        // --- Create and add the spacer ---
+        View spacer = new View(getContext());
+        FlexboxLayout.LayoutParams spacerParams = new FlexboxLayout.LayoutParams(
+                0,
+                0
+        );
+        spacerParams.setFlexGrow(1.0f);
+        filterRowTop.addView(spacer, spacerParams);
+
+
+        // --- Create the round button (FAB) programmatically and add it ---
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        final FloatingActionButton roundButton = (FloatingActionButton) inflater.inflate(R.layout.round_button_layout, null, false);
+
+        roundButton.setOnClickListener(v -> {
+            showFilterSelectionDialog();
+        });
+
+        filterRowTop.addView(roundButton);
+
+
+        // Alphabetical Filters (4 groups)
+        String[] alphaButtonLabels = {"A-F", "G-L", "M-R", "S-Ö"};
+        for (int i = 0; i < alphaButtonLabels.length; i++) {
+            final String label = alphaButtonLabels[i];
+            ToggleButton tb = createFilterToggleButton(getContext(), label, true);
+            tb.setOnClickListener(v -> {
+                boolean isNowChecked = tb.isChecked();
+                // Ensure only one alphabetical filter is active at a time
+                for (ToggleButton otherButton : alphabetFilterButtons) {
+                    if (otherButton != tb) {
+                        otherButton.setChecked(false);
+                    }
+                }
+                if (isNowChecked) {
+                    activeAlphabeticalFilter = label;
+                } else {
+                    activeAlphabeticalFilter = null; // Deactivate if already checked and clicked again
+                }
+                // --- FIX: Do NOT affect top filters when alphabetical filter is clicked ---
+                // Removed: allButton.setChecked(false);
+                // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
+                // Removed: activeTopFilter = null;
+
+                applyRowFilters();
+            });
+            LinearLayout.LayoutParams tbParams = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            tbParams.setMargins(margin, margin, margin, margin);
+            filterRow1.addView(tb, tbParams);
+            alphabetFilterButtons.add(tb);
+        }
+
+        // RR button on the second row
+        ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
+        rrButton.setOnClickListener(v -> {
+            filterHideRowsWithNoEntries = rrButton.isChecked();
+            // --- FIX: Do NOT affect alphabetical or top filters when RR button is clicked ---
+            // Removed: allButton.setChecked(false);
+            // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
+            // Removed: activeTopFilter = null;
+            applyRowFilters();
+        });
+        LinearLayout.LayoutParams rrParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        rrParams.setMargins(margin, margin, margin, margin);
+        filterRow2.addView(rrButton, rrParams);
+    }
+
 
     public void onRowHeaderClicked(List<String> row) {
         if (al == null || infoPanelCard == null || infoPanelText == null) return;
+
         String rowLabel = al.getEntryLabel(row);
         String extraInfo = al.getDescription(row);
         String url = al.getUrl(row);
-        if (infoPanelCard.getVisibility() == View.VISIBLE && rowLabel.equals(currentlyDisplayedInfoLabel)) {
+
+        // If the info panel is already visible for the same row, hide it.
+        if (infoPanelCard.getVisibility() == View.VISIBLE && rowLabel != null && rowLabel.equals(currentlyDisplayedInfoLabel)) {
             hideInfoPanel();
             return;
         }
+
+        // If no extra info and no URL, hide panel and show toast.
         if ((extraInfo == null || extraInfo.isEmpty()) && (url == null || url.isEmpty())) {
             hideInfoPanel();
             Toast.makeText(getContext(), "No extra information available.", Toast.LENGTH_SHORT).show();
             return;
         }
+
+        // --- Prepare the bold row header prefix as a Spanned object ---
+        Spanned boldRowLabelSpanned = null;
+        if (rowLabel != null && !rowLabel.isEmpty()) {
+            // Use Html.fromHtml to parse the bold tag directly
+            boldRowLabelSpanned = Html.fromHtml("<b>" + rowLabel + "</b>. ", Html.FROM_HTML_MODE_LEGACY);
+        }
+
+        // Get the main info text
         String infoText = (extraInfo != null) ? extraInfo : "";
+
+        // Handle URL case
         if (url != null && !url.isEmpty()) {
             final String linkPlaceholder = " info";
-            SpannableString spannableString = new SpannableString(infoText + linkPlaceholder);
+
+            // Use SpannableStringBuilder to build the final text
+            SpannableStringBuilder ssb = new SpannableStringBuilder();
+            int currentLength = 0; // Track the length of content added so far
+
+            // Append bold prefix if it exists
+            if (boldRowLabelSpanned != null) {
+                ssb.append(boldRowLabelSpanned);
+                currentLength += boldRowLabelSpanned.length();
+            }
+
+            // Append the main info text
+            ssb.append(infoText);
+            currentLength += infoText.length();
+
+            // The linkPlaceholder will be appended after infoText.
+            // Its start index is the current total length.
+            final int linkStartIndex = currentLength;
+            ssb.append(linkPlaceholder);
+            // Its end index is the total length of the SpannableStringBuilder after appending.
+            final int linkEndIndex = ssb.length();
+
             ClickableSpan clickableSpan = new ClickableSpan() {
                 @Override
                 public void onClick(View textView) {
@@ -281,15 +583,24 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                     }
                 }
             };
-            int startIndex = infoText.length();
-            int endIndex = startIndex + linkPlaceholder.length();
-            spannableString.setSpan(clickableSpan, startIndex, endIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-            infoPanelText.setText(spannableString);
-            infoPanelText.setMovementMethod(LinkMovementMethod.getInstance());
+
+            // Apply the span using the calculated indices
+            // No need for the explicit bounds check here, as ssb.setSpan handles it with the correct indices.
+            ssb.setSpan(clickableSpan, linkStartIndex, linkEndIndex, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+            infoPanelText.setText(ssb);
+            infoPanelText.setMovementMethod(LinkMovementMethod.getInstance()); // Essential for clickable spans
         } else {
-            infoPanelText.setText(infoText);
-            infoPanelText.setMovementMethod(null);
+            // No URL, just display bold prefix followed by infoText
+            SpannableStringBuilder ssb = new SpannableStringBuilder();
+            if (boldRowLabelSpanned != null) {
+                ssb.append(boldRowLabelSpanned);
+            }
+            ssb.append(infoText);
+            infoPanelText.setText(ssb);
+            infoPanelText.setMovementMethod(null); // Remove movement method if no link
         }
+
         infoPanelCard.setVisibility(View.VISIBLE);
         currentlyDisplayedInfoLabel = rowLabel;
     }
@@ -305,39 +616,57 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         //Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
+        // Create a Set for efficient lookup of column filters
+        // This assumes availableColumnFilterLabels is a class-level field in PageWithTable
+        Set<String> columnFiltersSet = new HashSet<>(availableColumnFilterLabels);
+
         for (Listable item : masterTableRowsDataList) {
             if (item instanceof WF_Table_Row_Recycle) {
                 WF_Table_Row_Recycle rowWidget = (WF_Table_Row_Recycle) item;
                 if (rowWidget.getRowData() == null) continue;
 
-                boolean shouldDisplay = true;
+                boolean shouldDisplay = true; // Assume true by default for this row
 
-                if (al != null) {
-                    if ("Mossor".equals(activeTopFilter)) {
-                        String relevantColumnValue = al.getColumn("P_Mossor", rowWidget.getRowData());
-                        if (relevantColumnValue == null || !relevantColumnValue.contains("Mossor")) {
-                            shouldDisplay = false;
-                        }
-                    } else if ("Lavar".equals(activeTopFilter)) {
-                        String relevantColumnValue = al.getColumn("P_Lavar", rowWidget.getRowData());
-                        if (relevantColumnValue == null || !relevantColumnValue.contains("Lavar")) {
-                            shouldDisplay = false;
-                        }
+                // Apply Top Row Filters (ALL, Växter, Family filters, or Column filters)
+                if (al != null && activeTopFilter != null) {
+                    if ("ALL".equals(activeTopFilter)) {
+                        // If "ALL" is active, this means no top filter should be applied.
+                        // 'shouldDisplay' remains true from the top filter's perspective.
+                        // We simply proceed to the next filter checks (alphabetical, hide empty).
                     } else if ("Växter".equals(activeTopFilter)) {
+                        // If "Växter" is active, display rows if there's no data in P_Mossor OR P_Lavar
                         String mossorValue = al.getColumn("P_Mossor", rowWidget.getRowData());
                         String lavarValue = al.getColumn("P_Lavar", rowWidget.getRowData());
-                        boolean isMossor = mossorValue != null && mossorValue.contains("Mossor");
-                        boolean isLavar = lavarValue != null && lavarValue.contains("Lavar");
-                        if (isMossor || isLavar) {
+
+                        boolean hasMossorData = (mossorValue != null && !mossorValue.isEmpty());
+                        boolean hasLavarData = (lavarValue != null && !lavarValue.isEmpty());
+
+                        // If it has data in Mossor OR Lavar, then it should NOT be displayed for "Växter" filter
+                        if (hasMossorData || hasLavarData) {
+                            shouldDisplay = false;
+                        }
+                    } else if (columnFiltersSet.contains(activeTopFilter)) {
+                        // This is a COLUMN FILTER (e.g., "P_Fork")
+                        // Check if the row has ANY non-null/non-empty entry in the column matching activeTopFilter
+                        String columnValue = al.getColumn(activeTopFilter, rowWidget.getRowData());
+                        if (columnValue == null || columnValue.isEmpty()) {
+                            shouldDisplay = false; // Exclude if the column for this filter is empty
+                        }
+                    } else {
+                        // This is a FAMILY FILTER (e.g., "Mossor", "Lavar", or any other custom family filter)
+                        // Filter based on the "P_Familj" column containing the activeTopFilter value
+                        String relevantColumnValue = al.getColumn("P_Familj", rowWidget.getRowData());
+                        if (relevantColumnValue == null || !relevantColumnValue.contains(activeTopFilter)) {
                             shouldDisplay = false;
                         }
                     }
                 }
 
                 if (!shouldDisplay) {
-                    continue;
+                    continue; // Skip to the next item if the top filter already excluded it
                 }
 
+                // Alphabetical Filter (remains unchanged)
                 String rowLabel = rowWidget.getLabel();
                 if (activeAlphabeticalFilter != null) {
                     if (rowLabel == null || rowLabel.isEmpty()) {
@@ -346,25 +675,33 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                         char firstChar = Character.toUpperCase(rowLabel.charAt(0));
                         boolean matchesAlpha = false;
                         if (activeAlphabeticalFilter.length() >= 3 && activeAlphabeticalFilter.charAt(1) == '-') { // e.g., "A-F"
-                            char startRange = activeAlphabeticalFilter.charAt(0); char endRange = activeAlphabeticalFilter.charAt(2);
-                            if (firstChar >= startRange && firstChar <= endRange) { matchesAlpha = true; }
+                            char startRange = activeAlphabeticalFilter.charAt(0);
+                            char endRange = activeAlphabeticalFilter.charAt(2);
+                            if (firstChar >= startRange && firstChar <= endRange) {
+                                matchesAlpha = true;
+                            }
                         } else if (activeAlphabeticalFilter.equals("S-Ö")) {
-                            if (firstChar >= 'S' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') { matchesAlpha = true; }
+                            // For S-Ö, check 'S' or Swedish special characters
+                            if (firstChar >= 'S' || firstChar == 'Å' || firstChar == 'Ä' || firstChar == 'Ö') {
+                                matchesAlpha = true;
+                            }
                         }
                         if (!matchesAlpha) shouldDisplay = false;
                     }
                 }
 
                 if (!shouldDisplay) {
-                    continue;
+                    continue; // Skip to the next item if the alphabetical filter already excluded it
                 }
 
+                // Hide Rows With No Entries Filter (remains unchanged)
                 if (filterHideRowsWithNoEntries) {
                     if (!rowWidget.hasAnyCheckedNonAggregateSimpleCell(columnDefinitions)) {
                         shouldDisplay = false;
                     }
                 }
 
+                // If all filters pass, add the row to the displayed list
                 if (shouldDisplay) {
                     displayedTableRowsDataList.add(rowWidget);
                 }
@@ -379,6 +716,8 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         refreshColumnVisibilitiesInUI();
     }
 
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -386,7 +725,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (al == null && gs != null) al = gs.getVariableConfiguration();
         if (gs == null) Log.e("PageWithTable", "GlobalState is null in onViewCreated!");
         if (al == null) Log.e("PageWithTable", "VariableConfiguration (al) is null in onViewCreated!");
-
         if (wf != null) { Log.d("PageWithTable","Executing workflow!!"); run(); }
         else {
             Log.d("PageWithTable","No workflow found in onViewCreated. Loading dummy data.");

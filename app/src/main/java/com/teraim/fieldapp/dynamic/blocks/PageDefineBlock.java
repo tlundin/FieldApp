@@ -24,6 +24,8 @@ public  class PageDefineBlock extends Block {
 		return pageName;
 	}
 	public String getPageType() {
+		if (pageType != null && pageType.equals("TableDefaultTemplate"))
+			return "PageWithTable";
 		return pageType;
 	}
 	public String getPageLabel() {

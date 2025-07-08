@@ -64,16 +64,13 @@ public class CreateGisBlock extends Block {
 	private static final int MAX_NUMBER_OF_PICS = 100;
 	private final String name,source,containerId,N,E,S,W;
 	private boolean isVisible = false;
-	private final boolean hasSatNav;
+	private final boolean hasCarNavigation;
     private final boolean showTeam;
 	private final List<EvalExpr> sourceE;
-	public boolean hasCarNavigation() {
-		return hasSatNav;
-	}
 	public boolean isTeamVisible() { return showTeam;}
 
-	public CreateGisBlock(String id,String name,
-						  String containerId,boolean isVisible,String source,String N,String E, String S,String W, boolean hasSatNav,boolean showTeam) {
+	public CreateGisBlock(String id, String name,
+						  String containerId, boolean isVisible, String source, String N, String E, String S, String W, boolean hasCarNavigation, boolean showTeam) {
 		super();
 
 		this.name = name;
@@ -86,7 +83,7 @@ public class CreateGisBlock extends Block {
 		this.E=E;
 		this.S=S;
 		this.W=W;
-		this.hasSatNav=hasSatNav;
+		this.hasCarNavigation = hasCarNavigation;
 		this.showTeam=showTeam;
 
 	}
@@ -103,6 +100,7 @@ public class CreateGisBlock extends Block {
 		this.gs = GlobalState.getInstance();
 		this.o = gs.getLogger();
 		this.mapLayers = new ArrayList<>();
+		context.enableCarNavigation(hasCarNavigation);
 
 		// Since the files are already downloaded, we just create the MapGisLayer objects.
 		List<String> pictures = getPicNames();

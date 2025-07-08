@@ -36,7 +36,6 @@ import java.util.Set;
 
 public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventListener {
 
-
 	private final Map<String, String> myHash;
 	private final CheckBox myCheckBox;
 	private Variable myVariable = null;
@@ -178,6 +177,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 
 			//TableRow.LayoutParams params = new TableRow.LayoutParams(TableRow.LayoutParams.WRAP_CONTENT, TableRow.LayoutParams.WRAP_CONTENT);
 			myCheckBox.setGravity(Gravity.CENTER_VERTICAL|Gravity.CENTER_HORIZONTAL);
+
 			//myCheckBox.setLayoutParams(params);
 			getWidget().setOnLongClickListener(new View.OnLongClickListener() {
 

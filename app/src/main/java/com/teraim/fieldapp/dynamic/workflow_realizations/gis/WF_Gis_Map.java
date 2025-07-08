@@ -196,9 +196,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
         super(id, mapView, isVisible, myContext);
-
+        Log.d("maga","In WF_Gis_Map create with context "+myContext.toString());
         GlobalState gs = GlobalState.getInstance();
-
         this.myContext=myContext;
         this.myDaddy=createGisBlock;
         //This is a zoom level if layers are imported.
@@ -318,7 +317,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
 
             // Tell the ViewModel to execute it, always forcing a reload for a refresh.
-            viewModel.execute(refreshWorkflow, true);
+            viewModel.execute(refreshWorkflow, true,myContext);
         });
         // Set up an observer to react to the result of the ViewModel's execution
         setupRefreshObserver();
@@ -431,7 +430,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         ImageButton carNavB = mapView.findViewById(R.id.carNavB);
 
-        if (!myContext.hasSatNav())
+        if (!myContext.hasCarNavigation())
             carNavB.setVisibility(View.GONE);
         else {
 
@@ -644,16 +643,16 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private void setupRefreshObserver() {
         viewModel.onSuccessEvent.observe(myContext.getFragmentActivity(), event -> {
             if (event == null) return;
-
             // Use getContentIfNotHandled() to ensure the operation runs only once.
             ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
-
-            if (result != null) {
-                if (myContext.getCurrentGis() != null) {
+            if (result != null && result.myContext() != null) {
+                WF_Context prevContext = result.myContext();
+                if (prevContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
-                    myContext.refreshGisObjects();
-                    gisImageView.redraw();
-                    refreshB.setClickable(true);
+                    prevContext.refreshGisObjects();
+                    prevContext.getCurrentGis().refreshB.setClickable(true);
+                    prevContext.getCurrentGis().getGis().redraw();
+                    //refreshB.setClickable(true);
                     int n_provytor = 0;
                     if (GlobalState.getInstance().getProvYtaTypes() != null)
                         n_provytor =GlobalState.getInstance().getProvYtaTypes().size();

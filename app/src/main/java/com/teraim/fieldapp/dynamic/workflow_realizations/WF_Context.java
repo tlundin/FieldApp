@@ -14,7 +14,6 @@ import android.util.Log;
 import androidx.fragment.app.FragmentActivity;
 
 import com.teraim.fieldapp.GlobalState;
-import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.EventBroker;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.blocks.CoupledVariableGroupBlock;
@@ -55,7 +54,7 @@ public class WF_Context {
 	private boolean hasGPSTracker = false;
 	private DB_Context myHash;
 	private Workflow myWorkflow;
-	private boolean hasSatNav;
+	private boolean hasCarNavigation;
 	private int mapLayer=0;
 	private List<String> contextVariables = null;
 	private boolean myEndIsNear=false;
@@ -346,12 +345,13 @@ public class WF_Context {
 		}
 	}
 	
-	public boolean hasSatNav() {
-		return hasSatNav;
+	public boolean hasCarNavigation() {
+		return hasCarNavigation;
 	}
-	public void enableSatNav() {
-		hasSatNav=true;
+	public void enableCarNavigation(boolean enable) {
+		hasCarNavigation = enable;
 	}
+
 	public void reload() {
 		Log.d("hash","reloading mycontext to "+DB_Context.evaluate(getWorkflow().getContext()));
 		setHash(DB_Context.evaluate(getWorkflow().getContext()));
@@ -360,7 +360,7 @@ public class WF_Context {
 	}
 	
 	public void refreshGisObjects() {
-		myTemplate.refreshGisObjects();
+		myTemplate.refreshGisObjects(this);
 	}
 	
 	public void setContextVariables(List<String> contextVars) {

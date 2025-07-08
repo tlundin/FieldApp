@@ -655,7 +655,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             Boolean hasEvent = logViewModel.getHasNewCriticalEvent().getValue();
             if (hasEvent != null && hasEvent) {
                 logMenuItem.setIcon(R.drawable.warning);
-                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
             } else {
                 logMenuItem.setIcon(null); // Or your default icon
                 logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
@@ -942,16 +942,18 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
             case MENU_ITEM_LOG_WARNING:
                 mnu[MENU_ITEM_LOG_WARNING].setIcon(null);
-                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
                 showLogDialog();
                 break;
 
             case MENU_ITEM_SETTINGS:
                 //close drawer menu if open
-                if (gs.getDrawerMenu() != null)
-                    gs.getDrawerMenu().closeDrawer();
-                if (isSynkServiceRunning())
-                    stopSync();
+                if (gs != null) {
+                    if (gs.getDrawerMenu() != null)
+                        gs.getDrawerMenu().closeDrawer();
+                    if (isSynkServiceRunning())
+                        stopSync();
+                }
                 Intent intent = new Intent(getBaseContext(), ConfigMenu.class);
                 startActivity(intent);
                 return true;

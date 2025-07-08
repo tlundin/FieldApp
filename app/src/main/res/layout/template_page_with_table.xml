@@ -21,17 +21,20 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- New top row for Växter, Mossor, Lavar -->
-        <LinearLayout
+        <!-- New top row for Växter, Mossor, Lavar - Now a FlexboxLayout -->
+        <com.google.android.flexbox.FlexboxLayout
             android:id="@+id/filterRowTop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_horizontal">
-            <!-- ToggleButtons for Växter, Mossor, Lavar will be added here programmatically -->
-        </LinearLayout>
+            app:flexWrap="wrap"
+            app:alignItems="flex_start"
+            app:justifyContent="flex_start">
 
-        <!-- First row of alphabetical filter buttons -->
+            <!-- The round button will be added here programmatically -->
+
+        </com.google.android.flexbox.FlexboxLayout>
+
+        <!-- First row of alphabetical filter buttons - Reverted to LinearLayout -->
         <LinearLayout
             android:id="@+id/filterRow1"
             android:layout_width="match_parent"
@@ -42,7 +45,7 @@
             <!-- Alphabetical ToggleButtons will be added here programmatically -->
         </LinearLayout>
 
-        <!-- Second row of alphabetical/other filter buttons -->
+        <!-- Second row of alphabetical/other filter buttons - Reverted to LinearLayout -->
         <LinearLayout
             android:id="@+id/filterRow2"
             android:layout_width="match_parent"

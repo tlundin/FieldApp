@@ -1,5 +1,7 @@
 package com.teraim.fieldapp.log;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -8,6 +10,9 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.teraim.fieldapp.non_generics.Constants;
+import com.teraim.fieldapp.utils.PersistenceHelper;
 
 public class LogRepository {
 
@@ -54,13 +59,26 @@ public class LogRepository {
 
     // --- SYNCHRONIZED PUBLIC METHODS ---
 
+    public synchronized void init(Context context) {
+        SharedPreferences sharedPrefs = context.getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE);
+        String persistedLogLevel = sharedPrefs.getString(PersistenceHelper.LOG_LEVEL, "NORMAL"); // Default to NORMAL if not found
+        if ("CRITICAL".equalsIgnoreCase(persistedLogLevel)) {
+            setLogLevel(LogLevel.CRITICAL);
+            Log.d("LogRepository", "Initialized with persisted log level: CRITICAL");
+        } else {
+            setLogLevel(LogLevel.NORMAL);
+            Log.d("LogRepository", "Initialized with persisted log level: NORMAL");
+        }
+    }
     /**
      * Sets the current log sensitivity level.
      * When the level changes, it updates the LiveData to reflect the correct log content.
      * @param newLevel The new LogLevel to use.
      */
     public synchronized void setLogLevel(LogLevel newLevel) {
+        Log.d("blarpa", "Setting log level to " + newLevel.toString());
         if (this.currentLogLevel != newLevel) {
+            Log.d("blarpa", "updates to " + newLevel);
             this.currentLogLevel = newLevel;
             updateLiveData();
         }
