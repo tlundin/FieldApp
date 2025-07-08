@@ -147,6 +147,8 @@ public class Start extends MenuActivity implements StartProvider {
             }
         });
 
+        //set log level
+        LogRepository.getInstance().init(this);
         // Create a Sync account - REMOVED 2025
         // mAccount = CreateSyncAccount(this);
 

@@ -655,7 +655,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             Boolean hasEvent = logViewModel.getHasNewCriticalEvent().getValue();
             if (hasEvent != null && hasEvent) {
                 logMenuItem.setIcon(R.drawable.warning);
-                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
             } else {
                 logMenuItem.setIcon(null); // Or your default icon
                 logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);

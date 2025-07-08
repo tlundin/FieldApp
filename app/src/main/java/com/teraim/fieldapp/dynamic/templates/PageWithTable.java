@@ -2,7 +2,6 @@ package com.teraim.fieldapp.dynamic.templates;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Typeface;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
@@ -11,7 +10,6 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
@@ -60,7 +58,6 @@ import java.util.stream.Collectors;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
@@ -84,7 +81,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private Map<String, Map<String, String>> allInstances;
 
     private ViewGroup my_root;
-    private LinearLayout filterPanel, filterRow1, filterRow2;
+    private LinearLayout filterRow1, filterRow2;
     private FlexboxLayout filterRowTop;
     private CardView infoPanelCard;
     private TextView infoPanelText;
@@ -108,10 +105,13 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     private boolean filterHideRowsWithNoEntries = false;
     private List<ToggleButton> topFilterGroup = new ArrayList<>();
     private List<ToggleButton> alphabetFilterButtons = new ArrayList<>(); // To manage alpha buttons as a group
-    private String activeTopFilter = "Växter";
+    private String activeTopFilter;
 
     private List<String> topButtonLabels;
     private List<String> availableFilterLabels;
+    private List<String> availableColumnFilterLabels;
+
+    List<String> masterFamilyFilters = new ArrayList<>();
     private PersistenceHelper globalPh;
 
     public static class ColumnDefinition {
@@ -135,38 +135,50 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         View view = inflater.inflate(R.layout.template_page_with_table, container, false);
 
         my_root = view.findViewById(R.id.myRoot);
-        filterPanel = view.findViewById(R.id.filterPanel);
         filterRowTop = view.findViewById(R.id.filterRowTop);
         filterRow1 = view.findViewById(R.id.filterRow1);
         filterRow2 = view.findViewById(R.id.filterRow2);
 
         gs = GlobalState.getInstance();
-        ;
         if (gs != null) {
             al = gs.getVariableConfiguration();
             globalPh = gs.getGlobalPreferences();
-        } else
+        } else {
             Log.e("PageWithTable", "GlobalState is null in onCreateView!");
+        }
+
         topButtonLabels = new ArrayList<>();
+        // Initialize topFilterGroup here if it's not done in constructor
+        if (topFilterGroup == null) {
+            topFilterGroup = new ArrayList<>();
+        }
+        // Initialize alphabetFilterButtons here if it's not done in constructor
+        if (alphabetFilterButtons == null) {
+            alphabetFilterButtons = new ArrayList<>();
+        }
+
+
         if (globalPh != null) {
             String savedFiltersString = globalPh.get(PersistenceHelper.FILTER_BUTTON_LIST);
             if (savedFiltersString != null && !savedFiltersString.isEmpty()) {
                 // Split the string back into a list
                 String[] filtersArray = savedFiltersString.split(",");
                 for (String filter : filtersArray) {
-                    topButtonLabels.add(filter.trim()); // Add and trim whitespace
+                    topButtonLabels.add(filter.trim());
                 }
                 Log.d("PageWithTable", "Loaded filters: " + savedFiltersString);
             } else {
-                // If no saved filters, use default
-                topButtonLabels.add("Växter");
-                Log.d("PageWithTable", "No saved filters, using default: Växter");
+                // If no saved filters, explicitly add "Växter", "Lavar", and "Mossor"
+                topButtonLabels.add("P_Växter");
+                topButtonLabels.add("P_Lavar");
+                topButtonLabels.add("P_Mossor");
+                Log.d("PageWithTable", "No saved filters, using default dynamic filters: Växter, Lavar, Mossor");
             }
         } else {
-            // Fallback if globalPh is not yet initialized (e.g., in a constructor)
-            topButtonLabels.add("Växter");
-            Log.e("PageWithTable", "globalPh is null during initialization, using default filters.");
+            topButtonLabels.add("P_Växter");
+            Log.e("PageWithTable", "globalPh is null during initialization, using default dynamic filters.");
         }
+
         myContext = getCurrentContext();
         if (myContext == null) Log.e("PageWithTable", "myContext is null in onCreateView!");
 
@@ -179,18 +191,41 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (myContext != null) myContext.addContainers(getContainers());
 
         availableFilterLabels = new ArrayList<>();
-        List<String> filterList = al.getTable().getColumn("P_Familj");
-        if (filterList != null) {
-            Set<String> uniqueEntries = filterList.stream()
-                .filter(entry -> !entry.isEmpty()) // Filter out empty strings
-                .collect(Collectors.toSet());      // Collect the results into a Set
-            System.out.println("Unique entries (using Streams): " + uniqueEntries);
-            for (String entry : uniqueEntries) {
-                availableFilterLabels.add(entry);
+        // Assuming al.getTable() and al.getTable().getColumn("P_Familj") exist
+        if (al != null && al.getTable() != null) {
+            List<String> filterList = al.getTable().getColumn("P_Familj");
+            if (filterList != null) {
+                Set<String> uniqueEntries = filterList.stream()
+                        .filter(entry -> !entry.isEmpty())
+                        .collect(Collectors.toSet());
+                System.out.println("Unique entries (using Streams): " + uniqueEntries);
+                for (String entry : uniqueEntries) {
+                    // Ensure "Växter", "Mossor", "Lavar" are not added to availableFilterLabels
+                    // if they are considered "fixed" or "special" family filters.
+                    // For now, assuming P_Familj might return these and they should be managed.
+                    availableFilterLabels.add(entry);
+                    masterFamilyFilters.add(entry);
+                }
             }
         }
 
-        setupFilterButtons();
+
+        availableColumnFilterLabels = new ArrayList<>();
+        availableColumnFilterLabels.add("Växter");
+        if (al != null) {
+            List<String> allColumnHeaders = al.getTable().getColumnHeaders();
+            if (allColumnHeaders != null) {
+                for (String header : allColumnHeaders) {
+                    if (header != null && header.startsWith("P_") && !header.equals("P_Familj")) {
+                        availableColumnFilterLabels.add(header);
+                    }
+                }
+            }
+        }
+        Log.d("PageWithTable", "Collected Column Filters (onCreateView): " + availableColumnFilterLabels.toString());
+
+
+        setupFilterButtons(); // This will now use the class-level availableColumnFilterLabels
 
         stickyHeaderScrollView = view.findViewById(R.id.sticky_header_scroll_view);
         stickyHeaderLinearLayout = view.findViewById(R.id.sticky_header_linear_layout);
@@ -209,29 +244,64 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         return view;
     }
 
+    // --- The setupFilterButtons method will be updated next ---
+
 
     // Add this new method to your Fragment/Activity (if not already present)
 
     private void showFilterSelectionDialog() {
-        // We'll create this DialogFragment in the next step
+        // The collection of availableColumnFilterLabels is now done in onCreateView,
+        // so we just use the class-level field here.
+        // Log the collected column filters for now
+        Log.d("PageWithTable", "Collected Column Filters: " + availableColumnFilterLabels.toString());
+
         FilterSelectionDialogFragment dialog = FilterSelectionDialogFragment.newInstance(
                 new ArrayList<>(topButtonLabels), // Pass a copy of current top filters
-                new ArrayList<>(availableFilterLabels) // Pass a copy of current available filters
+                new ArrayList<>(availableFilterLabels), // Pass a copy of current available filters
+                new ArrayList<>(availableColumnFilterLabels) // Pass a copy of the collected column filters
         );
-        dialog.setTargetFragment(this, 0); // If using Fragment for callback
+        // If this class is a Fragment, use setTargetFragment
+        dialog.setTargetFragment(this, 0);
+        // If this class is an Activity, you might use an interface directly
+        // dialog.setSelectionListener(this); // Assuming your Activity implements OnFilterSelectedListener
         dialog.show(getParentFragmentManager(), "FilterSelectionDialog");
     }
     @Override
-    public void onFiltersApplied(List<String> newTopFilters, List<String> newAvailableFilters) {
+    public void onFiltersApplied(List<String> newTopFilters, List<String> newAvailableFiltersFromDialog) { // newAvailableFiltersFromDialog is currently empty
+        // 1. Update the topButtonLabels with the new selection from the dialog
         this.topButtonLabels.clear();
         this.topButtonLabels.addAll(newTopFilters);
 
-        this.availableFilterLabels.clear();
-        this.availableFilterLabels.addAll(newAvailableFilters);
+        // 2. Reconstruct availableFilterLabels based on the updated topButtonLabels
+        // This is crucial because the dialog no longer manages initialAvailableFamilyFilters directly.
+        this.availableFilterLabels.clear(); // Clear the old list
 
-        // --- Save the updated topButtonLabels to persistence ---
+        // Use a Set for efficient lookup of filters currently in the top row
+        Set<String> currentTopFiltersSet = new HashSet<>(this.topButtonLabels);
+
+        // Re-populate availableFilterLabels with family filters that are NOT in currentTopFilters
+        // You need a master list of all *possible* family filters here.
+        // Example: If "Mossor" and "Lavar" are the only other family filters besides "Växter"
+        // and "Växter" is now handled as a column filter in availableColumnFilterLabels.
+        // Let's assume you have a master list of all potential family filters, e.g.,
+        // private List<String> allMasterFamilyFilters = Arrays.asList("Mossor", "Lavar");
+        // (You would initialize this list in your PageWithTable's constructor or onCreateView)
+
+        // For this example, let's just add "Mossor" and "Lavar" if they are not in top filters.
+        // In a real app, you'd iterate over your true master list of family filters.
+
+
+
+        for (String familyFilter : masterFamilyFilters) {
+            if (!currentTopFiltersSet.contains(familyFilter)) {
+                this.availableFilterLabels.add(familyFilter);
+            }
+        }
+
+        // Note: The availableColumnFilterLabels list (class field) remains unchanged as it's a master list.
+
+        // 3. Save the updated topButtonLabels to persistence
         if (globalPh != null) {
-            // Join the list elements into a single string, separated by commas
             String filtersString = String.join(",", this.topButtonLabels);
             globalPh.put(PersistenceHelper.FILTER_BUTTON_LIST, filtersString);
             Log.d("PageWithTable", "Saved filters: " + filtersString);
@@ -239,8 +309,10 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             Log.e("PageWithTable", "globalPh is null, cannot save filters.");
         }
 
-        // Re-setup the filter buttons to reflect changes
+        // 4. Re-setup the filter buttons to reflect changes in the UI
         setupFilterButtons();
+
+        // 5. Explicitly apply filters after UI is re-setup
         applyRowFilters();
     }
 
@@ -262,74 +334,132 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         return tb;
     }
     private void setupFilterButtons() {
+        // Ensure these are cast correctly when initialized in your Fragment/Activity's onCreateView or onCreate
+        // Example:
+        // filterRowTop = view.findViewById(R.id.filterRowTop); // Cast as FlexboxLayout
+        // filterRow1 = view.findViewById(R.id.filterRow1);     // Cast as LinearLayout
+        // filterRow2 = view.findViewById(R.id.filterRow2);     // Cast as LinearLayout
 
         if (filterRowTop == null || filterRow1 == null || filterRow2 == null || getContext() == null) {
             Log.e("PageWithTable", "A filter row or Context is null, cannot create filter buttons.");
             return;
         }
         filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
-        activeAlphabeticalFilter = null; topFilterGroup.clear(); alphabetFilterButtons.clear();
+        // activeAlphabeticalFilter = null; // This is now managed by its own listener
+        topFilterGroup.clear(); alphabetFilterButtons.clear();
+
+        // --- Add the permanent "ALL" filter button first ---
+        ToggleButton allButton = createFilterToggleButton(getContext(), "ALL", false);
+        allButton.setOnClickListener(v -> {
+            // De-select all other top filter buttons
+            for (ToggleButton otherButton : topFilterGroup) {
+                if (otherButton != allButton) { // Ensure "ALL" button doesn't uncheck itself
+                    otherButton.setChecked(false);
+                }
+            }
+            allButton.setChecked(true); // Ensure "ALL" is checked
+            activeTopFilter = "ALL"; // Set the active filter to "ALL"
+
+            // --- FIX: Removed lines that incorrectly reset alphabetical and RR filters ---
+            // activeAlphabeticalFilter = null;
+            // for (ToggleButton alphaButton : alphabetFilterButtons) { alphaButton.setChecked(false); }
+            // filterHideRowsWithNoEntries = false;
+
+            applyRowFilters(); // Apply the filter
+        });
+        // Add to filterRowTop directly, NOT to topFilterGroup (as it's not managed by dialog)
+        FlexboxLayout.LayoutParams allButtonParams = new FlexboxLayout.LayoutParams(
+                FlexboxLayout.LayoutParams.WRAP_CONTENT,
+                FlexboxLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+        allButtonParams.setMargins(margin, margin, margin, margin);
+        filterRowTop.addView(allButton, allButtonParams);
+
 
         // Top Row: Växter, Mossor, Lavar (now dynamically from topButtonLabels list)
-        ToggleButton firstTopToggleButton = null; // To store a reference to the first one for height
+        // These are the *dynamic* top filters, managed by the dialog
+        ToggleButton firstDynamicTopToggleButton = null; // To store a reference for height calculation
 
         for (String label : topButtonLabels) { // Use the List<String> here
+            // Skip "ALL" if it somehow made it into topButtonLabels (it shouldn't from dialog)
+            if ("ALL".equals(label)) continue;
+
             ToggleButton tb = createFilterToggleButton(getContext(), label, false);
             tb.setOnClickListener(v -> {
+                // De-select all other top filter buttons, including "ALL"
                 for (ToggleButton otherButton : topFilterGroup) {
                     otherButton.setChecked(otherButton == tb);
                 }
+                allButton.setChecked(false); // De-select "ALL" when another filter is chosen
                 tb.setChecked(true);
                 activeTopFilter = label;
 
-                // When top filter changes, inactivate all alphabetical filters
-                for (ToggleButton alphaButton : alphabetFilterButtons) {
-                    alphaButton.setChecked(false);
-                }
-                activeAlphabeticalFilter = null; // Clear the active alphabetical filter state
+                // When a dynamic top filter changes, it should NOT affect alphabetical filters.
+                // Removed: for (ToggleButton alphaButton : alphabetFilterButtons) { alphaButton.setChecked(false); }
+                // Removed: activeAlphabeticalFilter = null;
 
                 applyRowFilters();
             });
-            // Use FlexboxLayout.LayoutParams for children of FlexboxLayout (filterRowTop)
             FlexboxLayout.LayoutParams tbParams = new FlexboxLayout.LayoutParams(
                     FlexboxLayout.LayoutParams.WRAP_CONTENT,
                     FlexboxLayout.LayoutParams.WRAP_CONTENT
             );
-            int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
-            tbParams.setMargins(margin, margin, margin, margin); // Add some margin between buttons
+            tbParams.setMargins(margin, margin, margin, margin);
             filterRowTop.addView(tb, tbParams);
-            topFilterGroup.add(tb);
+            topFilterGroup.add(tb); // Add to topFilterGroup for management by this class
 
-            // Capture the first ToggleButton created to get its height later
-            if (firstTopToggleButton == null) {
-                firstTopToggleButton = tb;
+            if (firstDynamicTopToggleButton == null) {
+                firstDynamicTopToggleButton = tb;
             }
         }
-        if (!topFilterGroup.isEmpty()) {
-            activeTopFilter = topButtonLabels.get(0); // Use .get(0) for List
-            topFilterGroup.get(0).setChecked(true); // Set checked state after activeTopFilter is set
+
+        // Set initial active filter and checked state
+        if (activeTopFilter == null) { // If no filter was previously active
+            allButton.setChecked(true);
+            activeTopFilter = "ALL";
+        } else {
+            // Check if the previously active filter is "ALL"
+            if ("ALL".equals(activeTopFilter)) {
+                allButton.setChecked(true);
+            } else {
+                // Check the corresponding dynamic button if it exists
+                boolean foundActive = false;
+                for (ToggleButton tb : topFilterGroup) {
+                    if (tb.getText().toString().equals(activeTopFilter)) {
+                        tb.setChecked(true);
+                        foundActive = true;
+                        break;
+                    }
+                }
+                // Fallback: If the previously active filter is no longer in topButtonLabels,
+                // default to "ALL" being selected.
+                if (!foundActive) {
+                    allButton.setChecked(true);
+                    activeTopFilter = "ALL";
+                }
+            }
         }
 
-        // --- Create and add the spacer first ---
-        View spacer = new View(getContext()); // Use getContext() or requireContext()
-        // Use FlexboxLayout.LayoutParams for the spacer within FlexboxLayout
+
+        // --- Create and add the spacer ---
+        View spacer = new View(getContext());
         FlexboxLayout.LayoutParams spacerParams = new FlexboxLayout.LayoutParams(
                 0,
-                0 // CHANGED FROM WRAP_CONTENT TO 0 (0dp)
+                0
         );
-        spacerParams.setFlexGrow(1.0f); // This is the equivalent of layout_weight="1" in Flexbox
+        spacerParams.setFlexGrow(1.0f);
         filterRowTop.addView(spacer, spacerParams);
+
+
+        // --- Create the round button (FAB) programmatically and add it ---
         LayoutInflater inflater = LayoutInflater.from(requireContext());
-        // Inflate the FAB from its layout XML
         final FloatingActionButton roundButton = (FloatingActionButton) inflater.inflate(R.layout.round_button_layout, null, false);
 
-        // --- Add the ClickListener for the round button ---
         roundButton.setOnClickListener(v -> {
-            showFilterSelectionDialog(); // This method will open our dialog
+            showFilterSelectionDialog();
         });
 
-        // Add the round button (FAB) to the FlexboxLayout after the spacer
-        // This ensures it's always the rightmost element
         filterRowTop.addView(roundButton);
 
 
@@ -340,27 +470,28 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             ToggleButton tb = createFilterToggleButton(getContext(), label, true);
             tb.setOnClickListener(v -> {
                 boolean isNowChecked = tb.isChecked();
-                // De-select all other alphabetical buttons
+                // Ensure only one alphabetical filter is active at a time
                 for (ToggleButton otherButton : alphabetFilterButtons) {
                     if (otherButton != tb) {
                         otherButton.setChecked(false);
                     }
                 }
-                // If the user clicked an already checked button, it becomes unchecked.
-                // The state is already toggled by the system, so we just need to update our logic.
                 if (isNowChecked) {
                     activeAlphabeticalFilter = label;
                 } else {
-                    activeAlphabeticalFilter = null; // All alpha filters are now off
+                    activeAlphabeticalFilter = null; // Deactivate if already checked and clicked again
                 }
+                // --- FIX: Do NOT affect top filters when alphabetical filter is clicked ---
+                // Removed: allButton.setChecked(false);
+                // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
+                // Removed: activeTopFilter = null;
+
                 applyRowFilters();
             });
-            // Use LinearLayout.LayoutParams for children of LinearLayout (filterRow1)
             LinearLayout.LayoutParams tbParams = new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.WRAP_CONTENT,
                     LinearLayout.LayoutParams.WRAP_CONTENT
             );
-            int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
             tbParams.setMargins(margin, margin, margin, margin);
             filterRow1.addView(tb, tbParams);
             alphabetFilterButtons.add(tb);
@@ -370,17 +501,20 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
         rrButton.setOnClickListener(v -> {
             filterHideRowsWithNoEntries = rrButton.isChecked();
+            // --- FIX: Do NOT affect alphabetical or top filters when RR button is clicked ---
+            // Removed: allButton.setChecked(false);
+            // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
+            // Removed: activeTopFilter = null;
             applyRowFilters();
         });
-        // Use LinearLayout.LayoutParams for children of LinearLayout (filterRow2)
         LinearLayout.LayoutParams rrParams = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         );
-        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
         rrParams.setMargins(margin, margin, margin, margin);
         filterRow2.addView(rrButton, rrParams);
     }
+
 
     public void onRowHeaderClicked(List<String> row) {
         if (al == null || infoPanelCard == null || infoPanelText == null) return;
@@ -482,24 +616,46 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         //Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
+        // Create a Set for efficient lookup of column filters
+        // This assumes availableColumnFilterLabels is a class-level field in PageWithTable
+        Set<String> columnFiltersSet = new HashSet<>(availableColumnFilterLabels);
+
         for (Listable item : masterTableRowsDataList) {
             if (item instanceof WF_Table_Row_Recycle) {
                 WF_Table_Row_Recycle rowWidget = (WF_Table_Row_Recycle) item;
                 if (rowWidget.getRowData() == null) continue;
 
-                boolean shouldDisplay = true;
+                boolean shouldDisplay = true; // Assume true by default for this row
 
-                // 1) Use activeTopFilter dynamically
-                // 2) Look for value in "P_Familj" column
-                // 3) "Växter" means no top filter applied
-                if (al != null && activeTopFilter != null) { // Ensure al is not null and a top filter is selected
-                    if ("Växter".equals(activeTopFilter)) {
-                        // If "Växter" is the active filter, this means all rows should be shown
-                        // as far as the 'top' filter is concerned. So, shouldDisplay remains true.
+                // Apply Top Row Filters (ALL, Växter, Family filters, or Column filters)
+                if (al != null && activeTopFilter != null) {
+                    if ("ALL".equals(activeTopFilter)) {
+                        // If "ALL" is active, this means no top filter should be applied.
+                        // 'shouldDisplay' remains true from the top filter's perspective.
+                        // We simply proceed to the next filter checks (alphabetical, hide empty).
+                    } else if ("Växter".equals(activeTopFilter)) {
+                        // If "Växter" is active, display rows if there's no data in P_Mossor OR P_Lavar
+                        String mossorValue = al.getColumn("P_Mossor", rowWidget.getRowData());
+                        String lavarValue = al.getColumn("P_Lavar", rowWidget.getRowData());
+
+                        boolean hasMossorData = (mossorValue != null && !mossorValue.isEmpty());
+                        boolean hasLavarData = (lavarValue != null && !lavarValue.isEmpty());
+
+                        // If it has data in Mossor OR Lavar, then it should NOT be displayed for "Växter" filter
+                        if (hasMossorData || hasLavarData) {
+                            shouldDisplay = false;
+                        }
+                    } else if (columnFiltersSet.contains(activeTopFilter)) {
+                        // This is a COLUMN FILTER (e.g., "P_Fork")
+                        // Check if the row has ANY non-null/non-empty entry in the column matching activeTopFilter
+                        String columnValue = al.getColumn(activeTopFilter, rowWidget.getRowData());
+                        if (columnValue == null || columnValue.isEmpty()) {
+                            shouldDisplay = false; // Exclude if the column for this filter is empty
+                        }
                     } else {
+                        // This is a FAMILY FILTER (e.g., "Mossor", "Lavar", or any other custom family filter)
+                        // Filter based on the "P_Familj" column containing the activeTopFilter value
                         String relevantColumnValue = al.getColumn("P_Familj", rowWidget.getRowData());
-                        // If the P_Familj value is null OR it does NOT contain the activeTopFilter string,
-                        // then this row should NOT be displayed by this filter.
                         if (relevantColumnValue == null || !relevantColumnValue.contains(activeTopFilter)) {
                             shouldDisplay = false;
                         }
@@ -559,6 +715,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
         refreshColumnVisibilitiesInUI();
     }
+
 
 
     @Override
