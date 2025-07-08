@@ -354,8 +354,10 @@ public class ConfigMenu extends AppCompatActivity {
 				SharedPreferences sharedPreferences, @NonNull String key) {
 			askForRestart();
 			Preference pref = findPreference(key);
+			Log.d("blarpa", "getzz with key "+key);
 			// This can be null if the preference is not on the current screen.
 			if (pref == null) {
+				Log.d("blarpa", "pref null with key "+key);
 				return;
 			}
 
@@ -383,11 +385,13 @@ public class ConfigMenu extends AppCompatActivity {
 				pref.setSummary(etp.getText());
 			}
 			else if (pref instanceof ListPreference) {
+				Log.d("blarpa", "getzz");
 				ListPreference letp = (ListPreference) pref;
 				pref.setSummary(letp.getEntry());
 				if (key.equals(PersistenceHelper.LOG_LEVEL)) {
 					String logLevelStr = letp.getValue();
-					Log.d("vortex", "changing log level to " + logLevelStr);
+					Log.d("blarpa", "changing log level to " + logLevelStr);
+
 					if ("CRITICAL".equalsIgnoreCase(logLevelStr)) {
 						LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
 					} else {
