@@ -911,10 +911,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 												if (!found) {
 													Log.d("nils", "Variable not found.Removing");
 													v.deleteValue();
-													//myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_cond_cont"));
+													myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_cond_cont"));
 
 												}
-
 											}
 										}
 									}, 0);
@@ -1084,7 +1083,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			Log.d("vortex","Registering WF EXECUTION");
 			myContext.registerEvent(new WF_Event_OnFlowExecuted("executor"));
 			if (root==null) {
-				int c = getActivity().getFragmentManager().getBackStackEntryCount();
+				int c = getActivity().getSupportFragmentManager().getBackStackEntryCount();
 				Log.d("blax","need to redraw previous fragment if there is one! "+c);
 				if (c>0) {
 					Log.d("blax","there is a fragment to redraw. Try broadcast!");
