@@ -25,6 +25,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
@@ -343,6 +344,7 @@ public class Start extends MenuActivity implements StartProvider {
     }
 
     //execute workflow.
+    private Fragment emptyFragmentToExecute = null ;
     public void changePage(Workflow wf, String statusVar) {
         if (wf==null) {
             debugLogger.addText("Workflow not defined for button. Check your project XML");
@@ -360,7 +362,7 @@ public class Start extends MenuActivity implements StartProvider {
 
         String label = wf.getLabel();
         String template = wf.getTemplate();
-        if (template!=null && template.equals("GisMapTemplate"))
+        if (template != null && template.equals("GisMapTemplate"))
             template = "DefaultTemplate";
 
         //Set context.
@@ -378,21 +380,34 @@ public class Start extends MenuActivity implements StartProvider {
 
             Fragment fragmentToExecute;
             Bundle args = new Bundle();
-            args.putString("workflow_name", wf.getName());
+            String wfName = wf.getName();
+            args.putString("workflow_name", wfName);
             args.putString("status_variable", statusVar);
 
-            if (template==null) {
+            if (wfName !=null && wfName.equals("Main")) {
                 template="StartupFragment";
                 label = "Start";
                 //Get rid of existing StartupFragment from stack
                 getSupportFragmentManager().popBackStack();
             }
+            if (template!=null) {
+                fragmentToExecute = wf.createFragment(template);
+                fragmentToExecute.setArguments(args);
+                changePage(fragmentToExecute, label);
+            } else {
+                //no template - try redraw fragment
+                emptyFragmentToExecute = wf.createFragment("EmptyTemplate");
+                emptyFragmentToExecute.setArguments(args);
+                FragmentTransaction ft = getSupportFragmentManager()
+                        .beginTransaction();
+                //Log.i("vortex", "Adding fragment");
+                //ft.add(R.id.lowerContainer, fragment, "AddedFragment");
 
-            fragmentToExecute = wf.createFragment(template);
-            fragmentToExecute.setArguments(args);
-            changePage(fragmentToExecute, label);
-
-
+                ft.add(emptyFragmentToExecute,"EmptyTemplate");
+                Log.i("vortex", "Committing Empty transaction");
+                ft.commitAllowingStateLoss();
+                Log.i("vortex", "Committed transaction");
+            }
             //show error message.
         } else
             showErrorMsg(cHash);
@@ -405,6 +420,12 @@ public class Start extends MenuActivity implements StartProvider {
                 .addToBackStack(label)
                 .commit();
         setTitle(label);
+        //If previous was an empty fragment, remove it
+        if (emptyFragmentToExecute!=null) {
+            Log.d("blax","removing empty fragment");
+            ft.remove(emptyFragmentToExecute);
+            emptyFragmentToExecute=null;
+        }
     }
 
     @Override
