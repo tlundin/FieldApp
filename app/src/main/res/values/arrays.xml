@@ -44,5 +44,9 @@
         <item>Internet</item>
         <item>NONE</item>
     </string-array>
-
+    <array name="map_needle_image_sets">
+        <item>@drawable/icon_set1</item>
+        <item>@drawable/icon_set2</item>
+        <item>@drawable/icon_set3</item>
+    </array>
 </resources>

@@ -78,6 +78,36 @@ import java.util.UUID;
 
 public class Tools {
 
+	// You can add this as a static helper method in a utility class or directly in SettingsFragment
+// (though a separate utility class is cleaner for image manipulation).
+	public static List<Bitmap> getMapNeedleIcons(Context context, int imageSetResourceId) {
+		Bitmap fullBitmap = BitmapFactory.decodeResource(context.getResources(), imageSetResourceId);
+		List<Bitmap> croppedIcons = new ArrayList<>();
+
+		if (fullBitmap == null) {
+			return croppedIcons; // Return empty list if image not found
+		}
+
+		int totalWidth = fullBitmap.getWidth();
+		int totalHeight = fullBitmap.getHeight();
+		int iconWidth = 256;
+		int iconHeight = 512;
+		int iconsPerRow = totalWidth / iconWidth;
+		int numRows = totalHeight / iconHeight;
+
+		for (int row = 0; row < numRows; row++) {
+			for (int col = 0; col < iconsPerRow; col++) {
+				int x = col * iconWidth;
+				int y = row * iconHeight;
+				if (x + iconWidth <= totalWidth && y + iconHeight <= totalHeight) {
+					Bitmap croppedBitmap = Bitmap.createBitmap(fullBitmap, x, y, iconWidth, iconHeight);
+					croppedIcons.add(croppedBitmap);
+				}
+			}
+		}
+		// fullBitmap.recycle(); // Recycle the original large bitmap if you no longer need it
+		return croppedIcons;
+	}
 	public static void sendMail (Activity ctx,String fileName,String email)
 	{
 		Log.d("vortex","full name is "+fileName);

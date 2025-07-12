@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="4dp">
+
+    <ImageView
+        android:id="@+id/grid_item_image"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:maxWidth="48dp"
+        android:maxHeight="72dp"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        /> <TextView
+    android:id="@+id/grid_item_text"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Needle Name"
+    android:textSize="12sp"
+    android:layout_marginTop="4dp" />
+
+</LinearLayout>

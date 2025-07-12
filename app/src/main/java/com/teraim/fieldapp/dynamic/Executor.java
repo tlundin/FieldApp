@@ -1204,7 +1204,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	public void onLocationChanged(Location location) {
-		Log.d("fenris","Recieved location update at "+Tools.getCurrentTime());
 		if (location!=null && myX!=null) {
 			SweLocation myL = Geomatte.convertToSweRef(location.getLatitude(),location.getLongitude());
 

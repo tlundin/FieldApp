@@ -44,7 +44,7 @@ public class GisObject {
 		//	Log.d("plaxxo","status 100 for "+statusVarName+" "+conf.getRawLabel());
 	}
 
-	List<Location> myCoordinates = new ArrayList<Location>();
+	List<Location> myCoordinates;
 	private final Map<String, String> keyChain;
 	private Map<String, String> attributes;
 	private boolean isUseful;
