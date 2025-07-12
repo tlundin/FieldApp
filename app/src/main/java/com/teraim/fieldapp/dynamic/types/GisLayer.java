@@ -28,18 +28,18 @@ import java.util.Set;
 /**
  *
  * A Layer holds the GIS Objects drawn in GisImageView, created by block_add_gis_layer.
- * Each GIS Layer may hold reference to any GIS Object type. 
+ * Each GIS Layer may hold reference to any GIS Object type.
  * Each GIS Layer may be visible or hidden, controlled by user.
- * A GIS Layer may or may not have a Widget, controlled by XML Tag. 
+ * A GIS Layer may or may not have a Widget, controlled by XML Tag.
  * Please see the XML Block definition for block_add_gis_layer
  */
 
 public class GisLayer {
 
 	private final String name;
-    private final String label;
+	private final String label;
 	private final boolean hasWidget;
-    private boolean hasDynamic=false;
+	private boolean hasDynamic=false;
 	private Map<String,Set<GisObject>> myObjects;
 	private boolean showLabels;
 	private Map<String, Set<GisFilter>> myFilters;
@@ -82,26 +82,35 @@ public class GisLayer {
 		myObjects=null;
 	}
 
-	//TODO: Potentially split incoming objects into two bags. one for static and one for changeable. 
-	//This would speed up CRUD for map objects.
-
 	public void addObjectBag(String key, Set<GisObject> myGisObjects, boolean dynamic) {
-		boolean merge = false;
-		//Log.d("maga", "in add objbag for layer "+label+" with key " + key);
 		if (myObjects == null) {
-			//Log.d("bortex", "myObjects null...creating. Mygisobjects: " + myGisObjects + " dynamic: " + dynamic);
 			myObjects = new HashMap<String, Set<GisObject>>();
-
 		}
-		Set<GisObject> existingBag = myObjects.get(key);
-		//If no objects found we add an empty set provided none exist.
-		if (myGisObjects == null && existingBag == null) {
-			//Log.d("maga", "Added empty set to layer: " + getId() + " of type " + key);
-			myObjects.put(key, new HashSet<GisObject>());
+
+		// Overwrite the existing set with the new set
+		myObjects.put(key, myGisObjects); // This already replaces the Set reference
+
+		// Ensure all objects in the newly added bag are marked as useful initially.
+		// filterLayer will then unmark those that are out of bounds.
+//		if (myGisObjects != null) {
+//			for (GisObject go : myGisObjects) {
+//				go.markAsUseful(); // Mark all incoming objects as useful
+//			}
+//		}
+		this.hasDynamic = dynamic; //
+	}
+
+	/**
+	 * Clears the set of GIS objects for a specific bag type within this layer.
+	 * This is useful for dynamic layers like "Team" where contents are replaced.
+	 * @param typeId The String key (type name) of the bag to clear.
+	 */
+	public void clearObjectBag(String typeId) {
+		if (myObjects != null && myObjects.containsKey(typeId)) {
+			myObjects.get(typeId).clear(); // Clear the HashSet associated with this typeId
+			Log.d("GisLayer", "Cleared object bag for type: " + typeId + " in layer: " + getId());
 		} else {
-			//Log.d("maga", "Adding a new bag to myObjs " + name + "to myOBjects "+myObjects.hashCode()+ "for layer "+this.hashCode());
-			myObjects.put(key, myGisObjects);
-			this.hasDynamic = dynamic;
+			Log.w("GisLayer", "Attempted to clear non-existent bag for type: " + typeId + " in layer: " + getId());
 		}
 	}
 
@@ -146,9 +155,9 @@ public class GisLayer {
 		this.myVisibility=isVisible;
 	}
 
-	/** Search for GisObject in all bags. 
+	/** Search for GisObject in all bags.
 	 * @param go   -- the object to look for.
-	 * @return -- the first instance of the object if found. 
+	 * @return -- the first instance of the object if found.
 	 * */
 	public Set<GisObject> getBagContainingGo(GisObject go) {
 		if (myObjects == null)
@@ -156,7 +165,6 @@ public class GisLayer {
 		for (String k:myObjects.keySet()) {
 			Set<GisObject> gos = myObjects.get(k);
 			if (gos.contains(go)) {
-				//Log.d("bapp","found l "+go.getLabel()+" n "+go.getFullConfiguration().getName()+" r"+go.getFullConfiguration().getRawLabel()+" in layer "+this.getLabel()+" "+this.getId());
 				return gos;
 			}
 		}
@@ -164,7 +172,6 @@ public class GisLayer {
 	}
 
 	public void setShowLabels(boolean show) {
-		//Log.d("zaza","Showlabels called with "+show+" for layer "+this.getLabel());
 		showLabels=show;
 	}
 
@@ -173,12 +180,10 @@ public class GisLayer {
 	}
 
 	public boolean isVisible() {
-		//Log.d("mama","Layer "+getId()+" has visibility set to "+myVisibility);
 		return myVisibility;
 	}
 
 	public boolean isBold() {
-		//Log.d("mama","Layer "+getId()+" has visibility set to "+myVisibility);
 		return myBoldness;
 	}
 
@@ -217,7 +222,7 @@ public class GisLayer {
 	 *
 	 *
 	 *
-	 * Will go through a layer and check if the gisobjects are inside the map. 
+	 * Will go through a layer and check if the gisobjects are inside the map.
 	 * If inside, the object is marked as useful.
 	 * As a sideeffect, calcualte all the local coordinates.
 	 */
@@ -228,20 +233,16 @@ public class GisLayer {
 			Log.e("fenris","Layer "+ getLabel()+" has no bags. Exiting filterlayer");
 			return;
 		}
-		//CurrStatVar currStat = gisImageView.getCurrentStatusVariable();
-		//Log.d("grogg","In filterAndCopy for layer "+getLabel()+" layer has "+gops.size()+" bags." );
 
 		for (String key:myObjects.keySet()) {
 			Set<GisObject> bag = myObjects.get(key);
 			Iterator<GisObject> iterator = bag.iterator();
 			while (iterator.hasNext()) {
 				GisObject go = iterator.next();
-				//Mark this object if it is visible.
 				markIfUseful(go,gisImageView);
 				if (go.isDefect())
 					iterator.remove();
 			}
-			//Log.d("bloon","Bag: "+key+" size: "+bag.size());
 			int c=0;
 			for (GisObject gop:bag) {
 				if (gop.isUseful())
@@ -255,24 +256,18 @@ public class GisLayer {
 
 	public static void markIfUseful(GisObject go, GisImageView gisImageView) {
 
-		//assume not useful.
 		go.unmark();
-		//All dynamic objects are always in the map potentially.
 		if (go instanceof DynamicGisPoint) {
-			//Dynamic objects are always useful and do not have a cached value.
 			go.markAsUseful();
 		}
 		else if (go instanceof GisPointObject) {
 			GisPointObject gop = (GisPointObject)go;
 			boolean inside = gisImageView.translateMapToRealCoordinates(gop.getLocation(),xy);
+			Log.d("GisLayer","translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
 			if (inside) {
-				//Log.d("vortex","Added point inside map");
 				go.markAsUseful();
 				gop.setTranslatedLocation(xy);
-				//Log.d("grogg","P statusvar: "+go.getStatusVariableId()+" value: "+go.getStatusVariableValue());
 			}
-			//else
-			//	Log.e("bortex","Removed object outside map");
 			return;
 		}
 		else if (go instanceof GisPolygonObject) {
@@ -289,13 +284,10 @@ public class GisLayer {
 				for (Location location : ll) {
 					if (gisImageView.translateMapToRealCoordinates(location, xy)) {
 						gpo.markAsUseful();
-						//Log.d("grogg","statusvar: "+gpo.getStatusVariableId()+" value: "+gpo.getStatusVariableValue());
 						return;
 					}
 				}
 			}
-			//Log.d("polzz","removed "+gpo.getLabel());
-			//Log.d("polzz",printCoordinates(gpo.getCoordinates()));
 
 		}
 		else if (go instanceof GisPathObject) {
@@ -314,30 +306,7 @@ public class GisLayer {
 				}
 
 			}
-
-			/*
-			if (hasAtleastOneCornerInside) {
-				go.markAsUseful();
-				Path p = new Path();
-				boolean first =true;
-				for (int[] corner:corners) {
-					if (first) {
-						first=false;
-						p.moveTo(corner[0], corner[1]);
-					}
-					else
-						p.lineTo(corner[0], corner[1]);
-				}
-				if (go instanceof GisPolygonObject)
-					p.close();
-				gpo.setPath(p);
-			}
-			*/
 		}
-
-		//else
-		//	Log.d("vortex","Gisobject "+go.getLabel()+" was not added");
-
 	}
 
 	private String printCoordinates(List<Location> coordinates) {
@@ -352,4 +321,7 @@ public class GisLayer {
 	}
 
 
+	public void clearBags() {
+		clear();
+	}
 }

@@ -139,4 +139,7 @@
     <string name="refresh_completed">Refresh completed</string>
     <string name="cleaning_up_please_wait">Cleaning up...</string>
     <string name="select_log_level">Select a log level</string>
+    <string name="map_settings">Map Settings</string>
+    <string name="map_needle_title">Map needles</string>
+    <string name="map_needle_summary">Choose a map needle</string>
 </resources>
