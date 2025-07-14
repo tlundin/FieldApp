@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <PreferenceCategory
         android:title="@string/General"
         android:key="general_options">
@@ -45,6 +46,14 @@
             android:title="@string/scan_QR_code_h"
             android:key="scan_qr_code"
             android:summary="@string/scan_QR_code" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/map_settings">
+        <com.teraim.fieldapp.ui.MapNeedlePreference
+            android:key="map_needle_set"
+            android:title="@string/map_needle_title"
+            android:persistent="true"
+            android:defaultValue="0"
+            app:imageSetResources="@array/map_needle_image_sets" />
     </PreferenceCategory>
 
     <PreferenceCategory

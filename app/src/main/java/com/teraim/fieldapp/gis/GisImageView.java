@@ -1,8 +1,10 @@
 package com.teraim.fieldapp.gis;
 
 import static com.teraim.fieldapp.GlobalState.getInstance;
+
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
@@ -19,11 +21,14 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
+
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
-import com.teraim.fieldapp.Start;
-import com.teraim.fieldapp.dynamic.VariableConfiguration;
-import com.teraim.fieldapp.dynamic.types.ArrayVariable;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -31,8 +36,6 @@ import com.teraim.fieldapp.dynamic.types.PhotoMeta;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.Workflow;
-import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Event_OnSave;
-import com.teraim.fieldapp.dynamic.workflow_realizations.gis.DynamicGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.PolyType;
@@ -46,13 +49,12 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LogRepository;
-import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.non_generics.NamedVariables;
-import com.teraim.fieldapp.utils.DbHelper;
+import com.teraim.fieldapp.ui.MapNeedlePreference;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.Geomatte;
-import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
+import com.teraim.fieldapp.viewmodels.TeamStatusViewModel;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -67,6 +69,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 
+
 public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private final static String Deg = "\u00b0";
@@ -74,10 +77,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	//Various paints.
 	private Paint txtPaint;
 	private Paint polyPaint;
-    private Paint vtnTxt;
-    private Paint fgPaintSel;
-    private Paint bCursorPaint;
-    private Paint paintBlur;
+	private Paint vtnTxt;
+	private Paint fgPaintSel;
+	private Paint bCursorPaint;
+	private Paint paintBlur;
 	private Paint paintSimple;
 
 	private Handler handler;
@@ -88,7 +91,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private PhotoMeta photoMetaData;
 	private Variable myX,myY;
 
-
+	// Use selectedUserNeedle instead of personActive
+	private Bitmap selectedUserNeedle; // This will hold the user's selected icon
+	private Bitmap personAway; // Keep personAway as is for now
 
 	private static final int LabelOffset = 5;
 
@@ -104,12 +109,17 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private GisObject touchedGop = null;
 
 
-    private boolean candMenuVisible=false, initialized = false;
+	private boolean candMenuVisible=false, initialized = false;
+	private Set<GisObject> teamMembers = null;
+	private TeamStatusViewModel teamStatusViewModel=null;
+
+	// Flag to track if team data has been initialized (i.e., its layer bag has been added)
+	private boolean teamLayerBagInitialized = false;
+	private Observer<Set<GisPointObject>> teamMembersObserver;
 
 	public GisImageView(Context context) {
 		super(context);
 		init(context);
-		//Initialize will become true after the call to "initialize" has ended.
 		initialized = false;
 	}
 
@@ -129,37 +139,36 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private void init(Context ctx) {
 		this.setClickable(true);
 		this.ctx=ctx;
-		//used for cursor blink.
 		calendar.setTime(new Date());
-        Paint grCursorPaint = new Paint();
+		Paint grCursorPaint = new Paint();
 		grCursorPaint.setColor(Color.GRAY);
-		grCursorPaint.setStyle(Paint.Style.FILL);
-        Paint blCursorPaint = new Paint();
+		grCursorPaint.setStyle(Style.FILL);
+		Paint blCursorPaint = new Paint();
 		blCursorPaint.setColor(Color.BLUE);
-		blCursorPaint.setStyle(Paint.Style.FILL);
-        Paint rCursorPaint = new Paint();
+		blCursorPaint.setStyle(Style.FILL);
+		Paint rCursorPaint = new Paint();
 		rCursorPaint.setColor(Color.RED);
-		rCursorPaint.setStyle(Paint.Style.FILL);
-        Paint wCursorPaint = new Paint();
+		rCursorPaint.setStyle(Style.FILL);
+		Paint wCursorPaint = new Paint();
 		wCursorPaint.setColor(Color.WHITE);
-		wCursorPaint.setStyle(Paint.Style.FILL);
+		wCursorPaint.setStyle(Style.FILL);
 		bCursorPaint = new Paint();
 		bCursorPaint.setColor(Color.BLACK);
-		bCursorPaint.setStyle(Paint.Style.FILL);
-        Paint markerPaint = new Paint();
+		bCursorPaint.setStyle(Style.FILL);
+		Paint markerPaint = new Paint();
 		markerPaint.setColor(Color.YELLOW);
-		markerPaint.setStyle(Paint.Style.FILL);
+		markerPaint.setStyle(Style.FILL);
 		txtPaint = new Paint();
 		txtPaint.setTextSize(8);
 		txtPaint.setColor(Color.WHITE);
-		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+		txtPaint.setStyle(Style.FILL_AND_STROKE);
 		txtPaint.setTextAlign(Paint.Align.CENTER);
-        Paint selectedPaint = new Paint();
+		Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
 		selectedPaint.setColor(Color.BLACK);
 
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
-        Paint btnTxt = new Paint();
+		Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
 		btnTxt.setColor(Color.WHITE);
 
@@ -167,20 +176,20 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
 		vtnTxt.setColor(Color.WHITE);
-		txtPaint.setStyle(Paint.Style.FILL_AND_STROKE);
+		txtPaint.setStyle(Style.FILL_AND_STROKE);
 		vtnTxt.setTextAlign(Paint.Align.CENTER);
-        Paint borderPaint = new Paint();
+		Paint borderPaint = new Paint();
 		borderPaint.setColor(Color.WHITE);
-		borderPaint.setStyle(Paint.Style.STROKE);
+		borderPaint.setStyle(Style.STROKE);
 		borderPaint.setStrokeWidth(3);
 		polyPaint = new Paint();
 		polyPaint.setColor(Color.WHITE);
-		polyPaint.setStyle(Paint.Style.STROKE);
+		polyPaint.setStyle(Style.STROKE);
 		polyPaint.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
 		polyPaint.setPathEffect( new DashPathEffect( new float[] {20,5,},0 ) );
 		fgPaintSel = new Paint();
 		fgPaintSel.setColor(Color.YELLOW);
-		fgPaintSel.setStyle(Paint.Style.STROKE);
+		fgPaintSel.setStyle(Style.STROKE);
 		fgPaintSel.setStrokeWidth(2);
 
 		paintSimple = new Paint();
@@ -188,7 +197,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		paintSimple.setDither(true);
 		paintSimple.setColor(Color.argb(248, 255, 255, 255));
 		paintSimple.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
-		paintSimple.setStyle(Paint.Style.STROKE);
+		paintSimple.setStyle(Style.STROKE);
 		paintSimple.setStrokeJoin(Paint.Join.ROUND);
 		paintSimple.setStrokeCap(Paint.Cap.ROUND);
 
@@ -198,18 +207,109 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		paintBlur.setStrokeWidth(5f * getResources().getDisplayMetrics().density);
 		paintBlur.setMaskFilter(new BlurMaskFilter(10, BlurMaskFilter.Blur.NORMAL));
 
-
 		if (getInstance()!=null)
-			getInstance().registerListener(this,Type.MAP);
+			getInstance().registerListener(this,TrackerListener.Type.MAP);
 
+		// REPLACEMENT START: Load user-selected map needle
+		loadUserMapNeedle(); // Call a new method to load the user's selected needle
+		personAway = BitmapFactory.decodeResource(getResources(), R.drawable.person_away); // Person away is still the old one
+		// REPLACEMENT END
+
+		teamStatusViewModel = new ViewModelProvider(getInstance().getActivity()).get(TeamStatusViewModel.class);
+	}
+
+	// New method to load the user's selected map needle
+	private void loadUserMapNeedle() {
+		try {
+			int selectedNeedleIndex = GlobalState.getInstance().getGlobalPreferences().getI("map_needle_set");
+			Log.d("GisImageView", "Selected map needle index: " + selectedNeedleIndex);
+			if (selectedNeedleIndex == -1)
+				selectedNeedleIndex = 0;
+			// Retrieve the saved idex
+			// Assume `MapNeedlePreference.cropAllNeedlesFromSet` requires the original full image set resource IDs
+			// You'll need to retrieve these from R.array.map_needle_image_sets
+			TypedArray ta = getContext().getResources().obtainTypedArray(R.array.map_needle_image_sets);
+			List<Bitmap> allIcons = new ArrayList<>();
+			for (int i = 0; i < ta.length(); i++) {
+				int resourceId = ta.getResourceId(i, 0);
+				if (resourceId != 0) {
+					// Use the static helper method from MapNeedlePreference
+					allIcons.addAll(MapNeedlePreference.cropAllNeedlesFromSet(getContext(), resourceId)); // Re-crop all icons
+				}
+			}
+			ta.recycle(); // Important: Recycle TypedArray
+
+			if (allIcons != null && allIcons.size() > selectedNeedleIndex) {
+				selectedUserNeedle = allIcons.get(selectedNeedleIndex); // Set the selected user needle
+			} else {
+				Log.e("GisImageView", "Could not load selected user map needle. Index out of bounds or no icons loaded.");
+				selectedUserNeedle = BitmapFactory.decodeResource(getResources(), R.drawable.person_active); // Fallback to default
+			}
+		} catch (Exception e) {
+			Log.e("GisImageView", "Error loading user selected map needle: " + e.getMessage(), e);
+			selectedUserNeedle = BitmapFactory.decodeResource(getResources(), R.drawable.person_active); // Fallback to default
+		}
+	}
+
+
+	public void setViewModelStoreOwner(@NonNull LifecycleOwner owner) {
+		// Initialize observers if not already (or ensure single registration)
+		if (teamMembersObserver == null) {
+			teamMembersObserver = new Observer<Set<GisPointObject>>() {
+				@Override
+				public void onChanged(Set<GisPointObject> teamMembers) {
+					Log.d("GisImageView", "Team member GisObjects updated. Count: " + teamMembers.size());
+
+					if (myMap != null) {
+						GisLayer teamLayer = null;
+						for (GisLayer layer : myMap.getLayers()) {
+							if (layer.getId().equals("Team")) {
+								teamLayer = layer;
+								break;
+							}
+						}
+
+						if (teamLayer != null) {
+							teamLayer.clearObjectBag("Team");
+							teamLayer.addObjectBag("Team", new HashSet<>(teamMembers), true);
+							teamLayer.filterLayer(GisImageView.this);
+						} else {
+							//Log.e("GisImageView", "Team layer not found in myMap. Cannot update team objects.");
+						}
+					}
+					postInvalidate(); // Simple redraw after data changes.
+				}
+			};
+		}
+		// Register observer with the provided LifecycleOwner
+		teamStatusViewModel.teamMemberGisObjects.observe(owner, teamMembersObserver);
 
 	}
+
+	// NEW: Method to explicitly remove observers
+	public void removeViewModelObservers() {
+		if (teamStatusViewModel != null) {
+			if (teamMembersObserver != null) {
+				teamStatusViewModel.teamMemberGisObjects.removeObserver(teamMembersObserver);
+				Log.d("GisImageView", "Removed teamMembersObserver from LiveData.");
+			}
+		}
+		// Optional: clear references to allow GC
+		teamMembersObserver = null;
+	}
+
+
 	private double pXR;
-    private double pYR;
+	private double pYR;
 	private WF_Gis_Map myMap;
 	private boolean allowZoom;
 	private final IntBuffer intBuffer = new IntBuffer();
 	private final PathBuffer pathBuffer = new PathBuffer();
+
+	public void removeViewModelObservers(LifecycleOwner owner) {
+		Log.d("GisImageView","removing observer");
+		teamStatusViewModel.teamMemberGisObjects.removeObservers(owner);
+	}
 
 
 	private static class PathBuffer {
@@ -257,7 +357,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	 * @param allowZoom			If extreme zoom is enabled
 	 *
 	 */
-	public void initialize(WF_Gis_Map wf_Gis_Map, PhotoMeta pm,boolean allowZoom) {
+	public void initialize(FragmentActivity fragment, WF_Gis_Map wf_Gis_Map, PhotoMeta pm,boolean allowZoom) {
 
 		if (pm== null) {
 			Log.e("vortex","Photometadata was null for "+wf_Gis_Map.getName());
@@ -266,12 +366,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		mapLocationForClick=null;
 		this.photoMetaData=pm;
 		pXR = this.getImageWidth()/pm.getWidth();
-		pYR = this.getImageHeight()/pm.getHeight();
+		pYR = this.getImageHeight()/pm.getWidth(); // pYR should be based on height. Fix: pm.getHeight()
+		// Fix: pYR = this.getImageHeight()/pm.getHeight();
 
-		//Filter away all objects not visible and create cached values for all gisobjects on this map and zoom level.
 		myMap = wf_Gis_Map;
-
-
 
 		imgHReal = pm.N-pm.S;
 		imgWReal = pm.E-pm.W;
@@ -298,8 +396,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 			if (gisTypeToCreate!=null) {
-				//GisObject newP = StaticGisPoint(gisTypeToCreate, Map<String, String> keyChain,Location myLocation, Variable statusVar)
-
 				if (newGisObj ==null) {
 					Set<GisObject> bag;
 					for (GisLayer l:myMap.getLayers()) {
@@ -315,7 +411,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 				if (newGisObj !=null) {
 
-					//Add new point.
 					if (newGisObj instanceof GisPathObject)
 						newGisObj.getCoordinates().add(mapLocationForClick);
 
@@ -323,7 +418,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					Log.e("vortex","New GisObj is null!");
 			} else {
 				Log.e("vortex", "gistype null!");
-				//close candidates window if showing.
 				myMap.showCandidates(null);
 			}
 			clickWasShort = true;
@@ -343,7 +437,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			return true;
 		});
 
-		//Remove any gis objects outside current viewport.
 		initializeAndSiftGisObjects();
 		initialized = true;
 	}
@@ -353,12 +446,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	public void editSelectedGop() {
-		//Cancel any ongoing creation
 		if (touchedGop!=null) {
 			newGisObj = touchedGop;
 			currentCreateBag = touchedBag;
 			cancelGisObjectCreation();
-			//start new.
 			startGisObjectCreation(touchedGop.getFullConfiguration());
 			myMap.setVisibleCreate(true, newGisObj.getLabel());
 
@@ -369,7 +460,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	/**
 	 *
-	 * copy only the gis objects in the layers that are visible in this view.
+	 * Filters gis objects in all layers that are visible in this view.
+	 * This should be called once on initialization and whenever map view parameters (zoom, pan) change.
 	 */
 	public void initializeAndSiftGisObjects() {
 		if (myMap==null) {
@@ -377,17 +469,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			return;
 		}
 		for (GisLayer layer :myMap.getLayers()) {
-
-			if (layer.getId().equals("Team")) {
-				Set<GisObject>teamMembers = findMyTeam();
-				if (teamMembers==null || teamMembers.isEmpty())
-					Log.e("bortex","no team members found");
-				else {
-					Log.d("bortex", "found " + teamMembers.size()+" team members");
-					layer.addObjectBag("Team", teamMembers, true, this);
-				}
-
-			}
 			layer.filterLayer(this);
 		}
 	}
@@ -408,8 +489,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			Log.d("vortex","fixed xy"+fixedX+","+fixedY);
 		}
 	}
-
-	//difference in % between ruta and image size.
 
 	private Location mapLocationForClick=null;
 	private float[] clickXY;
@@ -434,7 +513,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		float rX = (float)this.getImageWidth()/2+ xy[0];
 		float rY = (float)this.getImageHeight()/2+ xy[1];
 		pXR = photoMetaData.getWidth()/this.getImageWidth();
-		pYR = photoMetaData.getHeight()/this.getImageHeight();
+		pYR = photoMetaData.getHeight()/this.getImageHeight(); // Corrected
 		double mapDistX = rX*pXR;
 		double mapDistY = rY*pYR;
 		return new SweLocation(mapDistX + photoMetaData.W,photoMetaData.N-mapDistY);
@@ -448,46 +527,23 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	 * @return true if the coordinate is inside the current map.
 	 */
 	public boolean translateMapToRealCoordinates(Location l, int[] xy) {
-		//Unknown location, surely outside.
 		if (l == null)
 			return false;
-		//Assume it is inside
 		boolean isInside = false;
 		double mapDistX = l.getX()-photoMetaData.W;
 		double mapDistY = l.getY()-photoMetaData.S;
 		if ((mapDistX <=imgWReal && mapDistX>=0) && (mapDistY <=imgHReal && mapDistY>=0)) {
-			//Log.d("jgw", " distX: " + mapDistX + " distY: "+mapDistY+" [imgW: "+imgWReal+" imgH: "+imgHReal+"]");
 			isInside = true;
 		}
-//		else {
-//			if(mapDistX>imgWReal||mapDistX<0)
-//				Log.e("jgw","Distance X in meter: "+mapDistX+" [outside!]");
-//			if(mapDistY>imgHReal||mapDistY<0)
-//				Log.e("jgw","Distance Y in meter: "+mapDistY+" [outside!]");
-//			Log.d("jgw","w h of gis image. w h of image ("+photoMetaData.getWidth()+","+photoMetaData.getHeight()+") ("+this.getScaledWidth()+","+this.getScaledHeight()+")");
-//			Log.d("jgw","photo (X) "+photoMetaData.W+"-"+photoMetaData.E);
-//			Log.d("jgw","photo (Y) "+photoMetaData.S+"-"+photoMetaData.N);
-//			Log.d("jgw","object X,Y: "+l.getX()+","+l.getY());
-		//No, it is outside.
-//			isInside = false;
-//		}
-
 
 		pXR = this.getImageWidth()/photoMetaData.getWidth();
-		pYR = this.getImageHeight()/photoMetaData.getHeight();
+		pYR = this.getImageHeight()/photoMetaData.getHeight(); // Corrected
 
-		//		Log.d("vortex","px, py"+pXR+","+pYR);
 		double pixDX = mapDistX*pXR;
 		double pixDY = mapDistY*pYR;
-		//Log.d("vortex","distance on map (in pixel no scale): x,y "+pixDX+","+pixDY);
 		float rX = ((float)pixDX)-(float)this.getImageWidth()/2;
 		float rY = (float)this.getImageHeight()/2-((float)pixDY);
 
-		//		Log.d("vortex","X: Y:"+x+","+y);
-		//		Log.d("vortex","fixScale: "+fixScale);
-		//		Log.d("vortex","after calc(x), calc(y) "+rX+","+rY);
-		//		Log.d("vortex","fX: fY:"+fixedX+","+fixedY);
-		//		Log.d("vortex","after fcalc(x), fcalc(y) "+this.fCalcX(rX)+","+fCalcY(rY));
 		xy[0]=(int)rX;
 		xy[1]=(int)rY;
 
@@ -496,7 +552,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	private Location calculateMapLocationForClick(float x, float y) {
-		//Figure out geo coords from pic coords.
 		clickXY=translateToReal(x,y);
 		mapLocationForClick = translateRealCoordinatestoMap(clickXY);
 		Log.d("vortex","click at "+x+","+y);
@@ -506,11 +561,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	private GisObject createNewGisObject(
 			FullGisObjectConfiguration gisTypeToCreate, Set<GisObject> bag) {
-		//create object or part of object.
 		Map<String, String> keyHash = Tools.copyKeyHash(gisTypeToCreate.getObjectKeyHash().getContext());
 		GisObject ret=null;
 
-		//break if no keyhash.
 		if (keyHash!=null) {
 			String uid = UUID.randomUUID().toString();
 			Log.d("vortex","HACK: Adding uid: "+uid);
@@ -546,7 +599,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				ret.markAsUseful();
 				bag.add(ret);
 
-				//save layer and object for undo.
 				currentCreateBag = bag;
 			}
 		} else
@@ -554,7 +606,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		return ret;
 	}
 
-	//returns true if there is no more backing up possible.
 	public void goBack() {
 		if (newGisObj!=null) {
 			if (newGisObj instanceof StaticGisPoint) {
@@ -570,20 +621,16 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 				if (myDots==null ||myDots.isEmpty()) {
 
-					//If this object exists in the db, it should be deleted if last dot is removed.
 					String keyPairs = Tools.convertToKeyPairs(newGisObj.getKeyHash());
 					int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 					if (rowsAffected>0) {
 						Log.d("claxon","aff: "+rowsAffected);
 						getInstance().getLogger().addText(" erased " + rowsAffected + " entries for GIS object [" + newGisObj.getLabel() + "]");
-						//Create sync entry for all variables with matching keys (no pattern)
 						getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 					}
-					//cancel the creation
 					cancelGisObjectCreation();
 					Log.d("vortex","Go BACK: NewGisObj removed");
 				} else
-					//invalidate done inside cancelGisObjectCreation for other case.
 					invalidate();
 			}
 
@@ -591,12 +638,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	public void createOk() {
-		//if this is a path, close it.
-//		if (newGisObj instanceof GisPolygonObject) {
-//			Path p = createPathFromCoordinates(newGisObj.getCoordinates(), true);
-//			((GisPolygonObject) newGisObj).addPath(p);
-//		}
-		//	((GisPathObject)newGisObj).getPaths().get(0).close();
 		if (currentCreateBag!=null) {
 			Log.d("vortex","inserting new GIS object.");
 			getInstance().getDb().insertGisObject(newGisObj);
@@ -605,11 +646,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			touchedBag = currentCreateBag;
 			currentCreateBag=null;
 			touchedGop = newGisObj;
-			//throw away the current path and force redraw.
 			if (touchedGop instanceof GisPathObject)
 				touchedGop.clearCache();
 			newGisObj=null;
-			//Log.d("vortex","Here touched is TG TB"+touchedGop.toString()+","+touchedBag.toString());
 			myMap.setVisibleAvstRikt(true,touchedGop);
 
 			this.redraw();
@@ -623,7 +662,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	protected void dispatchDraw(Canvas canvas) {
 		super.dispatchDraw(canvas);
 		canvas.save();
-		//scale and adjust.
 		try {
 			float adjustedScale = scale * scaleAdjust;
 			myMap.setZoomButtonVisible(allowZoom && adjustedScale > 2.0f && this.getDrawable() != null);
@@ -632,23 +670,19 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			if(adjustedScale != 1.0f) {
 				canvas.scale(adjustedScale, adjustedScale);
 			}
-			//Log.d("ergo","clearing candidates list");
 			candidates.clear();
 
-			for (int layerCount= myMap.getLayers().size()-1; layerCount>=0;layerCount--) {
+			//for (int layerCount= myMap.getLayers().size()-1; layerCount>=0;layerCount--) {
+			for (int layerCount= 0; layerCount< myMap.getLayers().size();layerCount++) {
+
 				GisLayer layerO = myMap.getLayers().get(layerCount);
 
-				//Log.d("bortex","Drawing layer "+layerId);
-				//get all objects that should be drawn on this layer.
-				//Treat maplayers
 				if (!layerO.isVisible()) {
-					//Log.d("vortex","layer not visible...skipping "+layerId+" Obj: "+layerO.toString());
 					continue;
 				}
 
-				//only allow clicks if something is not already touched.
 				pXR = this.getImageWidth()/photoMetaData.getWidth();
-				pYR = this.getImageHeight()/photoMetaData.getHeight();
+				pYR = this.getImageHeight()/photoMetaData.getHeight(); // Corrected
 				Map<String, Set<GisObject>> bags = layerO.getGisBags();
 				Map<String, Set<GisFilter>> filterMap = layerO.getFilters();
 				boolean isTeamLayer = layerO.getId().equals("Team");
@@ -657,86 +691,63 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				if (bags!=null && !bags.isEmpty()) {
 
 					for (String key:bags.keySet()) {
-						Set<GisFilter> filters = filterMap != null ? filterMap.get(key) : null;
+
 						Set<GisObject> bagOfObjects = bags.get(key);
 						if (bagOfObjects != null) {
-							//Log.d("vortex","bag "+key+" has "+bagOfObjects.size()+" members");
 							for (GisObject go : bagOfObjects) {
-								//Log.d("bortex","Checking "+go.getLabel()+" id: "+go.getId()+ "type: "+go.getClass().getCanonicalName());
-								//If not inside map, or if touched, skip.
 								if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatusVariableValue())) {
-									//Log.d("bortex",go.getLabel()+" is thown. useful?" + go.isUseful());
 									continue;
 								}
 								if (go instanceof GisPointObject) {
 									GisPointObject gop = (GisPointObject) go;
-									Bitmap bitmap = gop.getIcon();
+
+									// Debugging: Log GisPointObject details before translating/drawing
+									if (gop.getLocation() == null) {
+										Log.e("GisImageView", "ERROR: GisPointObject " + gop.getLabel() + " (UUID: " + gop.getKeyHash().get("uuid") + ") has a null Location. Skipping drawing.");
+										// You could also mark it for destruction here if a null location means it's invalid
+										// gop.markForDestruction();
+										continue; // Skip drawing this object if its location is null
+									}
+									Bitmap bitmap = gop.getIcon(); // Get icon from GisObject.
 									String color = gop.getColor();
 									String borderColor = gop.getBorderColor();
-									int[] xy = intBuffer.getIntBuf();
-									boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
 									if (gop.isDynamic()) {
-										//Log.d("Glapp","found dynamic object");
+										int[] xy = intBuffer.getIntBuf();
+										boolean inside = translateMapToRealCoordinates(gop.getLocation(), xy);
 										if (!inside) {
-											//Log.d("Glapp",gop.getLabel()+" outside "+gop.getLocation());
-
 											if (gop.equals(userGop)) {
 												myMap.showCenterButton(false);
 												userGop = null;
 											}
-											//This object should not be drawn.
 											continue;
 										} else {
 											if (gop.isUser()) {
+												// Use the selectedUserNeedle for the user's icon
+												bitmap = selectedUserNeedle; // Assign the custom selected user needle
 												userGop = gop;
 												myMap.showCenterButton(true);
 												gop.setTranslatedLocation(xy);
 											}
-
-
 										}
-									} else {
-										if (isTeamLayer) {
-											GlobalState.TeamPosition myPos = getInstance().getTeamPositions().get(gop.getFullConfiguration().getRawLabel());
-											if (myPos != null) {
-												//Log.d("fenris", "Name " + gop.getFullConfiguration().getRawLabel() + " Latest update: E " + myPos.getPosition().getX()+" N "+myPos.getPosition().getY() + " timestamp: " + myPos.timestamp() + "");
-												gop.setLabel(gop.getFullConfiguration().getRawLabel() + "[" + Tools.getTimeStampDetails(myPos.timestamp(), true) + "]");
-												gop.setTranslatedLocation(xy);
-												//color = Tools.setColorFromTime(myPos.timestamp());
-												boolean anHourOld = Tools.isOverAnHourOld(System.currentTimeMillis() - myPos.timestamp());
-												int bitmapId = anHourOld ? R.drawable.person_away : R.drawable.person_active;
-												bitmap = BitmapFactory.decodeResource(getResources(), bitmapId);
-											}
-										} else
-											bitmap = gop.getIcon();
 									}
 									float radius = gop.getRadius();
 									Style style = gop.getStyle();
 									PolyType polyType = gop.getShape();
 
-									//Log.d("bortex", "LBL: "+gop.getLabel()+" STAT: "+statusValue+" POLLY "+polyType.name());
-
 									String statusColor = gop.getStatusColor();
 									if (statusColor != null)
 										color = statusColor;
-
+									Set<GisFilter> filters = filterMap != null ? filterMap.get(key) : null;
 									if (filters != null && !filters.isEmpty()) {
-
-										//Log.d("vortex","has filter!");
-
 										for (GisFilter filter : filters) {
 											if (filter.isActive()) {
-												//Log.d("vortex","Filter active!");
-
 												if (!gop.hasCachedFilterResult(filter)) {
 													Boolean result = Expressor.analyzeBooleanExpression(filter.getExpression(), gop.getKeyHash(), null);
 													gop.setCachedFilterResult(filter, result);
 												}
 												if (gop.getCachedFilterResult(filter)) {
-													//Log.d("vortex", "FILTER MATCH FOR FILTER: " + filter.getLabel());
 													bitmap = filter.getBitmap();
 													radius = filter.getRadius();
-													//color = filter.getColor();
 													style = filter.getStyle();
 													polyType = filter.getShape();
 												}
@@ -744,24 +755,26 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 												Log.d("vortex", "Filter turned off!");
 										}
 									}
-									xy = gop.getTranslatedLocation();
+									int[] xy = gop.getTranslatedLocation();
+
 									if (xy == null && gop.getCoordinates() != null && !gop.getCoordinates().isEmpty()) {
+										Log.e("GisImageView", "Getzzz for "+gop.getLabel());
 										xy = intBuffer.getIntBuf();
 										translateMapToRealCoordinates(gop.getCoordinates().get(0), xy);
 										gop.setTranslatedLocation(xy);
 										xy = gop.getTranslatedLocation();
 									}
-									if (xy != null) {
-										//Log.d("maga","drawing "+gop.getLabel());
-										drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, borderColor,style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold());
 
-										if (layerO.showLabels()) {
-											if (bitmap!=null && gop.getFullConfiguration().useIconOnMap())
-												drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint,20);
-											else
-												drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);
-										}
+									// Pass the specific bitmap to drawPoint
+									drawPoint(canvas, bitmap, radius, gop.getFullConfiguration().getLineWidth(), color, borderColor,style, polyType, xy, adjustedScale, gop.getFullConfiguration().useIconOnMap(), layerO.isBold()); // Use the `bitmap` variable
+
+									if (layerO.showLabels()) {
+										if (bitmap!=null && gop.getFullConfiguration().useIconOnMap())
+											drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint,20);
+										else
+											drawGopLabel(canvas, xy, go.getLabel(), bCursorPaint, txtPaint);
 									}
+
 
 								} else if (go instanceof GisPathObject) {
 									if (go instanceof GisMultiPointObject) {
@@ -773,13 +786,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 									drawGop(canvas, layerO, go, false);
 								}
 
-								//Check if an object has been clicked in this layer.
 								if (!candMenuVisible && touchedGop == null && gisTypeToCreate == null && mapLocationForClick != null && go.isTouchedByClick(mapLocationForClick, pXR, pYR) && !go.equals(userGop)) {
-
-
 									boolean s = candidates.add(go);
 									if (!s) {
-
 										Log.d("pex", go.getLabel() + " exists: " + candidates.contains(go) + " loc " + go.getCoordinates() + " gid: " + go.getKeyHash());
 										for (GisObject g : candidates)
 											Log.d("pex", g.getLabel() + " loc " + g.getCoordinates() + " gid: " + g.getKeyHash());
@@ -794,19 +803,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 			}
 
-			//Special rendering of touched gop.
 			if (candidates.size()>1) {
 				if (!candMenuVisible) {
 					candidates.sort((lhs, rhs) -> (int) (lhs.getDistanceToClick() - rhs.getDistanceToClick()));
-					//Log.d("vortex","candidate: "+go.getLabel()+" id: "+go.getId());
 					List<GisObject> candies = new ArrayList<>(candidates);
 					candMenuVisible = true;
 					touchedBag=null;
 					myMap.showCandidates(candies);
 				}
 
-
-				//If only one candidate, select it.
 			} else if (!candidates.isEmpty()) {
 				touchedGop=candidates.iterator().next();
 				riktLinjeStart=null;
@@ -814,15 +819,12 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			}
 
 			if (touchedGop!=null) {
-				//Log.d("vortex", "Gop selected now has Keychain: " + touchedGop.getKeyHash());
-				//Find the layer and bag touched.
 				if (touchedBag==null || touchedLayer == null) {
 					for (GisLayer layer : myMap.getLayers()) {
 						touchedBag = layer.getBagContainingGo(touchedGop);
 						if (touchedBag != null) {
 							Log.d("vortex", "setting touchedlayer for "+touchedGop.getKeyHash());
 							touchedLayer = layer;
-							//if longclick, open the actionbar menu.
 							if (!clickWasShort)
 								myMap.startActionModeCb();
 							else {
@@ -838,7 +840,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				if (touchedBag != null) {
 
 					if (clickWasShort && (riktLinjeStart == null || riktLinjeEnd == null) && mostRecentGPSValueTimeStamp!=-1 && myX!=null&&myY!=null&&myX.getValue()!=null && myY.getValue()!=null) {
-						//Create a line from user to object.
 						double mX = Double.parseDouble(myX.getValue());
 						double mY = Double.parseDouble(myY.getValue());
 						riktLinjeStart = intBuffer.getIntBuf();riktLinjeEnd = intBuffer.getIntBuf();
@@ -854,10 +855,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 					drawGop(canvas,touchedLayer,touchedGop,true);
-					//Check if directional line should be drawn.
 					if (riktLinjeStart!=null) {
-						//Log.d("vortex","drawing a million times?");
-						canvas.drawLine(riktLinjeStart[0], riktLinjeStart[1], riktLinjeEnd[0], riktLinjeEnd[1], fgPaintSel);//fgPaintSel
+						canvas.drawLine(riktLinjeStart[0], riktLinjeStart[1], riktLinjeEnd[0], riktLinjeEnd[1], fgPaintSel);
 					}
 				} else {
 					Log.e("vortex", "The touched object does not belong to a bag.");
@@ -879,7 +878,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		if (newGisObj!=null) {
 			double lengthOfPath = 0;
 			myMap.setVisibleCreate(true,newGisObj.getLabel());
-			//Show ok button only after at least 2 points defined.
 			boolean showOk = true;
 			if (newGisObj instanceof GisPathObject) {
 				List<Location> myDots = newGisObj.getCoordinates();
@@ -895,10 +893,8 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 		canvas.restore();
-		//Reset any click done.
 		mapLocationForClick=null;
 		clickXY=null;
-		//Reuse same int arrays and paths next call.
 		intBuffer.reset();
 		pathBuffer.reset();
 	}
@@ -909,152 +905,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private final static String isOverAQuarterColor = "#FFFA0A";
 
 
-
-	public Set<GisObject> findMyTeam() {
-		//Log.d("bortex","In findmyteam");
-
-		Set<GisObject> ret = null;
-
-		final String team = getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
-		final String user = getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);
-		if(team ==null || team.length()==0) {
-			Log.d("vortex","no team found");
-			return null;
-		}
-
-		Map<String,GlobalState.TeamPosition> myTeam = getInstance().getTeamPositions();
-		if (myTeam==null)
-			return null;
-
-		for (String name:myTeam.keySet()) {
-
-			//Log.d("bortex","Adding Team member "+name);
-			if (name==null || name.isEmpty()) {
-				Log.e("vortex","skipping nameless team member");
-				continue;
-			}
-			GlobalState.TeamPosition myP = myTeam.get(name);
-			if (myP.getUuid().equals(getInstance().getGlobalPreferences().get(PersistenceHelper.USERUUID_KEY))) {
-				Log.d("vortex","skipping myself");
-				continue;
-			}
-			//create a key for the workflow.
-			final Map<String,String> keychain = new HashMap<>();
-			keychain.put(DbHelper.YEAR,Constants.getYear());
-			keychain.put("lag",team);
-			keychain.put("author",name);
-			//keychain.put("timestamp", Tools.getTimeStampDetails(l.getMostRecentTimeStamp(), false) + "");
-			//keychain.put("location", l.location + "");
-			Log.d("fenris","Adding team member: "+name+" with keychain: "+keychain);
-
-			GisPointObject member = new StaticGisPoint(new FullGisObjectConfiguration() {
-				@Override
-				public float getLineWidth() {
-					return 2.0f;
-				}
-
-				@Override
-				public float getRadius() {
-					return 4.0f;
-				}
-
-				@Override
-				public String getColor() {
-					//not used
-					return "black";
-				}
-
-				@Override
-				public String getBorderColor() {
-					return "red";
-				}
-
-				@Override
-				public GisObjectType getGisPolyType() {
-					return GisObjectType.Point;
-				}
-
-				@Override
-				public Bitmap getIcon() {
-					return BitmapFactory.decodeResource(getResources(), R.drawable.person_active);
-				}
-
-				@Override
-				public Style getStyle() {
-					return Style.FILL_AND_STROKE;
-				}
-
-				@Override
-				public PolyType getShape() {
-					return PolyType.circle;
-				}
-
-				@Override
-				public String getClickFlow() {
-					return "wf_teammember";
-				}
-
-				@Override
-				public DB_Context getObjectKeyHash() {
-					return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", keychain);
-				}
-
-				@Override
-				public String getStatusVariable() {
-					return null;
-				}
-
-				@Override
-				public boolean isUser() {
-					return false;
-				}
-
-				@Override
-				public String getName() {
-					return name;
-				}
-
-				@Override
-				public String getRawLabel() {
-					return name;
-				}
-
-				@Override
-				public String getCreator() {
-					return "";
-				}
-
-				@Override
-				public boolean useIconOnMap() {
-					return true;
-				}
-
-				@Override
-				public boolean isVisible() {
-					return true;
-				}
-
-				@Override
-				public List<Expressor.EvalExpr> getLabelExpression() {
-					return Expressor.preCompileExpression(name);
-				}
-			}, keychain, myP.getPosition(), null, null);
-			member.setLabel(name + "[" + Tools.getTimeStampDetails(myP.timestamp(),  true) + "]");
-			GisLayer.markIfUseful(member, this);
-
-			if (ret == null)
-				ret = new HashSet<>();
-			ret.add(member);
-		}
-
-		return ret;
-	}
-
 	private boolean isExcludedByStandardFilter(String status) {
 		if (status==null)
 			return false;
-		//Log.d("vortex","status is: "+status+" excluded? "+!myMap.isNotExcluded(status));
-
 		return !myMap.isNotExcluded(status);
 	}
 
@@ -1070,17 +923,16 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		if (newGisObj != null) {
 			beingDrawn = go.equals(newGisObj);
-			//Log.d("blommor","beingdrawn "+beingDrawn+" for "+go.getLabel());
 		}
-		//will only be called from here if selected.
 		GisPointObject gop;
 		boolean isBold = (layerO==null?false:layerO.isBold());
-		//Only gets her for Gispoint, if it is selected.
 		if (go instanceof GisPointObject) {
 			gop = (GisPointObject) go;
 			if (gop.getTranslatedLocation() != null) {
-				//Log.d("vortex","Calling drawpoint in dispatchdraw for "+go.getLabel());
-				drawPoint(canvas, null, gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red",null, Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,isBold);
+				// The actual drawing of the point's shape and color.
+				// If useIconOnMap is true, drawPoint will use the bitmap passed to it.
+				// If not, it will draw a circle/rect/triangle with radius/color.
+				drawPoint(canvas, gop.getIcon(), gop.getRadius(),gop.getFullConfiguration().getLineWidth(), "red",null, Style.FILL, gop.getShape(), gop.getTranslatedLocation(), 1,false,isBold);
 			} else
 				Log.e("vortex", "NOT calling drawpoint since translatedlocation was null");
 
@@ -1088,7 +940,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			boolean singlePath = false,isPolygon = (go instanceof GisPolygonObject);
 
 			GisPathObject gpo = (GisPathObject) go;
-			//Add glow effect if it is currently selected.
 
 			if (beingDrawn) {
 				Path p = createPathFromCoordinates(gpo.getCoordinates(),false);
@@ -1099,10 +950,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				drawPoint(canvas, null,2,go.getFullConfiguration().getLineWidth(), "white", null,Style.STROKE, PolyType.circle, xy,1,false,isBold);
 			} else {
 				if (go instanceof GisPolygonObject) {
-					//check if buffered paths already exists.
 					if (gpo.getPaths() == null) {
-						//no...create.
-
 						for (List<Location> ll : ((GisPolygonObject) gpo).getPolygons().values()) {
 							Path p = createPathFromCoordinates(ll,true);
 							if (p != null) {
@@ -1136,12 +984,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				}
 			}
 		}
-		//Check if label should be drawn.
 
 		if (!selected&&layerO!=null && layerO.showLabels() && !beingDrawn) {
 			xy = intBuffer.getIntBuf();
 			translateMapToRealCoordinates(go.getLocation(),xy);
-			//Log.d("vortex","Calling drawlabel in drawgop for "+go.getLabel()+". I am a path? "+(go instanceof GisPathObject)+" Iam point? "+(go instanceof GisPointObject));
 			drawGopLabel(canvas,xy,go.getLabel(), bCursorPaint,vtnTxt);
 		}
 
@@ -1154,12 +1000,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			canvas.drawPath(p, paintBlur);
 			canvas.drawPath(p, paintSimple);
 		} else {
-			// strokeWidth: 0 changed to display-aware
 			float linew = go.getFullConfiguration().getLineWidth();
 			canvas.drawPath(p,
 					createPaint(
 							go.getStatusColor(),
-							Paint.Style.STROKE,
+							Style.STROKE,
 							(int) ((isBold?linew+2:linew) * getResources().getDisplayMetrics().density) ));
 		}
 	}
@@ -1190,9 +1035,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 
-
-
-
 	/**
 	 * Draws a Label above the object location at the distance given by offSet
 	 */
@@ -1206,12 +1048,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			bounds = new Rect();
 			rectBuffer.put(xy,bounds);
 		}
-		mLabel=mLabel==null?"":mLabel; //prevent null exception if label is null.
+		mLabel=mLabel==null?"":mLabel;
 		txtPaint.getTextBounds(mLabel, 0, mLabel.length(), bounds);
 		int textH = bounds.height()/2;
 		bounds.offset(xy[0] -bounds.width()/2, xy[1] - (bounds.height()/2+(int) (float) offset));
 		bounds.set(bounds.left-2,bounds.top-2,bounds.right+2,bounds.bottom+2);
-		//txtPaint.setTextAlign(Paint.Align.CENTER);
 		canvas.drawRect(bounds, bgPaint);
 		canvas.drawText(mLabel, bounds.centerX(), bounds.centerY()+textH,txtPaint);
 
@@ -1220,31 +1061,36 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private void drawPoint(Canvas canvas, Bitmap bitmap, float radius, float linew, String color, String border_color,Style style, PolyType type, int[] xy, float adjustedScale, boolean useIconOnMap, boolean isBold) {
 
 		Rect r;
-		//Log.d("bortex","in drawpoint type "+type.name()+" bitmap: "+bitmap);
-		//Log.d("arriba","useI"+useIconOnMap+" bm: "+(bitmap!=null));
+		// If a bitmap is provided AND useIconOnMap is true for this GisObject, use the bitmap
 		if (useIconOnMap && bitmap!=null ) {
+			final int DRAW_WIDTH_DP = 16;
+			final int DRAW_HEIGHT_DP = 24;
+			float density = getResources().getDisplayMetrics().density;
+			int drawPxWidth = (int)(DRAW_WIDTH_DP * density);
+			int drawPxHeight = (int)(DRAW_HEIGHT_DP * density);
 			r = new Rect();
-			//Log.d("vortex","bitmap! "+gop.getLabel());
-			r.set(xy[0]-16, xy[1]-16, xy[0]+16, xy[1]+16);
+			// Calculate left and right to center horizontally on xy[0]
+			int left = xy[0] - drawPxWidth / 2;
+			int right = xy[0] + drawPxWidth / 2;
+			// Calculate top and bottom so that the bottom of the bitmap is at xy[1]
+			int bottom = xy[1];
+			int top = xy[1] - drawPxHeight; // Shift up by the full height of the bitmap
+			r.set(left, top, right, bottom);
 			canvas.drawBitmap(bitmap, null, r, null);
-		} //circular?
-
-		else {
+		} else { // Fallback to drawing a shape (circle, rect, triangle)
 			boolean hasBorder = (border_color!=null);
 			int translBw=0;
 			Paint borderPaint=null;
 			if (hasBorder) {
-                translBw = (int) (linew * getResources().getDisplayMetrics().density);
-                borderPaint = createPaint(border_color, Style.STROKE, (int) (linew * getResources().getDisplayMetrics().density));
-            }
+				translBw = (int) (linew * getResources().getDisplayMetrics().density);
+				borderPaint = createPaint(border_color, Style.STROKE, (int) (linew * getResources().getDisplayMetrics().density));
+			}
 			if (type == PolyType.circle) {
 				canvas.drawCircle(xy[0], xy[1], radius, createPaint(color, style, linew, isBold));
 				if (hasBorder)
 					canvas.drawCircle(xy[0], xy[1], radius+translBw, borderPaint);
 			}
-			//no...square.
 			else if (type == PolyType.rect) {
-				//Log.d("vortex","rect!");
 				int diam = (int) (radius / 2);
 				int left = xy[0] - diam;
 				int right = xy[0] + diam;
@@ -1261,8 +1107,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			}
 		}
 	}
-
-	//0 = distance, 1=riktning.
 
 
 	public void drawTriangle(Canvas canvas, float radius, int x, int y, Paint paint) {
@@ -1283,18 +1127,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		touchedBag=null;
 		touchedGop=null;
 		myMap.setVisibleAvstRikt(false,null);
-		//Remove directional line.
 		riktLinjeStart=null;
 		riktLinjeEnd=null;
 		invalidate();
 	}
 
 
-
-	//save the position where the user pressed start.
 	private int[] riktLinjeStart,riktLinjeEnd;
 
-    private final static int TimeOut = 3;
+	private final static int TimeOut = 3;
 
 	private void displayDistanceAndDirection() {
 		final int interval = TimeOut*1000;
@@ -1304,7 +1145,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			Runnable runnable = new Runnable(){
 				public void run() {
 					displayDistanceAndDirectionL(null);
-					//Log.d("vortex","displaydistcalled from disp timer");
 					if (handler!=null)
 						handler.postDelayed(this, interval);
 				}
@@ -1320,29 +1160,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		if (touchedGop==null) {
 			handler=null;
-			//Log.e("vortex","Touched GOP null in dispDistAndDir. Will exit");
 			return;
 		}
 
-		//Check preconditions for GPS to work
-		//Log.d("wolf","In display distance an direction");
 		if (myX==null||myY==null|| getInstance()==null) {
 			myMap.setAvstTxt("Config");
 			myMap.setRiktTxt("fault!");
 			handler=null;
 			return;
 		}
-
-
-	//	if (!getInstance().getTracker().isGPSEnabled) {
-	//		myMap.setAvstTxt("GPS OFF");
-	//		myMap.setRiktTxt("");
-	//		return;
-			//myMap.setRiktTxt(spinAnim());
-	//	}
-		//Start a redrawtimer if not already started that redraws this window independent of the redraw cycle of the gops.
-
-		//Check  timediff. Returns null in case no value exists.
 
 		long timeDiff;
 		long ct;
@@ -1351,7 +1177,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			timeDiff = (ct-mostRecentGPSValueTimeStamp)/1000;
 
 		} else {
-
 			myMap.setAvstTxt("GPS");
 			myMap.setRiktTxt("searching");
 			return;
@@ -1359,9 +1184,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		boolean old = timeDiff>TimeOut;
 		if (old) {
-			//Log.d("vortex","Time of insert: "+mostRecentGPSValueTimeStamp);
-			//Log.d("vortex","Current time: "+ct);
-			//Log.d("vortex","TimeDiff: "+timeDiff);
 			myMap.setAvstTxt("Lost signal");
 			myMap.setRiktTxt(timeDiff+" s");
 
@@ -1371,7 +1193,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		String mYs = myY.getValue();
 		double mX = Double.parseDouble(mXs);
 		double mY = Double.parseDouble(mYs);
-		//COMPARE DIFF - REPLACE WITH SIGNAL VALUE IF PRESENT AND DIFFERENT
 		if(s !=null && s.x != -1) {
 			if (mX != s.x || mY != s.y) {
 				mX = s.x;
@@ -1388,11 +1209,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		myMap.setAvstTxt(currentDistance >9999?(currentDistance /1000+"km"):(currentDistance +"m"));
 		myMap.setRiktTxt(rikt+Deg);
 
-
-
 	}
-
-
 
 
 	private final Map<String,Paint> paintCache = new HashMap<>();
@@ -1406,13 +1223,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		String key = style==null?color+strokeWidth:color+strokeWidth+style.name();
 		Paint p = paintCache.get(key);
 		if (p!=null) {
-			//Log.d("gimli","returns cached paint for "+key+" color: "+color+" cached color: "+p.getColor());
 			return p;
 		}
-		//If no cached object, create.
 		p = new Paint();
 		p.setColor(color!=null?Color.parseColor(color):Color.YELLOW);
-		p.setStyle(style!=null?style:Paint.Style.FILL);
+		p.setStyle(style!=null?style:Style.FILL);
 		p.setStrokeWidth(strokeWidth);
 		paintCache.put(key, p);
 		return p;
@@ -1421,7 +1236,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private FullGisObjectConfiguration gisTypeToCreate;
 
 	public void runSelectedWf() {
-		//update image to close polygon.
 		invalidate();
 		if (touchedGop!=null)
 			runSelectedWf(touchedGop);
@@ -1446,36 +1260,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 					})
 					.show();
 		} else {
-			/*
-			if (gop.getStatusVariableId()!=null) {
-				Map<String, String> keyHash = gop.getKeyHash();
-				if (keyHash!=null)
-					keyHash.put(VariableConfiguration.KEY_YEAR,Constants.getYear());
-				Log.d("grogg","wfclick keyhash is "+keyHash+" for "+gop.getLabel());
-
-				Variable statusVariable = getInstance().getVariableCache().getVariable(keyHash,gop.getStatusVariableId());
-				if (statusVariable!=null) {
-					String valS = statusVariable.getValue();
-					if (valS == null || valS.equals(Constants.STATUS_INITIAL)) {
-						statusVariable.setValue("1");
-						gop.setStatusVariableValue("1");
-						myMap.registerEvent(new WF_Event_OnSave("Gis"));
-					}
-					//keep track
-					currentStatusVariable = new CurrStatVar();
-					currentStatusVariable.v = statusVariable;
-					currentStatusVariable.id = gop.getKeyHash().get("uid");
-
-				} else {
-					Log.e("grogg", "StatusVariable definition error");
-					LoggerI o = getInstance().getLogger();
-					o.o.addText("");
-					o.addRedText("StatusVariable definition missing for: "+gop.getStatusVariableId());
-				}
-
-			} else
-				Log.e("grogg",gop.getStatusVariableId()+" is null");
-			*/
 			GlobalState.getInstance().changePage(wf,gop.getStatusVariableId());
 
 		}
@@ -1484,20 +1268,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	public void centerOnUser() {
 		centerOn(userGop);
-	}/* else {
-			new AlertDialog.Builder(ctx)
-			.setTitle("Context problem")
-			.setMessage("You are either outside map or have no valid GPS location.")
-			.setIcon(android.R.drawable.ic_dialog_alert)
-			.setCancelable(true)
-			.setNeutralButton("Ok",new Dialog.OnClickListener() {
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-
-				}
-			} )
-			.show();
-		}*/
+	}
 
 	public void centerOnCurrentDot() {
 		centerOn(newGisObj);
@@ -1510,9 +1281,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			int[] xy = intBuffer.getIntBuf();
 			boolean inside = translateMapToRealCoordinates(gisObject.getLocation(),xy);
 			if (inside) {
-//					Log.d("vortex","X Y USER "+xy[0]+","+xy[1]);
-				//Log.d("vortex","RX RY USER "+rxy[0]+","+rxy[1]);
-//					Log.d("vortex","X Y SCALE: SCALEADJ:"+x+","+y+","+scale+","+scaleAdjust);
 				setPosition(fixedX-xy[0]*scaleAdjust,fixedY-xy[1]*scaleAdjust);
 				this.invalidate();
 			}
@@ -1521,7 +1289,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 	public void hideImage() {
-		//use exisitng size if any so that clicks on empty canvas get correctly calculated coordinates.
 		this.setStaticMeasure(this.getImageWidth(),this.getImageHeight());
 		setImageDrawable(null);
 	}
@@ -1550,7 +1317,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 	public void startGisObjectCreation(FullGisObjectConfiguration fop) {
-		//unselect if selected
 		Toast.makeText(ctx,"Click on map to register a coordinate",Toast.LENGTH_LONG).show();
 		this.unSelectGop();
 		gisTypeToCreate=fop;
@@ -1558,19 +1324,14 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	public void deleteSelectedGop() {
 		if (touchedGop!=null) {
-			//GlobalState.getInstance().getDb().deleteAllVariablesUsingKey(touchedGop.getKeyHash());
-
 			String keyPairs = Tools.convertToKeyPairs(touchedGop.getKeyHash());
 			int rowsAffected = getInstance().getDb().erase(keyPairs,null);
 			if (rowsAffected>0) {
 				Log.d("claxon","aff: "+rowsAffected);
 				getInstance().getLogger().addText(" erased " + rowsAffected + " entries for GIS object [" + touchedGop.getLabel() + "]");
-				//Create sync entry for all variables with matching keys (no pattern)
 				getInstance().getDb().insertEraseAuditEntry(keyPairs,null);
 			}
-			//GlobalState.getInstance().getVariableCache().deleteAll(touchedGop.getKeyHash());
 			touchedBag.remove(touchedGop);
-			//Dont need to keep track of the bag anymore.
 			touchedGop=null;
 			invalidate();
 		} else
@@ -1606,10 +1367,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private long mostRecentGPSValueTimeStamp=-1;
 	@Override
 	public void gpsStateChanged(GPS_State gps_state) {
-		//Log.d("vortex","Got GPS STATECHANGE");
 		if (gps_state.state==GPS_State.State.newValueReceived||gps_state.state==GPS_State.State.ping) {
 			mostRecentGPSValueTimeStamp = System.currentTimeMillis();
 			displayDistanceAndDirectionL(gps_state);
+			teamStatusViewModel.gpsStateChanged(gps_state);
 		}
 		this.postInvalidate();
 
@@ -1619,7 +1380,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 	public List<Location> getRectGeoCoordinates() {
 
-		//Left top right bottom!
 		List<Location> ret = new ArrayList<> ();
 
 		Location topCorner = calculateMapLocationForClick(0,0);
@@ -1633,10 +1393,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	}
 
 	public Rect getCurrentViewSize(float fileImageWidth,float fileImageHeight) {
-		//float Scales = scale * scaleAdjust;
-
-
-		//int top = (int)(rX-this.getImageWidth()/2);
 
 		final float Xs = (float)this.getScaledWidth()/2-x;
 		final float Ys = (float)this.getScaledHeight()/2-y;

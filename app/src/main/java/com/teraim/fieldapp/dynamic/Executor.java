@@ -911,10 +911,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 												if (!found) {
 													Log.d("nils", "Variable not found.Removing");
 													v.deleteValue();
-													//myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_cond_cont"));
+													myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_cond_cont"));
 
 												}
-
 											}
 										}
 									}, 0);
@@ -1084,7 +1083,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			Log.d("vortex","Registering WF EXECUTION");
 			myContext.registerEvent(new WF_Event_OnFlowExecuted("executor"));
 			if (root==null) {
-				int c = getActivity().getFragmentManager().getBackStackEntryCount();
+				int c = getActivity().getSupportFragmentManager().getBackStackEntryCount();
 				Log.d("blax","need to redraw previous fragment if there is one! "+c);
 				if (c>0) {
 					Log.d("blax","there is a fragment to redraw. Try broadcast!");
@@ -1188,24 +1187,23 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	//Refresh all the gislayers.
-	public void refreshGisObjects() {
+	public void refreshGisObjects(WF_Context context) {
 		for (Block b: wf.getBlocks()) {
 			AddGisPointObjects bl;
 			if (b instanceof AddGisPointObjects) {
 				bl = ((AddGisPointObjects) b);
-				bl.create(myContext, true);
+				bl.create(context, true);
 			}
 		}
-		for (GisLayer layer :myContext.getCurrentGis().getLayers()) {
+		for (GisLayer layer :context.getCurrentGis().getLayers()) {
 			//Log.d("grogg","In refreshgisobjects");
-			layer.filterLayer(myContext.getCurrentGis().getGis());
+			layer.filterLayer(context.getCurrentGis().getGis());
 		}
 
 
 	}
 
 	public void onLocationChanged(Location location) {
-		Log.d("fenris","Recieved location update at "+Tools.getCurrentTime());
 		if (location!=null && myX!=null) {
 			SweLocation myL = Geomatte.convertToSweRef(location.getLatitude(),location.getLongitude());
 

@@ -19,7 +19,7 @@
     </string-array>
     <string-array name="log_levels">
         <item>Normal</item>
-        <item>Kritiska</item>
+        <item>Bara allvarliga</item>
     </string-array>
     <string-array name="log_level_values">
         <item>normal</item>
@@ -43,5 +43,9 @@
         <item>Internet</item>
         <item>NONE</item>
     </string-array>
-
+    <array name="map_needle_image_sets">
+        <item>@drawable/icon_set3</item>
+        <item>@drawable/icon_set2</item>
+        <item>@drawable/icon_set1</item>
+    </array>
 </resources>

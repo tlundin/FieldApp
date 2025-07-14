@@ -160,6 +160,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	//Refresh: only add new objects created after last check.
 
 	public void create(WF_Context myContext, boolean refresh) {
+		Log.d("maga","Creating GisPointObjects - myContext is "+myContext.toString()+" refresh is "+refresh+ "myGis is "+myContext.getCurrentGis().toString());
 		setDefaultBitmaps(myContext);
 		o = LogRepository.getInstance();
 		GlobalState gs = GlobalState.getInstance();
@@ -190,7 +191,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			}
 		}
 
-
 		if (imgSource!=null&&imgSource.length()>0 ) {
 			File cached = gs.getCachedFileFromUrl(imgSource);
 			if (cached==null) {
@@ -208,9 +208,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				}
 			}
 		}
-
-
-
 
 		//Generate the context for these objects.
 		objectKeyHash = DB_Context.evaluate(objContextE);
@@ -243,7 +240,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		String[] locationVarArray = locationVariables.split(",");
 		if (locationVarArray.length>2){
 			Log.e("vortex","Too many GPS Location variables! Found "+locationVarArray.length+" variables.");
-			
 			o.addCriticalText("Too many GPS Location variables! Found "+locationVarArray.length+" variables. You can only have either one with format GPS_X,GPS_Y or one for X and one for Y!");
 			return;
 		}
@@ -275,28 +271,11 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		if (this.getStatusVariable()!=null) {
 
 			statusVarS = GlobalState.getInstance().getDb().createSelection(currYearH, this.getStatusVariable().trim());
-			/*
-			if (refresh) {
-				statusVarS.selection+=" and timestamp > ?";
-				String[] s =Arrays.copyOf(statusVarS.selectionArgs, statusVarS.selectionArgs.length+1);
-				s[statusVarS.selectionArgs.length] = lastCheckTimeStamp;
-				statusVarS.selectionArgs = s;
-			}
-			*/
-			pickerStatusVars = GlobalState.getInstance().getDb().getAllVariableInstances(statusVarS);
+			//can have several statusvalues for the same uid. get the latest.
+			pickerStatusVars = GlobalState.getInstance().getDb().getLatestVariableInstancesByUid(statusVarS);
 		}
-
-		//superhack
 
 		coordVar1S = GlobalState.getInstance().getDb().createSelection(objectKeyHash.getContext(), locationVar1);
-		//If this is a refresh, dont fetch anything that has already been fetched.
-		/*if (refresh) {
-			coordVar1S.selection+=" and timestamp > ?";
-			String[] s =Arrays.copyOf(coordVar1S.selectionArgs, coordVar1S.selectionArgs.length+1);
-			s[coordVar1S.selectionArgs.length] = lastCheckTimeStamp;
-			coordVar1S.selectionArgs = s;
-		}
-		*/
 		Log.d("vortex","selection: "+coordVar1S.selection);
 		Log.d("vortex","sel args: "+print(coordVar1S.selectionArgs));
 		List<String> completeVariableDefinitionForL1 = al.getCompleteVariableDefinition(locationVar1);
@@ -320,7 +299,6 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			completeVariableDefinitionForL2 = al.getCompleteVariableDefinition(locationVar2);
 			if (completeVariableDefinitionForL2==null) {
 				Log.e("vortex","Variable L2 not found!");
-				
 				o.addCriticalText("Variable "+locationVar2+" was not found. Check Variables.CSV and Groups.CSV!");
 				return;
 			}
@@ -371,18 +349,26 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 						Map<String, Pair<String, String>> statusVarM = null;
 						//Find status per UID for all geo objects. This is used to color the objects later on.
 						if (pickerStatusVars != null) {
-
+							boolean duplicate = false;
 							while (pickerStatusVars.next()) {
 								String value = pickerStatusVars.getVariable().value;
 								String name = pickerStatusVars.getVariable().name;
-								//Log.d("fenris","STATUSVAR: "+name+" value: "+value);
+								//Log.d("fenris","STATUSVAR: "+name+" value: "+value+" uuid "+pickerStatusVars.getKeyColumnValues().get("uid"));
 								//Store status var name & value for per uuid.
 								if (statusVarM == null)
 									statusVarM = new HashMap<String, Pair<String, String>>();
-								statusVarM.put(pickerStatusVars.getKeyColumnValues().get("uid"), new Pair<>(name, value));
+								Pair<String, String> oldValue = statusVarM.put(pickerStatusVars.getKeyColumnValues().get("uid"), new Pair<>(name, value));
+								if (oldValue != null) {
+									Log.d("fenris","found duplicate for "+name);
+									duplicate=true;
+								}
+
 							}
 							pickerStatusVars.close();
-
+							if (!duplicate) {
+								Log.d("fenris", "no duplicates found");
+								//Log.d("fenris","myvar has value "+statusVarM.get("745EF86F-2F89-4055-BCA2-3436E7E89CC9").second);
+							}
 						} else
 							Log.d("fenris", "PICKERSTATUSVARS NULL FOR " + statusVariable);
 
@@ -438,8 +424,10 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 								this.creator = storedVar1.creator;
 								if (myTypeS.equalsIgnoreCase(GisObjectType.Point.toString())) {
 									if (!dynamic) {
-										//Log.d("vortex","adding "+this.getName());
-										myGisObjects.add(new StaticGisPoint(this, map1, new SweLocation(storedVar1.value), statusVarP.first, statusVarP.second));
+										StaticGisPoint gisPoint = new StaticGisPoint(this, map1, new SweLocation(storedVar1.value), statusVarP.first, statusVarP.second);
+										myGisObjects.add(gisPoint);
+											//if (map1.get("trakt").equals("3303"))
+											//Log.d("maga","AddGisP "+gisPoint.hashCode()+" statusvar is 1. "+statusVarP.first+" 2. "+statusVarP.second+"");
 									} else {
 										myGisObjects.add(new DynamicGisPoint(this, map1, v1, statusVarP.first, statusVarP.second));
 									}
@@ -452,11 +440,10 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 								}
 							}
 							//Add these variables to bag
-
 						} while (pickerLocation1.next());
 						//Store timestamp for refresh calls.
 						lastCheckTimeStamp = thisCheck;
-						Log.d("vortex", "Added " + myGisObjects.size() + " objects of type " + this.getName() == null ? "null" : this.getName());
+						Log.d("fenris", "Final Count " + myGisObjects.size() + " objects of type " + this.getName());
 					}
 
 				}
@@ -466,6 +453,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				if (pickerLocation2 != null)
 					pickerLocation2.close();
 			} finally {
+				Log.d("fenris","finally!");
 				if (pickerLocation1 != null)
 					pickerLocation1.close();
 				if (pickerLocation2 != null)
@@ -478,12 +466,11 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			//Add bag to layer.
 			GisLayer myLayer = myContext.getCurrentGis().getLayerFromId(target);
 			if (myLayer !=null) {
-
-				myLayer.addObjectBag(nName,myGisObjects,dynamic,myContext.getCurrentGis().getGis());
-
+				//Log.d("maga","adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
+				myLayer.addObjectBag(nName,myGisObjects,dynamic);
+				//Log.d("maga","layer has "+myLayer.getGisBags().keySet());
 			} else {
 				Log.e("vortex","Could not find layer ["+target+"] for type "+nName);
-				
 				o.addCriticalText("Could not find layer ["+target+"]. This means that type "+nName+" was not added");
 			}
 		}

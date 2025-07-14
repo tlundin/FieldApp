@@ -21,17 +21,6 @@ public class GisObject {
 	double distanceToClick=-1;
 	protected String label=null;
 	private String statusVariableId=null,statusVariableValue=null;
-
-	public void setStatusVariableValue(String value) {
-		this.statusVariableValue =value;
-	}
-
-
-	public enum CoordinateType {
-		sweref,
-		latlong
-	}
-
 	private FullGisObjectConfiguration foc;
 
 	public GisObject(Map<String, String> keyChain,List<Location> myCoordinates) {
@@ -55,10 +44,7 @@ public class GisObject {
 		//	Log.d("plaxxo","status 100 for "+statusVarName+" "+conf.getRawLabel());
 	}
 
-
-
-	protected CoordinateType coordinateType = CoordinateType.sweref;
-	List<Location> myCoordinates = new ArrayList<Location>();
+	List<Location> myCoordinates;
 	private final Map<String, String> keyChain;
 	private Map<String, String> attributes;
 	private boolean isUseful;
@@ -147,6 +133,7 @@ public class GisObject {
 		int statusValue = Integer.parseInt(statusVariableValue);
 		//Log.d("fenris","statvar "+statusVariableId+" value was "+statusVariableValue+" statval is "+statusValue);
 		if (statusVariableId.equals("STATUS:status_trakter")) {
+			//Log.d("fenris","gop "+this.getLabel()+" object "+this.hashCode()+" has status "+statusVariableValue);
 			if (statusVariableValue.equals(Constants.STATUS_HIGH_PRIORITY))
 					return "#9900ff";
 			else if (statusVariableValue.equals(Constants.STATUS_INITIAL))

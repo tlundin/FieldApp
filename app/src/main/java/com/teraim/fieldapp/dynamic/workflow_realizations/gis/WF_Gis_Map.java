@@ -67,6 +67,7 @@ import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
+import com.teraim.fieldapp.viewmodels.TeamStatusViewModel;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -103,6 +104,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private final ImageButton zoomB;
     private final ImageButton centerB;
     private final ModuleLoaderViewModel viewModel;
+    private final TeamStatusViewModel teamStatusViewModel;
     private Animation popupShow,layersPopupShow;
     private final Animation popupHide;
     private Animation layersPopupHide;
@@ -196,15 +198,52 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
         super(id, mapView, isVisible, myContext);
-
+        Log.d("maga","In WF_Gis_Map create with context "+myContext.toString());
         GlobalState gs = GlobalState.getInstance();
-
         this.myContext=myContext;
         this.myDaddy=createGisBlock;
         //This is a zoom level if layers are imported.
         isZoomLevel = daddyLayers!=null;
         gisImageView = mapView.findViewById(R.id.GisV);
         gisImageView.setImageBitmap(bmp);
+
+        //gisImageView.setViewModelStoreOwner(myContext.getFragmentActivity());
+
+        // NEW: Attach OnAttachStateChangeListener to gisImageView
+        gisImageView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
+            @Override
+            public void onViewAttachedToWindow(View v) {
+                Log.d("WF_Gis_Map", "GisImageView attached to window. Observers active.");
+                gisImageView.setViewModelStoreOwner(myContext.getFragmentActivity());
+                // Observers are already registered via setViewModelStoreOwner and LiveData's lifecycle awareness.
+                // No explicit action needed here unless you explicitly deregistered them on detach and want to re-register.
+            }
+
+            @Override
+            public void onViewDetachedFromWindow(View v) {
+                Log.d("WF_Gis_Map", "GisImageView detached from window. Removing ViewModel observers.");
+                // When this specific GisImageView is removed from the window, remove its observers.
+                if (gisImageView != null) {
+                    gisImageView.removeViewModelObservers();
+                }
+                // Also, consider any other cleanup specific to this WF_Gis_Map instance here.
+                // e.g., if WF_Gis_Map itself has timers, listeners, or resources to release.
+            }
+        });
+        //set fragment as owner of viewmodel lifecycle for team updates
+        teamStatusViewModel = new ViewModelProvider(gs.getActivity()).get(TeamStatusViewModel.class);
+        refreshB = mapView.findViewById(R.id.menuR);
+        // OBSERVE the serverPendingUpdate LiveData from the ViewModel
+        teamStatusViewModel.serverPendingUpdate.observe(myContext.getFragmentActivity(), hasNewVersion -> {
+            if (hasNewVersion != null && hasNewVersion) {
+                // Update UI to indicate a new version
+                refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
+                // Optionally, show a Toast or Snackbar
+                //Toast.makeText(myContext.getFragmentActivity(), "New server version available!", Toast.LENGTH_LONG).show();
+            } else {
+                 refreshB.setImageResource(R.drawable.gis_refresh_button); // Assuming you have a normal icon
+            }
+        });
         Log.d("vortex", "Image width and height is :"+ bmp.getWidth()+","+bmp.getHeight());
         Log.d("vortex", "realWW and realHH is :"+ realWW+","+realHH);
         this.realW = realWW; //bmp.getWidth();
@@ -306,11 +345,6 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         });
 
-
-
-        refreshB = mapView.findViewById(R.id.menuR);
-        if (gs.serverHasNewVersion())
-            refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
         refreshB.setOnClickListener(v -> {
             Log.d("vortex", "Refresh clicked. Starting refresh workflow.");
             refreshB.setImageResource(R.drawable.refresh_selector);
@@ -318,7 +352,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
 
             // Tell the ViewModel to execute it, always forcing a reload for a refresh.
-            viewModel.execute(refreshWorkflow, true);
+            viewModel.execute(refreshWorkflow, true,myContext);
         });
         // Set up an observer to react to the result of the ViewModel's execution
         setupRefreshObserver();
@@ -431,7 +465,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
         ImageButton carNavB = mapView.findViewById(R.id.carNavB);
 
-        if (!myContext.hasSatNav())
+        if (!myContext.hasCarNavigation())
             carNavB.setVisibility(View.GONE);
         else {
 
@@ -644,16 +678,16 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     private void setupRefreshObserver() {
         viewModel.onSuccessEvent.observe(myContext.getFragmentActivity(), event -> {
             if (event == null) return;
-
             // Use getContentIfNotHandled() to ensure the operation runs only once.
             ModuleLoaderViewModel.WorkflowResult result = event.getContentIfNotHandled();
-
-            if (result != null) {
-                if (myContext.getCurrentGis() != null) {
+            if (result != null && result.myContext() != null) {
+                WF_Context prevContext = result.myContext();
+                if (prevContext.getCurrentGis() != null) {
                     // These heavy operations are now protected from repeated calls.
-                    myContext.refreshGisObjects();
-                    gisImageView.redraw();
-                    refreshB.setClickable(true);
+                    prevContext.refreshGisObjects();
+                    prevContext.getCurrentGis().refreshB.setClickable(true);
+                    prevContext.getCurrentGis().getGis().redraw();
+                    //refreshB.setClickable(true);
                     int n_provytor = 0;
                     if (GlobalState.getInstance().getProvYtaTypes() != null)
                         n_provytor =GlobalState.getInstance().getProvYtaTypes().size();
@@ -661,7 +695,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     Toast.makeText(ctx, ctx.getString(R.string.refresh_completed) +" "+n_provytor+" "+ctx.getString(R.string.layers), Toast.LENGTH_SHORT).show();
                 } else
                     LogRepository.getInstance().addColorText("Refresh before map ready",ContextCompat.getColor(ctx, R.color.purple));
-                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, false);
+                teamStatusViewModel.acknowledgeConfigUpdate();
             }
         });
     }
@@ -767,41 +801,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
     @Override
     public void onEvent(Event e) {
-
-        //Log.d("grogg", "In GIS_Map Event Handler");
-        /*
-        if (e.getProvider().equals(Constants.SYNC_ID)) {
-            if (!gisImageView.isInitialized()) {
-                return;
-            }
-            Log.d("grogg", "new sync event. Refreshing map.");
-            myContext.refreshGisObjects();
-            //refresh team layer.
-            GisLayer teamLayer = this.getLayerFromId("Team");
-            if (teamLayer != null) {
-                Log.d("bortex", "Refreshing team layer!");
-                //if team layer, refresh team positions.
-                teamLayer.clear();
-                Set<GisObject> teamMembers = gisImageView.findMyTeam();
-                if (teamMembers == null || teamMembers.isEmpty())
-                    Log.e("bortex", "No team members found on this map after Sync Event");
-                else {
-                    Log.d("bortex", "found " + teamMembers.size() + " team members");
-                    teamLayer.addObjectBag("Team", teamMembers, false, gisImageView);
-                }
-
-            }
-
-            */
-
-
         if (e.getType() == EventType.onFlowExecuted) {
             Log.d("grogg","flow executed! Initializing gis imageview!");
             //Must be done here since all layers first needs to be added.
             //!isZoomLevel
-            gisImageView.initialize(this,photoMeta,true);
-        } else if (e.getType() == EventType.onNewMapData) {
-            refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
+            gisImageView.initialize(myContext.getFragmentActivity(),this,photoMeta,true);
         }
     }
 

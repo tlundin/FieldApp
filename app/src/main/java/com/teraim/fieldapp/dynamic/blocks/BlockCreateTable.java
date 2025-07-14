@@ -34,7 +34,6 @@ public class BlockCreateTable extends Block {
 
     public void create(WF_Context myContext) {
 
-
         Log.d("vortex","creating table.");
         PageWithTable pwt = (PageWithTable) myContext.getTemplate();
         if (pwt != null)

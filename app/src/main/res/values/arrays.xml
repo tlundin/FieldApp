@@ -20,11 +20,11 @@
     </string-array>
     <string-array name="log_levels">
         <item>normal</item>
-        <item>critical</item>
+        <item>critical only</item>
     </string-array>
     <string-array name="log_level_values">
-        <item>NORMAL</item>
-        <item>CRITICAL</item>
+        <item>normal</item>
+        <item>critical</item>
     </string-array>
     <string-array name="versionArray">
         <item>Update only when the version of your App changes (default)</item>
@@ -44,5 +44,9 @@
         <item>Internet</item>
         <item>NONE</item>
     </string-array>
-
+    <array name="map_needle_image_sets">
+        <item>@drawable/icon_set1</item>
+        <item>@drawable/icon_set2</item>
+        <item>@drawable/icon_set3</item>
+    </array>
 </resources>

@@ -1,0 +1,62 @@
+<!-- res/layout/dialog_filter_selection.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Currently Displayed Filters"
+android:textStyle="bold"
+android:paddingBottom="8dp"/>
+
+<com.google.android.flexbox.FlexboxLayout
+android:id="@+id/dialog_top_filters_container"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+app:flexWrap="wrap"
+app:alignItems="flex_start"
+app:justifyContent="flex_start"
+android:background="@drawable/border_drawable"
+android:padding="8dp"
+android:minHeight="50dp"/>
+
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Available Filters"
+android:textStyle="bold"
+android:paddingTop="16dp"
+android:paddingBottom="8dp"/>
+
+<ScrollView
+android:layout_width="match_parent"
+android:layout_height="0dp"
+android:layout_weight="1"
+android:fillViewport="true"
+android:scrollbars="vertical">
+<!-- Wrapped availableFiltersContainer in a ScrollView -->
+<com.google.android.flexbox.FlexboxLayout
+    android:id="@+id/dialog_available_filters_container"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:flexWrap="wrap"
+    app:alignItems="flex_start"
+    app:justifyContent="flex_start"
+    android:background="@drawable/border_drawable"
+    android:padding="8dp"
+    android:minHeight="50dp"/>
+</ScrollView>
+
+<Button
+android:id="@+id/dialog_ok_button"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Apply Filters"
+android:layout_gravity="center_horizontal"
+android:layout_marginTop="24dp"/>
+
+    </LinearLayout>
