@@ -60,7 +60,7 @@ public class PersistenceHelper {
 	public static final String EXPORTED_IMAGES_KEY = "images_already_exported";
 	public static final String SERVER_VERSION_KEY = "server_update_styr";
 	public static final String SERVER_PENDING_UPDATE = "server_pending_update";
-
+	public static final String FILTER_BUTTON_LIST = "filter_button_list";
 	private final SharedPreferences sp;
 	ArrayList<String> delta = new ArrayList<String>();
 

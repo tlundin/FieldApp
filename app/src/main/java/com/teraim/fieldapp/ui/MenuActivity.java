@@ -70,6 +70,7 @@ import com.teraim.fieldapp.utils.BackupManager;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.viewmodels.LogViewModel;
+import com.teraim.fieldapp.viewmodels.TeamStatusViewModel;
 
 import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
@@ -114,6 +115,10 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private LogViewModel logViewModel;
     protected LogRepository debugLogger = LogRepository.getInstance();
     private boolean initDone = false, initFailed = false;
+    private boolean isPollingActive = false;
+    private BroadcastReceiver initDoneReceiver;
+    private Handler handler;
+    private Runnable fetchTeamUpdatesRunnable;
     private MenuActivity me;
     private Account mAccount;
     private Integer syncState = R.drawable.syncoff;
@@ -179,7 +184,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     }
 
     private long lastRedraw = 0;
-    private Handler handler = null;
+    private Handler teamHandler = null;
 
     private IntentFilter filter = new IntentFilter();
 
@@ -202,6 +207,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 invalidateOptionsMenu();
             }
         });
+        teamHandler = new Handler(Looper.getMainLooper());
+
+
 
         brr = new BroadcastReceiver() {
             private static final long MIN_REDRAW_DELAY = 5000;
@@ -222,10 +230,18 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             //check current state of synk server.
                             //This determines the sync status.
                             //toggleSyncOnOff(syncOn());
-
-                            //getTeamSyncStatusFromServer();
-                            getTeamUpdates(Constants.LOCATION_UPDATE_INTERVAL);
-
+                            TeamStatusViewModel teamStatusViewModel = new ViewModelProvider(MenuActivity.this).get(TeamStatusViewModel.class);
+                            fetchTeamUpdatesRunnable = new Runnable() {
+                                @Override
+                                public void run() {
+                                    Log.d("MenuActivity", "Polling for team updates...");
+                                    // Trigger the network calls in the ViewModel
+                                    teamStatusViewModel.sendAndReceiveTeamPositions();
+                                    // Schedule the next execution
+                                    teamHandler.postDelayed(this, TimeUnit.SECONDS.toMillis(Constants.LOCATION_UPDATE_INTERVAL));
+                                }
+                            };
+                            startTeamUpdatesPolling(Constants.LOCATION_UPDATE_INTERVAL);
                         }
 
                         break;
@@ -328,151 +344,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     }
 
-    private void getTeamUpdates(int locationUpdateInterval) {
-        if (teamUpdateTimer != null) { // Cancel any existing timer before starting a new one
-            teamUpdateTimer.cancel();
-            teamUpdateTimer.purge();
-        }
-        teamUpdateTimer = new Timer();
-        teamUpdateTimer.schedule(new TimerTask() {
-
-            synchronized public void run() {
-                //Log.d("fenris","runs with "+locationUpdateInterval+"s intervals");
-
-                try {
-                    sendAndReceiveTeamPositions();
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-        }, TimeUnit.SECONDS.toMillis(1), TimeUnit.SECONDS.toMillis(locationUpdateInterval));
-    }
-
-    private void sendAndReceiveTeamPositions() throws JSONException {
-        //Log.d("fenris", "send and receive team positions");
-        boolean updateMyPosition = true;
-        //block multiple calls.
-        if (!callInProgress  && Connectivity.isConnected(this)) {
-
-            if (latestSignal==null || latestSignal.state==GPS_State.State.disabled) {
-                //Log.d("fenris", "no gps signal available");
-                updateMyPosition=false;
-            }
-            callInProgress = true;
-            String team = gs.getMyTeam();
-            String project = globalPh.get(PersistenceHelper.BUNDLE_NAME);
-            String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
-
-            if(updateMyPosition) {
-                JSONObject jsonBody = new JSONObject();
-                JSONObject positionObject = new JSONObject();
-                positionObject.put("easting", latestSignal.x);   // Use the API's expected key "easting"
-                positionObject.put("northing", latestSignal.y);  // Use the API's expected key "northing"
-                // 3. Add fields to the main JSON object
-                jsonBody.put("uuid", gs.getUserUUID());
-                jsonBody.put("name", GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
-                jsonBody.put("timestamp", latestSignal.time);      // Add the timestamp string
-                jsonBody.put("position", positionObject); // Add the nested position object
-                final String requestBody = jsonBody.toString();
-                final String SendMyPoisition = Constants.SynkStatusURI + "/position";
-
-                StringRequest postMyPositionRequest = new StringRequest(Request.Method.POST, SendMyPoisition,
-                        new Response.Listener<String>() {
-                            @Override
-                            public void onResponse(String response) {
-                                // Display the first 500 characters of the response string.
-                                //Log.d("fenris", "Response is: " + response);
-
-                            }
-
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
-                        error.printStackTrace();
-                        callInProgress = false;
-                    }
-                }) {
-                    @Override
-                    public String getBodyContentType() {
-                        return "application/json; charset=utf-8";
-                    }
-
-                    @Override
-                    public byte[] getBody() throws AuthFailureError {
-                        try {
-                            return requestBody == null ? null : requestBody.getBytes("utf-8");
-                        } catch (UnsupportedEncodingException uee) {
-                            Log.d("fenris", String.format("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8"));
-                            return null;
-                        }
-                    }
-
-                    @Override
-                    protected Response<String> parseNetworkResponse(NetworkResponse response) {
-                        String responseString = "";
-                        if (response != null) {
-                            responseString = String.valueOf(response.statusCode);
-                            //Log.d("vortex", "post response " + responseString);
-                        }
-                        return Response.success(responseString, HttpHeaderParser.parseCacheHeaders(response));
-                    }
-                };
-
-                requestQueue.add(postMyPositionRequest);
-            }
-            final String GetPoisitions = Constants.SynkStatusURI + "/positions";
-            StringRequest getTeamStatusRequest = new StringRequest(Request.Method.GET, GetPoisitions,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            // Display the first 500 characters of the response string.
-                            //Log.d("fenris", "Response is: " + response);
-                            gs.insertTeamPositions(response);
-                            callInProgress = false;
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
-                    callInProgress = false;
-                }
-            });
-
-            requestQueue.add(getTeamStatusRequest);
-            final String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
-            final String GetServerStatus = exportServerURL + "/server";
-            StringRequest getServerStatusRequest = new StringRequest(Request.Method.GET, GetServerStatus,
-                    new Response.Listener<String>() {
-                        @Override
-                        public void onResponse(String response) {
-                            // Display the first 500 characters of the response string.
-                            //Log.d("fenris", "Response is: " + response);
-                            //Log.d("fenris", "Response is: " + response);
-                            gs.insertServerStatus(response);
-                            callInProgress = false;
-                        }
-                    }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.d("fenris", "Got an error when attempting to contact the export server: " + error.getMessage());
-                    callInProgress = false;
-                }
-            });
-
-            requestQueue.add(getServerStatusRequest);
-
-        } else {
-            if (callInProgress)
-                Log.d("fenris", "blocked call to getteamstatus (call in progress)");
-            else {
-                Log.d("fenris", "no connection");
-                callInProgress = false;
-            }
-        }
-    }
-
 
     @Override
     protected void onPause() {
@@ -495,10 +366,11 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         if (requestQueue != null) {
             requestQueue.stop();
         }
-        if (teamUpdateTimer != null) { // Also ensure your timer is cancelled
-            teamUpdateTimer.cancel();
-            teamUpdateTimer.purge();
+        if (initDoneReceiver != null) {
+            unregisterReceiver(initDoneReceiver);
         }
+        // Always stop polling on destroy for cleanup
+        stopTeamUpdatesPolling();
         super.onDestroy();
 
     }
@@ -529,6 +401,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 unbindService(mConnection);
                 mBound = false;
             }
+        }
+        if (initDone) {
+            startTeamUpdatesPolling(Constants.LOCATION_UPDATE_INTERVAL);
         }
     }
 
@@ -655,7 +530,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             Boolean hasEvent = logViewModel.getHasNewCriticalEvent().getValue();
             if (hasEvent != null && hasEvent) {
                 logMenuItem.setIcon(R.drawable.warning);
-                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
             } else {
                 logMenuItem.setIcon(null); // Or your default icon
                 logMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
@@ -942,16 +817,18 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
             case MENU_ITEM_LOG_WARNING:
                 mnu[MENU_ITEM_LOG_WARNING].setIcon(null);
-                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+                mnu[MENU_ITEM_LOG_WARNING].setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
                 showLogDialog();
                 break;
 
             case MENU_ITEM_SETTINGS:
                 //close drawer menu if open
-                if (gs.getDrawerMenu() != null)
-                    gs.getDrawerMenu().closeDrawer();
-                if (isSynkServiceRunning())
-                    stopSync();
+                if (gs != null) {
+                    if (gs.getDrawerMenu() != null)
+                        gs.getDrawerMenu().closeDrawer();
+                    if (isSynkServiceRunning())
+                        stopSync();
+                }
                 Intent intent = new Intent(getBaseContext(), ConfigMenu.class);
                 startActivity(intent);
                 return true;
@@ -1396,6 +1273,21 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     }
 
 
+    private void startTeamUpdatesPolling(int locationUpdateInterval) {
+        if (!isPollingActive) {
+            Log.d("MenuActivity", "Starting team updates polling with " + locationUpdateInterval + "s intervals.");
+            teamHandler.post(fetchTeamUpdatesRunnable); // Post immediately
+            isPollingActive = true;
+        }
+    }
+
+    private void stopTeamUpdatesPolling() {
+        if (isPollingActive) {
+            Log.d("MenuActivity", "Stopping team updates polling.");
+            teamHandler.removeCallbacks(fetchTeamUpdatesRunnable); // Remove any pending callbacks
+            isPollingActive = false;
+        }
+    }
     private boolean callInProgress = false;
 
     private void getTeamSyncStatusFromServer() {

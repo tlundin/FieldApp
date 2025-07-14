@@ -5,6 +5,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
@@ -14,6 +18,10 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.ImageView; // Added for image display
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -36,8 +44,12 @@ import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * ConfigMenu is now an AppCompatActivity that hosts the SettingsFragment.
@@ -71,12 +83,15 @@ public class ConfigMenu extends AppCompatActivity {
 		private EditTextPreference userPref;
 		private EditTextPreference appPref;
 		private CheckBoxPreference devFuncPref;
+		private AlertDialog progressDialog; // Use AlertDialog for progress display
+		private ListPreference logPref; // Changed to ListPreference for consistency
+		private MapNeedlePreference mapNeedlePref; // New preference for map needles
 
 		// Note: onActivityResult is deprecated. For a modern approach, consider using the Activity Result APIs.
 		// However, for a direct migration, this will still function.
 		@Override
 		public void onActivityResult(int requestCode, int resultCode, Intent data) {
-			super.onActivityResult(requestCode,resultCode,data);
+			super.onActivityResult(requestCode, resultCode, data);
 			Log.d("vortex", "IN ONACTIVITY RESULT ");
 
 			Log.d("vortex", "request code " + requestCode + " result code " + resultCode);
@@ -131,7 +146,8 @@ public class ConfigMenu extends AppCompatActivity {
 					} else {
 						new AlertDialog.Builder(requireActivity()).setTitle("Error")
 								.setMessage("NO QR code found in image.")
-								.setPositiveButton(R.string.ok, (dialog, which) -> {})
+								.setPositiveButton(R.string.ok, (dialog, which) -> {
+								})
 								.setCancelable(false)
 								.setIcon(android.R.drawable.ic_dialog_alert)
 								.show();
@@ -190,7 +206,7 @@ public class ConfigMenu extends AppCompatActivity {
 			}
 			teamPref.setEnabled(devFuncPref.isChecked());
 			// In AndroidX, we use a listener to access the EditText view to set filters.
-			teamPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[] {filter}));
+			teamPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[]{filter}));
 
 			userPref = findPreference(PersistenceHelper.USER_ID_KEY);
 			String syncUserText = userPref.getText();
@@ -200,7 +216,7 @@ public class ConfigMenu extends AppCompatActivity {
 				userPref.setText(null);
 				userPref.setSummary(getText(R.string.UserName_dm));
 			}
-			userPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[] {filter}));
+			userPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[]{filter}));
 
 
 			serverPref = findPreference(PersistenceHelper.SERVER_URL);
@@ -213,42 +229,86 @@ public class ConfigMenu extends AppCompatActivity {
 
 			appPref = findPreference(PersistenceHelper.BUNDLE_NAME);
 			appPref.setSummary(appPref.getText());
-			appPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[] {filter}));
+			appPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[]{filter}));
+
+			logPref = findPreference(PersistenceHelper.LOG_LEVEL);
+			if (logPref != null) {
+				// Set initial summary based on current selection
+				setSummaryForListPreference(logPref, logPref.getValue());
+
+				// Set a listener to update the summary when the preference changes
+				logPref.setOnPreferenceChangeListener((preference, newValue) -> {
+					String selectedValue = (String) newValue;
+					setSummaryForListPreference((ListPreference) preference, selectedValue);
+					return true; // Allow the preference to be saved
+				});
+			}
+
+			// Map Needle Preference setup
+			mapNeedlePref = findPreference("map_needle_set"); //
+			if (mapNeedlePref != null) { //
+				// The custom MapNeedlePreference handles its own internal logic for entries,
+				// entry values, and persistence.
+				// Just need to set an OnPreferenceChangeListener if you want to trigger
+				// a restart or other actions when it changes.
+				mapNeedlePref.setOnPreferenceChangeListener((preference, newValue) -> {
+
+					return true;
+				});
+			}
 
 
-//			EditTextPreference backupPref = findPreference(PersistenceHelper.BACKUP_LOCATION);
-//			if (backupPref.getText() == null || backupPref.getText().isEmpty()) {
-//				File[] externalStorageVolumes =
-//						ContextCompat.getExternalFilesDirs(requireContext(), null);
-//				File primaryExternalStorage = externalStorageVolumes[0];
-//				backupPref.setText(primaryExternalStorage.getAbsolutePath()+"/"+appPref.getText()+"/backup");
-//			}
-//			backupPref.setSummary(backupPref.getText());
+			Preference clearCacheButton = findPreference("reset_cache");
+			final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-			ListPreference logLevels = findPreference(PersistenceHelper.LOG_LEVEL);
-			logLevels.setSummary(logLevels.getEntry());
 
-			Preference button = findPreference("reset_cache");
-			button.setOnPreferenceClickListener(preference -> {
+			clearCacheButton.setOnPreferenceClickListener(preference -> {
 				new AlertDialog.Builder(requireActivity())
 						.setTitle(getResources().getString(R.string.resetCache))
 						.setMessage(getResources().getString(R.string.reset_cache_warn))
 						.setIcon(android.R.drawable.ic_dialog_alert)
-						.setCancelable(false)
+						.setCancelable(false) // User cannot dismiss warning dialog easily
 						.setPositiveButton(R.string.ok, (dialog, which) -> {
-							String bundleName = requireActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
-							if (!bundleName.isEmpty()) {
-								Log.d("vortex", "Erasing cache for " + bundleName);
-								int n = Tools.eraseFolder(requireContext().getFilesDir()+"/"+bundleName.toLowerCase(Locale.ROOT) + "/cache/");
-								//erase allfrozen flag
-								SharedPreferences sharedPrefs = requireActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE);
-								PersistenceHelper ph = new PersistenceHelper(sharedPrefs);
-								ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader",false);
-								Toast.makeText(getActivity(), n + " " + getResources().getString(R.string.reset_cache_toast), Toast.LENGTH_LONG).show();
-								askForRestart();
-							}
+							// Show the progress/loading dialog
+							showProgressDialog();
+
+							// Execute the cleanup on a background thread
+							executorService.execute(() -> {
+								String bundleName = requireActivity().getApplicationContext().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE).getString(PersistenceHelper.BUNDLE_NAME, "");
+								int n = 0; // To store the count of erased files
+
+								if (!bundleName.isEmpty()) {
+									Log.d("vortex", "Erasing cache for " + bundleName);
+									// Perform file system cleanup
+									n = Tools.eraseFolder(requireContext().getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/");
+
+									// Erase all frozen flag
+									SharedPreferences sharedPrefs = requireActivity().getApplicationContext().getSharedPreferences(bundleName, Context.MODE_PRIVATE);
+									PersistenceHelper ph = new PersistenceHelper(sharedPrefs);
+									ph.put(PersistenceHelper.ALL_MODULES_FROZEN + "moduleLoader", false);
+
+									GlobalState gs = GlobalState.getInstance();
+									if (gs != null) {
+										if (gs.getDb() != null) {
+											Log.d("vortex", "cleaning database");
+											// Perform database cleanup
+											gs.getDb().cleanDatabase();
+										}
+									}
+								}
+
+								final int finalN = n; // Need final variable for lambda
+								// Update UI on the main thread after cleanup is done
+								requireActivity().runOnUiThread(() -> {
+									dismissProgressDialog(); // Dismiss the loading dialog
+
+									Toast.makeText(getActivity(), finalN + " " + getResources().getString(R.string.reset_cache_toast), Toast.LENGTH_LONG).show();
+									askForRestart();
+								});
+							});
 						})
-						.setNegativeButton(R.string.cancel, (dialog, which) -> {})
+						.setNegativeButton(R.string.cancel, (dialog, which) -> {
+						})
 						.show();
 				return true;
 			});
@@ -304,8 +364,10 @@ public class ConfigMenu extends AppCompatActivity {
 				SharedPreferences sharedPreferences, @NonNull String key) {
 			askForRestart();
 			Preference pref = findPreference(key);
+			Log.d("blarpa", "getzz with key " + key);
 			// This can be null if the preference is not on the current screen.
 			if (pref == null) {
+				Log.d("blarpa", "pref null with key " + key);
 				return;
 			}
 
@@ -322,7 +384,7 @@ public class ConfigMenu extends AppCompatActivity {
 						}
 						String bundleName = new String(strA);
 						etp.setText(bundleName);
-						String syncGroup = bundleName+"synk"+ Calendar.getInstance().get(Calendar.YEAR);
+						String syncGroup = bundleName + "synk" + Calendar.getInstance().get(Calendar.YEAR);
 						teamPref.setText(syncGroup);
 						teamPref.setSummary(syncGroup);
 					} else if (key.equals(PersistenceHelper.SERVER_URL)) {
@@ -331,29 +393,74 @@ public class ConfigMenu extends AppCompatActivity {
 					}
 				}
 				pref.setSummary(etp.getText());
-			}
-			else if (pref instanceof ListPreference) {
+			} else if (pref instanceof ListPreference) {
 				ListPreference letp = (ListPreference) pref;
 				pref.setSummary(letp.getEntry());
 				if (key.equals(PersistenceHelper.LOG_LEVEL)) {
 					String logLevelStr = letp.getValue();
-					Log.d("vortex", "changing log level to " + logLevelStr);
+					Log.d("blarpa", "changing log level to " + logLevelStr);
+
 					if ("CRITICAL".equalsIgnoreCase(logLevelStr)) {
 						LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
 					} else {
 						LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.NORMAL);
 					}
 				}
+			} else if (pref instanceof MapNeedlePreference) { //
+				// The MapNeedlePreference manages its own summary based on selection.
+				// No additional logic needed here, just ensure askForRestart() is called.
+				Log.d("vortex", "Map needle set changed via custom preference.");
 			}
-
 		}
 
 		private void askForRestart() {
-			anyChange =true;
+			anyChange = true;
 		}
 
 		private boolean isEmpty(String s) {
 			return s == null || s.isEmpty();
+		}
+
+		private void showProgressDialog() {
+			// Using AlertDialog with a custom layout for a more modern look than ProgressDialog
+			AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
+			LayoutInflater inflater = getLayoutInflater();
+			View dialogView = inflater.inflate(R.layout.dialog_progress, null); // You'll need to create dialog_progress.xml
+			TextView messageText = dialogView.findViewById(R.id.progress_message); // Assuming you have a TextView with this ID
+			messageText.setText(getResources().getString(R.string.cleaning_up_please_wait)); // Create this string resource
+
+			builder.setView(dialogView);
+			builder.setCancelable(false); // Important: User cannot dismiss it
+			progressDialog = builder.create();
+			progressDialog.show();
+
+		}
+
+		// Helper method to dismiss the progress dialog
+		private void dismissProgressDialog() {
+			if (progressDialog != null && progressDialog.isShowing()) {
+				progressDialog.dismiss();
+				progressDialog = null;
+			}
+		}
+
+		private void setSummaryForListPreference(ListPreference preference, String selectedValue) {
+			if (selectedValue != null) {
+				// Find the entry that corresponds to the selected value
+				int index = preference.findIndexOfValue(selectedValue);
+				if (index >= 0 && index < preference.getEntries().length) {
+					// Get the displayed entry (e.g., "Normal", "Critical Only")
+					CharSequence entry = preference.getEntries()[index];
+					preference.setSummary(entry);
+				} else {
+					// Fallback if somehow the value doesn't match an entry
+					preference.setSummary(selectedValue);
+				}
+			} else {
+				// Handle case where no value is set (e.g., first time opening settings)
+				// Using a generic message for now, you might want a specific string resource
+				preference.setSummary("Not selected");
+			}
 		}
 	}
 }

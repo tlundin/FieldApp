@@ -7,7 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Typeface;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.style.StyleSpan;
+import android.text.style.TypefaceSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,9 +36,9 @@ import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
+import com.teraim.fieldapp.loadermodule.ConfigurationModule;
 import com.teraim.fieldapp.loadermodule.GisDatabaseWorkflow;
 import com.teraim.fieldapp.loadermodule.ModuleRegistry;
-import com.teraim.fieldapp.loadermodule.Workflow_I;
 import com.teraim.fieldapp.loadermodule.configurations.SpinnerConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.VariablesConfiguration;
 import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfiguration;
@@ -159,7 +164,7 @@ public class StartupFragment extends Executor {
                         // Corrected: Access registry on the unwrapped result
                         startupFailed = startApplication(result.registry()); // Use .registry() if it's a record
                         if (!startupFailed && loadAllModules) {
-                            Set<String> provyteTypes = gisDatabaseWorkflowInstance.getCollectedProvYtaTypes();
+                            Set<String> provyteTypes = gisDatabaseWorkflowInstance.getMapObjectsToRefresh();
                             LogRepository.getInstance().addColorText("Setting provyte types: " + provyteTypes.toString(), getColor(requireContext(), R.color.purple));
                             GlobalState.getInstance().setProvYtaTypes(provyteTypes);
                             persistProvYtaTypes(provyteTypes);
@@ -222,7 +227,7 @@ public class StartupFragment extends Executor {
 
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
-        viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules);
+        viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules, myContext);
     }
 
     /**
@@ -248,8 +253,9 @@ public class StartupFragment extends Executor {
             return true;
         }
 
+        CharSequence logText = createFormattedLogText(moduleRegistry);
         DbHelper myDb = new DbHelper(requireActivity().getApplicationContext(), t, globalPh, ph, bundleName);
-        gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, myDb, workflows, t, sd, "", imgMetaFormat);
+        gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, myDb, workflows, t, sd,logText, imgMetaFormat);
 
         if (gs.getBackupManager().timeToBackup()) {
             gs.getBackupManager().backUp();
@@ -417,5 +423,36 @@ public class StartupFragment extends Executor {
         return ret;
     }
 
-    //endregion
+    public CharSequence createFormattedLogText(ModuleRegistry moduleRegistry) {
+        SpannableStringBuilder logTextBuilder = new SpannableStringBuilder();
+
+        // Define a small, fixed number of spaces to put between the label and the version.
+        // You can adjust this value to control the gap.
+        final int SPACES_BETWEEN_LABEL_AND_VERSION = 3;
+
+        for (ConfigurationModule module : moduleRegistry.getAllModules()) {
+            String label = module.getLabel();
+            float versionFloat = module.getFrozenVersion();
+            String version = String.valueOf(versionFloat); // Convert float to String
+
+            if (label != null) {
+                // Append label with bold formatting
+                int startLabel = logTextBuilder.length();
+                logTextBuilder.append(label);
+                logTextBuilder.setSpan(new StyleSpan(Typeface.BOLD), startLabel, logTextBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                // Add a fixed number of spaces
+                for (int i = 0; i < SPACES_BETWEEN_LABEL_AND_VERSION; i++) {
+                    logTextBuilder.append(" ");
+                }
+
+                // Append version in brackets
+                // No monospaced font applied here, as alignment is no longer a goal
+                logTextBuilder.append("[").append(version).append("]");
+
+                logTextBuilder.append("\n"); // New line for the next entry
+            }
+        }
+        return logTextBuilder;
+    }
 }

@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="dividerColor" format="color" />
+    <declare-styleable name="MapNeedlePreference">
+        <attr name="imageSetResources" format="reference" /> <attr name="imageSetNames" format="reference" />
+    </declare-styleable>
 </resources>

@@ -92,7 +92,7 @@
     <string name="start">Start</string>
     <string name="continue_">Continue</string>
     <string name="reset_cache_d">Erase all cached files to force reload</string>
-    <string name="resetCache">Reset Cache</string>
+    <string name="resetCache">Clear Cache</string>
     <string name="reset_cache_warn">"This will erase all cached images and configuration files. Are you sure?"</string>
     <string name="reset_cache_toast">files deleted from cache</string>
     <string name="reload_config_d">Forces reload of configuration</string>
@@ -137,4 +137,9 @@
     <string name="ladda_descr">If you continue, the App will restart and replace all your existing configuration files with the latest versions.</string>
     <string name="exit_app">This will exit the application</string>
     <string name="refresh_completed">Refresh completed</string>
+    <string name="cleaning_up_please_wait">Cleaning up...</string>
+    <string name="select_log_level">Select a log level</string>
+    <string name="map_settings">Map Settings</string>
+    <string name="map_needle_title">Map needles</string>
+    <string name="map_needle_summary">Choose a map needle</string>
 </resources>

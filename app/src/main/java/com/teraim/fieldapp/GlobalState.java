@@ -8,9 +8,13 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.Settings;
+
+import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Location;
@@ -32,6 +36,7 @@ import com.teraim.fieldapp.non_generics.StatusHandler;
 import com.teraim.fieldapp.synchronization.ConnectionManager;
 import com.teraim.fieldapp.synchronization.SyncMessage;
 import com.teraim.fieldapp.ui.DrawerMenu;
+import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.utils.BackupManager;
 import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.PersistenceHelper;
@@ -97,6 +102,7 @@ public class GlobalState {
     private final CharSequence logTxt;
     private final String userUUID;
     private ModuleRegistry moduleRegistry;
+    private RequestQueue requestQueue;
 
     public static GlobalState getInstance() {
 
@@ -123,7 +129,7 @@ public class GlobalState {
         this.ph = ph;
         this.startActivity = startActivity;
         this.db = myDb;
-
+        this.requestQueue = Volley.newRequestQueue(startActivity);
         //Parser for rules
         parser = new Parser(this);
         artLista = new VariableConfiguration(this, t);
@@ -244,44 +250,18 @@ public class GlobalState {
         return true;
     }
 
-    public void insertServerStatus(String jsonString) {
-        try {
-            // 1. Create a JSONObject from the string
-            JSONObject jsonObject = new JSONObject(jsonString);
-
-            // 2. Get the integer value associated with the key "version"
-            int version = jsonObject.getInt("version");
-
-            // 3. Print the result
-            //Log.d("fenris","Parsed version: " + version);
-            int storedVersion = globalPh.getI(PersistenceHelper.SERVER_VERSION_KEY);
-            if (version != storedVersion) {
-                //Log.d("fenris", "New version found: " + version + " stored version: " + storedVersion);
-                globalPh.put(PersistenceHelper.SERVER_VERSION_KEY, version);
-                globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, true);
-                if (gisMap != null)
-                    gisMap.onEvent(new WF_Event_OnNewVersion("server_update"));
-            } else {
-                //Log.d("fenris", "Version not changed");
-            }
-
-        } catch (JSONException e) {
-            System.err.println("Error parsing JSON: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-
-    public boolean serverHasNewVersion() {
-        return globalPh.getB(PersistenceHelper.SERVER_PENDING_UPDATE);
-    }
-
     public void setModuleRegistry(ModuleRegistry moduleRegistry) {
         this.moduleRegistry = moduleRegistry;
     }
     public ModuleRegistry getModuleRegistry() {
         return moduleRegistry;
     }
-
+    public RequestQueue getRequestQueue() {
+        if (requestQueue == null) {
+            throw new IllegalStateException("RequestQueue not initialized. Call GlobalState.getInstance().onCreate() first.");
+        }
+        return requestQueue;
+    }
     public void setTitle(String wfLabel) {
         startActivity.setTitle(wfLabel);
     }
@@ -300,6 +280,11 @@ public class GlobalState {
     public void setProvYtaTypes(Set<String> provYtaTypes) {
         this.provYtaTypes = provYtaTypes;
     }
+
+    public MenuActivity getActivity() {
+        return startActivity;
+    }
+
 
     public class TeamPosition {
         private String name;
@@ -370,9 +355,6 @@ public class GlobalState {
         return myC;
     }
 
-    //public RuleExecutor getRuleExecutor() {
-    //	return myExecutor;
-    //}
 
     public VariableConfiguration getVariableConfiguration() {
         return artLista;
@@ -719,6 +701,7 @@ public class GlobalState {
             user.gpsStateChanged(newState);
         if (map!=null)
             map.gpsStateChanged(newState);
+
     }
 
 

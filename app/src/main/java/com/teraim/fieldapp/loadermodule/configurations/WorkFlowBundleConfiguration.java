@@ -754,13 +754,13 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	}
 
-	/*
-	 *  <block_ID>1140</block_ID>
-        <container>root</container>
-        <is_visible>true</is_visible>
-        <file>/flygdata/207.jpg</url>
-    </block_add_image_gis_view>
-	 */
+	private Block readBlockAddGoogleGis(XmlPullParser parser) throws IOException,XmlPullParserException {
+		o.addText("Parsing block: block_add_google_gis...");
+		parser.require(XmlPullParser.START_TAG, null,"block_add_google_gis");
+		Log.d("vortex","In block block_add_gis_view!!");
+		String name;
+		return null;
+	}
 	private Block readBlockAddGisView(XmlPullParser parser) throws IOException,XmlPullParserException {
 		o.addText("Parsing block: block_add_gis_image_view...");
 		String id=null,nName=null,container=null,source=null;
@@ -786,15 +786,15 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				source = readText("source",parser);
 			} else if (name.equals("is_visible")) {
 				isVisible = readText("is_visible",parser).equals("true");
-			}else if (name.equalsIgnoreCase("TopN")) {
+			} else if (name.equalsIgnoreCase("TopN")) {
 				N = readText("TopN",parser);
-			}else if (name.equalsIgnoreCase("TopE")) {
+			} else if (name.equalsIgnoreCase("TopE")) {
 				W = readText("TopE",parser);
-			}else if (name.equalsIgnoreCase("BottomE")) {
+			} else if (name.equalsIgnoreCase("BottomE")) {
 				E = readText("BottomE",parser);
-			}else if (name.equalsIgnoreCase("BottomN")) {
+			} else if (name.equalsIgnoreCase("BottomN")) {
 				S = readText("BottomN",parser);
-			}else if (name.equals("car_navigation_on")) {
+			} else if (name.equals("car_navigation_on")) {
 				hasSatNav = readText("car_navigation_on",parser).equals("true");
 			} else if (name.equals("team")) {
 				showTeam = readText("team",parser).equals("true");
