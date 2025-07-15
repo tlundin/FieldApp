@@ -176,7 +176,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	protected boolean survivedCreate = false;
 	private WF_Event_OnSave delayedOnSave=null;
 
-	private Variable myX, myY, myAcc;
+	protected Variable myX, myY, myAcc;
 	private LocationCallback locationCallback;
 
 	private IntentFilter ifi;

@@ -1,13 +1,14 @@
 package com.teraim.fieldapp.dynamic.types;
 
 
+import com.google.android.gms.maps.model.LatLng;
 
 public class LatLong implements Location {
 
 	private final double	latitude;
 	private final double longitude;
 
-		
+
 	public LatLong(double latitude, double longitude) {
 		this.latitude=latitude;
 		this.longitude=longitude;
@@ -19,14 +20,14 @@ public class LatLong implements Location {
 
 	@Override
 	public double getX() {
-		
 		return latitude;
 	}
-
+	public LatLng from() {
+		return new LatLng(latitude,longitude);
+	}
 
 	@Override
 	public double getY() {
-		
 		return longitude;
 	}
 	

@@ -61,6 +61,8 @@ public class PersistenceHelper {
 	public static final String SERVER_VERSION_KEY = "server_update_styr";
 	public static final String SERVER_PENDING_UPDATE = "server_pending_update";
 	public static final String FILTER_BUTTON_LIST = "filter_button_list";
+
+	public static final String MAP_NEEDLE_INDEX = "map_needle_set";
 	private final SharedPreferences sp;
 	ArrayList<String> delta = new ArrayList<String>();
 
