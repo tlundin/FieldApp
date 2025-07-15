@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="1102"
-    android:versionName="11.2">
+    android:versionCode="1122"
+    android:versionName="11.22">
 
     <uses-feature
         android:glEsVersion="0x00020000"
@@ -35,7 +35,12 @@
         android:usesCleartextTraffic="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-
+        <property
+            android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
+            android:value="true" />
+<!--        <meta-data-->
+<!--            android:name="com.google.android.geo.API_KEY"-->
+<!--            android:value="AIzaSyCud97FoBhLZEksGbs1Xd5KnS2ATtGfKh0" />-->
         <provider
             android:name=".synchronization.framework.SyncContentProvider"
             android:authorities="com.teraim.fieldapp.provider"

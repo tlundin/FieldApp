@@ -3,6 +3,13 @@ package com.teraim.fieldapp;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
+
+import androidx.activity.EdgeToEdge;
+import androidx.core.graphics.Insets;
+import androidx.core.view.OnApplyWindowInsetsListener;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -89,8 +96,8 @@ public class Start extends MenuActivity implements StartProvider {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState); // <<-- MOVE THIS TO THE TOP
-
+        super.onCreate(savedInstanceState);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         // Setup handler for uncaught exceptions.
 /*        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
         {
@@ -107,6 +114,7 @@ public class Start extends MenuActivity implements StartProvider {
         shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
+
 
         // 1. Get references to the ViewModel and the new UI elements
         viewModel = new ViewModelProvider(this).get(ModuleLoaderViewModel.class);
@@ -173,7 +181,25 @@ public class Start extends MenuActivity implements StartProvider {
         } catch (Exception ex) {
             // Ignore
         }
-        // super.onCreate(savedInstanceState); // Already called at the top
+        View rootView = findViewById(R.id.content_frame_root);
+        ViewCompat.setOnApplyWindowInsetsListener(rootView, new OnApplyWindowInsetsListener() {
+            @Override
+            public WindowInsetsCompat onApplyWindowInsets(View view, WindowInsetsCompat insets) {
+                // Get the insets for system bars (status bar, navigation bar)
+                Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+
+                // Apply padding to the view
+                view.setPadding(
+                        systemBarsInsets.left,
+                        systemBarsInsets.top,
+                        systemBarsInsets.right,
+                        systemBarsInsets.bottom
+                );
+
+                // Return CONSUMED to indicate that you've handled these insets
+                return WindowInsetsCompat.CONSUMED;
+            }
+        });
     }
 
 
