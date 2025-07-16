@@ -263,7 +263,7 @@ public class GisLayer {
 		else if (go instanceof GisPointObject) {
 			GisPointObject gop = (GisPointObject)go;
 			boolean inside = gisImageView.translateMapToRealCoordinates(gop.getLocation(),xy);
-			Log.d("GisLayer","translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
+			//Log.d("GisLayer","translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
 			if (inside) {
 				go.markAsUseful();
 				gop.setTranslatedLocation(xy);
