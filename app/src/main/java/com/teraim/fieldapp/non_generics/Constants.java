@@ -36,7 +36,7 @@ import java.util.UUID;
 public class Constants {
 
 
-    public static final String VORTEX_VERSION = "11.22";
+    public static final String VORTEX_VERSION = "11.23";
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com/";
 
@@ -61,6 +61,7 @@ public class Constants {
     //Update interval in seconds for location updates.
     public static final int LOCATION_UPDATE_INTERVAL = 10;
     public static final String RELOAD_DB_MODULES = "reload_database_modules";
+    public static final boolean SYNC_FEATURE_DISABLED = true;
 
     public static String UNDEFINED = "undefined";
 

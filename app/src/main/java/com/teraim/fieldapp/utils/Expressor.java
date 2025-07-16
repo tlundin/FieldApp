@@ -1066,11 +1066,11 @@ public class Expressor {
                                 break;
                             case eq:
                                 res = arg2F == arg1F;
-                                Log.e("vortex", "arg1F eq arg2F? " + arg1F + " eq " + arg2F + ": " + res);
+                                //Log.e("vortex", "arg1F eq arg2F? " + arg1F + " eq " + arg2F + ": " + res);
                                 break;
                             case neq:
                                 res = arg1F != arg2F;
-                                Log.e("vortex", "arg1F neq arg2F? " + arg1F + " neq " + arg2F + ": " + res);
+                                //Log.e("vortex", "arg1F neq arg2F? " + arg1F + " neq " + arg2F + ": " + res);
                                 break;
                             case gt:
                                 res = arg1F > arg2F;
@@ -1095,7 +1095,7 @@ public class Expressor {
                         
                         o.addCriticalText("Unsupported arithmetic operand: " + operator.getType());
                     }
-                    Log.e("vortex","RESULT: "+res);
+                    //Log.e("vortex","RESULT: "+res);
                     return res;
                 }
 
