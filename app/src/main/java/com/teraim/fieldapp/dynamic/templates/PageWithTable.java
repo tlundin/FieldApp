@@ -169,13 +169,13 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 Log.d("PageWithTable", "Loaded filters: " + savedFiltersString);
             } else {
                 // If no saved filters, explicitly add "Växter", "Lavar", and "Mossor"
-                topButtonLabels.add("P_Växter");
+                topButtonLabels.add("Växter");
                 topButtonLabels.add("P_Lavar");
                 topButtonLabels.add("P_Mossor");
                 Log.d("PageWithTable", "No saved filters, using default dynamic filters: Växter, Lavar, Mossor");
             }
         } else {
-            topButtonLabels.add("P_Växter");
+            topButtonLabels.add("Växter");
             Log.e("PageWithTable", "globalPh is null during initialization, using default dynamic filters.");
         }
 
@@ -226,6 +226,24 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
 
         setupFilterButtons(); // This will now use the class-level availableColumnFilterLabels
+
+        // RR button on the second row
+        ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
+        rrButton.setOnClickListener(v -> {
+            filterHideRowsWithNoEntries = rrButton.isChecked();
+            // --- FIX: Do NOT affect alphabetical or top filters when RR button is clicked ---
+            // Removed: allButton.setChecked(false);
+            // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
+            // Removed: activeTopFilter = null;
+            applyRowFilters();
+        });
+        LinearLayout.LayoutParams rrParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
+        rrParams.setMargins(margin, margin, margin, margin);
+        filterRow2.addView(rrButton, rrParams);
 
         stickyHeaderScrollView = view.findViewById(R.id.sticky_header_scroll_view);
         stickyHeaderLinearLayout = view.findViewById(R.id.sticky_header_linear_layout);
@@ -340,11 +358,11 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         // filterRow1 = view.findViewById(R.id.filterRow1);     // Cast as LinearLayout
         // filterRow2 = view.findViewById(R.id.filterRow2);     // Cast as LinearLayout
 
-        if (filterRowTop == null || filterRow1 == null || filterRow2 == null || getContext() == null) {
+        if (filterRowTop == null || filterRow1 == null || getContext() == null) {
             Log.e("PageWithTable", "A filter row or Context is null, cannot create filter buttons.");
             return;
         }
-        filterRowTop.removeAllViews(); filterRow1.removeAllViews(); filterRow2.removeAllViews();
+        filterRowTop.removeAllViews(); filterRow1.removeAllViews();
         // activeAlphabeticalFilter = null; // This is now managed by its own listener
         topFilterGroup.clear(); alphabetFilterButtons.clear();
 
@@ -375,8 +393,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         int margin = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 4, getResources().getDisplayMetrics());
         allButtonParams.setMargins(margin, margin, margin, margin);
         filterRowTop.addView(allButton, allButtonParams);
-
-
         // Top Row: Växter, Mossor, Lavar (now dynamically from topButtonLabels list)
         // These are the *dynamic* top filters, managed by the dialog
         ToggleButton firstDynamicTopToggleButton = null; // To store a reference for height calculation
@@ -497,22 +513,6 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             alphabetFilterButtons.add(tb);
         }
 
-        // RR button on the second row
-        ToggleButton rrButton = createFilterToggleButton(getContext(), " RR ", false);
-        rrButton.setOnClickListener(v -> {
-            filterHideRowsWithNoEntries = rrButton.isChecked();
-            // --- FIX: Do NOT affect alphabetical or top filters when RR button is clicked ---
-            // Removed: allButton.setChecked(false);
-            // Removed: for (ToggleButton topTb : topFilterGroup) { topTb.setChecked(false); }
-            // Removed: activeTopFilter = null;
-            applyRowFilters();
-        });
-        LinearLayout.LayoutParams rrParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-        );
-        rrParams.setMargins(margin, margin, margin, margin);
-        filterRow2.addView(rrButton, rrParams);
     }
 
 
@@ -759,6 +759,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             ((ViewGroup) headerWidgetView.getParent()).removeView(headerWidgetView);
         }
         stickyHeaderLinearLayout.addView(headerWidgetView);
+
     }
 
     public void onColumnHeaderClicked(int columnIndex) {

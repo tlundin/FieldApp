@@ -174,7 +174,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 jsonBody.put("uuid", gs.getUserUUID());
                 jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
                 jsonBody.put("timestamp", latestSignal.time);
-                jsonBody.put("icon", gs.getGlobalPreferences().getI(PersistenceHelper.MAP_NEEDLE_INDEX));
+                jsonBody.put("icon", gs.getGlobalPreferences().getInt(PersistenceHelper.MAP_NEEDLE_INDEX));
                 jsonBody.put("position", positionObject);
             } catch (JSONException e) {
                 Log.e(TAG, "Error creating JSON for my position: " + e.getMessage());
@@ -182,7 +182,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 _isUpdating.postValue(false);
                 return;
             }
-
+            Log.d("mammamia", "JSON: "+jsonBody.toString());
             final String requestBody = jsonBody.toString();
             final String SendMyPoisition = Constants.SynkStatusURI + "/position";
 
