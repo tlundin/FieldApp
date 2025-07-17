@@ -42,6 +42,7 @@ public class EventBroker {
 	}
 
 	public void onEvent(Event e) {
+		Log.d("Frax","Received event "+e.getType().name()+" from "+e.getProvider());
 		List<EventListener> els = eventListeners.get(e.getType());
 		if (els==null) {
 			Log.d("nils","No eventlistener exists for event "+e.getType().name());
@@ -56,17 +57,6 @@ public class EventBroker {
 			}
 		}
 
-		//TODO: ADD THIS LATER
-		/*
-		if (e instanceof WF_Event_OnSave && e.getProvider()!=Constants.SYNC_ID) {
-			Log.d("nils","Save event...sending delayed sync request");
-			new Handler().postDelayed(new Runnable() {
-				public void run() {
-					gs.triggerTransfer();
-				}
-			}, 2000);
-		} 
-		*/
 	}
 
 	public void removeAllListeners() {

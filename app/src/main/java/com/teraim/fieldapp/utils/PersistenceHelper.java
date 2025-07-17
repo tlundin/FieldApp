@@ -99,6 +99,9 @@ public class PersistenceHelper {
 	public int getI(String key) {
 		return sp.getInt(key, -1);
 	}
+	public int getInt(String key) {
+		return sp.getInt(key, 0);
+	}
 
 	public float getF(String key) {
 		return sp.getFloat(key, -1);
@@ -113,4 +116,6 @@ public class PersistenceHelper {
 	}
 
 	public void remove(String key) { sp.edit().remove(key).apply(); }
+
+
 }
