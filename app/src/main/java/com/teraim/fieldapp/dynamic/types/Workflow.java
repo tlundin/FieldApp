@@ -25,8 +25,9 @@ public class Workflow implements Serializable {
 		return blocks;
 	}
 	public List<Block> getCopyOfBlocks() {
-		if (blocks==null) return null;
-        return new ArrayList<Block>(blocks);
+		if (blocks==null)
+			return null;
+		return new ArrayList<Block>(blocks);
 	}
 	public void saveBlockPointer(int blockP) {
 		this.blockP=blockP;

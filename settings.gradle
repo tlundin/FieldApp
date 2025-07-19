@@ -1,1 +1,20 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        // This line is essential for finding the Mapbox SDK and its plugins
+        maven { url 'https://api.mapbox.com/downloads/v2/releases/maven' }
+    }
+}
+
+rootProject.name = "FieldApp" // Replace with your app's name
 include ':app'
