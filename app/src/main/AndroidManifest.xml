@@ -38,9 +38,7 @@
         <property
             android:name="android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY"
             android:value="true" />
-<!--        <meta-data-->
-<!--            android:name="com.google.android.geo.API_KEY"-->
-<!--            android:value="AIzaSyCud97FoBhLZEksGbs1Xd5KnS2ATtGfKh0" />-->
+
         <provider
             android:name=".synchronization.framework.SyncContentProvider"
             android:authorities="com.teraim.fieldapp.provider"
