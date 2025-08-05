@@ -1169,6 +1169,7 @@ public class Tools {
 
 		protected Boolean doInBackground(String... fileNameAndUrl) {
 			final String protoH = "https://";
+			final String protoB = "http://";
 			if (fileNameAndUrl==null||fileNameAndUrl.length<3) {
 				Log.e("vortex","filename or url name corrupt in downloadtask");
 				return false;
@@ -1176,11 +1177,11 @@ public class Tools {
 			String fileName = fileNameAndUrl[0].trim();
 			String url = fileNameAndUrl[1].trim();
 			String folder = fileNameAndUrl[2];
-			if (!url.startsWith(protoH))
-				url=protoH+url;
 			//If url is used as name, remove protocol.
 			if (fileName.startsWith(protoH))
 				fileName = fileName.replace(protoH, "");
+			if (fileName.startsWith(protoB))
+				fileName = fileName.replace(protoB, "");
 			if (fileName.contains("|")) {
 				Log.e("vortex","Illegal filename, cannot cache: "+fileName);
 				return false;

@@ -1,11 +1,11 @@
 package com.teraim.fieldapp.viewmodels;
 
 import android.app.Application;
-import android.content.res.TypedArray; // Added for loading icon sets
+import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.util.Log;
 import android.graphics.BitmapFactory;
-import android.graphics.Bitmap; // Added for Bitmap type
+import android.graphics.Bitmap;
 
 
 import androidx.lifecycle.AndroidViewModel;
@@ -28,13 +28,13 @@ import org.json.JSONArray;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
-import java.util.Objects;
+import java.util.Objects; // Added for Objects.equals
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.ArrayList; // Added for ArrayList
+import java.util.ArrayList;
 
 
 import com.teraim.fieldapp.GlobalState;
@@ -53,7 +53,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.utils.Tools;
 import com.teraim.fieldapp.utils.DbHelper;
-import com.teraim.fieldapp.ui.MapNeedlePreference; // Import MapNeedlePreference for cropping
+import com.teraim.fieldapp.ui.MapNeedlePreference;
 
 
 public class TeamStatusViewModel extends AndroidViewModel implements TrackerListener {
@@ -82,9 +82,10 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
     private PersistenceHelper globalPh;
     private GPS_State latestSignal;
 
-    // NEW: List to hold all available custom map needle bitmaps
+    // List to hold all available custom map needle bitmaps
     private List<Bitmap> allAvailableCustomNeedles;
-    // NEW: Cache for individual team member specific needles (loaded from server parameter)
+    // Cache for individual team member specific needles (loaded from server parameter)
+    // Key: user UUID, Value: Bitmap for their icon
     private Map<String, Bitmap> teamMemberSpecificNeedleCache;
 
     public TeamStatusViewModel(Application application) {
@@ -102,7 +103,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         loadAllCustomNeedles(); // Load all custom needles once during ViewModel init
     }
 
-    // NEW: Method to load all 12 (or more) individual custom map needle icons
+    // Method to load all 12 (or more) individual custom map needle icons
     private void loadAllCustomNeedles() {
         try {
             TypedArray ta = getApplication().getResources().obtainTypedArray(R.array.map_needle_image_sets);
@@ -173,6 +174,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 jsonBody.put("uuid", gs.getUserUUID());
                 jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
                 jsonBody.put("timestamp", latestSignal.time);
+                jsonBody.put("icon", gs.getGlobalPreferences().getInt(PersistenceHelper.MAP_NEEDLE_INDEX));
                 jsonBody.put("position", positionObject);
             } catch (JSONException e) {
                 Log.e(TAG, "Error creating JSON for my position: " + e.getMessage());
@@ -180,7 +182,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 _isUpdating.postValue(false);
                 return;
             }
-
+            Log.d("mammamia", "JSON: "+jsonBody.toString());
             final String requestBody = jsonBody.toString();
             final String SendMyPoisition = Constants.SynkStatusURI + "/position";
 
@@ -236,7 +238,6 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        //Log.d(TAG, "Team positions received: " + response.substring(0, Math.min(response.length(), 100)) + "...");
                         Log.d(TAG, "Team positions received: " + response);
                         _teamPositionsRaw.postValue(response);
                         processTeamPositionsResponse(response);
@@ -282,7 +283,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
-    // NEW: Method to process the raw team positions JSON into a Set of GisPointObjects
+    // Method to process the raw team positions JSON into a Set of GisPointObjects
     private void processTeamPositionsResponse(String jsonString) {
         Set<GisPointObject> teamMembers = new HashSet<>();
         try {
@@ -301,7 +302,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 double easting = positionJson.getDouble("easting");
                 double northing = positionJson.getDouble("northing");
 
-                // NEW: Optional map_needle_id from server
+                // Optional map_needle_id from server
                 String mapNeedleIdStr = null;
                 if (memberJson.has("icon")) {
                     mapNeedleIdStr = memberJson.getString("icon");
@@ -328,47 +329,64 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 Location memberLocation = new SweLocation(easting, northing);
 
-                // Determine icon based on map_needle_id from server or fallback to timestamp
-                Bitmap finalIconBitmap;
-                if (mapNeedleIdStr != null && !mapNeedleIdStr.isEmpty() ) {
-                    try {
-                        int needleIndex = Integer.parseInt(mapNeedleIdStr);
-                        if (allAvailableCustomNeedles != null && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size()) {
-                            finalIconBitmap = allAvailableCustomNeedles.get(needleIndex);
-                            // Persist this specific needle ID for this user UUID
-                            globalPh.put("user_map_needle_" + uuid, mapNeedleIdStr);
-                            teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache it
-                            Log.d(TAG, "Using server-provided needle " + needleIndex + " for team member " + name);
-                        } else {
-                            Log.w(TAG, "Server-provided icon " + mapNeedleIdStr + " for user " + name + " is out of bounds or invalid. Falling back.");
-                            finalIconBitmap = getDefaultTeamMemberIcon(timestamp); // Fallback
-                        }
-                    } catch (NumberFormatException e) {
-                        Log.d(TAG, "Server-provided icon for user " + name + " is not a valid integer: " + mapNeedleIdStr);
-                        finalIconBitmap = getDefaultTeamMemberIcon(timestamp); // Fallback
-                    }
-                } else {
-                    // Check if we have a previously persisted value for this user
-                    String persistedNeedleIdStr = globalPh.get("user_map_needle_" + uuid);
-                    if (persistedNeedleIdStr != null && !persistedNeedleIdStr.isEmpty()) {
+                // --- Determine the correct icon for this team member ---
+                Bitmap finalIconBitmap = null;
+
+                // Get the currently persisted icon ID for this user, if any. This represents the last successfully loaded icon ID.
+                String persistedNeedleIdStr = globalPh.get("user_map_needle_" + uuid);
+
+                // Determine the effective needle ID to use for this update cycle.
+                // Server-provided ID takes precedence. If absent, use the persisted one.
+                String effectiveNeedleIdStr = mapNeedleIdStr;
+                if (effectiveNeedleIdStr == null || effectiveNeedleIdStr.isEmpty()) {
+                    effectiveNeedleIdStr = persistedNeedleIdStr;
+                }
+
+                // Check if we can use the cached bitmap.
+                // We can use it if:
+                // 1. The UUID exists in the cache.
+                // 2. The *effective* needle ID for this update matches the *persisted* needle ID (meaning the icon hasn't changed).
+                if (teamMemberSpecificNeedleCache.containsKey(uuid) && Objects.equals(persistedNeedleIdStr, effectiveNeedleIdStr)) {
+                    finalIconBitmap = teamMemberSpecificNeedleCache.get(uuid);
+                    Log.d(TAG, "Using cached needle " + effectiveNeedleIdStr + " for team member " + name);
+                }
+
+                // If not found in cache (or cache was stale), load/derive the bitmap
+                if (finalIconBitmap == null) {
+                    if (effectiveNeedleIdStr != null && !effectiveNeedleIdStr.isEmpty()) {
                         try {
-                            int needleIndex = Integer.parseInt(persistedNeedleIdStr);
+                            int needleIndex = Integer.parseInt(effectiveNeedleIdStr);
                             if (allAvailableCustomNeedles != null && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size()) {
                                 finalIconBitmap = allAvailableCustomNeedles.get(needleIndex);
-                                teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache it
-                                Log.d(TAG, "Using previously persisted needle " + needleIndex + " for team member " + name);
+                                teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache it for future use
+                                Log.d(TAG, "Loaded and cached needle " + needleIndex + " for team member " + name);
+                                // Persist the ID only if it came from server or was a valid persisted one
+                                globalPh.put("user_map_needle_" + uuid, effectiveNeedleIdStr);
                             } else {
-                                Log.w(TAG, "Persisted icon " + persistedNeedleIdStr + " for user " + name + " is out of bounds or invalid. Falling back.");
+                                Log.w(TAG, "Icon ID " + effectiveNeedleIdStr + " for user " + name + " is out of bounds or invalid. Falling back.");
                                 finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
+                                teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
+                                globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
                             }
                         } catch (NumberFormatException e) {
-                            Log.e(TAG, "Persisted icon for user " + name + " is not a valid integer: " + persistedNeedleIdStr, e);
+                            Log.d(TAG, "Icon ID for user " + name + " is not a valid integer: " + effectiveNeedleIdStr);
                             finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
+                            teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
+                            globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
                         }
                     } else {
                         // No server-provided or previously persisted ID, use default based on timestamp
                         finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
+                        teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
+                        globalPh.remove("user_map_needle_" + uuid); // Ensure no old ID is lingering if we default
                     }
+                }
+
+                // Sanity check: if finalIconBitmap is still null (shouldn't happen with the logic above, but good practice)
+                if (finalIconBitmap == null) {
+                    Log.e(TAG, "Failed to determine icon for team member " + name + ", using generic fallback.");
+                    finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
+                    teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap);
                 }
 
 
@@ -411,7 +429,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
-    // NEW: Helper method to get default icon based on timestamp
+    // Helper method to get default icon based on timestamp
     private Bitmap getDefaultTeamMemberIcon(long timestamp) {
         boolean anHourOld = Tools.isOverAnHourOld(System.currentTimeMillis() - timestamp);
         return BitmapFactory.decodeResource(getApplication().getResources(), anHourOld ? R.drawable.person_away : R.drawable.person_active);

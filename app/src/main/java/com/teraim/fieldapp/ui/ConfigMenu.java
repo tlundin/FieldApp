@@ -410,6 +410,7 @@ public class ConfigMenu extends AppCompatActivity {
 				// The MapNeedlePreference manages its own summary based on selection.
 				// No additional logic needed here, just ensure askForRestart() is called.
 				Log.d("vortex", "Map needle set changed via custom preference.");
+				Log.d("ConfigMenu", "key: "+mapNeedlePref.getKey()+" value "+getPreferenceManager().getSharedPreferences().getInt(mapNeedlePref.getKey(),-1));
 			}
 		}
 

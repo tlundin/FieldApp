@@ -789,6 +789,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     private void insertDeleteAuditEntry(Selection s, String varName) {
+        if (Constants.SYNC_FEATURE_DISABLED)
+            return;
         //package the value array.
         String dd = "";
 
@@ -843,6 +845,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void insertEraseAuditEntry(String keyPairs, String pattern) {
+        if (Constants.SYNC_FEATURE_DISABLED)
+            return;
         storeAuditEntry("M", keyPairs, pattern, System.currentTimeMillis(),globalPh.get(PersistenceHelper.USER_ID_KEY));
         Log.d("vortex", "inserted Erase Many with: " + keyPairs + " and pattern " + pattern);
 
@@ -850,6 +854,8 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
     private void insertAuditEntry(Variable v, Map<String, String> valueSet, String author, String action,long timestamp) {
+        if (Constants.SYNC_FEATURE_DISABLED)
+            return;
         String changes = "";
         //First the keys.
         Log.d("vortex","Inserting Audit entry for "+v.getId());
