@@ -330,7 +330,7 @@ public class GeoJSONExporter extends Exporter {
 						//write("author",cp.getKeyColumnValues().get("author"));
 						for (String mKey : gisObjM.keySet()) {
 							write(mKey, gisObjM.get(mKey));
-							//Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
+							Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
 						}
 						//Check if there are other sub than default.
 						if (gisObjH != null && !gisObjH.isEmpty()) {

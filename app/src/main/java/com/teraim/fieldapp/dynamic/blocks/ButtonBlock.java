@@ -313,7 +313,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 								View popUpView = null; // inflating popup layout
 
-								if (myRules != null && myRules.size() > 0) {
+								if (myRules != null) {
 									Log.d("nils", "I have " + myRules.size() + " rules!");
 									validationResult = null;
 									//We have rules. Each rule adds a line in the popup.
