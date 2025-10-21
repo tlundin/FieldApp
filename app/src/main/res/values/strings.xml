@@ -142,5 +142,5 @@
     <string name="map_settings">Map Settings</string>
     <string name="map_needle_title">Map needles</string>
     <string name="map_needle_summary">Choose a map needle</string>
-    <string name="mapbox_access_token">pk.eyJ1IjoidGVyamVzdmVyamUiLCJhIjoiY21kOGZkcWoxMDZ1ZDJscXQ5ejI4Z2EwMSJ9.2CkggUUlwUwDM9Cm3cl6ww</string>
+
 </resources>

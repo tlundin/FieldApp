@@ -18,6 +18,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.mapbox.common.MapboxOptions
 import com.mapbox.geojson.*
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
@@ -45,6 +46,7 @@ import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
+import com.teraim.fieldapp.BuildConfig
 import com.teraim.fieldapp.R
 import com.teraim.fieldapp.dynamic.Executor
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container
@@ -57,12 +59,14 @@ import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.abs
 
+
+
 class GoogleGisTemplate : Executor() {
 
     // --- Constants ---
     private val TAG = "GoogleGisTemplate"
     private val GEOJSON_CONTENT_LIST_URL = "http://52.19.13.203/vortex/gis_objects/content.txt"
-    private val GEOJSON_BASE_URL = "http://52.19.13.203/vortex/gis_objects_wgs84/"
+    private val GEOJSON_BASE_URL = "http://52.19.13.203/vortex/gis_objects/gis_objects_wgs84/"
     private val INITIAL_ZOOM = 8.0
     private val TRAKT_ZOOM_LEVEL = 11.0
     private val CIRCLE_ICON_ID = "circle-icon"
@@ -126,6 +130,8 @@ class GoogleGisTemplate : Executor() {
         } else {
             Log.d(TAG, "Workflow is null in onCreate.")
         }
+        val token = BuildConfig.MAPBOX_ACCESS_TOKEN
+        MapboxOptions.accessToken = token
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {

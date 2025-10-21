@@ -1,7 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'org.jetbrains.kotlin.android'
 
+
+def localProps = new Properties()
+def lpFile = rootProject.file("local.properties")
+if (lpFile.exists()) {
+    lpFile.withInputStream { localProps.load(it) }
+}
+
+def mapboxToken = localProps.getProperty("MAPBOX_ACCESS_TOKEN") ?: System.getenv("MAPBOX_ACCESS_TOKEN") ?: ""
+
 android {
+    defaultConfig {
+        buildConfigField "String", "MAPBOX_ACCESS_TOKEN", "\"${mapboxToken}\""
+    }
     signingConfigs {
         config {
             keyAlias 'vortexkey'
