@@ -1,1 +1,34 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+// Load Mapbox downloads token from local.properties (not committed to repo)
+// This token is used by the Mapbox Maven repository for authentication
+def localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    def localProperties = new Properties()
+    localPropertiesFile.withInputStream { localProperties.load(it) }
+    def mapboxDownloadsToken = localProperties.getProperty("MAPBOX_DOWNLOADS_TOKEN")
+    if (mapboxDownloadsToken) {
+        // Set as system property - Mapbox plugin will automatically read this
+        System.setProperty("MAPBOX_DOWNLOADS_TOKEN", mapboxDownloadsToken)
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        // Mapbox Maven repository - requires MAPBOX_DOWNLOADS_TOKEN from local.properties
+        // The token is loaded above and set as a system property
+        maven { url 'https://api.mapbox.com/downloads/v2/releases/maven' }
+    }
+}
+
+rootProject.name = "FieldApp" // Replace with your app's name
 include ':app'

@@ -115,7 +115,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 }
             }
             ta.recycle(); // Important: Recycle TypedArray
-            Log.d(TAG, "Loaded " + allAvailableCustomNeedles.size() + " custom map needles.");
+           // Log.d(TAG, "Loaded " + allAvailableCustomNeedles.size() + " custom map needles.");
         } catch (Exception e) {
             Log.e(TAG, "Error loading all custom map needles: " + e.getMessage(), e);
         }
@@ -142,7 +142,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
             return;
         }
 
-        Log.d(TAG, "Initiating network calls...");
+       // Log.d(TAG, "Initiating network calls...");
         _isUpdating.postValue(true);
         _errorMessage.postValue(null);
 
@@ -182,7 +182,6 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 _isUpdating.postValue(false);
                 return;
             }
-            Log.d("mammamia", "JSON: "+jsonBody.toString());
             final String requestBody = jsonBody.toString();
             final String SendMyPoisition = Constants.SynkStatusURI + "/position";
 
@@ -191,7 +190,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            Log.d(TAG, "My position posted successfully: " + response);
+    //                        Log.d(TAG, "My position posted successfully: " + response);
                             decrementAndCheck.run();
                         }
                     }, new Response.ErrorListener() {
@@ -238,7 +237,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.d(TAG, "Team positions received: " + response);
+  //                      Log.d(TAG, "Team positions received: " + response);
                         _teamPositionsRaw.postValue(response);
                         processTeamPositionsResponse(response);
                         decrementAndCheck.run();
@@ -265,7 +264,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                     new Response.Listener<String>() {
                         @Override
                         public void onResponse(String response) {
-                            Log.d(TAG, "Server status received: " + response.substring(0, Math.min(response.length(), 100)) + "...");
+      //                      Log.d(TAG, "Server status received: " + response.substring(0, Math.min(response.length(), 100)) + "...");
                             processServerStatusResponse(response);
                             decrementAndCheck.run();
                         }
@@ -310,7 +309,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 // Skip yourself if your UUID matches
                 if (uuid.equals(currentUserUUID)) {
-                    Log.d(TAG, "Skipping myself: " + name);
+      //              Log.d(TAG, "Skipping myself: " + name);
                     continue;
                 }
                 // Skip if team name not set or empty
@@ -348,7 +347,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 // 2. The *effective* needle ID for this update matches the *persisted* needle ID (meaning the icon hasn't changed).
                 if (teamMemberSpecificNeedleCache.containsKey(uuid) && Objects.equals(persistedNeedleIdStr, effectiveNeedleIdStr)) {
                     finalIconBitmap = teamMemberSpecificNeedleCache.get(uuid);
-                    Log.d(TAG, "Using cached needle " + effectiveNeedleIdStr + " for team member " + name);
+      //              Log.d(TAG, "Using cached needle " + effectiveNeedleIdStr + " for team member " + name);
                 }
 
                 // If not found in cache (or cache was stale), load/derive the bitmap
@@ -359,7 +358,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                             if (allAvailableCustomNeedles != null && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size()) {
                                 finalIconBitmap = allAvailableCustomNeedles.get(needleIndex);
                                 teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache it for future use
-                                Log.d(TAG, "Loaded and cached needle " + needleIndex + " for team member " + name);
+                                //Log.d(TAG, "Loaded and cached needle " + needleIndex + " for team member " + name);
                                 // Persist the ID only if it came from server or was a valid persisted one
                                 globalPh.put("user_map_needle_" + uuid, effectiveNeedleIdStr);
                             } else {
@@ -369,7 +368,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                                 globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
                             }
                         } catch (NumberFormatException e) {
-                            Log.d(TAG, "Icon ID for user " + name + " is not a valid integer: " + effectiveNeedleIdStr);
+                           // Log.d(TAG, "Icon ID for user " + name + " is not a valid integer: " + effectiveNeedleIdStr);
                             finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
                             teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
                             globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
@@ -418,7 +417,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 teamMembers.add(memberGisObject);
             }
-            Log.d(TAG, "Processed " + teamMembers.size() + " team members into GisObjects.");
+            //Log.d(TAG, "Processed " + teamMembers.size() + " team members into GisObjects.");
             _teamMemberGisObjects.postValue(teamMembers);
 
         } catch (JSONException e) {
@@ -443,12 +442,12 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
             int storedVersion = globalPh.getI(PersistenceHelper.SERVER_VERSION_KEY);
             if (version != storedVersion) {
-                Log.d(TAG, "New version found: " + version + " stored version: " + storedVersion);
+               // Log.d(TAG, "New version found: " + version + " stored version: " + storedVersion);
                 globalPh.put(PersistenceHelper.SERVER_VERSION_KEY, version);
                 globalPh.put(PersistenceHelper.SERVER_PENDING_UPDATE, true);
                 _serverPendingUpdate.postValue(true);
             } else {
-                Log.d(TAG, "Server version not changed. Stored: " + storedVersion);
+               // Log.d(TAG, "Server version not changed. Stored: " + storedVersion);
             }
         } catch (JSONException e) {
             Log.e(TAG, "Error parsing server status JSON: " + e.getMessage());

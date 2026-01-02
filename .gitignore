@@ -36,5 +36,8 @@ output.json
 obj/
 .externalNativeBuild
 
+# Memory profiler files
+*.hprof
+
 # VSCode settings folder
 .vscode/

@@ -142,4 +142,5 @@
     <string name="map_settings">Map Settings</string>
     <string name="map_needle_title">Map needles</string>
     <string name="map_needle_summary">Choose a map needle</string>
+
 </resources>
