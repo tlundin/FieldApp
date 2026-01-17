@@ -112,7 +112,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		this.line_width = Float.parseFloat(line_width);
 		myType = type;
 
-		if (coordType==null||coordType=="")
+		if (coordType == null || coordType.isEmpty())
 			this.coordType=GisConstants.SWEREF;
 
 		setRadius(radius);
@@ -200,8 +200,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				new DownloadImageTask()
 						.execute(fullPicURL);
 			} else {
-				try {
-					icon = BitmapFactory.decodeStream(new FileInputStream(cached));
+				try (FileInputStream inputStream = new FileInputStream(cached)) {
+					icon = BitmapFactory.decodeStream(inputStream);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

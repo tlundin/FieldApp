@@ -99,26 +99,19 @@ public class BackupManager {
 				return false;
 				
 			}
-			FileInputStream fis = new FileInputStream(dbFile);			
 			String outFileName = dir+"/"+backupFileName;
-
-			// Open the empty db as the output stream
-			OutputStream output;
-
-			output = new FileOutputStream(outFileName);
 
 			Log.d("vortex","Output folder: "+outFileName);
 			// Transfer bytes from the inputfile to the outputfile
 			byte[] buffer = new byte[1024];
 			int length;
-			while ((length = fis.read(buffer))>0){
-				output.write(buffer, 0, length);
+			try (FileInputStream fis = new FileInputStream(dbFile);
+				 OutputStream output = new FileOutputStream(outFileName)) {
+				while ((length = fis.read(buffer))>0){
+					output.write(buffer, 0, length);
+				}
+				output.flush();
 			}
-
-			// Close the streams
-			output.flush();
-			output.close();
-			fis.close();
 
 		} catch (FileNotFoundException e) {
 			Log.e("vortex","backup failed");
@@ -339,13 +332,6 @@ public class BackupManager {
 			}
 
 			String backupFile = dir+"/"+backupFileName;
-			FileInputStream fis = new FileInputStream(backupFile);			
-			
-
-			// Output to the db file for the app.
-			OutputStream output;
-
-			output = new FileOutputStream(dbFile);
 
 			Log.d("vortex","Restore file: "+backupFile);
 			// Transfer bytes from the inputfile to the outputfile
@@ -355,14 +341,13 @@ public class BackupManager {
 			//Close the existing database.
 			GlobalState.getInstance().getDb().closeDatabaseBeforeExit();
 
-			while ((length = fis.read(buffer))>0){
-				output.write(buffer, 0, length);
+			try (FileInputStream fis = new FileInputStream(backupFile);
+				 OutputStream output = new FileOutputStream(dbFile)) {
+				while ((length = fis.read(buffer))>0){
+					output.write(buffer, 0, length);
+				}
+				output.flush();
 			}
-
-			// Close the streams
-			output.flush();
-			output.close();
-			fis.close();
 		} catch (FileNotFoundException e) {
 			Log.e("vortex","restore failed");
 			e.printStackTrace();
