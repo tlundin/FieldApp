@@ -99,6 +99,7 @@ public final class DataLoader {
                 Log.e("vortex", "A non-recoverable error occurred.", e);
                 // This could be XmlPullParserException, JSONException, etc.
                 return new LoadResult(module, ErrorCode.ParseError, e.getMessage());
+            }
         } // End of for loop
 
         // This line is reached only if all retries failed with a recoverable error.

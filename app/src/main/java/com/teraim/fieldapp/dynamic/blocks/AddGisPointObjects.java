@@ -40,6 +40,7 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -204,6 +205,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 					icon = BitmapFactory.decodeStream(inputStream);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}

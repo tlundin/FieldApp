@@ -8,7 +8,7 @@ pluginManagement {
 
 // Load Mapbox downloads token from local.properties (not committed to repo)
 // This token is used by the Mapbox Maven repository for authentication
-def localPropertiesFile = rootProject.file("local.properties")
+def localPropertiesFile = new File(settingsDir, "local.properties")
 if (localPropertiesFile.exists()) {
     def localProperties = new Properties()
     localPropertiesFile.withInputStream { localProperties.load(it) }

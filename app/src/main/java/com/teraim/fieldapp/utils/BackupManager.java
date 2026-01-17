@@ -178,7 +178,7 @@ public class BackupManager {
 		File file = new File(dir, exportFileName);
 		int offset=0;
 		int count=512;
-		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), 1024))) {
+		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)), 1024)) {
 			while(data.length()>offset) {
 				// write part of
 				// string
@@ -229,7 +229,7 @@ public class BackupManager {
 		}
 		String ret = "OK";
 		File file = new File(dir, exportFileName);
-		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),1024))) {
+		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file)),1024)) {
 			// write the whole string
 			outWriter.write(data);
 		}catch(Exception e){
