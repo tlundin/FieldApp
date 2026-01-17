@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 
 public class BackupManager {
 
@@ -176,14 +177,9 @@ public class BackupManager {
 		}
 		String ret = "OK";
 		File file = new File(dir, exportFileName);
-		BufferedWriter outWriter=null;
 		int offset=0;
 		int count=512;
-		boolean notDone=true;
-		try {
-			FileOutputStream f = new FileOutputStream(file);
-			outWriter = new BufferedWriter(new OutputStreamWriter(f), 1024);
-
+		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), 1024))) {
 			while(data.length()>offset) {
 				// write part of
 				// string
@@ -200,19 +196,11 @@ public class BackupManager {
 				offset += count;
 
 			}
-			outWriter.close();
 		}catch(Exception e){
 			ret = e.getMessage();
 			System.out.println("Could not write backup file! Filename: "+exportFileName);
 
 			e.printStackTrace();
-			try {
-				if (outWriter!=null)
-					outWriter.close();
-			} catch (IOException e1) {
-				ret = e1.getMessage();
-				e1.printStackTrace();
-			}
 			return ret;
 		}
 		Log.d("vortex","file succesfully written to backup: "+exportFileName);
@@ -242,25 +230,14 @@ public class BackupManager {
 		}
 		String ret = "OK";
 		File file = new File(dir, exportFileName);
-		BufferedWriter outWriter=null;
-		try { 
-			FileOutputStream f = new FileOutputStream(file);
-			outWriter = new BufferedWriter(new OutputStreamWriter(f),1024);
+		try (BufferedWriter outWriter = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file),1024))) {
 			// write the whole string
 			outWriter.write(data);
-			outWriter.close();
 		}catch(Exception e){
 			ret = e.getMessage();
 			System.out.println("Could not write backup file! Filename: "+exportFileName);
 
 			e.printStackTrace();
-			try {
-				if (outWriter!=null)
-					outWriter.close();
-			} catch (IOException e1) {
-				ret = e1.getMessage();
-				e1.printStackTrace();
-			}
 			return ret;
 		}
 		Log.d("vortex","file succesfully written to backup: "+exportFileName);
@@ -363,9 +340,14 @@ public class BackupManager {
 
 	public String daysSinceLastBackup() {
 		long timeOfLast = gs.getPreferences().getL(PersistenceHelper.TIME_OF_LAST_BACKUP);
-
-		Calendar c= Calendar.getInstance();
-		c.setTimeInMillis(System.currentTimeMillis()-timeOfLast);
-		return c.get(Calendar.HOUR)+"";
+		if (timeOfLast <= 0) {
+			return "0";
+		}
+		long diffMs = System.currentTimeMillis() - timeOfLast;
+		if (diffMs <= 0) {
+			return "0";
+		}
+		long days = TimeUnit.MILLISECONDS.toDays(diffMs);
+		return Long.toString(days);
 	}
 }

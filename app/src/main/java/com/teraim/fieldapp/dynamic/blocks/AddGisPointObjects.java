@@ -504,8 +504,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			Bitmap mIcon11 = null;
 			try {
 				Log.d("vortex","Trying to load bitmap");
-				InputStream in = new java.net.URL(urldisplay).openStream();
-				mIcon11 = BitmapFactory.decodeStream(in);
+				try (InputStream in = new java.net.URL(urldisplay).openStream()) {
+					mIcon11 = BitmapFactory.decodeStream(in);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
