@@ -25,38 +25,36 @@ class WebService extends AsyncTask<String, String, String>{
 
 	@Override
 	protected String doInBackground(String... uri) {
-		Object obj = new Integer(42);
-		 URL url ;
+		Object obj = Integer.valueOf(42);
+		URL url;
 		URLConnection conn;
 		try {
 			Log.d("vortex","In webservice");
 			url = new URL(uri[0]);
-			 conn = url.openConnection();
-		        conn.setDoInput(true);
-		        conn.setDoOutput(true);
-		        conn.setUseCaches(false);
-		        
-		        // send object
-		        ObjectOutputStream objOut = new ObjectOutputStream(conn.getOutputStream());
-		        objOut.writeObject(obj);
-		        objOut.flush();
-		        objOut.close();
+			conn = url.openConnection();
+			conn.setDoInput(true);
+			conn.setDoOutput(true);
+			conn.setUseCaches(false);
+
+			// send object
+			try (ObjectOutputStream objOut = new ObjectOutputStream(conn.getOutputStream())) {
+				objOut.writeObject(obj);
+				objOut.flush();
 			}
-		 catch (IOException e) {
+		}
+		catch (IOException e) {
 			e.printStackTrace();
 			return null;
 		}
-		 Object reply="cheeze";
+		Object reply="cheeze";
 		try {
-		        ObjectInputStream objIn = new ObjectInputStream(conn.getInputStream());
-		        reply = objIn.readObject();
-		        objIn.close();
-		    } catch (Exception ex) {
-		      ex.printStackTrace();
-		       
-		      
-		    }
-		    return reply.toString();
+			try (ObjectInputStream objIn = new ObjectInputStream(conn.getInputStream())) {
+				reply = objIn.readObject();
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return reply.toString();
 		
 	}
 
