@@ -9,7 +9,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -17,8 +16,6 @@ import androidx.core.content.ContextCompat;
 
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.ArrayVariable;
-import com.teraim.fieldapp.dynamic.types.Location;
-import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.types.Table;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.types.VariableCache;
@@ -213,10 +210,6 @@ public class DbHelper extends SQLiteOpenHelper {
             return true;
         }
     }
-    public void eraseSyncObjects() {
-        db().delete(TABLE_SYNC,null,null);
-    }
-
     //This function attempts to recover a newer  uuid from a old uuid using the variable GlobalID as key.
     public String findUIDFromGlobalId(String uid) {
         String uidColumn = this.getDatabaseColumnName("uid");
@@ -370,101 +363,6 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-
-    public class LocationAndTimeStamp {
-        private final long AnHour = 3600 * 1000;
-        private final long HalfAnHour = AnHour/2;
-        private final long QuarterOfAnHour = AnHour/4;
-        private final long timeSinceRegistered;
-        public final Location location;
-
-        LocationAndTimeStamp(long timeSinceRegistered, Location loc) {
-            location=loc;
-            this.timeSinceRegistered = timeSinceRegistered;
-        }
-        public boolean isOverAnHourOld() { return timeSinceRegistered > AnHour; }
-        public boolean isOverHalfAnHourOld() {
-            return timeSinceRegistered > HalfAnHour;
-        }
-        public boolean isOverAQuarterOld() {
-            return timeSinceRegistered > QuarterOfAnHour;
-        }
-
-        public long getMostRecentTimeStamp() {
-            return timeSinceRegistered;
-        }
-    }
-
-    private final static long TenDays = 3600*24*5*2*1000;
-
-    public Map<String,LocationAndTimeStamp> getTeamMembers(String team, String user) {
-        HashMap<String, LocationAndTimeStamp> ret = null;
-
-        Map<String, String> xByAuthor = new HashMap<>();
-        Map<String, Long> xTimestampByAuthor = new HashMap<>();
-        Map<String, String> yByAuthor = new HashMap<>();
-
-        SelectionBuilder selectionBuilderX = new SelectionBuilder();
-        selectionBuilderX.addEquals(VARID, "GPS_X");
-        selectionBuilderX.addLike(LAG, team);
-        selectionBuilderX.addNotEquals(AUTHOR, user);
-
-        try (Cursor qx = db().query(
-                TABLE_VARIABLES,
-                new String[]{AUTHOR, VALUE, "max(" + TIMESTAMP + ") as t"},
-                selectionBuilderX.buildSelection(),
-                selectionBuilderX.buildArgs(),
-                AUTHOR,
-                null,
-                null
-        )) {
-            while (qx.moveToNext()) {
-                xByAuthor.put(qx.getString(0), qx.getString(1));
-                xTimestampByAuthor.put(qx.getString(0), qx.getLong(2));
-            }
-        }
-
-        SelectionBuilder selectionBuilderY = new SelectionBuilder();
-        selectionBuilderY.addEquals(VARID, "GPS_Y");
-        selectionBuilderY.addLike(LAG, team);
-        selectionBuilderY.addNotEquals(AUTHOR, user);
-
-        try (Cursor qy = db().query(
-                TABLE_VARIABLES,
-                new String[]{AUTHOR, VALUE, "max(" + TIMESTAMP + ") as t"},
-                selectionBuilderY.buildSelection(),
-                selectionBuilderY.buildArgs(),
-                AUTHOR,
-                null,
-                null
-        )) {
-            while (qy.moveToNext()) {
-                yByAuthor.put(qy.getString(0), qy.getString(1));
-            }
-        }
-
-        for (Map.Entry<String, String> entry : xByAuthor.entrySet()) {
-            String teamMemberName = entry.getKey();
-            String xValue = entry.getValue();
-            String yValue = yByAuthor.get(teamMemberName);
-            if (yValue == null) {
-                continue;
-            }
-            long timeStamp = xTimestampByAuthor.get(teamMemberName);
-            long timeSinceRegistered = (System.currentTimeMillis() - timeStamp);
-            if (timeSinceRegistered > TenDays) {
-                Log.d(TAG, "getTeamMembers: timestamp for " + teamMemberName + " is older than 10 days");
-            } else {
-                if (ret == null)
-                    ret = new HashMap<String, LocationAndTimeStamp>();
-                Log.d(TAG, "getTeamMembers: adding " + teamMemberName);
-                ret.put(teamMemberName, new LocationAndTimeStamp(timeSinceRegistered, new SweLocation(xValue, yValue)));
-            }
-        }
-
-        return ret;
-
-    }
 
     //Helper class that wraps the Cursor.
     public class DBColumnPicker {
@@ -1149,40 +1047,6 @@ public class DbHelper extends SQLiteOpenHelper {
         }
     }
 
-
-
-
-    public VariableRowEntry[] exportEverything(UIProvider ui) {
-        VariableRowEntry[] vRows = null;
-        List<String> values;
-        //Ask for everything.
-        Cursor c = db().query(TABLE_VARIABLES, null, null,
-                null, null, null, null, null);
-        if (c != null && c.getCount() > 0 && c.moveToFirst()) {
-            vRows = new VariableRowEntry[c.getCount() + 1];
-            int cn = 0;
-            do {
-                values = new ArrayList<String>(NO_OF_KEYS);
-                for (int i = 1; i <= NO_OF_KEYS; i++)
-                    values.add(c.getString(c.getColumnIndex("L" + i)));
-
-                vRows[cn] = new VariableRowEntry(c.getString(c.getColumnIndex(VARID)),
-                        c.getString(c.getColumnIndex(VALUE)),
-                        c.getString(c.getColumnIndex(LAG)),
-                        c.getString(c.getColumnIndex(TIMESTAMP)),
-                        c.getString(c.getColumnIndex(AUTHOR)),
-                        values);
-
-                cn++;
-                if (ui != null)
-                    ui.setInfo(cn + "/" + c.getCount());
-            } while (c.moveToNext());
-        }
-        if (c!=null)
-            c.close();
-        return vRows;
-    }
-
     public SyncEntry[] getChanges(UIProvider ui) {
         long maxStamp;
         SyncEntry[] sa = null;
@@ -1558,10 +1422,6 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
 
-    private boolean isStatusVariable(String variableName) {
-        return variableName.startsWith("STATUS:status_ruta");
-    }
-
     public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LogRepository o, SyncStatusListener syncListener) {
         if (ses == null) {
             Log.d("sync", "ses är tom! i synchronize");
@@ -1857,15 +1717,6 @@ public class DbHelper extends SQLiteOpenHelper {
         return (time/86400 > 0);
     }
 
-    public static void printTime(long seconds) {
-
-        long days = seconds / 86400;
-        long sec = seconds % 60;
-        long minutes = seconds % 3600 / 60;
-        long hours = seconds % 86400 / 3600;
-        System.out.println("Day " + days + " Hour " + hours + " Minute " + minutes + " Seconds " + sec);
-    }
-
 
     private boolean isMe(String author) {
         if (globalPh != null && author != null)
@@ -1963,17 +1814,6 @@ public class DbHelper extends SQLiteOpenHelper {
 
     }
 
-
-    public void eraseProvyta(String currentRuta, String currentProvyta) {
-        String deleteStatement = "år=" + Constants.getYear() + ",ruta=" + currentRuta + ",provyta=" + currentProvyta;
-        Log.d("nils", "In EraseProvyta: [" + deleteStatement + "]");
-
-        erase(deleteStatement, null);
-
-        insertEraseAuditEntry(deleteStatement, null);
-
-
-    }
 
     public void eraseSmaProvyDelytaAssoc(String currentRuta, String currentProvyta) {
         Log.d("vortex", "Calling erase with r " + currentRuta + ", p " + currentProvyta + " db: " + db);
@@ -2462,29 +2302,6 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
 
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
-    }
-
-    public void processSyncEntriesIfAny() {
-        //check and process sync entries.
-        final String[] dataColumn = new String[]{"id,data"};
-        //get a cursor.
-        //		db.beginTransaction();
-        Cursor c = db().query(TABLE_SYNC, dataColumn, null, null, null, null, null, null);
-        int lastId = -1;
-        while (c.moveToNext()) {
-            int id = c.getInt(0);
-            Log.d("vortex", "id: " + id);
-        }
-        c.close();
-        //		db.endTransaction();
-        //String[] lastIdS=new String[]{lastId+""};
-        //db.delete(TABLE_SYNC, "id<?", lastIdS);
-    }
-
     /**
      * Scan all sync entry rows in the sync table.
      *
@@ -2620,10 +2437,6 @@ public class DbHelper extends SQLiteOpenHelper {
     public long getReceiveTimestamp(String syncgroup) {
         return getSyncTimestamp(Constants.TIMESTAMP_SYNC_RECEIVE,syncgroup);
     }
-    public void saveReceiveTimestamp(String syncgroup, long ts) {
-        saveSyncTimestamp(Constants.TIMESTAMP_SYNC_RECEIVE,syncgroup,ts);
-    }
-
     private void saveSyncTimestamp(String timeStampLabel, String syncgroup,long ts) {
         Log.d("antrax","Saving timestamp "+ts+ "for syncgroup "+syncgroup);
         db().execSQL("INSERT into "+TABLE_TIMESTAMPS+" (SYNCGROUP,LABEL,VALUE) values (?,?,?)",new String[]{syncgroup,timeStampLabel,Long.toString(ts)});
