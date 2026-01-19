@@ -28,8 +28,9 @@ import com.teraim.fieldapp.utils.Geomatte; // Import Geomatte for coordinate con
 import java.util.ArrayList;
 import java.util.List;
 
-public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
+public class GoogleGisTemplateLegacy extends Executor implements OnMapReadyCallback {
 
+    private static final String TAG = "GoogleGisTemplateLegacy";
     private MapView mapView;
     private GoogleMap googleMap;
     private LinearLayout rootContainer; // This will be our root container view
@@ -46,7 +47,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     public boolean execute(String function, String target) {
         // This method would handle specific workflow functions.
         // For this basic map, we don't have custom functions yet.
-        Log.d("GoogleGisTemplate", "Execute called with function: " + function + ", target: " + target);
+        Log.d(TAG, "Execute called with function: " + function + ", target: " + target);
         return true;
     }
 
@@ -81,7 +82,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d("GoogleGisTemplate", "onCreate called.");
+        Log.d(TAG, "onCreate called.");
 
         // Initialize Maps SDK
         MapsInitializer.initialize(this.getActivity().getApplicationContext());
@@ -90,17 +91,17 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
         // Ensure your workflow enables GPS tracking (e.g., via a PageDefineBlock)
         // for myX and myY variables to be populated.
         if (wf != null) {
-            Log.d("GoogleGisTemplate", "Workflow exists, calling run().");
+            Log.d(TAG, "Workflow exists, calling run().");
             run();
         } else {
-            Log.d("GoogleGisTemplate", "Workflow is null in onCreate.");
+            Log.d(TAG, "Workflow is null in onCreate.");
         }
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        Log.d("GoogleGisTemplate", "onStart called.");
+        Log.d(TAG, "onStart called.");
         if (mapView != null) {
             mapView.onStart();
         }
@@ -109,7 +110,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onResume() {
         super.onResume();
-        Log.d("GoogleGisTemplate", "onResume called.");
+        Log.d(TAG, "onResume called.");
         if (mapView != null) {
             mapView.onResume();
             // Get the map asynchronously
@@ -120,7 +121,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("GoogleGisTemplate", "onPause called.");
+        Log.d(TAG, "onPause called.");
         if (mapView != null) {
             mapView.onPause();
         }
@@ -129,7 +130,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onStop() {
         super.onStop();
-        Log.d("GoogleGisTemplate", "onStop called.");
+        Log.d(TAG, "onStop called.");
         if (mapView != null) {
             mapView.onStop();
         }
@@ -138,7 +139,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d("GoogleGisTemplate", "onDestroyView called.");
+        Log.d(TAG, "onDestroyView called.");
         if (mapView != null) {
             mapView.onDestroy();
         }
@@ -147,7 +148,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onLowMemory() {
         super.onLowMemory();
-        Log.d("GoogleGisTemplate", "onLowMemory called.");
+        Log.d(TAG, "onLowMemory called.");
         if (mapView != null) {
             mapView.onLowMemory();
         }
@@ -156,7 +157,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        Log.d("GoogleGisTemplate", "onSaveInstanceState called.");
+        Log.d(TAG, "onSaveInstanceState called.");
         if (mapView != null) {
             mapView.onSaveInstanceState(outState);
         }
@@ -165,11 +166,11 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap map) {
         googleMap = map;
-        Log.d("GoogleGisTemplate", "Google Map is ready.");
+        Log.d(TAG, "Google Map is ready.");
 
         // Set map type to satellite
         googleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-        Log.d("GoogleGisTemplate", "Map type set to SATELLITE.");
+        Log.d(TAG, "Map type set to SATELLITE.");
 
         // Enable zoom controls for better user experience
         googleMap.getUiSettings().setZoomControlsEnabled(true);
@@ -178,7 +179,7 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
         googleMap.setOnCameraMoveStartedListener(reason -> {
             if (reason == GoogleMap.OnCameraMoveStartedListener.REASON_GESTURE) {
                 isUserInteractingWithMap = true;
-                Log.d("GoogleGisTemplate", "User started interacting with map (gesture). Auto-centering disabled.");
+                Log.d(TAG, "User started interacting with map (gesture). Auto-centering disabled.");
             }
         });
 
@@ -188,24 +189,23 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
             try {
                 double sweX = Double.parseDouble(myX.getValue());
                 double sweY = Double.parseDouble(myY.getValue());
-                ;
                 LatLng userLocation = Geomatte.convertToLatLong(sweX,sweY).from();
                 float zoomLevel = 8.0f; // Approx. 50km each direction (100km diameter)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, zoomLevel));
-                Log.d("GoogleGisTemplate", "Initial camera move to user location: " + userLocation.latitude + ", " + userLocation.longitude + " with zoom: " + zoomLevel);
+                Log.d(TAG, "Initial camera move to user location: " + userLocation.latitude + ", " + userLocation.longitude + " with zoom: " + zoomLevel);
             } catch (NumberFormatException e) {
-                Log.e("GoogleGisTemplate", "Error parsing initial location coordinates: " + e.getMessage());
+                Log.e(TAG, "Error parsing initial location coordinates: " + e.getMessage());
                 LatLng defaultLocation = new LatLng(59.3293, 18.0686); // Default: Stockholm, Sweden
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 8.0f));
-                Log.d("GoogleGisTemplate", "Falling back to default location due to parsing error for initial camera.");
+                Log.d(TAG, "Falling back to default location due to parsing error for initial camera.");
             } catch (Exception e) {
-                Log.e("GoogleGisTemplate", "Error converting SweRef to LatLng or moving camera initially: " + e.getMessage());
+                Log.e(TAG, "Error converting SweRef to LatLng or moving camera initially: " + e.getMessage());
                 LatLng defaultLocation = new LatLng(59.3293, 18.0686); // Default: Stockholm, Sweden
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 8.0f));
-                Log.d("GoogleGisTemplate", "Falling back to default location due to conversion/camera error for initial camera.");
+                Log.d(TAG, "Falling back to default location due to conversion/camera error for initial camera.");
             }
         } else {
-            Log.d("GoogleGisTemplate", "Current location not available from Executor during onMapReady. Moving to default location.");
+            Log.d(TAG, "Current location not available from Executor during onMapReady. Moving to default location.");
             LatLng defaultLocation = new LatLng(59.3293, 18.0686); // Default: Stockholm, Sweden
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 8.0f));
         }
@@ -215,38 +215,25 @@ public class GoogleGisTemplate extends Executor implements OnMapReadyCallback {
                 ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                         == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
-            Log.d("GoogleGisTemplate", "My Location layer enabled.");
+            Log.d(TAG, "My Location layer enabled.");
         } else {
-            Log.d("GoogleGisTemplate", "Location permission not granted or context is null. My Location layer not enabled.");
-            // You might want to prompt the user for permission here if it's critical for your app.
+            Log.d(TAG, "Location permission not granted or context is null. My Location layer not enabled.");
         }
     }
 
     @Override
     public void onLocationChanged(Location location) {
-        super.onLocationChanged(location); // Call the super method to update myX, myY, myAcc
-
-        Log.d("GoogleGisTemplate", "onLocationChanged received. User interaction status: " + isUserInteractingWithMap);
-
-        // Only move camera if the map is ready and user has not manually interacted with it
-        if (googleMap != null && !isUserInteractingWithMap) {
-            if (location != null) {
-                // Use the new location's latitude and longitude directly for map centering
-                LatLng newLocation = new LatLng(location.getLatitude(), location.getLongitude());
-
-                // Zoom level for ~50km in each direction (approx. 100km diameter).
-                float zoomLevel = 8.0f; // Keep consistent with initial zoom
-
-                // Animate camera to the new location
-                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(newLocation, zoomLevel));
-                Log.d("GoogleGisTemplate", "Camera animated to new location: " + newLocation.latitude + ", " + newLocation.longitude);
-            } else {
-                Log.d("GoogleGisTemplate", "Location object is null in onLocationChanged.");
-            }
+        Log.d(TAG, "onLocationChanged received. User interaction status: " + isUserInteractingWithMap);
+        if (googleMap != null && location != null && !isUserInteractingWithMap) {
+            LatLng newLocation = new LatLng(location.getLatitude(), location.getLongitude());
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(newLocation));
+            Log.d(TAG, "Camera animated to new location: " + newLocation.latitude + ", " + newLocation.longitude);
+        } else if (location == null) {
+            Log.d(TAG, "Location object is null in onLocationChanged.");
         } else if (googleMap == null) {
-            Log.d("GoogleGisTemplate", "GoogleMap not ready in onLocationChanged. Cannot move camera.");
+            Log.d(TAG, "GoogleMap not ready in onLocationChanged. Cannot move camera.");
         } else {
-            Log.d("GoogleGisTemplate", "User has interacted with map. Not auto-centering.");
+            Log.d(TAG, "User has interacted with map. Not auto-centering.");
         }
     }
 }

@@ -1199,22 +1199,19 @@ public class Tools {
 
 			Tools.createFoldersIfMissing(new File(fileName));
 			boolean success = false;
-			BufferedInputStream in = null;
-			BufferedOutputStream fout = null;
-
 			try {
 				Log.d("vortex","urlString: "+url);
 				URL _url = new URL(url);
 				URLConnection ucon = _url.openConnection();
 				ucon.setConnectTimeout(5000);
-				in = new BufferedInputStream(ucon.getInputStream());
-				fout = new BufferedOutputStream(new FileOutputStream(fileName));
-
-				final byte data[] = new byte[4096];
-				int count;
-				while ((count = in.read(data, 0, 4096)) != -1) {
-					fout.write(data, 0, count);
-					cb.progress(count);
+				try (BufferedInputStream in = new BufferedInputStream(ucon.getInputStream());
+					 BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(fileName))) {
+					final byte data[] = new byte[4096];
+					int count;
+					while ((count = in.read(data, 0, 4096)) != -1) {
+						fout.write(data, 0, count);
+						cb.progress(count);
+					}
 				}
 				success = true;
 			} catch (MalformedURLException e) {
@@ -1224,19 +1221,9 @@ public class Tools {
 				e.printStackTrace();
 				return false;
 			} finally {
-
-				if (in != null && fout != null) {
-					try {
-						in.close();
-						fout.close();
-						if (!success) {
-							Log.d("vortex","caching failed...deleting temp file");
-							file.delete();
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-
+				if (!success) {
+					Log.d("vortex","caching failed...deleting temp file");
+					file.delete();
 				}
 			}
 			return true;
@@ -1257,26 +1244,15 @@ public class Tools {
 
 	public static void saveUrl(final String filename, final String urlString, WebLoaderCb cb)
 			throws IOException {
-		BufferedInputStream in = null;
-		FileOutputStream fout = null;
-		try {
-			Log.d("vortex","urlString: "+urlString);
-			in = new BufferedInputStream(new URL(urlString).openStream());
-			fout = new FileOutputStream(filename);
-
+		Log.d("vortex","urlString: "+urlString);
+		try (BufferedInputStream in = new BufferedInputStream(new URL(urlString).openStream());
+			 FileOutputStream fout = new FileOutputStream(filename)) {
 			final byte data[] = new byte[1024];
 			int count;
 			while ((count = in.read(data, 0, 1024)) != -1) {
 				fout.write(data, 0, count);
 
 				cb.progress(count);
-			}
-		} finally {
-			if (in != null) {
-				in.close();
-			}
-			if (fout != null) {
-				fout.close();
 			}
 		}
 	}
@@ -1413,11 +1389,14 @@ public class Tools {
 
 	public static String getMajorVersion(String urlString) {
 		String ss = null;
-		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new BufferedInputStream(new URL(urlString).openStream())));
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+				new BufferedInputStream(new URL(urlString).openStream())))) {
 			String _a = reader.readLine();
 			if (_a != null) {
 				String vs = reader.readLine();
+				if (vs == null) {
+					return null;
+				}
 				Log.d("VEXXOR",vs);
 				int _av = vs.indexOf("app_version");
 				int _s = vs.indexOf('\"',_av)+1;
@@ -1425,7 +1404,6 @@ public class Tools {
 				Log.d("VEXXOR","_av "+_av+"_s "+_s+"_e "+_e);
 				ss = vs.substring(_s,_e);
 			}
-			reader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

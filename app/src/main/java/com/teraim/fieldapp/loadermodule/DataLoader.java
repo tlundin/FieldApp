@@ -51,31 +51,31 @@ public final class DataLoader {
 
         for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
             URL url = null;
-            InputStream in = null;
             try {
                 url = new URL(module.getURL());
                 Log.d("vortex", "Trying to open connection (Attempt " + attempt + "): " + url);
                 URLConnection ucon = url.openConnection();
                 ucon.setConnectTimeout(5000);
-                in = ucon.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                try (InputStream in = ucon.getInputStream();
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
 
-                // Get Version, Read, Parse, Freeze... (your existing logic)
-                float version = getVersion(reader, module);
-                StringBuilder sb = new StringBuilder();
-                LoadResult readResult = read(reader, module, version, sb);
+                    // Get Version, Read, Parse, Freeze... (your existing logic)
+                    float version = getVersion(reader, module);
+                    StringBuilder sb = new StringBuilder();
+                    LoadResult readResult = read(reader, module, version, sb);
 
-                // If read was successful, parse and then freeze the module.
-                if (readResult.errCode == ErrorCode.loaded) {
-                    LoadResult parseResult = parse(module);
-                    if (parseResult.errCode == ErrorCode.parsed) {
-                        //module.state.postValue(ConfigurationModule.State.FREEZING);
-                        LoadResult freezeResult = freeze(module);
-                        // --- SUCCESS! ---
-                        // If everything worked, return the result and exit the loop.
-                        return freezeResult;
-                    } else {
-                        return parseResult; // Return non-recoverable parse error immediately.
+                    // If read was successful, parse and then freeze the module.
+                    if (readResult.errCode == ErrorCode.loaded) {
+                        LoadResult parseResult = parse(module);
+                        if (parseResult.errCode == ErrorCode.parsed) {
+                            //module.state.postValue(ConfigurationModule.State.FREEZING);
+                            LoadResult freezeResult = freeze(module);
+                            // --- SUCCESS! ---
+                            // If everything worked, return the result and exit the loop.
+                            return freezeResult;
+                        } else {
+                            return parseResult; // Return non-recoverable parse error immediately.
+                        }
                     }
                 }
             } catch (IOException e) {
@@ -99,10 +99,6 @@ public final class DataLoader {
                 Log.e("vortex", "A non-recoverable error occurred.", e);
                 // This could be XmlPullParserException, JSONException, etc.
                 return new LoadResult(module, ErrorCode.ParseError, e.getMessage());
-            } finally {
-                try {
-                    if (in != null) in.close();
-                } catch (IOException ignored) {}
             }
         } // End of for loop
 

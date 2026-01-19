@@ -107,75 +107,75 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 
 		myKeyHash.remove(variatorColumn);
 		//preload
-		Cursor c = gs.getDb().getPrefetchCursor(myKeyHash, namePrefix, variatorColumn);
-		if (c.moveToFirst() ) {
-			Log.d("nils","In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
-			do {
-				Log.d("nils","varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
-				String varId = c.getString(0);
-				String index = c.getString(1);
-				String value = c.getString(2);
-				String varName = Variable.getVarInstancePart(varId);
-				String varSuffix = Variable.getVarSuffixPart(varId);
-				if (suffices!=null && !suffices.isEmpty() && !suffices.contains(varSuffix)) {
-					Log.d("vortex","discarding "+varId+". Not part of this list");
-					continue;
-				}
+		try (Cursor c = gs.getDb().getPrefetchCursor(myKeyHash, namePrefix, variatorColumn)) {
+			if (c.moveToFirst() ) {
+				Log.d("nils","In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
+				do {
+					Log.d("nils","varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
+					String varId = c.getString(0);
+					String index = c.getString(1);
+					String value = c.getString(2);
+					String varName = Variable.getVarInstancePart(varId);
+					String varSuffix = Variable.getVarSuffixPart(varId);
+					if (suffices!=null && !suffices.isEmpty() && !suffices.contains(varSuffix)) {
+						Log.d("vortex","discarding "+varId+". Not part of this list");
+						continue;
+					}
 
-				if (varName!=null) {
-					myKeyHash.put(variatorColumn, index);
-					Variable var = varCache.getVariable(myKeyHash,varCache.createOrGetCache(myKeyHash), varId, value, true);//(myKeyHash, varId,value);
-					if (var!=null) {
-						String entryInstanceLabel = al.getEntryLabel(var.getBackingDataSet())+" ["+index+"]";
-						WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
-						if (ef == null) {
-							ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat);
-							Log.d("nils","Added list entry for "+entryInstanceLabel);
-							//cache
-							entryFields.put(entryInstanceLabel, ef);
+					if (varName!=null) {
+						myKeyHash.put(variatorColumn, index);
+						Variable var = varCache.getVariable(myKeyHash,varCache.createOrGetCache(myKeyHash), varId, value, true);//(myKeyHash, varId,value);
+						if (var!=null) {
+							String entryInstanceLabel = al.getEntryLabel(var.getBackingDataSet())+" ["+index+"]";
+							WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
+							if (ef == null) {
+								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat);
+								Log.d("nils","Added list entry for "+entryInstanceLabel);
+								//cache
+								entryFields.put(entryInstanceLabel, ef);
 
-							get().add(ef);
-							//Create a standard variable for each as part of entryfield.
-							String efVarName;
-							Variable efVar;
-							for (String suffix:suffices) {
-								efVarName = namePrefix+":"+varName+":"+suffix;
-								Log.d("vortex","will generate: "+efVarName);
-								//If this equals the main var, then dont generate - use existing.
-								VarPars pars = parameters.get(suffix);
-								if (efVarName.equals(varId))
-									ef.addVariable(var, pars.isDisplayed, pars.format, pars.isVisible,pars.showHistorical);
-								else {
-									efVar =varCache.getVariable(myKeyHash,varCache.createOrGetCache(myKeyHash), efVarName, pars.defaultValue, true);
-									ef.addVariable(efVar, pars.isDisplayed, pars.format, pars.isVisible,pars.showHistorical);
+								get().add(ef);
+								//Create a standard variable for each as part of entryfield.
+								String efVarName;
+								Variable efVar;
+								for (String suffix:suffices) {
+									efVarName = namePrefix+":"+varName+":"+suffix;
+									Log.d("vortex","will generate: "+efVarName);
+									//If this equals the main var, then dont generate - use existing.
+									VarPars pars = parameters.get(suffix);
+									if (efVarName.equals(varId))
+										ef.addVariable(var, pars.isDisplayed, pars.format, pars.isVisible,pars.showHistorical);
+									else {
+										efVar =varCache.getVariable(myKeyHash,varCache.createOrGetCache(myKeyHash), efVarName, pars.defaultValue, true);
+										ef.addVariable(efVar, pars.isDisplayed, pars.format, pars.isVisible,pars.showHistorical);
+									}
+								}
+
+							} else {
+								Set<Variable> vars = ef.getAssociatedVariables();
+								if (vars!=null)
+									Log.d("vortex","ASSOC VARS: "+vars.toString());
+								else
+									Log.d("Vortex","ASSOCs are null");
+								//find missing variables for myvars. missing = var - suffix + other endings.
+								if (vars==null || !vars.contains(var)) {
+									Log.e("vortex","Variable did not exist. It must exist...!!!");
+								} else {
+									Log.d("vortex","found existing value...updating value");
+									var.setValue(value);
 								}
 							}
 
-						} else {
-							Set<Variable> vars = ef.getAssociatedVariables();
-							if (vars!=null)
-								Log.d("vortex","ASSOC VARS: "+vars.toString());
-							else
-								Log.d("Vortex","ASSOCs are null");
-							//find missing variables for myvars. missing = var - suffix + other endings.
-							if (vars==null || !vars.contains(var)) {
-								Log.e("vortex","Variable did not exist. It must exist...!!!");
-							} else {
-								Log.d("vortex","found existing value...updating value");
-								var.setValue(value);
-							}
-						}
 
 
+							//							visitedEntryFields.put(entryInstanceLabel,ef);
+						} else
+							Log.e("nils","Variable "+varId+" does not exist! (In WF_InstanceList, updateEntryFields)");
+					}
 
-						//							visitedEntryFields.put(entryInstanceLabel,ef);
-					} else
-						Log.e("nils","Variable "+varId+" does not exist! (In WF_InstanceList, updateEntryFields)");
-				}
-
-			} while (c.moveToNext());
+				} while (c.moveToNext());
+			}
 		}
-		c.close();
 
 		/*
 

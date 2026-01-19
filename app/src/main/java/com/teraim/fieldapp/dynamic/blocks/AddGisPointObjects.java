@@ -40,6 +40,7 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -112,7 +113,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		this.line_width = Float.parseFloat(line_width);
 		myType = type;
 
-		if (coordType==null||coordType=="")
+		if (coordType == null || coordType.isEmpty())
 			this.coordType=GisConstants.SWEREF;
 
 		setRadius(radius);
@@ -200,10 +201,12 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				new DownloadImageTask()
 						.execute(fullPicURL);
 			} else {
-				try {
-					icon = BitmapFactory.decodeStream(new FileInputStream(cached));
+				try (FileInputStream inputStream = new FileInputStream(cached)) {
+					icon = BitmapFactory.decodeStream(inputStream);
 				} catch (FileNotFoundException e) {
 					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
 			}
@@ -504,8 +507,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			Bitmap mIcon11 = null;
 			try {
 				Log.d("vortex","Trying to load bitmap");
-				InputStream in = new java.net.URL(urldisplay).openStream();
-				mIcon11 = BitmapFactory.decodeStream(in);
+				try (InputStream in = new java.net.URL(urldisplay).openStream()) {
+					mIcon11 = BitmapFactory.decodeStream(in);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
