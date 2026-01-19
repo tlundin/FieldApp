@@ -400,17 +400,23 @@ public class DbHelper extends SQLiteOpenHelper {
     public Map<String,LocationAndTimeStamp> getTeamMembers(String team, String user) {
         HashMap<String, LocationAndTimeStamp> ret = null;
 
-        String selection = VARID + " = ? AND " + LAG + " like ? AND " + AUTHOR + " <> ?";
-        String[] xArgs = new String[]{"GPS_X", team, user};
-        String[] yArgs = new String[]{"GPS_Y", team, user};
         Map<String, String> xByAuthor = new HashMap<>();
         Map<String, Long> xTimestampByAuthor = new HashMap<>();
         Map<String, String> yByAuthor = new HashMap<>();
 
-        try (Cursor qx = db().rawQuery(
-                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
-                        + " where " + selection + " group by " + AUTHOR,
-                xArgs
+        SelectionBuilder selectionBuilderX = new SelectionBuilder();
+        selectionBuilderX.addEquals(VARID, "GPS_X");
+        selectionBuilderX.addLike(LAG, team);
+        selectionBuilderX.addNotEquals(AUTHOR, user);
+
+        try (Cursor qx = db().query(
+                TABLE_VARIABLES,
+                new String[]{AUTHOR, VALUE, "max(" + TIMESTAMP + ") as t"},
+                selectionBuilderX.buildSelection(),
+                selectionBuilderX.buildArgs(),
+                AUTHOR,
+                null,
+                null
         )) {
             while (qx.moveToNext()) {
                 xByAuthor.put(qx.getString(0), qx.getString(1));
@@ -418,10 +424,19 @@ public class DbHelper extends SQLiteOpenHelper {
             }
         }
 
-        try (Cursor qy = db().rawQuery(
-                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
-                        + " where " + selection + " group by " + AUTHOR,
-                yArgs
+        SelectionBuilder selectionBuilderY = new SelectionBuilder();
+        selectionBuilderY.addEquals(VARID, "GPS_Y");
+        selectionBuilderY.addLike(LAG, team);
+        selectionBuilderY.addNotEquals(AUTHOR, user);
+
+        try (Cursor qy = db().query(
+                TABLE_VARIABLES,
+                new String[]{AUTHOR, VALUE, "max(" + TIMESTAMP + ") as t"},
+                selectionBuilderY.buildSelection(),
+                selectionBuilderY.buildArgs(),
+                AUTHOR,
+                null,
+                null
         )) {
             while (qy.moveToNext()) {
                 yByAuthor.put(qy.getString(0), qy.getString(1));
@@ -2159,6 +2174,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor c = null;
         try {
             SQLiteDatabase database = db();
+            // rawQuery required for window function + dynamic SQL
             c = database.rawQuery(sqlQuery, finalSelectionArgs);
         } catch (Exception e) {
             Log.e("DB_HELPER", "Error fetching latest variable instances by UID: " + e.getMessage(), e);
