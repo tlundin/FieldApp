@@ -56,22 +56,22 @@ import java.util.stream.Collectors;
 
 public class DbHelper extends SQLiteOpenHelper {
 
-    /* Database Version*/ private static final int DATABASE_VERSION = 18;/* Books table name*/
-    private static final String TABLE_VARIABLES = "variabler";
-    public static final String TABLE_TIMESTAMPS = "timestamps";
+    /* Database Version*/ private static final int DATABASE_VERSION = DbSchema.DATABASE_VERSION;/* Books table name*/
+    private static final String TABLE_VARIABLES = DbSchema.TABLE_VARIABLES;
+    public static final String TABLE_TIMESTAMPS = DbSchema.TABLE_TIMESTAMPS;
 
 
-    public static final String TABLE_AUDIT = "audit";
-    public static final String TABLE_SYNC = "sync";
+    public static final String TABLE_AUDIT = DbSchema.TABLE_AUDIT;
+    public static final String TABLE_SYNC = DbSchema.TABLE_SYNC;
 
 
-    private static final String VARID = "var";
-    private static final String VALUE = "value";
-    private static final String TIMESTAMP = "timestamp";
-    public static final String LAG = "lag";
-    public static final String AUTHOR = "author";
-    public static final String YEAR="år";
-    private static final String[] VAR_COLS = new String[]{TIMESTAMP, AUTHOR, LAG, VALUE};
+    private static final String VARID = DbSchema.COL_VARID;
+    private static final String VALUE = DbSchema.COL_VALUE;
+    private static final String TIMESTAMP = DbSchema.COL_TIMESTAMP;
+    public static final String LAG = DbSchema.COL_LAG;
+    public static final String AUTHOR = DbSchema.COL_AUTHOR;
+    public static final String YEAR = DbSchema.COL_YEAR;
+    private static final String[] VAR_COLS = DbSchema.VAR_COLS;
     //	private static final Set<String> MY_VALUES_SET = new HashSet<String>(Arrays.asList(VAR_COLS));
 
     private static final int NO_OF_KEYS = 10;
@@ -79,8 +79,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public SQLiteDatabase db;
     private PersistenceHelper globalPh = null;
 
-    private final Map<String, String> realColumnNameToDB = new HashMap<String, String>();
-    private final Map<String, String> dbColumnNameToReal = new HashMap<String, String>();
+    private final ColumnMapper columnMapper = new ColumnMapper();
 
     private final Context ctx;
 
@@ -90,29 +89,177 @@ public class DbHelper extends SQLiteOpenHelper {
         VALUE,
         SYNCGROUP
     }
+
+    private static class ColumnMapper {
+        private final Map<String, String> realToDb = new HashMap<String, String>();
+        private final Map<String, String> dbToReal = new HashMap<String, String>();
+
+        void addMapping(String realColumnName, String dbColumnName) {
+            realToDb.put(realColumnName, dbColumnName);
+            dbToReal.put(dbColumnName, realColumnName);
+        }
+
+        boolean containsRealKey(String realColumnName) {
+            return realToDb.containsKey(realColumnName);
+        }
+
+        String getDbNameOrNull(String realColumnName) {
+            return realToDb.get(realColumnName);
+        }
+
+        String getDbNameOrSelf(String realColumnName) {
+            String mapped = realToDb.get(realColumnName);
+            return mapped != null ? mapped : realColumnName;
+        }
+
+        String getRealNameOrSelf(String dbColumnName) {
+            String mapped = dbToReal.get(dbColumnName);
+            return mapped != null ? mapped : dbColumnName;
+        }
+
+        Set<String> getRealKeys() {
+            return realToDb.keySet();
+        }
+
+        int size() {
+            return realToDb.size();
+        }
+    }
+
+    private static class SelectionBuilder {
+        private final StringBuilder selection = new StringBuilder();
+        private final List<String> args = new ArrayList<String>();
+        private boolean hasClause = false;
+
+        void addEquals(String columnName, String value) {
+            if (value == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" = ?");
+            args.add(value);
+        }
+
+        void addEqualsWithCollateNoCase(String columnName, String value) {
+            if (value == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" = ? COLLATE NOCASE");
+            args.add(value);
+        }
+
+        void addNotEquals(String columnName, String value) {
+            if (value == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" <> ?");
+            args.add(value);
+        }
+
+        void addIsNotNull(String columnName) {
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" IS NOT NULL");
+        }
+
+        void addLike(String columnName, String pattern) {
+            if (pattern == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" LIKE ?");
+            args.add(pattern);
+        }
+
+        private void appendAndIfNeeded() {
+            if (hasClause) {
+                selection.append(" AND ");
+            } else {
+                hasClause = true;
+            }
+        }
+
+        String buildSelection() {
+            return selection.toString();
+        }
+
+        String[] buildArgs() {
+            return args.isEmpty() ? null : args.toArray(new String[0]);
+        }
+
+        private boolean ensureColumn(String columnName) {
+            if (columnName == null) {
+                Log.e("DbHelper", "SelectionBuilder column is null");
+                return false;
+            }
+            return true;
+        }
+    }
     public void eraseSyncObjects() {
         db().delete(TABLE_SYNC,null,null);
     }
 
     //This function attempts to recover a newer  uuid from a old uuid using the variable GlobalID as key.
     public String findUIDFromGlobalId(String uid) {
-        String query = "SELECT " + this.getDatabaseColumnName("uid") + " FROM " + TABLE_VARIABLES + " WHERE " + VALUE + " = '{"+ uid + "}' AND " + VARID + " = '" + GisConstants.GlobalGid + "' AND " + getDatabaseColumnName("år") + " = '" + Constants.HISTORICAL_TOKEN_IN_DATABASE + "'";
-        String res=null;
-        //Log.d("quinto",query);
-        Cursor resultSet = db().rawQuery(query, null);
-        if (resultSet.moveToNext())
-            res = resultSet.getString(0);
-        resultSet.close();
+        String uidColumn = this.getDatabaseColumnName("uid");
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addEquals(VALUE, "{" + uid + "}");
+        selectionBuilder.addEquals(VARID, GisConstants.GlobalGid);
+        selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
+
+        String res = null;
+        try (Cursor resultSet = db().query(
+                TABLE_VARIABLES,
+                new String[]{uidColumn},
+                selectionBuilder.buildSelection(),
+                selectionBuilder.buildArgs(),
+                null,
+                null,
+                null,
+                "1")) {
+            if (resultSet.moveToNext()) {
+                res = resultSet.getString(0);
+            }
+        }
         return res;
     }
 
     public String findVarFromUID(String uid,String variableName) {
-        String query = "SELECT " + VALUE + " FROM " + TABLE_VARIABLES + " WHERE " + this.getDatabaseColumnName("uid") + " = '" + uid + "' AND " + VARID + " = '" + variableName + "' AND " + getDatabaseColumnName("år") + " = '" + Constants.HISTORICAL_TOKEN_IN_DATABASE + "'";
-        Cursor cursor = db().rawQuery(query, null);
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addEquals(this.getDatabaseColumnName("uid"), uid);
+        selectionBuilder.addEquals(VARID, variableName);
+        selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
+
         String result = null;
-        if (cursor.moveToNext())
-            result = cursor.getString(0);
-        cursor.close();
+        try (Cursor cursor = db().query(
+                TABLE_VARIABLES,
+                new String[]{VALUE},
+                selectionBuilder.buildSelection(),
+                selectionBuilder.buildArgs(),
+                null,
+                null,
+                null,
+                "1")) {
+            if (cursor.moveToNext()) {
+                result = cursor.getString(0);
+            }
+        }
         return result;
     }
 
@@ -180,10 +327,8 @@ public class DbHelper extends SQLiteOpenHelper {
         // The new key-hash to return
         Map<String, String> myNewKeyHash = new HashMap<>();
 
-        // Use lists to build the query parts dynamically and safely
-        List<String> selectionClauses = new ArrayList<>();
-        List<String> selectionArgs = new ArrayList<>();
         List<String> columnsToSelect = new ArrayList<>();
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
 
         for (String key : rowKHA) {
             String dbColumnName = getDatabaseColumnName(key);
@@ -192,20 +337,15 @@ public class DbHelper extends SQLiteOpenHelper {
             String existingValue = myKeyHash.get(key);
 
             if (existingValue == null) {
-                // Add a "IS NOT NULL" clause, which does not require a selection argument.
-                selectionClauses.add(dbColumnName + " IS NOT NULL");
+                selectionBuilder.addIsNotNull(dbColumnName);
             } else {
-                // Add a "= ?" placeholder for the value.
-                selectionClauses.add(dbColumnName + " = ?");
-                // Add the value to the arguments list. This prevents SQL injection.
-                selectionArgs.add(existingValue);
+                selectionBuilder.addEquals(dbColumnName, existingValue);
             }
         }
 
-        // Join the individual clauses with " AND "
-        String finalSelection = String.join(" AND ", selectionClauses);
+        String finalSelection = selectionBuilder.buildSelection();
         String[] finalColumns = columnsToSelect.toArray(new String[0]);
-        String[] finalSelectionArgs = selectionArgs.toArray(new String[0]);
+        String[] finalSelectionArgs = selectionBuilder.buildArgs();
 
         // Use try-with-resources to ensure the Cursor is always closed automatically.
         try (Cursor c = db().query(true, TABLE_VARIABLES, finalColumns, finalSelection, finalSelectionArgs, null, null, null, "1")) {
@@ -307,11 +447,42 @@ public class DbHelper extends SQLiteOpenHelper {
     public Map<String,LocationAndTimeStamp> getTeamMembers(String team, String user) {
         HashMap<String, LocationAndTimeStamp> ret = null;
 
-        Cursor qx = db().rawQuery("select author, value, max(timestamp) as t from variabler where var = 'GPS_X' and "+LAG+" like '"+team+"' and "+AUTHOR+" <> '"+user+"' group by "+AUTHOR, null);
-        Cursor qy = db().rawQuery("select author, value, max(timestamp) as t from variabler where var = 'GPS_Y' and "+LAG+" like '"+team+"' and "+AUTHOR+" <> '"+user+"' group by "+AUTHOR, null);
-        while (qx!=null && qx.moveToNext() && qy.moveToNext()) {
-            long timeStamp = qx.getLong(2);
-            String teamMemberName = qx.getString(0);
+        String selection = VARID + " = ? AND " + LAG + " like ? AND " + AUTHOR + " <> ?";
+        String[] xArgs = new String[]{"GPS_X", team, user};
+        String[] yArgs = new String[]{"GPS_Y", team, user};
+        Map<String, String> xByAuthor = new HashMap<>();
+        Map<String, Long> xTimestampByAuthor = new HashMap<>();
+        Map<String, String> yByAuthor = new HashMap<>();
+
+        try (Cursor qx = db().rawQuery(
+                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
+                        + " where " + selection + " group by " + AUTHOR,
+                xArgs
+        )) {
+            while (qx.moveToNext()) {
+                xByAuthor.put(qx.getString(0), qx.getString(1));
+                xTimestampByAuthor.put(qx.getString(0), qx.getLong(2));
+            }
+        }
+
+        try (Cursor qy = db().rawQuery(
+                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
+                        + " where " + selection + " group by " + AUTHOR,
+                yArgs
+        )) {
+            while (qy.moveToNext()) {
+                yByAuthor.put(qy.getString(0), qy.getString(1));
+            }
+        }
+
+        for (Map.Entry<String, String> entry : xByAuthor.entrySet()) {
+            String teamMemberName = entry.getKey();
+            String xValue = entry.getValue();
+            String yValue = yByAuthor.get(teamMemberName);
+            if (yValue == null) {
+                continue;
+            }
+            long timeStamp = xTimestampByAuthor.get(teamMemberName);
             long timeSinceRegistered = (System.currentTimeMillis() - timeStamp);
             if (timeSinceRegistered > TenDays) {
                 Log.d("bortex","timestamp for "+teamMemberName+" is older than 10 days.");
@@ -319,11 +490,9 @@ public class DbHelper extends SQLiteOpenHelper {
                 if (ret == null)
                     ret = new HashMap<String, LocationAndTimeStamp>();
                 Log.d("bortex", "Adding " + teamMemberName);
-                ret.put(teamMemberName, new LocationAndTimeStamp(timeSinceRegistered, new SweLocation(qx.getString(1), qy.getString(1))));
+                ret.put(teamMemberName, new LocationAndTimeStamp(timeSinceRegistered, new SweLocation(xValue, yValue)));
             }
         }
-        qx.close();
-        qy.close();
 
         return ret;
 
@@ -344,10 +513,10 @@ public class DbHelper extends SQLiteOpenHelper {
 
         public Map<String, String> getKeyColumnValues() {
             Map<String, String> ret = new HashMap<String, String>();
-            Set<String> keys = realColumnNameToDB.keySet();
+            Set<String> keys = columnMapper.getRealKeys();
             String col = null;
             for (String key : keys) {
-                col = realColumnNameToDB.get(key);
+                col = columnMapper.getDbNameOrNull(key);
                 if (col == null)
                     col = key;
                 if (pick(col)!= null)
@@ -425,8 +594,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 Log.d("nils", "didn't find key L" + i);
                 break;
             } else {
-                realColumnNameToDB.put(colKey, "L" + i);
-                dbColumnNameToReal.put("L" + i, colKey);
+                columnMapper.addMapping(colKey, "L" + i);
             }
         }
         //Now check the new keys. If a new key is found, add it.
@@ -436,7 +604,7 @@ public class DbHelper extends SQLiteOpenHelper {
             //Log.e("nils","Keyparts has"+keyParts.size()+" elements");
             for (int i = 0; i < keyParts.size(); i++) {
                 //Log.d("nils","checking keypart "+keyParts.get(i));
-                if (realColumnNameToDB.containsKey(keyParts.get(i))) {
+                if (columnMapper.containsRealKey(keyParts.get(i))) {
                     Log.d("nils", "Key " + keyParts.get(i) + " already exists..skipping");
                 } else if (staticColumn(keyParts.get(i))) {
                     Log.d("nils", "Key " + keyParts.get(i) + " is a static key. Sure this ok??");
@@ -446,10 +614,9 @@ public class DbHelper extends SQLiteOpenHelper {
                     if (keyParts.get(i).isEmpty()) {
                         Log.d("nils", "found empty keypart! Skipping");
                     } else {
-                        String colId = "L" + (realColumnNameToDB.size() + 1);
+                        String colId = "L" + (columnMapper.size() + 1);
                         //Add key to memory
-                        realColumnNameToDB.put(keyParts.get(i), colId);
-                        dbColumnNameToReal.put(colId, keyParts.get(i));
+                        columnMapper.addMapping(keyParts.get(i), colId);
                         //Persist new column identifier.
                         appPh.put(colId, keyParts.get(i));
                     }
@@ -458,9 +625,9 @@ public class DbHelper extends SQLiteOpenHelper {
             }
         }
         Log.d("nils", "Keys added: ");
-        Set<String> s = realColumnNameToDB.keySet();
+        Set<String> s = columnMapper.getRealKeys();
         for (String e : s)
-            Log.d("nils", "Key: " + e + "Value:" + realColumnNameToDB.get(e));
+            Log.d("nils", "Key: " + e + "Value:" + columnMapper.getDbNameOrNull(e));
 
     }
 
@@ -1463,26 +1630,18 @@ public class DbHelper extends SQLiteOpenHelper {
     public String getDatabaseColumnName(String colId) {
         if (colId == null || colId.length() == 0)
             return null;
-        String ret = realColumnNameToDB.get(colId);
-        if (ret == null)
-            return colId;
-        else
-            return ret;
+        return columnMapper.getDbNameOrSelf(colId);
     }
 
     private boolean hasDatabaseColumnName(String c) {
-        return realColumnNameToDB.get(c)!=null;
+        return columnMapper.containsRealKey(c);
     }
 
 
     private String getRealColumnNameFromDatabaseName(String databaseColumnName) {
         if (databaseColumnName == null || databaseColumnName.length() == 0)
             return null;
-        String ret = dbColumnNameToReal.get(databaseColumnName);
-        if (ret == null)
-            return databaseColumnName;
-        else
-            return ret;
+        return columnMapper.getRealNameOrSelf(databaseColumnName);
     }
 
 
@@ -2129,46 +2288,37 @@ public class DbHelper extends SQLiteOpenHelper {
         Log.d("err", "In erase with keyPairs: " + keyPairs+" and pattern "+pattern);
 
         //map keypairs. Create delete statement.
-        StringBuilder delStmt = new StringBuilder("");
         Map<String, String> map = new HashMap<String, String>();
         String pairs[] = keyPairs.split(",");
         String column, value;
-        boolean last = false, exact = true;
-        int i = 0;
-
-        ArrayList<String> values = new ArrayList<String>();
-        String[] valuesA = null;
+        boolean exact = true;
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
 
         for (String pair : pairs) {
-            last = i == (pairs.length - 1);
             String[] keyValue = pair.split("=");
             if (keyValue != null && keyValue.length == 2) {
-                column = realColumnNameToDB.get(keyValue[0]);
+                column = columnMapper.getDbNameOrNull(keyValue[0]);
                 Log.d("err","column: "+column+" value: "+keyValue[1]);
                 if (Constants.NOT_NULL.equals(keyValue[1])) {
                     Log.d("err","match for NN!");
-                    delStmt.append(column + " IS NOT NULL");
+                    selectionBuilder.addIsNotNull(column);
                     //erase in cache will erase all keys containing pairs that have value.
                     exact = false;
                 } else {
-                    values.add(keyValue[1]);
                     map.put(keyValue[0], keyValue[1]);
-                    delStmt.append(column + "= ?");
+                    selectionBuilder.addEquals(column, keyValue[1]);
                 }
             } else
                 Log.e("err", "failed to split " + pair);
-            if (!last)
-                delStmt.append(" AND ");
-            i++;
         }
         //Add pattern if there.
-        if (pattern != null)
-            delStmt.append(" AND var LIKE '" + pattern + "'");
+        selectionBuilder.addLike(VARID, pattern);
 
-        valuesA = values.toArray(new String[values.size()]);
-        //     Log.d("vortex", "Delete statement is now " + delStmt);
-        //     Log.d("vortex", "VALUES:"+print(valuesA));
-        int affected = db().delete(DbHelper.TABLE_VARIABLES, delStmt.toString(), valuesA);
+        String selection = selectionBuilder.buildSelection();
+        String[] selectionArgs = selectionBuilder.buildArgs();
+        //     Log.d("vortex", "Delete statement is now " + selection);
+        //     Log.d("vortex", "VALUES:"+print(selectionArgs));
+        int affected = db().delete(DbHelper.TABLE_VARIABLES, selection, selectionArgs);
         //Invalidate affected cache variables
         if (affected > 0) {
             Log.d("bascar", "Deleted rows count: " + affected+" keys: "+keyPairs);
@@ -2208,9 +2358,9 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public void eraseSmaProvyDelytaAssoc(String currentRuta, String currentProvyta) {
         Log.d("vortex", "Calling erase with r " + currentRuta + ", p " + currentProvyta + " db: " + db);
-        String yCol = realColumnNameToDB.get("år");
-        String rCol = realColumnNameToDB.get("ruta");
-        String pyCol = realColumnNameToDB.get("provyta");
+        String yCol = columnMapper.getDbNameOrNull("år");
+        String rCol = columnMapper.getDbNameOrNull("ruta");
+        String pyCol = columnMapper.getDbNameOrNull("provyta");
         //		int affRows = db.delete(DbHelper.TABLE_VARIABLES,
         //				yCol+"=? AND "+rCol+"=? AND "+pyCol+"=? AND (var = '"+NamedVariables.BeraknadInomDelyta+"' OR var = '"+NamedVariables.InomDelyta+"')", new String[] {Constants.getYear(),currentRuta,currentProvyta});
         //		Log.d("nils","Affected rows in eraseSmaProvyDelytaAssoc: "+affRows);
@@ -2220,24 +2370,19 @@ public class DbHelper extends SQLiteOpenHelper {
         if (keyHash == null)
             return -1;
 
-
-        String queryP = "";
-        String[] valA = new String[keyHash.keySet().size()];
-        Iterator<String> it = keyHash.keySet().iterator();
-        String key;
-        int i = 0;
-        while (it.hasNext()) {
-            key = it.next();
-            queryP += getDatabaseColumnName(key) + "= ?";
-            if (it.hasNext())
-                queryP += " AND ";
-            valA[i++] = keyHash.get(key);
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        for (Map.Entry<String, String> entry : keyHash.entrySet()) {
+            selectionBuilder.addEquals(getDatabaseColumnName(entry.getKey()), entry.getValue());
         }
-        int affRows = db().delete(DbHelper.TABLE_VARIABLES,
-                queryP, valA);
+        String queryP = selectionBuilder.buildSelection();
+        String[] valA = selectionBuilder.buildArgs();
+
+        int affRows = db().delete(DbHelper.TABLE_VARIABLES, queryP, valA);
         StringBuilder valAs = new StringBuilder();
-        for (String v : valA) {
-            valAs.append(v + ",");
+        if (valA != null) {
+            for (String v : valA) {
+                valAs.append(v).append(",");
+            }
         }
         //Log.d("vortex", "Deleted " + affRows + " entries in deleteAllVariablesUsingKey. Query: " + queryP + " vals " + valAs);
         return affRows;
@@ -2251,7 +2396,9 @@ public class DbHelper extends SQLiteOpenHelper {
     public boolean deleteHistory() {
         try {
             Log.d("nils", "deleting all historical values");
-            int rows = db().delete(TABLE_VARIABLES, getDatabaseColumnName("år") + "= ?", new String[]{Constants.HISTORICAL_TOKEN_IN_DATABASE});
+            SelectionBuilder selectionBuilder = new SelectionBuilder();
+            selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
+            int rows = db().delete(TABLE_VARIABLES, selectionBuilder.buildSelection(), selectionBuilder.buildArgs());
             //Log.d("nils", "Deleted " + rows + " rows of history");
         } catch (SQLiteException e) {
             Log.d("nils", "not a nils db");
@@ -2263,7 +2410,14 @@ public class DbHelper extends SQLiteOpenHelper {
     public boolean deleteHistoryEntries(String typeColumn, String typeValue) {
         try {
             Log.d("nils", "deleting historical values of type " + typeValue);
-            int rows = db().delete(TABLE_VARIABLES, getDatabaseColumnName("år") + "= ? AND " + getDatabaseColumnName(typeColumn) + "= ? COLLATE NOCASE", new String[]{Constants.HISTORICAL_TOKEN_IN_DATABASE, typeValue});
+            SelectionBuilder selectionBuilder = new SelectionBuilder();
+            selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
+            selectionBuilder.addEqualsWithCollateNoCase(getDatabaseColumnName(typeColumn), typeValue);
+            int rows = db().delete(
+                    TABLE_VARIABLES,
+                    selectionBuilder.buildSelection(),
+                    selectionBuilder.buildArgs()
+            );
             Log.d("nils", "Deleted " + rows + " rows of history");
         } catch (SQLiteException e) {
             Log.d("nils", "not a nils db");
@@ -2326,8 +2480,8 @@ public class DbHelper extends SQLiteOpenHelper {
         for (String key : keys.keySet()) {
 
             if (keys.get(key) != null) {
-                if (realColumnNameToDB.get(key) != null)
-                    valuez.put(realColumnNameToDB.get(key), keys.get(key));
+                if (columnMapper.getDbNameOrNull(key) != null)
+                    valuez.put(columnMapper.getDbNameOrNull(key), keys.get(key));
                 else {
                     Log.e("vortex","Could not find key "+key+" in keychain for "+varId);
                     //Column not found. Do not insert!!
@@ -2489,31 +2643,34 @@ public class DbHelper extends SQLiteOpenHelper {
         mapCache.put(namePrefix,map);
 
         long timeE = System.currentTimeMillis();
-        String query = "SELECT " + VARID + ",value FROM " + TABLE_VARIABLES +
-                " WHERE " + VARID + " LIKE '" + namePrefix + "%'";
-
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addLike(VARID, namePrefix + "%");
         //Add keychain parts.
-        String[] selArgs = new String[keyChain.size()];
-        int i = 0;
         for (String key : keyChain.keySet()) {
-            query += " AND " + this.getDatabaseColumnName(key) + "= ?";
-            selArgs[i++] = keyChain.get(key);
+            selectionBuilder.addEquals(this.getDatabaseColumnName(key), keyChain.get(key));
             Log.d("vortex", "column: " + this.getDatabaseColumnName(key) + " SelArg: " + keyChain.get(key));
         }
-        Log.d("vortex", "Selarg: " + selArgs.toString());
 
+        String selection = selectionBuilder.buildSelection();
+        String[] selectionArgs = selectionBuilder.buildArgs();
 
-        Cursor c = db().rawQuery(query, selArgs);
-        Log.d("nils", "Got " + c.getCount() + " results. PrefetchValue." + namePrefix + " with key: " + keyChain.toString());
+        try (Cursor c = db().query(
+                TABLE_VARIABLES,
+                new String[]{VARID, VALUE},
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null)) {
+            Log.d("nils", "Got " + c.getCount() + " results. PrefetchValue." + namePrefix + " with key: " + keyChain.toString());
 
-        if (c != null && c.moveToFirst()) {
-            do {
-                ret.put(c.getString(0), c.getString(1));
-            } while (c.moveToNext());
-
+            if (c.moveToFirst()) {
+                do {
+                    ret.put(c.getString(0), c.getString(1));
+                } while (c.moveToNext());
+            }
         }
-        if (c != null)
-            c.close();
         Log.d("timex","Time spent: "+(System.currentTimeMillis()-timeE));
 
         return ret;
@@ -2714,21 +2871,27 @@ public class DbHelper extends SQLiteOpenHelper {
     //Fetch all instances of Variables matching namePrefix. Map varId to a Map of Variator, Value.
     public Cursor getPrefetchCursor(Map<String, String> keyChain, String namePrefix, String variatorColumn) {
 
-        String query = "SELECT " + VARID + "," + getDatabaseColumnName(variatorColumn) + ",value FROM " + TABLE_VARIABLES +
-                " WHERE " + VARID + " LIKE '" + namePrefix + "%'";
-        String[] selArgs=null;
-        if (keyChain!=null) {
-            //Add keychain parts.
-            selArgs = new String[keyChain.size()];
-            int i = 0;
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addLike(VARID, namePrefix + "%");
+        if (keyChain != null) {
             for (String key : keyChain.keySet()) {
-                query += " AND " + this.getDatabaseColumnName(key) + "= ?";
-                selArgs[i++] = keyChain.get(key);
+                selectionBuilder.addEquals(this.getDatabaseColumnName(key), keyChain.get(key));
             }
         }
-        Log.d("nils", "Query: " + query);
+        String selection = selectionBuilder.buildSelection();
+        String[] selectionArgs = selectionBuilder.buildArgs();
+        Log.d("nils", "Query selection: " + selection);
         //Return cursor.
-        return db().rawQuery(query, selArgs);
+        return db().query(
+                TABLE_VARIABLES,
+                new String[]{VARID, getDatabaseColumnName(variatorColumn), VALUE},
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null
+        );
 
     }
 
@@ -2736,20 +2899,28 @@ public class DbHelper extends SQLiteOpenHelper {
     //Fetch all instances of Variables matching namePrefix. Map varId to a Map of Variator, Value.
     public Cursor getAllVariablesForKeyMatchingGroupPrefixAndNamePostfix(Map<String, String> keyChain, String namePrefix, String namePostfix) {
 
-        String query = "SELECT " + VARID + ",value FROM " + TABLE_VARIABLES +
-                " WHERE " + VARID + " LIKE '" + namePrefix + "%' AND " + VARID + " LIKE " + "'%" + namePostfix + "'";
-
-        //Add keychain parts.
-        String[] selArgs = new String[keyChain.size()];
-        int i = 0;
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addLike(VARID, namePrefix + "%");
+        selectionBuilder.addLike(VARID, "%" + namePostfix);
         for (String key : keyChain.keySet()) {
-            query += " AND " + this.getDatabaseColumnName(key) + "= ?";
-            selArgs[i++] = keyChain.get(key);
+            selectionBuilder.addEquals(this.getDatabaseColumnName(key), keyChain.get(key));
         }
 
-        Log.d("vortex", "Query: " + query);
+        String selection = selectionBuilder.buildSelection();
+        String[] selectionArgs = selectionBuilder.buildArgs();
+
+        Log.d("vortex", "Query selection: " + selection);
         //Return cursor.
-        return db().rawQuery(query, selArgs);
+        return db().query(
+                TABLE_VARIABLES,
+                new String[]{VARID, VALUE},
+                selection,
+                selectionArgs,
+                null,
+                null,
+                null,
+                null
+        );
 
     }
 
@@ -2807,11 +2978,20 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getSyncDataCursor() {
-        return db().rawQuery("SELECT id,data FROM "+TABLE_SYNC+" order by id asc",null);
+        return db().query(
+                TABLE_SYNC,
+                new String[]{"id", "data"},
+                null,
+                null,
+                null,
+                null,
+                "id asc",
+                null
+        );
     }
 
     public int deleteConsumedSyncEntries(int id) {
-        return db().delete(TABLE_SYNC, "id <=" + id, null);
+        return db().delete(TABLE_SYNC, "id <= ?", new String[]{String.valueOf(id)});
     }
 
 
@@ -2822,11 +3002,23 @@ public class DbHelper extends SQLiteOpenHelper {
         VariableCache varCache = GlobalState.getInstance().getVariableCache();
         long t = System.currentTimeMillis();
         Set<Integer> idsToDelete = new HashSet<>();
-        String query = "SELECT id,timestamp,"+getDatabaseColumnName("år")+","+VARID+","+getDatabaseColumnName("uid")+
-                (hasSub?","+getDatabaseColumnName("sub"):"")+
-                " from "+TABLE_VARIABLES+" where "+getDatabaseColumnName("år")+"<>'H' AND "+getDatabaseColumnName("uid")+" NOT NULL";
-        //Log.d("kakko","query: "+query);
-        Cursor c = db().rawQuery(query,null);
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addNotEquals(getDatabaseColumnName("år"), "H");
+        selectionBuilder.addIsNotNull(getDatabaseColumnName("uid"));
+        String[] columns = hasSub
+                ? new String[]{"id", "timestamp", getDatabaseColumnName("år"), VARID, getDatabaseColumnName("uid"), getDatabaseColumnName("sub")}
+                : new String[]{"id", "timestamp", getDatabaseColumnName("år"), VARID, getDatabaseColumnName("uid")};
+        //Log.d("kakko","selection: "+selectionBuilder.buildSelection());
+        Cursor c = db().query(
+                TABLE_VARIABLES,
+                columns,
+                selectionBuilder.buildSelection(),
+                selectionBuilder.buildArgs(),
+                null,
+                null,
+                null,
+                null
+        );
         //Log.d("rosto","C size: "+c.getCount());
         while (c.moveToNext()) {
             String vid = c.getString(3);
@@ -2922,17 +3114,24 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     private long getSyncTimestamp(String timeStampLabel,String syncgroup) {
-        long lastEntry;
-        Cursor c  = this.getReadableDatabase().rawQuery("SELECT VALUE from "+TABLE_TIMESTAMPS+" where SYNCGROUP = ? AND LABEL = ? ORDER BY id DESC LIMIT 1", new String[]{syncgroup,timeStampLabel});
-        if (c.getCount() != 0) {
-            c.moveToFirst();
-            lastEntry = c.getLong(0);
-        } else {
-            Log.e("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
-            lastEntry = 0;
+        String selection = "SYNCGROUP = ? AND LABEL = ?";
+        String[] selectionArgs = new String[]{syncgroup, timeStampLabel};
+        try (Cursor c = this.getReadableDatabase().query(
+                TABLE_TIMESTAMPS,
+                new String[]{Table_Timestamps.VALUE.name()},
+                selection,
+                selectionArgs,
+                null,
+                null,
+                "id DESC",
+                "1"
+        )) {
+            if (c.moveToFirst()) {
+                return c.getLong(0);
+            }
         }
-        c.close();
-        return lastEntry;
+        Log.e("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
+        return 0;
     }
 
 
