@@ -155,6 +155,18 @@ public class DbHelper extends SQLiteOpenHelper {
             args.add(value);
         }
 
+        void addNotEquals(String columnName, String value) {
+            if (value == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" <> ?");
+            args.add(value);
+        }
+
         void addIsNotNull(String columnName) {
             if (!ensureColumn(columnName)) {
                 return;
@@ -2966,11 +2978,20 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public Cursor getSyncDataCursor() {
-        return db().rawQuery("SELECT id,data FROM "+TABLE_SYNC+" order by id asc",null);
+        return db().query(
+                TABLE_SYNC,
+                new String[]{"id", "data"},
+                null,
+                null,
+                null,
+                null,
+                "id asc",
+                null
+        );
     }
 
     public int deleteConsumedSyncEntries(int id) {
-        return db().delete(TABLE_SYNC, "id <=" + id, null);
+        return db().delete(TABLE_SYNC, "id <= ?", new String[]{String.valueOf(id)});
     }
 
 
@@ -2981,11 +3002,23 @@ public class DbHelper extends SQLiteOpenHelper {
         VariableCache varCache = GlobalState.getInstance().getVariableCache();
         long t = System.currentTimeMillis();
         Set<Integer> idsToDelete = new HashSet<>();
-        String query = "SELECT id,timestamp,"+getDatabaseColumnName("år")+","+VARID+","+getDatabaseColumnName("uid")+
-                (hasSub?","+getDatabaseColumnName("sub"):"")+
-                " from "+TABLE_VARIABLES+" where "+getDatabaseColumnName("år")+"<>'H' AND "+getDatabaseColumnName("uid")+" NOT NULL";
-        //Log.d("kakko","query: "+query);
-        Cursor c = db().rawQuery(query,null);
+        SelectionBuilder selectionBuilder = new SelectionBuilder();
+        selectionBuilder.addNotEquals(getDatabaseColumnName("år"), "H");
+        selectionBuilder.addIsNotNull(getDatabaseColumnName("uid"));
+        String[] columns = hasSub
+                ? new String[]{"id", "timestamp", getDatabaseColumnName("år"), VARID, getDatabaseColumnName("uid"), getDatabaseColumnName("sub")}
+                : new String[]{"id", "timestamp", getDatabaseColumnName("år"), VARID, getDatabaseColumnName("uid")};
+        //Log.d("kakko","selection: "+selectionBuilder.buildSelection());
+        Cursor c = db().query(
+                TABLE_VARIABLES,
+                columns,
+                selectionBuilder.buildSelection(),
+                selectionBuilder.buildArgs(),
+                null,
+                null,
+                null,
+                null
+        );
         //Log.d("rosto","C size: "+c.getCount());
         while (c.moveToNext()) {
             String vid = c.getString(3);
@@ -3081,17 +3114,24 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     private long getSyncTimestamp(String timeStampLabel,String syncgroup) {
-        long lastEntry;
-        Cursor c  = this.getReadableDatabase().rawQuery("SELECT VALUE from "+TABLE_TIMESTAMPS+" where SYNCGROUP = ? AND LABEL = ? ORDER BY id DESC LIMIT 1", new String[]{syncgroup,timeStampLabel});
-        if (c.getCount() != 0) {
-            c.moveToFirst();
-            lastEntry = c.getLong(0);
-        } else {
-            Log.e("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
-            lastEntry = 0;
+        String selection = "SYNCGROUP = ? AND LABEL = ?";
+        String[] selectionArgs = new String[]{syncgroup, timeStampLabel};
+        try (Cursor c = this.getReadableDatabase().query(
+                TABLE_TIMESTAMPS,
+                new String[]{Table_Timestamps.VALUE.name()},
+                selection,
+                selectionArgs,
+                null,
+                null,
+                "id DESC",
+                "1"
+        )) {
+            if (c.moveToFirst()) {
+                return c.getLong(0);
+            }
         }
-        c.close();
-        return lastEntry;
+        Log.e("vortex", "failed to find timestamp for " + timeStampLabel + "...returning 0");
+        return 0;
     }
 
 
