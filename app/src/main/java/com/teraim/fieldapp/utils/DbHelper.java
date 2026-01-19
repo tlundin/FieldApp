@@ -435,7 +435,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public Map<String,LocationAndTimeStamp> getTeamMembers(String team, String user) {
         HashMap<String, LocationAndTimeStamp> ret = null;
 
-        String selection = VARID + " = ? AND " + LAG + " like ? AND " + AUTHOR + " <> ? GROUP BY " + AUTHOR;
+        String selection = VARID + " = ? AND " + LAG + " like ? AND " + AUTHOR + " <> ?";
         String[] xArgs = new String[]{"GPS_X", team, user};
         String[] yArgs = new String[]{"GPS_Y", team, user};
         Map<String, String> xByAuthor = new HashMap<>();
@@ -443,7 +443,8 @@ public class DbHelper extends SQLiteOpenHelper {
         Map<String, String> yByAuthor = new HashMap<>();
 
         try (Cursor qx = db().rawQuery(
-                "select author, value, max(timestamp) as t from variabler where " + selection,
+                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
+                        + " where " + selection + " group by " + AUTHOR,
                 xArgs
         )) {
             while (qx.moveToNext()) {
@@ -453,7 +454,8 @@ public class DbHelper extends SQLiteOpenHelper {
         }
 
         try (Cursor qy = db().rawQuery(
-                "select author, value, max(timestamp) as t from variabler where " + selection,
+                "select author, value, max(timestamp) as t from " + TABLE_VARIABLES
+                        + " where " + selection + " group by " + AUTHOR,
                 yArgs
         )) {
             while (qy.moveToNext()) {
