@@ -135,22 +135,43 @@ public class DbHelper extends SQLiteOpenHelper {
             if (value == null) {
                 return;
             }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
             appendAndIfNeeded();
-            selection.append(safeColumn(columnName)).append(" = ?");
+            selection.append(columnName).append(" = ?");
+            args.add(value);
+        }
+
+        void addEqualsWithCollateNoCase(String columnName, String value) {
+            if (value == null) {
+                return;
+            }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
+            appendAndIfNeeded();
+            selection.append(columnName).append(" = ? COLLATE NOCASE");
             args.add(value);
         }
 
         void addIsNotNull(String columnName) {
+            if (!ensureColumn(columnName)) {
+                return;
+            }
             appendAndIfNeeded();
-            selection.append(safeColumn(columnName)).append(" IS NOT NULL");
+            selection.append(columnName).append(" IS NOT NULL");
         }
 
         void addLike(String columnName, String pattern) {
             if (pattern == null) {
                 return;
             }
+            if (!ensureColumn(columnName)) {
+                return;
+            }
             appendAndIfNeeded();
-            selection.append(safeColumn(columnName)).append(" LIKE ?");
+            selection.append(columnName).append(" LIKE ?");
             args.add(pattern);
         }
 
@@ -170,8 +191,12 @@ public class DbHelper extends SQLiteOpenHelper {
             return args.isEmpty() ? null : args.toArray(new String[0]);
         }
 
-        private String safeColumn(String columnName) {
-            return columnName == null ? "null" : columnName;
+        private boolean ensureColumn(String columnName) {
+            if (columnName == null) {
+                Log.e("DbHelper", "SelectionBuilder column is null");
+                return false;
+            }
+            return true;
         }
     }
     public void eraseSyncObjects() {
@@ -413,26 +438,45 @@ public class DbHelper extends SQLiteOpenHelper {
         String selection = VARID + " = ? AND " + LAG + " like ? AND " + AUTHOR + " <> ? GROUP BY " + AUTHOR;
         String[] xArgs = new String[]{"GPS_X", team, user};
         String[] yArgs = new String[]{"GPS_Y", team, user};
+        Map<String, String> xByAuthor = new HashMap<>();
+        Map<String, Long> xTimestampByAuthor = new HashMap<>();
+        Map<String, String> yByAuthor = new HashMap<>();
 
         try (Cursor qx = db().rawQuery(
                 "select author, value, max(timestamp) as t from variabler where " + selection,
                 xArgs
-        ); Cursor qy = db().rawQuery(
+        )) {
+            while (qx.moveToNext()) {
+                xByAuthor.put(qx.getString(0), qx.getString(1));
+                xTimestampByAuthor.put(qx.getString(0), qx.getLong(2));
+            }
+        }
+
+        try (Cursor qy = db().rawQuery(
                 "select author, value, max(timestamp) as t from variabler where " + selection,
                 yArgs
         )) {
-            while (qx != null && qx.moveToNext() && qy != null && qy.moveToNext()) {
-                long timeStamp = qx.getLong(2);
-                String teamMemberName = qx.getString(0);
-                long timeSinceRegistered = (System.currentTimeMillis() - timeStamp);
-                if (timeSinceRegistered > TenDays) {
-                    Log.d("bortex","timestamp for "+teamMemberName+" is older than 10 days.");
-                } else {
-                    if (ret == null)
-                        ret = new HashMap<String, LocationAndTimeStamp>();
-                    Log.d("bortex", "Adding " + teamMemberName);
-                    ret.put(teamMemberName, new LocationAndTimeStamp(timeSinceRegistered, new SweLocation(qx.getString(1), qy.getString(1))));
-                }
+            while (qy.moveToNext()) {
+                yByAuthor.put(qy.getString(0), qy.getString(1));
+            }
+        }
+
+        for (Map.Entry<String, String> entry : xByAuthor.entrySet()) {
+            String teamMemberName = entry.getKey();
+            String xValue = entry.getValue();
+            String yValue = yByAuthor.get(teamMemberName);
+            if (yValue == null) {
+                continue;
+            }
+            long timeStamp = xTimestampByAuthor.get(teamMemberName);
+            long timeSinceRegistered = (System.currentTimeMillis() - timeStamp);
+            if (timeSinceRegistered > TenDays) {
+                Log.d("bortex","timestamp for "+teamMemberName+" is older than 10 days.");
+            } else {
+                if (ret == null)
+                    ret = new HashMap<String, LocationAndTimeStamp>();
+                Log.d("bortex", "Adding " + teamMemberName);
+                ret.put(teamMemberName, new LocationAndTimeStamp(timeSinceRegistered, new SweLocation(xValue, yValue)));
             }
         }
 
@@ -2354,10 +2398,10 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d("nils", "deleting historical values of type " + typeValue);
             SelectionBuilder selectionBuilder = new SelectionBuilder();
             selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
-            selectionBuilder.addEquals(getDatabaseColumnName(typeColumn), typeValue);
+            selectionBuilder.addEqualsWithCollateNoCase(getDatabaseColumnName(typeColumn), typeValue);
             int rows = db().delete(
                     TABLE_VARIABLES,
-                    selectionBuilder.buildSelection() + " COLLATE NOCASE",
+                    selectionBuilder.buildSelection(),
                     selectionBuilder.buildArgs()
             );
             Log.d("nils", "Deleted " + rows + " rows of history");
