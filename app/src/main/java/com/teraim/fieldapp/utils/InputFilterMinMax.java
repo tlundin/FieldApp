@@ -4,6 +4,8 @@ import android.text.Spanned;
 import android.util.Log;
 
 public class InputFilterMinMax implements TextFilter {
+	private static final String TAG = "InputFilterMinMax";
+
 
 	private final int min;
     private final int max;
@@ -34,19 +36,19 @@ public class InputFilterMinMax implements TextFilter {
 	}
 
 	private boolean isInRange(int a, int b, int c) {
-		//Log.d("nils","Testing range for a: "+a+" b: "+b+" c:"+c);
+		//Log.d(TAG,"Testing range for a: "+a+" b: "+b+" c:"+c);
 		return b > a ? c >= a && c <= b : c >= b && c <= a;
 	}
 
 
 	private boolean isLegal(String newVal) {
-		//Log.d("nils","String to test: "+newVal);
+		//Log.d(TAG,"String to test: "+newVal);
 		if (newVal.length()==0)
 			return false;
 		try {
 			int input = Integer.parseInt(newVal.trim());
 			return (isInRange(min, max, input));
-		} catch (NumberFormatException nfe) {Log.d("nils","this is no number"); }
+		} catch (NumberFormatException nfe) {Log.d(TAG,"this is no number"); }
 		return false;
 
 	}

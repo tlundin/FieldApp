@@ -25,6 +25,8 @@ import com.teraim.fieldapp.utils.Tools;
 import java.util.List;
 
 public class AddGisFilter extends Block implements GisFilter {
+	private static final String TAG = "AddGisFilter";
+
 
 	/**
 	 * 
@@ -98,7 +100,7 @@ public class AddGisFilter extends Block implements GisFilter {
 			final GisLayer gisLayer = myGis.getLayerFromLabel(targetLayer);
 			if (gisLayer!=null) {
 				if (hasWidget) {
-					Log.d("vortex","Filter "+nName+" has a widget");
+					Log.d(TAG,"Filter "+nName+" has a widget");
 					//LinearLayout layersL = (LinearLayout)myGis.getWidget().findViewById(R.id.FiltersL);
 					LayoutInflater li = LayoutInflater.from(myContext.getContext());
 					View filtersRow = li.inflate(R.layout.filters_row, null);

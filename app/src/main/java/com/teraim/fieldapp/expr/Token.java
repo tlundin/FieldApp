@@ -5,6 +5,8 @@ import android.util.Log;
 //A lexical token from an input string.
 
 class Token {
+	private static final String TAG = "Token";
+
  public static final int TT_ERROR  = -1;
  public static final int TT_EOF    = -2;
  public static final int TT_NUMBER = -3;
@@ -27,10 +29,10 @@ class Token {
 	
 	int count = 0;
 	
-	//Log.d("PARSER","Found token: "+sval);
+	//Log.d(TAG,"Found token: "+sval);
 	if (sval.length()==1) {
 		if (Character.isLetter(sval.charAt(0)))
-			Log.d("PARSER","...and this is a letter");
+			Log.d(TAG,"...and this is a letter");
 	}
 	for (int i = start-1; 0 <= i; --i) {
 	    if (!Character.isWhitespace(input.charAt(i)))

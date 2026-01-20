@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CreateTwoDimensionalDataSourceBlock extends Block {
+	private static final String TAG = "CreateTwoDimensionalDataSourceBlock";
+
 
 
 	private transient CategorySeries series;
@@ -83,7 +85,7 @@ public class CreateTwoDimensionalDataSourceBlock extends Block {
 					} catch (NumberFormatException e) {}
 					i++;
 				}
-				Log.d("vortex","CurrValues: "+ Arrays.toString(ret));
+				Log.d(TAG,"CurrValues: "+ Arrays.toString(ret));
 				return ret;
 			}
 

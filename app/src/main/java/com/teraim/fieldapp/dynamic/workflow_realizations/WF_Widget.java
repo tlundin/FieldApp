@@ -8,6 +8,8 @@ import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 
 public class WF_Widget extends WF_Thing implements Drawable {
+	private static final String TAG = "WF_Widget";
+
 
 	private final View myView;
 	private boolean isVisible;
@@ -39,7 +41,7 @@ public class WF_Widget extends WF_Thing implements Drawable {
 	
 	@Override
 	public void show() {
-		Log.d("nils","Showing view ");
+		Log.d(TAG,"Showing view ");
 		myView.setVisibility(View.VISIBLE);
 		isVisible = true;
 	}
@@ -47,7 +49,7 @@ public class WF_Widget extends WF_Thing implements Drawable {
 
 	@Override
 	public void hide() {
-		Log.d("nils","Hiding view ");
+		Log.d(TAG,"Hiding view ");
 		myView.setVisibility(View.GONE);
 		isVisible = false;
 	}

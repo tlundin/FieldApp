@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PageWithAggregationTemplate extends Executor {
+	private static final String TAG = "PageWithAggregationTemplate";
+
 
 	private ScrollView mScrollView;
 	private int[] scrollPosition;
@@ -43,10 +45,10 @@ public class PageWithAggregationTemplate extends Executor {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		if (!survivedCreate) {
-			Log.d("vortex","hasnt survived create...exiting.");
+			Log.d(TAG,"hasnt survived create...exiting.");
 			return null;
 		}
-		Log.d("nils","in onCreateView of Template PAGE with AGGregation");
+		Log.d(TAG,"in onCreateView of Template PAGE with AGGregation");
 		v = inflater.inflate(R.layout.template_page_with_agg_wf, container, false);	
 		
 		//myContext.onCreateView();
@@ -70,7 +72,7 @@ public class PageWithAggregationTemplate extends Executor {
 				}
 			});
 		}
-		Log.d("nils","in onResume of Template PAGE with AGGregation");
+		Log.d(TAG,"in onResume of Template PAGE with AGGregation");
 		super.onResume();
 	}
 

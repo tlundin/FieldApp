@@ -7,6 +7,8 @@ import android.provider.Settings;
 import android.util.Log;
 
 public class Connectivity {
+    private static final String TAG = "Connectivity";
+
 
 
     public static boolean isConnected(Context context) {
@@ -17,7 +19,7 @@ public class Connectivity {
         if (isAvailable) {
             return !isAirplaneModeOn(context);
         }
-        Log.d("vortex","network deed...");
+        Log.d(TAG,"network deed...");
         return false;
     }
 

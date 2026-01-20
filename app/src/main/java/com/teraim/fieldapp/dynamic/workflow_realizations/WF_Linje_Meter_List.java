@@ -24,6 +24,8 @@ import java.util.Set;
 
 
 public class WF_Linje_Meter_List extends WF_List implements EventListener {
+	private static final String TAG = "WF_Linje_Meter_List";
+
 	//final String variableName;
 	private final Selection s;
 	private final String[] columnNames;
@@ -67,7 +69,7 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 	@Override
 	public void onEvent(Event e) {
 
-		Log.d("nils","Got event from "+(e==null?"null":e.getProvider()));
+		Log.d(TAG,"Got event from "+(e==null?"null":e.getProvider()));
 		if (e instanceof WF_Event_OnSave) {
 			boolean insert = true;
 			WF_Event_OnSave onS = (WF_Event_OnSave)e;
@@ -77,16 +79,16 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 				Variable v = eset.getKey();
 				String oldValue = eset.getValue();
 				String[] sel = v.getSelection().selectionArgs;
-				Log.d("nils","Variable has selector Args "+ Arrays.toString(sel));
+				Log.d(TAG,"Variable has selector Args "+ Arrays.toString(sel));
 				for (int i=0;i<sel.length;i++)
-					Log.d("nils",sel[i]);
-				Log.d("nils","VALUE: "+v.getValue());
-				Log.d("nils","OLD VALUE:"+oldValue);
+					Log.d(TAG,sel[i]);
+				Log.d(TAG,"VALUE: "+v.getValue());
+				Log.d(TAG,"OLD VALUE:"+oldValue);
                 //empty?
 				if (oldValue !=null) {
 					if (!oldValue.equals(v.getValue())) {
 						if (v.getValue()==null) {
-							Log.d("nils","This is a DELETE event");
+							Log.d(TAG,"This is a DELETE event");
 							insert = false;
 						} else
 							//if not delete, replace meter with old meter to remove existing values.
@@ -95,7 +97,7 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 
 						String name = v.getKeyChain().get("value");
 
-						Log.d("nils","Name is"+name);
+						Log.d(TAG,"Name is"+name);
 						v.getKeyChain().remove("value");
 
 						//Try to delete this key from cache.
@@ -103,7 +105,7 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 
 						Set<Entry<String, String>> xx = v.getKeyChain().entrySet();
 						for (Entry<String, String> ee:xx) 
-							Log.d("nils","key, value: "+ee.getKey()+","+ee.getValue());
+							Log.d(TAG,"key, value: "+ee.getKey()+","+ee.getValue());
 
 
 
@@ -111,13 +113,13 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 						gs.setDBContext(new DB_Context(null,v.getKeyChain()));
 						List<List<String>>rows =gs.getVariableConfiguration().getTable().getRowsStartingWith(VariableConfiguration.Col_Functional_Group, name);
 						if (rows!=null) {
-							Log.d("nils","Got "+rows.size()+" results");
+							Log.d(TAG,"Got "+rows.size()+" results");
 							Map<String,String> deletedVariables = 
 									deleteAllDependants(rows);
 							if (insert && deletedVariables!=null) {
-								Log.d("nils","reinserting variables with new key.");
+								Log.d(TAG,"reinserting variables with new key.");
 								v.getKeyChain().put("meter", v.getValue());
-								Log.d("nils","meter set to "+v.getValue());
+								Log.d(TAG,"meter set to "+v.getValue());
 
 								//Delete any existing values on same meter.
 								//deleteAllDependants(rows);
@@ -159,7 +161,7 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 
 			v = varCache.getVariable(al.getVarName(row));
 			if (v!=null && v.getValue()!=null) {
-				Log.d("nils","Deleting: "+v.getId()+"with value "+v.getValue());
+				Log.d(TAG,"Deleting: "+v.getId()+"with value "+v.getValue());
 				if (ret==null)
 					ret = new HashMap<String,String>();
 				ret.put(v.getId(), v.getValue());
@@ -175,27 +177,27 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 
 
 	private void refreshList() {
-		Log.d("nils","In refereshlist..");
+		Log.d(TAG,"In refereshlist..");
 
 		clear();
 		linjeV.removeAllMarkers();
 		List<String[]> rows = gs.getDb().getUniqueValues(columnNames,s);
 		if (rows!=null) {
-			Log.d("nils","Got "+rows.size()+" results in refreshList, WF_Instance");
+			Log.d(TAG,"Got "+rows.size()+" results in refreshList, WF_Instance");
 			int rowC=0;
 
 			for (String[] colVals:rows) {
-				Log.d("vortex","colVals header: "+colVals[myHeaderCol]);
+				Log.d(TAG,"colVals header: "+colVals[myHeaderCol]);
 				if (colVals!=null) {	
 					Map<String,String> bonnlapp = new HashMap<String,String>(listElemSelector);				
 					for (int colC=0;colC<colVals.length;colC++) {
 						bonnlapp.put(cd.get(colC).colName, colVals[colC]);
-						Log.d("nils","Bonnlapp - Adding key "+cd.get(colC).colName+" with value "+colVals[colC]);
+						Log.d(TAG,"Bonnlapp - Adding key "+cd.get(colC).colName+" with value "+colVals[colC]);
 					}
 					String header = colVals[myHeaderCol];
 					WF_ClickableField entryF = new WF_ClickableField_Selection(header,"",myContext,this.getId()+rowC,true,new DisplayFieldBlock());
 					if (colVals[myHeaderCol]!=null && colVals[myHeaderCol].equals("Avgränsning")) {
-						Log.d("vortex","In refreshlist for avgränsning");						
+						Log.d(TAG,"In refreshlist for avgränsning");						
 						//(String name,String label,List<String> row,Map<String,String>keyChain, GlobalState gs,String valueColumn, String defaultOrExistingValue, Boolean valueIsPersisted)
 						Variable v = new Variable(varId,"Start",al.getCompleteVariableDefinition(varId),bonnlapp,gs,"meter",null,null,null);
 						v.setType(DataType.numeric);
@@ -213,7 +215,7 @@ public class WF_Linje_Meter_List extends WF_List implements EventListener {
 						if (slut!=null)
 							linjeV.addMarker(start, slut, getCorrectLabel(v.getValue()));
 						else
-							Log.d("vortex","slut null!");
+							Log.d(TAG,"slut null!");
 					} else {
 						Variable v = new Variable(varId,"Avstånd",al.getCompleteVariableDefinition(varId),bonnlapp,gs,"meter",null,null,null);
 						varCache.put(v);

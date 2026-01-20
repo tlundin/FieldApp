@@ -6,6 +6,8 @@ import java.util.Vector;
 
 
 class Scanner {
+	private static final String TAG = "Scanner";
+
 
  private final String s;
  private final String operatorChars;
@@ -138,7 +140,7 @@ class Scanner {
     	 
          ++i;
     if (s.substring(from, i).equalsIgnoreCase("null")) {
-    	//Log.d("nils","FOUND NULL IN FORMULA");
+    	//Log.d(TAG,"FOUND NULL IN FORMULA");
     	tokens.addElement(new Token(Token.TT_NULL, 0, s, from, i));
     }
     else

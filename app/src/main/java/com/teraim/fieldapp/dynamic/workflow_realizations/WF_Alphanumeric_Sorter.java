@@ -9,16 +9,18 @@ import java.util.List;
 
 
 public class WF_Alphanumeric_Sorter implements Sorter {
+	private static final String TAG = "WF_Alphanumeric_Sorter";
+
 
 	@Override
 	public List<? extends Listable> sort(List<? extends Listable> list) {
-		//Log.d("nils","Before ALPHA Sort: ");
+		//Log.d(TAG,"Before ALPHA Sort: ");
 	//	for(Listable l:list)
-	//		Log.d("nils",l.getLabel()+",");
+	//		Log.d(TAG,l.getLabel()+",");
 		Collections.sort(list, WF_ListEntry.Comparators.Alphabetic);
-		//Log.d("nils","After ALPHA Sort: ");
+		//Log.d(TAG,"After ALPHA Sort: ");
 		//for(Listable l:list)
-		//	Log.d("nils",l.toString());
+		//	Log.d(TAG,l.toString());
 		return list;
 	}
 

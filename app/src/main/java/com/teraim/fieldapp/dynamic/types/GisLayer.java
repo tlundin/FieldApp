@@ -35,6 +35,8 @@ import java.util.Set;
  */
 
 public class GisLayer {
+	private static final String TAG = "GisLayer";
+
 
 	private final String name;
 	private final String label;
@@ -54,15 +56,15 @@ public class GisLayer {
 		this.label = label;
 		this.hasWidget = hasWidget;
 		this.showLabels=showLabels;
-		Log.d("zaza","Creating layer "+label+" with showlabels "+showLabels+" showgislayer "+isVisible+" layer id "+name);
+		Log.d(TAG,"Creating layer "+label+" with showlabels "+showLabels+" showgislayer "+isVisible+" layer id "+name);
 
 		//check if there is a persisted value for the layer visibility
-		Log.d("banjo","Persist layer id "+PersistenceHelper.LAYER_VISIBILITY+name);
+		Log.d(TAG,"Persist layer id "+PersistenceHelper.LAYER_VISIBILITY+name);
 		int persistedVisibility = (GlobalState.getInstance()!=null?GlobalState.getInstance().getPreferences().getI(PersistenceHelper.LAYER_VISIBILITY+getId()):-1);
 		if (persistedVisibility == -1)
 			myVisibility = isVisible;
 		else {
-			Log.d("zaza","PERSISTED: "+persistedVisibility);
+			Log.d(TAG,"PERSISTED: "+persistedVisibility);
 			//a value of 1 means the layer is visible. 0 invisible.
 			myVisibility = (persistedVisibility == 1);
 		}
@@ -70,7 +72,7 @@ public class GisLayer {
 		if (persistedBoldness == -1)
 			myBoldness = isBold;
 		else {
-			Log.d("zaza","PERSISTED: "+persistedBoldness);
+			Log.d(TAG,"PERSISTED: "+persistedBoldness);
 			//a value of 1 means the layer is visible. 0 invisible.
 			myBoldness = (persistedBoldness == 1);
 		}
@@ -108,7 +110,7 @@ public class GisLayer {
 	public void clearObjectBag(String typeId) {
 		if (myObjects != null && myObjects.containsKey(typeId)) {
 			myObjects.get(typeId).clear(); // Clear the HashSet associated with this typeId
-			Log.d("GisLayer", "Cleared object bag for type: " + typeId + " in layer: " + getId());
+			Log.d(TAG, "Cleared object bag for type: " + typeId + " in layer: " + getId());
 		} else {
 			Log.w("GisLayer", "Attempted to clear non-existent bag for type: " + typeId + " in layer: " + getId());
 		}
@@ -120,7 +122,7 @@ public class GisLayer {
 			setOfFilters = new HashSet<GisFilter>();
 
 		setOfFilters.add(f);
-		Log.d("vortex","added filter "+getId()+" of type "+key);
+		Log.d(TAG,"added filter "+getId()+" of type "+key);
 		myFilters.put(key, setOfFilters);
 
 	}
@@ -143,14 +145,14 @@ public class GisLayer {
 
 	public void setBold(boolean isBold) {
 
-		Log.d("vortex","SetBold called with "+isBold+" on "+this.getLabel()+" Obj: "+this.toString());
+		Log.d(TAG,"SetBold called with "+isBold+" on "+this.getLabel()+" Obj: "+this.toString());
 		GlobalState.getInstance().getPreferences().put(PersistenceHelper.LAYER_BOLDNESS+getId(), isBold?1:0);
 		this.myBoldness=isBold;
 	}
 
 	public void setVisible(boolean isVisible) {
 
-		Log.d("vortex","SetVisible called with "+isVisible+" on "+this.getLabel()+" Obj: "+this.toString());
+		Log.d(TAG,"SetVisible called with "+isVisible+" on "+this.getLabel()+" Obj: "+this.toString());
 		GlobalState.getInstance().getPreferences().put(PersistenceHelper.LAYER_VISIBILITY+getId(), isVisible?1:0);
 		this.myVisibility=isVisible;
 	}
@@ -248,7 +250,7 @@ public class GisLayer {
 				if (gop.isUseful())
 					c++;
 			}
-			Log.d("grogg","bag "+key+" has "+c+" useful members");
+			Log.d(TAG,"bag "+key+" has "+c+" useful members");
 		}
 	}
 
@@ -263,7 +265,7 @@ public class GisLayer {
 		else if (go instanceof GisPointObject) {
 			GisPointObject gop = (GisPointObject)go;
 			boolean inside = gisImageView.translateMapToRealCoordinates(gop.getLocation(),xy);
-			//Log.d("GisLayer","translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
+			//Log.d(TAG,"translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
 			if (inside) {
 				go.markAsUseful();
 				gop.setTranslatedLocation(xy);

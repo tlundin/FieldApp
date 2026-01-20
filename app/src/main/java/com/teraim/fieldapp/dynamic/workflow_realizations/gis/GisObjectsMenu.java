@@ -37,6 +37,8 @@ import java.util.Set;
  */
 
 public class GisObjectsMenu extends View {
+	private static final String TAG = "GisObjectsMenu";
+
 	private static int PaddingX,PaddingY,InnerPadding,spacingAroundTabs;
 	private static int NoOfButtonsPerRow;
 	private static final int MAX_ROWS = 5;
@@ -101,7 +103,7 @@ public class GisObjectsMenu extends View {
 		tabTextP.setColor(Color.WHITE);
 		tabTextP.setTextSize(scaledSize);
 
-		Log.d("alfa","scale on device is "+scale);
+		Log.d(TAG,"scale on device is "+scale);
 		tabTextP.setStyle( Style.FILL_AND_STROKE);
 		tabTextP.setTextAlign(Paint.Align.CENTER);
 
@@ -176,10 +178,10 @@ public class GisObjectsMenu extends View {
 						Log.e("vortex"," evX: "+event.getX()+" NOBu: "+NoOfButtonsPerRow+" ColW: "+ColW);
 						int clickedColumn = Math.round((event.getX()-(PaddingX + ColW/2))/ColW);
 						if (clickedColumn<0||clickedColumn>=NoOfButtonsPerRow) {
-							Log.d("vortex","click in column "+clickedColumn+". Outside allowed range");
+							Log.d(TAG,"click in column "+clickedColumn+". Outside allowed range");
 
 						} else {
-							Log.d("vortex","Clicked column: "+clickedColumn);
+							Log.d(TAG,"Clicked column: "+clickedColumn);
 							//check for hit on all buttons in given column.
 							for (int row = 0;row<MAX_ROWS;row++) {
 								MenuButton currB = menuButtonArray[clickedColumn][row];
@@ -201,7 +203,7 @@ public class GisObjectsMenu extends View {
 						if (tabButtonArray!=null) {
 							for (TabButton tb : tabButtonArray) {
 								if (tb.clickInside(event.getX(), event.getY())) {
-									Log.d("vortex", "Click inside tab button: " + tb.fullText);
+									Log.d(TAG, "Click inside tab button: " + tb.fullText);
 									currentPalette = tb.fullText;
 									userSelectedPalette = tb.fullText;
 									generateMenu();
@@ -262,7 +264,7 @@ public class GisObjectsMenu extends View {
 
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-		Log.d("vortex","inSizeChange!");
+		Log.d(TAG,"inSizeChange!");
 		this.w=w;
 		//First time called?
 		if (oldw == 0)
@@ -292,7 +294,7 @@ public class GisObjectsMenu extends View {
 				List<FullGisObjectConfiguration> myMenuItemsForPalette = myMenuItems.get(paletteName);
 				LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(paletteName);
 				if (menuGroupsM == null) {
-					Log.d("vortex", "creating new menugroup for palette " + paletteName);
+					Log.d(TAG, "creating new menugroup for palette " + paletteName);
 					menuGroupsM = new LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>>();
 					myPalettes.put(paletteName, menuGroupsM);
 				}
@@ -303,7 +305,7 @@ public class GisObjectsMenu extends View {
 						itemSet = new LinkedHashSet<FullGisObjectConfiguration>();
 						menuGroupsM.put(item.getGisPolyType(), itemSet);
 					}
-					Log.d("vortex", "Adding " + item.getName() + " to " + paletteName);
+					Log.d(TAG, "Adding " + item.getName() + " to " + paletteName);
 					itemSet.add(item);
 				}
 			}
@@ -319,7 +321,7 @@ public class GisObjectsMenu extends View {
 		int col = 0;
 		int row = 0;
 
-		Log.d("vortex","In generateMenu ");
+		Log.d(TAG,"In generateMenu ");
         int buttonWidth = (w - PaddingX * 2 - (InnerPadding * (NoOfButtonsPerRow - 1))) / NoOfButtonsPerRow;
         int rowH = InnerPadding + buttonWidth;
 		ColW = rowH;
@@ -343,7 +345,7 @@ public class GisObjectsMenu extends View {
 				totalWidth = 0;
 				tabButtonArray = new ArrayList<TabButton>();
 				if (aggressive)
-					Log.d("vortex","trying again with aggressive...");
+					Log.d(TAG,"trying again with aggressive...");
 				for (String tabText : myPalettes.keySet()) {
 					//Draw header and tabs
 					int calcWidthOfTabButton = 0, newEnd = tabText.length();
@@ -352,7 +354,7 @@ public class GisObjectsMenu extends View {
 						if (newEnd <= 0)
 							break;
 						else
-							Log.d("vortex","newEnd: "+newEnd);
+							Log.d(TAG,"newEnd: "+newEnd);
 
 						textOnButton = tabText.substring(0, newEnd--);
 
@@ -360,7 +362,7 @@ public class GisObjectsMenu extends View {
 						if (newEnd==(tabText.length()-1))
 							fulltextBoundsWidth = textBounds.width();
 						calcWidthOfTabButton = textBounds.width() + marginal;
-						Log.d("Vortex", "calcW: "+calcWidthOfTabButton+"w_myps: "+w/myPalettes.size()+" w: "+w+" myPalS: "+myPalettes.size());
+						Log.d(TAG, "calcW: "+calcWidthOfTabButton+"w_myps: "+w/myPalettes.size()+" w: "+w+" myPalS: "+myPalettes.size());
 					} while (aggressive && ((calcWidthOfTabButton*myPalettes.size() + (marginal*(myPalettes.size()-1))) > w ));
 					Rect tabButtonRect = new Rect(spacingAroundTabs*2+PaddingX + totalWidth, PaddingY, spacingAroundTabs*2+PaddingX + totalWidth + textBounds.width() + marginal, PaddingY + tabRowHeight);
 					Rect fullRect = new Rect(spacingAroundTabs*2+PaddingX + totalWidth, PaddingY, spacingAroundTabs*2+PaddingX + totalWidth + fulltextBoundsWidth + marginal, PaddingY + tabRowHeight);
@@ -368,7 +370,7 @@ public class GisObjectsMenu extends View {
 					tabButtonArray.add(new TabButton(textOnButton, tabButtonRect, fullRect,textBounds.exactCenterY(),tabText));
 				}
 				//If it fails, try again, this time with aggressive length setting.
-				//Log.d("vorr","Aggressive: "+aggressive+" totalWidth: "+totalWidth+" w: "+w);
+				//Log.d(TAG,"Aggressive: "+aggressive+" totalWidth: "+totalWidth+" w: "+w);
 				if (aggressive)
 					break;
 				else
@@ -384,7 +386,7 @@ public class GisObjectsMenu extends View {
         String[] menuHeaderArray = new String[MAX_ROWS];
 		//for (String paletteName:myPalettes.keySet()) {
 		LinkedHashMap<GisObjectType, Set<FullGisObjectConfiguration>> menuGroupsM = myPalettes.get(currentPalette);
-		Log.d("vortex","palette is "+currentPalette);
+		Log.d(TAG,"palette is "+currentPalette);
 		for (GisObjectType type : menuGroupsM.keySet()) {
 			Set<FullGisObjectConfiguration> itemSet = menuGroupsM.get(type);
 			Iterator<FullGisObjectConfiguration> it = itemSet.iterator();

@@ -12,6 +12,8 @@ import java.util.List;
 //Specialized filter. Will filter a list on entries in column matching Regexp
 
 public class WF_Column_RegExp_Filter extends WF_Filter {
+	private static final String TAG = "WF_Column_RegExp_Filter";
+
 
 	private String regularExpression = "";
 	String filterColumn;
@@ -43,7 +45,7 @@ public class WF_Column_RegExp_Filter extends WF_Filter {
 
 			if (!key.matches(regularExpression)) {
 				it.remove();
-				//Log.d("nils","filter removes element "+key+" because it doesn't match "+regularExpression);
+				//Log.d(TAG,"filter removes element "+key+" because it doesn't match "+regularExpression);
 			} else
 				noMatchAtAll=false;
 			

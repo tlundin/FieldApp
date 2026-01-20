@@ -36,7 +36,7 @@
 //
 //	@Override
 //	public void addRedText(String text) {
-//		Log.d("CRIT", text);
+//		Log.d(TAG, text);
 //		if (!hasRed) {
 //			hasRed = true;
 //			// ... (your other logic)
@@ -133,9 +133,9 @@
 //
 //	@Override
 //	public boolean hasRed() {
-//		//Log.d("vortex","calling hasred on "+this.toString());
+//		//Log.d(TAG,"calling hasred on "+this.toString());
 //		if (hasRed) {
-//			Log.d("vortex","hasred!");
+//			Log.d(TAG,"hasred!");
 //			hasRed=false;
 //			return true;
 //		}

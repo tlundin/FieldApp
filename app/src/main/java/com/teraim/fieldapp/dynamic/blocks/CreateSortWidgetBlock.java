@@ -13,6 +13,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_SorterWidget;
 import com.teraim.fieldapp.log.LogRepository;
 
 public class CreateSortWidgetBlock extends Block {
+	private static final String TAG = "CreateSortWidgetBlock";
+
 
 	private final String containerId;
     private final String type;
@@ -44,7 +46,7 @@ public class CreateSortWidgetBlock extends Block {
 		Container myContainer = ctx.getContainer(containerId);
 		if (myContainer != null)  {
 				
-		//Log.d("nils","Sort target is "+target);
+		//Log.d(TAG,"Sort target is "+target);
             Filterable targetList = ctx.getFilterable(target);
 		if (targetList == null) {
 			o.addText("");

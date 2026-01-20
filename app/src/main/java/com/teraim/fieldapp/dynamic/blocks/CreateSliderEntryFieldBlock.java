@@ -12,6 +12,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_ClickableField_Slide
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 
 public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
+	private static final String TAG = "CreateSliderEntryFieldBlock";
+
 
 	private String name;
     private final String label;
@@ -62,31 +64,31 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 		o = gs.getLogger();
 		if(myContainer !=null) {
 			VariableConfiguration al = gs.getVariableConfiguration();
-			Log.d("vortex","In slider create with hash: "+ gs.getVariableCache().getContext());
+			Log.d(TAG,"In slider create with hash: "+ gs.getVariableCache().getContext());
 			Variable v = gs.getVariableCache().getVariable(variableName,initialValue,-1);
 			if (v == null) {
 				o.addText("");
 				o.addCriticalText("Failed to create entryfield for block " + blockId);
-				Log.d("nils", "Variable " + variableName + " referenced in block_create_entry_field not found.");
+				Log.d(TAG, "Variable " + variableName + " referenced in block_create_entry_field not found.");
 				o.addText("");
 				o.addCriticalText("Variable ["+variableName+"] referenced in block_create_slider_entry_field "+this.getBlockId()+" not found.");
 				o.addText("");
 				o.addCriticalText("Current context: ["+ gs.getVariableCache().getContext()+"]");
 			} else {
 				if (v.getType()!= Variable.DataType.numeric ) {
-					Log.d("vortex","variable "+variableName+" is not numeric in create_slider.");
+					Log.d(TAG,"variable "+variableName+" is not numeric in create_slider.");
 					o.addText("");
 					o.addCriticalText("Variable ["+variableName+"] referenced in block_create_slider_field "+this.getBlockId()+" is not of type numeric");
 					return null;
 				}
-				Log.d("vortex", "current hash: " + gs.getVariableCache().getContext());
+				Log.d(TAG, "current hash: " + gs.getVariableCache().getContext());
 				myField = new WF_ClickableField_Slider(label==null||label.equals("")?v.getLabel():label, "This is a description for the entryfield"
 						, myContext, name, isVisible,group,min,max,this);
-				Log.d("nils", "In CreateSliderEntryFieldBlock.");
+				Log.d(TAG, "In CreateSliderEntryFieldBlock.");
 				myField.addVariable(v, true,"slider",true,showHistorical);
 				myContext.addDrawable(v.getId(), myField);
 
-				Log.d("vortex", "Adding Entryfield " + getName() + " to container " + containerId);
+				Log.d(TAG, "Adding Entryfield " + getName() + " to container " + containerId);
 				o.addText("Adding Entryfield " + getName() + " to container " + containerId);
 				myContainer.add(myField);
 				//				myField.refreshInputFields();	

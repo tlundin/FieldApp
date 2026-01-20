@@ -8,6 +8,8 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Event.EventType;
 
 public class WF_ClickableField_Selection_OnSave extends WF_ClickableField_Selection implements EventListener {
+	private static final String TAG = "WF_ClickableField_Selection_OnSave";
+
 
 	
 	
@@ -21,17 +23,17 @@ public class WF_ClickableField_Selection_OnSave extends WF_ClickableField_Select
 	@Override
 	public void onEvent(Event e) {
 		if (myContext.myEndIsNear()) {
-			Log.d("vortex","Disregarding onsave due to ongoing reexecute.");
+			Log.d(TAG,"Disregarding onsave due to ongoing reexecute.");
 			return;
 		}
 
 		if (!getId().equals(e.getProvider())) {
-			Log.d("nils","In onEvent for WF_ClickableField_Selection_OnSave. Provider: "+e.getProvider());
+			Log.d(TAG,"In onEvent for WF_ClickableField_Selection_OnSave. Provider: "+e.getProvider());
 			if (iAmOpen)
 				refreshInputFields();
 			refresh();
 		} else
-			Log.d("nils","Discarded...from me");
+			Log.d(TAG,"Discarded...from me");
 	}
 
 	@Override

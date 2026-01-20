@@ -12,6 +12,8 @@ import java.util.Map;
 
 
 public abstract class WF_ListEntry extends WF_Widget implements Listable,Comparable<Listable> {
+	private static final String TAG = "WF_ListEntry";
+
 
 	//String keyVariable=null;
     private List<String> keyRow =null;
@@ -29,10 +31,10 @@ public abstract class WF_ListEntry extends WF_Widget implements Listable,Compara
 	void setKey(Variable var) {
 			myVar = var;
 			keyRow = myVar.getBackingDataSet();
-			//Log.d("nils","Calling setKeyRow for "+keyRow.toString());
+			//Log.d(TAG,"Calling setKeyRow for "+keyRow.toString());
 			label = al.getEntryLabel(keyRow);
 			spec = myVar.getId();
-			//Log.d("vortex","Keyvar label: "+label);
+			//Log.d(TAG,"Keyvar label: "+label);
 	}
 	@Override
 	public String toString() {
@@ -41,7 +43,7 @@ public abstract class WF_ListEntry extends WF_Widget implements Listable,Compara
 
 	@Override
 	public String getSortableField(String columnId) {
-		Log.d("filterz","In get sortable field. Keyrow:\n "+keyRow+" columnId: "+columnId+" res: "+al.getTable().getElement(columnId, keyRow));
+		Log.d(TAG,"In get sortable field. Keyrow:\n "+keyRow+" columnId: "+columnId+" res: "+al.getTable().getElement(columnId, keyRow));
 		if (keyRow!=null && columnId!=null)
 			return al.getTable().getElement(columnId, keyRow);
 		else 

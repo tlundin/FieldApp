@@ -25,6 +25,8 @@ import java.io.File;
  * Created by Terje on 2016-10-12.
  */
 public class BarcodeReader implements EventListener {
+    private static final String TAG = "BarcodeReader";
+
 
     private transient WF_Context myContext;
     private final BarcodeDetector detector;
@@ -69,7 +71,7 @@ public class BarcodeReader implements EventListener {
         if(!detector.isOperational()){
             return null;
         }
-        Log.d("vortex", "barcode image is likely taken");
+        Log.d(TAG, "barcode image is likely taken");
         try {
 
             BitmapFactory.Options option = new BitmapFactory.Options();
@@ -83,9 +85,9 @@ public class BarcodeReader implements EventListener {
             Frame frame = new Frame.Builder().setBitmap(myBitmap).build();
             SparseArray<Barcode> barcodes = detector.detect(frame);
             if (barcodes!=null) {
-                Log.d("vortex","barcodes size: "+barcodes.size());
+                Log.d(TAG,"barcodes size: "+barcodes.size());
                 if (barcodes.size()>0) {
-                    Log.d("vortex",barcodes.valueAt(0).displayValue);
+                    Log.d(TAG,barcodes.valueAt(0).displayValue);
                     return barcodes.valueAt(0).rawValue;
 
                 } else

@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_Instance_List extends WF_Static_List implements EventListener,EventGenerator{
+	private static final String TAG = "WF_Instance_List";
+
 	private final DisplayFieldBlock entryFormat;
 
 	//Create variables for each instance of variables in <rows> that matches key with variable column <variatorColumn>
@@ -57,7 +59,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		o = LogRepository.getInstance();
 		this.variatorColumn=variatorColumn;
 		this.entryFormat = format;
-		Log.d("nils","INSTANCE LIST CREATED. VARIATOR: "+variatorColumn);
+		Log.d(TAG,"INSTANCE LIST CREATED. VARIATOR: "+variatorColumn);
 		parameters = new HashMap<>();
 	}
 
@@ -91,7 +93,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 
         suffices.add(varSuffix);
 		parameters.put(varSuffix,new VarPars(showHistorical,isVisible,displayOut,format,initialValue));
-		Log.d("vortex","In addvariabletoEverylist! Suffices now: "+suffices.toString());
+		Log.d(TAG,"In addvariabletoEverylist! Suffices now: "+suffices.toString());
 		return true;
 	}
 
@@ -109,16 +111,16 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		//preload
 		try (Cursor c = gs.getDb().getPrefetchCursor(myKeyHash, namePrefix, variatorColumn)) {
 			if (c.moveToFirst() ) {
-				Log.d("nils","In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
+				Log.d(TAG,"In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
 				do {
-					Log.d("nils","varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
+					Log.d(TAG,"varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
 					String varId = c.getString(0);
 					String index = c.getString(1);
 					String value = c.getString(2);
 					String varName = Variable.getVarInstancePart(varId);
 					String varSuffix = Variable.getVarSuffixPart(varId);
 					if (suffices!=null && !suffices.isEmpty() && !suffices.contains(varSuffix)) {
-						Log.d("vortex","discarding "+varId+". Not part of this list");
+						Log.d(TAG,"discarding "+varId+". Not part of this list");
 						continue;
 					}
 
@@ -130,7 +132,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
 							if (ef == null) {
 								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat);
-								Log.d("nils","Added list entry for "+entryInstanceLabel);
+								Log.d(TAG,"Added list entry for "+entryInstanceLabel);
 								//cache
 								entryFields.put(entryInstanceLabel, ef);
 
@@ -140,7 +142,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 								Variable efVar;
 								for (String suffix:suffices) {
 									efVarName = namePrefix+":"+varName+":"+suffix;
-									Log.d("vortex","will generate: "+efVarName);
+									Log.d(TAG,"will generate: "+efVarName);
 									//If this equals the main var, then dont generate - use existing.
 									VarPars pars = parameters.get(suffix);
 									if (efVarName.equals(varId))
@@ -154,14 +156,14 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							} else {
 								Set<Variable> vars = ef.getAssociatedVariables();
 								if (vars!=null)
-									Log.d("vortex","ASSOC VARS: "+vars.toString());
+									Log.d(TAG,"ASSOC VARS: "+vars.toString());
 								else
-									Log.d("Vortex","ASSOCs are null");
+									Log.d(TAG,"ASSOCs are null");
 								//find missing variables for myvars. missing = var - suffix + other endings.
 								if (vars==null || !vars.contains(var)) {
 									Log.e("vortex","Variable did not exist. It must exist...!!!");
 								} else {
-									Log.d("vortex","found existing value...updating value");
+									Log.d(TAG,"found existing value...updating value");
 									var.setValue(value);
 								}
 							}
@@ -182,7 +184,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		Map<String, Map<String, String>> allInstances = gs.getDb().preFetchValues(myKeyHash, namePrefix, variatorColumn);
 
 		if (allInstances !=null ) {
-			Log.d("nils","in update entry fields. AllInstances contain "+allInstances.size());
+			Log.d(TAG,"in update entry fields. AllInstances contain "+allInstances.size());
 			//clear existing entries.
 			entryFields.clear();
 			//Cache entryfields.
@@ -191,14 +193,14 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 			//For each instance, create new List entry if needed. Otherwise add.
 			//Iterate over all variable instances.
 			for (String varId: allInstances.keySet()) {
-				Log.d("nils","Checking "+varId);
+				Log.d(TAG,"Checking "+varId);
 				if (myVars!=null && myVars.contains(varId)) {
 					//get the variator to variable mapping.
 					Map<String, String> indexToValue = allInstances.get(varId);
 					//for each new index, create a new entryfield (on index) and chain.
 					//if an entryfield with index already exist, add the variable.
 					Set<String> indexes = indexToValue.keySet();
-					Log.d("nils","indexes: "+indexes.toString());
+					Log.d(TAG,"indexes: "+indexes.toString());
 					for (String index:indexes) {
 						String value = indexToValue.get(index);
 						myKeyHash.put(variatorColumn, index);
@@ -208,7 +210,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
 							if (ef == null) {
 								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true);
-								Log.d("nils","Added list entry for "+entryInstanceLabel);
+								Log.d(TAG,"Added list entry for "+entryInstanceLabel);
 								//cache
 								entryFields.put(entryInstanceLabel, ef);
 								list.add(ef);
@@ -216,7 +218,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							Set<Variable> vars = ef.getAssociatedVariables();
 							//find missing variables for myvars. missing = var - suffix + other endings.
 							if (vars==null || !vars.contains(var)) {
-								Log.d("nils","Adding variable "+var.getId()+" to EF: "+ef.getLabel());
+								Log.d(TAG,"Adding variable "+var.getId()+" to EF: "+ef.getLabel());
 								ef.addVariable(var, true, null, true,showHistorical);
 							} else
 								Log.e("nils","DID NOT ADD VARIABLE "+var.getId());
@@ -228,15 +230,15 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 					}
 
 				} else {
-					Log.d("nils","is not member of myVars. Myvars has "+myVars.size()+" entries:");
+					Log.d(TAG,"is not member of myVars. Myvars has "+myVars.size()+" entries:");
 					String mvS="";
 					for (String m:myVars)
 						mvS+=m+",";
-					Log.d("nils",mvS);
+					Log.d(TAG,mvS);
 				}
 			}
 		} else
-			Log.d("vortex","Instance list size same as before.");
+			Log.d(TAG,"Instance list size same as before.");
 
 		//		entryFields = visitedEntryFields;
 
@@ -283,7 +285,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 					o.addRow("found null value in config file row "+index);
 				} else {
 					if (al.getAction(r).equals("create")) {
-						Log.d("nils","create...");
+						Log.d(TAG,"create...");
 						//C_F_+index is the ID for the element.
 						//TODO: ID is a bit hacked here..
 
@@ -293,9 +295,9 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 					if (!al.getAction(r).equals("add")&&!al.getAction(r).equals("create"))
 						o.addRow("something is wrong...action is neither Create or Add: "+al.getAction(r));
 					else {
-						Log.d("nils","add...");
+						Log.d(TAG,"add...");
 						if (listRow!=null) {
-							Log.d("nils","var added "+al.getVarLabel(r));
+							Log.d(TAG,"var added "+al.getVarLabel(r));
 							Variable v = al.getVariableInstance(al.getVarName(r));
 							if (v!=null)
 								listRow.addVariable(v,al.isDisplayInList(r),format,true);
@@ -311,10 +313,10 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 	@Override
 	public void onEvent(Event e) {
 		if (e.getProvider()!=null && e.getProvider().equals(this.getId()))
-			Log.d("nils","Throwing event that originated from me");
+			Log.d(TAG,"Throwing event that originated from me");
 		else {
 			if (e.getType()==EventType.onFlowExecuted) {
-				Log.d("nils","WF has executed.");
+				Log.d(TAG,"WF has executed.");
 				//Regenerate list.
 				//list.clear();
 				updateEntryFields();
@@ -322,14 +324,14 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 				draw();
 			}
 			else if (e.getType()==EventType.onSave) {
-				Log.d("nils","OnSave i instancelist");
+				Log.d(TAG,"OnSave i instancelist");
 				String provider = e.getProvider();
 				if (provider!=null) {
 					WF_ClickableField_Selection ef = entryFields.get(provider);
 					if (ef!=null) {
-						Log.d("vortex","ef is not null, found it!");
+						Log.d(TAG,"ef is not null, found it!");
 						if (!ef.hasValue()) {
-							Log.d("vortex","main variable is null. Delete!");
+							Log.d(TAG,"main variable is null. Delete!");
 							get().remove(ef);
 							reSortAndFilter();
 							resetOnEvent();

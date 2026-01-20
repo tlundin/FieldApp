@@ -72,6 +72,8 @@ import java.util.Set;
 
 
 public class LinjePortalTemplate extends Executor implements LocationListener, EventListener {
+	private static final String TAG = "LinjePortalTemplate";
+
 	private List<WF_Container> myLayouts;
 	private VariableCache varCache;
 	private DbHelper db;
@@ -108,9 +110,9 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 	@Override
 	public View onCreateView(final LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
-		Log.d("nils", "in onCreateView of LinjePortalTemplate");
+		Log.d(TAG, "in onCreateView of LinjePortalTemplate");
 		if (myContext == null) {
-			Log.d("vortex", "hasnt survived create...exiting.");
+			Log.d(TAG, "hasnt survived create...exiting.");
 			return null;
 		}
 		//myContext.resetState();
@@ -146,7 +148,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 			alert.setIcon(android.R.drawable.ic_dialog_alert);
 			alert.show();
 		} else {
-			Log.d("nils", "Current Linje is " + currentLinje);
+			Log.d(TAG, "Current Linje is " + currentLinje);
 			startPunkt = startDistFromCenter[Integer.parseInt(currentLinje) - 1];
 			northW = startPunkt[1] < 0;
 			southW = startPunkt[1] > 0;
@@ -163,13 +165,13 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 			Variable pyCentrumOst = varCache.getVariable(pyKeyMap, "CentrumGPSEW");
 			histNorr = pyCentrumNorr.getHistoricalValue();
 			histOst = pyCentrumOst.getHistoricalValue();
-			Log.d("nils", "pyKEyMap: " + pyKeyMap.toString());
-			Log.d("nils", "Historical norr ost: " + histNorr + " " + histOst);
+			Log.d(TAG, "pyKEyMap: " + pyKeyMap.toString());
+			Log.d(TAG, "Historical norr ost: " + histNorr + " " + histOst);
 
 
             String stratum = varCache.getVariableValue(al.createRutaKeyMap(), NamedVariables.STRATUM_HISTORICAL);
 
-			Log.d("nils", "STRATUM: " + stratum);
+			Log.d(TAG, "STRATUM: " + stratum);
 			//			status = Active.INITIAL;
 			stopB.setText("KLAR");
 
@@ -185,14 +187,14 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 						double lStartN = Double.parseDouble(linjeStartNorth.getValue());
 
 						setStart(lStartE, lStartN);
-						Log.d("nils", "Linjestatus was STATUS_STARTAD_MEN_INTE_KLAR");
+						Log.d(TAG, "Linjestatus was STATUS_STARTAD_MEN_INTE_KLAR");
 					} else {
-						Log.d("nils", "Status changed back to initial, because of missing values for startE,startN");
+						Log.d(TAG, "Status changed back to initial, because of missing values for startE,startN");
 						linjeStatus.setValue(Constants.STATUS_INITIAL);
 						center = null;
 					}
 				} else if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
-					Log.d("nils", "Linjestatus is Avslutad");
+					Log.d(TAG, "Linjestatus is Avslutad");
 				}
 			} else {
 				Log.e("nils", "Linjestatus was null");
@@ -367,12 +369,12 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 											setStart(myL.east, myL.north);
 
 										} else if (startSp.getSelectedItemPosition() == anvandTeoriStart) {
-											Log.d("nils", "I should en up here.");
+											Log.d(TAG, "I should en up here.");
 											double teoriNorr = Double.parseDouble(histNorr) + startPunkt[1];
 											double teoriOst = Double.parseDouble(histOst) + startPunkt[0];
 											setStart(teoriOst, teoriNorr);
 										} else
-											Log.d("nils", "startSPinner: " + startSp.getSelectedItemPosition());
+											Log.d(TAG, "startSPinner: " + startSp.getSelectedItemPosition());
 										/*
 										if (gs.syncIsAllowed()) {
 											gs.triggerTransfer();
@@ -398,7 +400,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 				}
 			});
 
-			Log.d("nils", "year: " + currentYear + " Ruta: " + varCache.getVariableValue(null, "Current_Ruta") + " Linje: " + currentLinje);
+			Log.d(TAG, "year: " + currentYear + " Ruta: " + varCache.getVariableValue(null, "Current_Ruta") + " Linje: " + currentLinje);
 
 			Map<String, String> keySet = Tools.createKeyMap(VariableConfiguration.KEY_YEAR, currentYear, "ruta", varCache.getVariableValue(null, "Current_Ruta"), "linje", currentLinje);
 
@@ -420,7 +422,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 			List<String> lobjT = al.getCompleteVariableDefinition(NamedVariables.LINJEOBJEKT);
 			List<String> objTypes = al.getListElements(lobjT);
 			if (objTypes != null)
-				Log.d("nils", "Found objTypes! " + objTypes.toString());
+				Log.d(TAG, "Found objTypes! " + objTypes.toString());
 
 			//Generate buttons.
 			TextView spc = new TextView(this.getActivity());
@@ -533,7 +535,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 
 	@Override
 	public void onDestroy() {
-		Log.d("Vortex","On destroy called");
+		Log.d(TAG,"On destroy called");
 		lm.removeUpdates(this);
 		super.onDestroy();
 	}
@@ -684,7 +686,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 		if (typ==Linjetyp.PUNKT && myView==null) {
 			Set<Map<String, String>> existingLinjeObjects = getExistingObjects(linjeObjLabel);
 			if (existingLinjeObjects!=null) {
-				Log.d("vortex","Got this back: "+existingLinjeObjects.toString());
+				Log.d(TAG,"Got this back: "+existingLinjeObjects.toString());
 				Iterator<Map<String,String>> it = existingLinjeObjects.iterator();
 				//Create a button array with a button for each meter.
 				List<Button> buttonArray = new ArrayList<Button>();
@@ -727,7 +729,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 
 
 			} else {
-				Log.d("vortex","Did not find any existing objects of type "+linjeObjLabel);
+				Log.d(TAG,"Did not find any existing objects of type "+linjeObjLabel);
 				myView = numTmp;	
 			}
 
@@ -783,13 +785,13 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 						}
 					}
 					if (metS!=null && metS.length()>0 && !error) {
-						Log.d("nils","Got meters: "+meterEd.getText());
+						Log.d(TAG,"Got meters: "+meterEd.getText());
 
 						//Create new !linjeobjekt with the meters.
 						String meter = (meterEd.getText().toString());
 						//peel away zeros from beginning.
 						meter = meter.replaceFirst("^0+(?!$)", "");
-						Log.d("nils","meter is now: "+meter);
+						Log.d(TAG,"meter is now: "+meter);
 						jumpToWorkFlow(meter, metA!=null?metA.toString():null,linjeObjLabel,typ);
 					}
 
@@ -821,11 +823,11 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 			Map<String,String> keyI = new HashMap<String,String>(key);
 			keyI.remove("value");
 			if (typ==Linjetyp.INTERVALL) {							
-				Log.d("nils","Sätter intervall variabler");
+				Log.d(TAG,"Sätter intervall variabler");
 				Variable v = varCache.getVariable(keyI,NamedVariables.AVGRANSSLUT);
 				v.setValue(end);
 				v= varCache.getVariable(keyI,NamedVariables.AVGRTYP);
-				Log.d("nils","Setting avgrtyp to "+ avgrSp.getSelectedItem());
+				Log.d(TAG,"Setting avgrtyp to "+ avgrSp.getSelectedItem());
 				v.setValue(avgrValueA[avgrSp.getSelectedItemPosition()]);
 			}
 
@@ -834,7 +836,7 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 			//Variable v = al.getVariableInstance();
 
 			if (v.setValue(linjeObjLabel)) {
-				Log.d("nils","Stored "+linjeObjLabel+" under meter "+start);
+				Log.d(TAG,"Stored "+linjeObjLabel+" under meter "+start);
 				myContext.registerEvent(new WF_Event_OnSave("Template"));
 			} else 
 				Log.e("nils","Variable "+v.getId()+" Obj:"+v+" already has value "+v.getValue()+" for keychain "+key.toString());
@@ -844,12 +846,12 @@ public class LinjePortalTemplate extends Executor implements LocationListener, E
 					varCache.getVariable(keyI, NamedVariables.TransportledTyp).setValue("2");
 				} else {
 					//Start workflow here.
-					Log.d("nils","Trying to start workflow "+"wf_"+linjeObjLabel);
+					Log.d(TAG,"Trying to start workflow "+"wf_"+linjeObjLabel);
 					Workflow wf = gs.getWorkflow("wf_"+linjeObjLabel);
 
 					if (wf!=null) {
 						gs.changePage(wf, null);
-						Log.d("nils","Should have started "+"wf_"+linjeObjLabel);
+						Log.d(TAG,"Should have started "+"wf_"+linjeObjLabel);
 					} 
 					else {
 						o.addText("");

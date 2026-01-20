@@ -22,6 +22,8 @@ import java.util.List;
  * Class that keeps track of a connection.
  */
 public class DataSyncSessionManager implements ConnectionListener,SyncStatusListener {
+	private static final String TAG = "DataSyncSessionManager";
+
 
 	private final LogRepository o;
 
@@ -67,12 +69,12 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 	@Override
 	public void handleMessage(Object obj) {
-		Log.d("vortex","Message arrived.");
+		Log.d(TAG,"Message arrived.");
 		//ui.update("Message arrived!");
 		if (!lock) {
 			handle(obj);
 		} else {
-			Log.d("vortex","Handle message delayed. lock");
+			Log.d(TAG,"Handle message delayed. lock");
 			messageCache.add(obj);
 		}
 	}
@@ -81,7 +83,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 	@Override
 	public void handleEvent(ConnectionEvent e) {
-		Log.d("vortex","In HandleEvent "+this.toString());
+		Log.d(TAG,"In HandleEvent "+this.toString());
 		switch(e) {
 		case connectionAttemptFailed:
 			ui.alert("Trying to establish connection. Attempts left: #"+mConnection.getTriesRemaining());
@@ -102,10 +104,10 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 						} 
 					}},5000);
 			*/
-			Log.d("vortex","Connection gained. sending ping");
+			Log.d(TAG,"Connection gained. sending ping");
 				ping();
 			//} else
-			//	Log.d("vortex","discarded duplicate message");
+			//	Log.d(TAG,"discarded duplicate message");
 			break;
 		case connectionBroken:
 			if (mState!=State.closed)
@@ -161,7 +163,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 		} else if (message instanceof SyncSuccesful) {
 			SyncSuccesful ssf = (SyncSuccesful)message;
-			Log.d("vortex","[BT MESSAGE -->Received SyncSuccesful message]");
+			Log.d(TAG,"[BT MESSAGE -->Received SyncSuccessful message]");
 			if (ssf!=null && ssf.getLastEntrySent()>0) {
 				GlobalState.getInstance().getDb().syncDone(ssf.getLastEntrySent());
 				o.addText("");
@@ -173,10 +175,10 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 				ui.alert("Sync failed on checksum");
 		} else if (message instanceof SyncStatus) {
 			SyncStatus ss = (SyncStatus)message;
-			Log.d("vortex","Received sync status!");
+			Log.d(TAG,"Received sync status!");
 			ui.alert("Transferred :"+ss.getStatus());
 		} else if (message instanceof NothingToSync) {
-			Log.d("vortex","[BT MESSAGE -->Received Nothing to SYNC message]");
+			Log.d(TAG,"[BT MESSAGE -->Received Nothing to SYNC message]");
 			pSyncDone=true;
 		} else if (message instanceof PingMessage) {
 			if (mState !=State.initial) {
@@ -207,7 +209,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 					String myAppVersion = gs.getPreferences().get(PersistenceHelper.CURRENT_VERSION_OF_APP);
 					float mySoftwareVersion = gs.getGlobalPreferences().getF(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM);
 
-					Log.d("vortex","myBundleV "+myAppVersion+" msgVer "+sp.getAppVersion()+" swVer: "+mySoftwareVersion+" msgVer: "+sp.getSoftwareVersion());
+					Log.d(TAG,"myBundleV "+myAppVersion+" msgVer "+sp.getAppVersion()+" swVer: "+mySoftwareVersion+" msgVer: "+sp.getSoftwareVersion());
 					StringBuilder versionText = new StringBuilder();
 
 					String debugTxt="My Field Pad version: "+mySoftwareVersion+
@@ -223,7 +225,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 					String pYear = sp.getTime().substring(0,4);
 					String mPartner = gs.getPreferences().get(PersistenceHelper.PARTNER_NAME);
 					if (mPartner.isEmpty()) {
-						Log.d("vortex","no previous value. setting partner");
+						Log.d(TAG,"no previous value. setting partner");
 						gs.getPreferences().put(PersistenceHelper.PARTNER_NAME, sp.getPartner());
 						mPartner = sp.getPartner();
 					}
@@ -339,7 +341,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 				lock = false;
 				if (!messageCache.isEmpty()) {
-					Log.d("sync","found cached messages..will call handle");
+					Log.d(TAG,"found cached messages..will call handle");
 					for (Object obj:messageCache) {
 						o.addText("");
 						o.addGreenText("Handling cached message: "+obj.toString());
@@ -362,7 +364,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 
 	public void send(Object entries) {
-		Log.d("vortex", "in send entries");
+		Log.d(TAG, "in send entries");
 		if (mConnection!=null && mConnection.isOpen()) {
 			mConnection.write(entries);
 			o.addText("");
@@ -402,7 +404,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 	private void ping() {
 		GlobalState gs = GlobalState.getInstance();
 		//Send a ping to see if we can connect straight away.
-		Log.d("NILS","Sending ping");
+		Log.d(TAG,"Sending ping");
 		String myName, myTeam, myApp, myTime;
 		float appVersion,softwareVersion;
 		myName = gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY);

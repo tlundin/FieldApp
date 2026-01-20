@@ -25,6 +25,8 @@ import com.teraim.fieldapp.non_generics.Constants;
 import java.io.File;
 
 public class ImageHandler {
+	private static final String TAG = "ImageHandler";
+
 
 	private final Fragment fragment;
     private final VariableConfiguration al;
@@ -56,11 +58,11 @@ public class ImageHandler {
 			int paddingSize=4-rutID.length();
 			for (int i=0;i<paddingSize;i++)
 				rutID = "0"+rutID;
-			Log.d("nils"," PADDINGSIZE: "+paddingSize+" rutaWITHZ: "+rutID);
+			Log.d(TAG," PADDINGSIZE: "+paddingSize+" rutaWITHZ: "+rutID);
 			paddingSize=4-pyID.length();
 			for (int i=0;i<paddingSize;i++)
 				pyID = "0"+pyID;		
-			Log.d("nils"," PADDINGSIZE: "+paddingSize+" pyWITHZ: "+pyID);
+			Log.d(TAG," PADDINGSIZE: "+paddingSize+" pyWITHZ: "+pyID);
 			return "R"+rutID+"_"+pyID+"_"+nameWithNum+"_"+(isHistorical?(Constants.getHistoricalPictureYear()):Constants.getYear())+".JPG";
 		}
 		return null;
@@ -112,23 +114,23 @@ public class ImageHandler {
 			//use target values to calculate the correct inSampleSize
 			options.inSampleSize = Tools.calculateInSampleSize(options, (int)tWidth, tHeight);
 
-			Log.d("nils"," Calculated insamplesize "+options.inSampleSize);
+			Log.d(TAG," Calculated insamplesize "+options.inSampleSize);
 			//now create real bitmap using insampleSize
 
 			options.inJustDecodeBounds = false;
-			Log.d("nils","Filename: "+fileName);
+			Log.d(TAG,"Filename: "+fileName);
 			bip = BitmapFactory.decodeFile((historical?OLD_PIC_ROOT_DIR:PIC_ROOT_DIR)+fileName,options);
 			if (bip!=null) {
 				b.setImageBitmap(bip);
 				return true;
 			} else {
-				Log.d("bils","Picture was null after decode");
+				Log.d(TAG,"Picture was null after decode");
 				return false;
 			}
 
 		}
 		else {
-			Log.d("nils","Did not find picture "+fileName);
+			Log.d(TAG,"Did not find picture "+fileName);
 			//need to set the width equal to the height...
 			return false;
 		}
@@ -152,7 +154,7 @@ public class ImageHandler {
 			@Override
 			public void onClick(View v)
 			{
-				Log.d("nils","in the listener for image button");
+				Log.d(TAG,"in the listener for image button");
 				String fileName = createFileName(name,false);
 
 				//String fileName = "R00al.getCurrentRuta()

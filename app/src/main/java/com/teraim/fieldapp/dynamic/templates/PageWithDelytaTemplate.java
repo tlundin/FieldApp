@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PageWithDelytaTemplate extends Executor {
+	private static final String TAG = "PageWithDelytaTemplate";
+
 
 	@Override
 	protected List<WF_Container> getContainers() {
@@ -42,10 +44,10 @@ public class PageWithDelytaTemplate extends Executor {
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		if (!survivedCreate) {
-			Log.d("vortex","hasnt survived create...exiting.");
+			Log.d(TAG,"hasnt survived create...exiting.");
 			return null;
 		}
-		Log.d("nils","in onCreateView of Template PAGE with DELYTA");
+		Log.d(TAG,"in onCreateView of Template PAGE with DELYTA");
 		v = inflater.inflate(R.layout.template_page_with_agg_wf, container, false);	
 		
 		//myContext.onCreateView();

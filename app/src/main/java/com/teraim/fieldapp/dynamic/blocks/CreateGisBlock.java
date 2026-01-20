@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class CreateGisBlock extends Block {
+	private static final String TAG = "CreateGisBlock";
+
 
 
 	private transient GlobalState gs;
@@ -124,7 +126,7 @@ public class CreateGisBlock extends Block {
 	public boolean create(WF_Context myContext,final AsyncResumeExecutorI cb) {
 		mapLayers  = new ArrayList<MapGisLayer>();
 		aborted = false;
-		Log.d("vortex","in create for createGisBlock!");
+		Log.d(TAG,"in create for createGisBlock!");
 		Context ctx = myContext.getContext();
 		gs = GlobalState.getInstance();
 		o = gs.getLogger();
@@ -145,13 +147,13 @@ public class CreateGisBlock extends Block {
 		}
 
 		final String pics = Expressor.analyze(sourceE);
-		Log.d("vortex","ParseString result: "+pics);
+		Log.d(TAG,"ParseString result: "+pics);
 		//Load asynchronously. Put up a loadbar.
 		//Need one async load per image.
 		String[] picNames=null;
 		if (pics!=null && pics.contains(",")) {
 			picNames = pics.split(",");
-			Log.d("vortex","found "+picNames.length+" pics");
+			Log.d(TAG,"found "+picNames.length+" pics");
 
 		} else {
 			picNames = new String[1];
@@ -170,20 +172,20 @@ public class CreateGisBlock extends Block {
 				@Override
 				public void progress(int bytesRead) {
 					prx += bytesRead;
-					Log.d("vortex","Progress: "+prx+" bytes");
+					Log.d(TAG,"Progress: "+prx+" bytes");
 				}
 				@Override
 				public void loaded(Boolean result) {
 					if (!aborted) {
 						if (result) {
-							Log.d("vortex", "picture " + picName + " now in cache.");
+							Log.d(TAG, "picture " + picName + " now in cache.");
 							MapGisLayer mapLayer;
 							if (picName.equals(masterPicName)) {
 								mapLayer = new MapGisLayer(GisConstants.DefaultTag, picName);
 
 							} else
 								mapLayer = new MapGisLayer("bg" + (I), picName);
-							Log.d("vortex", "Added layer: " + mapLayer.getLabel());
+							Log.d(TAG, "Added layer: " + mapLayer.getLabel());
 							mapLayers.add(mapLayer);
 						} else {
 							Log.e("vortex", "Picture not found. "+serverFileRootDir+picName);
@@ -213,7 +215,7 @@ public class CreateGisBlock extends Block {
 
 
 	private void createAfterLoad(PhotoMeta photoMeta, final String cacheFolder, final String fileName) {
-		Log.d("GisTrace", "createAfterLoad: Loading bitmap for final fileName: " + fileName);
+		Log.d(TAG, "createAfterLoad: Loading bitmap for final fileName: " + fileName);
 		this.photoMetaData=photoMeta;
 		cachedImgFilePath = cacheFolder+fileName;
 		final Container myContainer = myContext.getContainer(containerId);
@@ -224,25 +226,25 @@ public class CreateGisBlock extends Block {
 			final View avstRL = mapView.findViewById(R.id.avstRL);
 			boolean found = false;
 			GisLayer masterLayer = null;
-			Log.d("banjo","cache path "+cachedImgFilePath+" mapl: "+mapLayers);
+			Log.d(TAG,"cache path "+cachedImgFilePath+" mapl: "+mapLayers);
 			for (MapGisLayer layer:mapLayers) {
-				Log.d("banjo","Layer: "+layer.getImageName());
+				Log.d(TAG,"Layer: "+layer.getImageName());
 				if (layer.isVisible()) {
 					cachedImgFilePath = cacheFolder + layer.getImageName();
 					found = true;
-					Log.d("banjo","layer with name "+layer.getLabel()+" now visible" );
+					Log.d(TAG,"layer with name "+layer.getLabel()+" now visible" );
 					break;
 				}
 				if (layer.getLabel().equals(GisConstants.DefaultTag)) {
-					Log.d("banjo","masterlayer found.");
+					Log.d(TAG,"masterlayer found.");
 					masterLayer = layer;
 				}
 			}
-			Log.d("mask","cachepath2 "+cachedImgFilePath);
+			Log.d(TAG,"cachepath2 "+cachedImgFilePath);
 			if (!found) {
 				if (masterLayer!=null) {
 					masterLayer.setVisible(true);
-					Log.d("gurk", "masterlayer is now visible.");
+					Log.d(TAG, "masterlayer is now visible.");
 				} else
 					Log.e("vortex", "no layer with label Def found");
 			}
@@ -254,10 +256,10 @@ public class CreateGisBlock extends Block {
 				BitmapFactory.decodeFile(cachedImgFilePath, options);
                 int imageHeight = options.outHeight;
                 int imageWidth = options.outWidth;
-				Log.d("vortex","image rect h w is "+ imageHeight +","+ imageWidth);
+				Log.d(TAG,"image rect h w is "+ imageHeight +","+ imageWidth);
 				r = new Rect(0,0, imageWidth, imageHeight);
 			} else {
-				Log.d("vortex","This is a cutout! "+cachedImgFilePath);
+				Log.d(TAG,"This is a cutout! "+cachedImgFilePath);
 				r = cutOut.r;
 				Location topC = cutOut.geoR.get(0);
 				Location botC = cutOut.geoR.get(1);
@@ -352,8 +354,8 @@ public class CreateGisBlock extends Block {
 
 		if (tmp!=null && tmp.length!=0) {
 			final String metaFileName = tmp[0];
-			Log.d("vortex","metafilename: "+metaFileName);
-			Log.d("jgw","imgmetaformatisfile: "+gs.getImgMetaFormat());
+			Log.d(TAG,"metafilename: "+metaFileName);
+			Log.d(TAG,"imgmetaformatisfile: "+gs.getImgMetaFormat());
 			final ConfigurationModule  meta;
 			String imgFormat = gs.getImgMetaFormat();
 			switch (imgFormat) {
@@ -379,13 +381,13 @@ public class CreateGisBlock extends Block {
 
 			// Check if the metadata is already cached and loaded
 			if (meta.thawSynchronously().errCode == ErrorCode.thawed) {
-				Log.d("vortex","Found frozen metadata. Will use it");
+				Log.d(TAG,"Found frozen metadata. Will use it");
 				PhotoMeta pm = ((PhotoMetaI)meta).getPhotoMeta();
 				// It's already loaded, so we can call createAfterLoad directly.
 				// This part of the logic is likely on the main thread already.
 				createAfterLoad(pm, cacheFolder, fileName);
 			} else {
-				Log.d("vortex","No frozen metadata. Delegating download to ViewModel.");
+				Log.d(TAG,"No frozen metadata. Delegating download to ViewModel.");
 
 				// DELEGATE the background work to the ViewModel
 				// The ViewModel returns a LiveData object that we can observe.
@@ -397,7 +399,7 @@ public class CreateGisBlock extends Block {
 
 							if (gisResult != null && gisResult.isSuccess()) {
 								// The background task was successful. Now we can safely update the UI.
-								Log.d("vortex","ViewModel finished loading. Calling createAfterLoad on main thread.");
+								Log.d(TAG,"ViewModel finished loading. Calling createAfterLoad on main thread.");
 								createAfterLoad(gisResult.photoMeta, gisResult.cacheFolder, gisResult.fileName);
 							} else {
 								// The background task failed.

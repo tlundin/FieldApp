@@ -11,6 +11,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.filters.WF_Column_RegEx
 import com.teraim.fieldapp.log.LogRepository;
 
 public class AddFilter extends Block {
+	private static final String TAG = "AddFilter";
+
 
 
 	private final String target;
@@ -47,7 +49,7 @@ public class AddFilter extends Block {
 			o.addCriticalText("FilterType was not set in block_create_filter (blockId: "+blockId+"). Cannot execute block.");
 			return;
 		}
-		Log.d("vortex", "Adding filter of type " + type + " with selPat " + selectionPattern + " and selField " + selectionField);
+		Log.d(TAG, "Adding filter of type " + type + " with selPat " + selectionPattern + " and selField " + selectionField);
 		if (type.equals("regular_expression"))
 			myList.addFilter(new WF_Column_RegExp_Filter(blockId,selectionField,selectionPattern));
 		else if (type.equals("exact"))

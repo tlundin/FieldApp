@@ -11,6 +11,8 @@ import org.json.JSONException;
 import java.io.IOException;
 
 public abstract class JSONConfigurationModule extends ConfigurationModule {
+	private static final String TAG = "JSONConfigurationModule";
+
 
 	protected JSONConfigurationModule(Context context, PersistenceHelper gPh, PersistenceHelper ph,
 									   String urlOrPath, String fileName, String moduleName) {
@@ -52,7 +54,7 @@ public abstract class JSONConfigurationModule extends ConfigurationModule {
 			ret = null;
 			reader.nextNull();
 		}
-		//Log.d("vortex","Value: "+ret);
+		//Log.d(TAG,"Value: "+ret);
 		return ret;
 
 	}

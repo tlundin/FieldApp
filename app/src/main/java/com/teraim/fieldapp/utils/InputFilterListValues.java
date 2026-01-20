@@ -7,6 +7,8 @@ import android.util.Log;
 import java.util.Set;
 
 public class InputFilterListValues implements TextFilter {
+	private static final String TAG = "InputFilterListValues";
+
 
 	private String myPrint="";
 	private final Set<String> allowed;
@@ -21,7 +23,7 @@ public class InputFilterListValues implements TextFilter {
 
     @Override
     public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
-      // Log.d("nils","SOURC: "+source.toString()+" DEST: "+dest.toString());
+      // Log.d(TAG,"SOURC: "+source.toString()+" DEST: "+dest.toString());
        String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend, dest.toString().length());
        // Add the new string in
        newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart, newVal.length());
@@ -29,7 +31,7 @@ public class InputFilterListValues implements TextFilter {
        if (isLegal (newVal))
     	   return null;
        else {
-    	   Log.d("nils","string "+newVal+" was not allowed by filter");
+    	   Log.d(TAG,"string "+newVal+" was not allowed by filter");
     	   return "";
        }
 
@@ -38,18 +40,18 @@ public class InputFilterListValues implements TextFilter {
 
 	private boolean isLegal(String input) {
 		if (input.length()==0) {
-			Log.d("nils","allowing empty string");
+			Log.d(TAG,"allowing empty string");
 			return true;
 		}
 		for (String value:allowed) {
 			if (input.length()>value.length())
 				continue;
 			else if (value.substring(0, input.length()).equals(input)) {
-				Log.d("nils","Found match for: "+input);
+				Log.d(TAG,"Found match for: "+input);
 				return true;
 			}			
 		}
-		Log.d("nils","found no match for input "+input);
+		Log.d(TAG,"found no match for input "+input);
 		return false;
 	}
 

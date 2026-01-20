@@ -25,6 +25,8 @@ import java.util.Set;
  * This workflow has only one stage.
  */
 public class RefreshGisWorkflow implements Workflow_I {
+    private static final String TAG = "RefreshGisWorkflow";
+
 
     private final Context context;
     private final PersistenceHelper globalPh;
@@ -69,7 +71,7 @@ public class RefreshGisWorkflow implements Workflow_I {
         List<ConfigurationModule> databaseModules = createDBModules(context, gisPath, bundleName, t, debugConsole, registry);
 
         if (databaseModules.isEmpty()) {
-            Log.d("Workflow", "No GIS modules to refresh.");
+            Log.d(TAG, "No GIS modules to refresh.");
             LogRepository.getInstance().addColorText("Found no GIS modules to refresh.", ContextCompat.getColor(context, R.color.purple));
             return null; // Nothing to refresh.
         }
@@ -89,7 +91,7 @@ public class RefreshGisWorkflow implements Workflow_I {
     private List<ConfigurationModule> createDBModules(Context context, String gisFolder, String bundleName, Table t, LogRepository debugConsole,ModuleRegistry registry) {
         List<ConfigurationModule> modules = new ArrayList<>();
             for (String provyta : provyteTyper) {
-                    Log.d("Workflow", "Adding Module " + provyta);
+                    Log.d(TAG, "Adding Module " + provyta);
                     modules.add(new GisObjectConfiguration(context, globalPh, ph, gisFolder, provyta, debugConsole, gs.getDb(), t));
             }
 

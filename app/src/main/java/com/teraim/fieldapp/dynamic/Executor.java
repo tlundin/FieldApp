@@ -124,6 +124,8 @@ import static com.teraim.fieldapp.gis.TrackerListener.GPS_State.GPS_State_C;
 
 
 public abstract class Executor extends Fragment implements AsyncResumeExecutorI {
+	private static final String TAG = "Executor";
+
 
 
 	private static final String STOP_ID = "STOP";
@@ -205,20 +207,20 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		brr = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context ctx, Intent intent) {
-				Log.d("vortex","GETS HERE:::::: "+this.toString()+"  P: "+Executor.this.toString());
+				Log.d(TAG,"GETS HERE:::::: "+this.toString()+"  P: "+Executor.this.toString());
 				if (intent.getAction().equals(REDRAW_PAGE)) {
 					boolean callAfterSub=intent.getBooleanExtra("RedrawAfterExecutingSub",false);
-					Log.d("vortex","callAfterSUB: "+callAfterSub);
+					Log.d(TAG,"callAfterSUB: "+callAfterSub);
 					if (!callAfterSub || callAfterSub && myContext.isCaller()) {
 
-						Log.d("vortex","Setting DB context in broadcastreceiver");
+						Log.d(TAG,"Setting DB context in broadcastreceiver");
 						gs.setDBContext(myContext.getHash());
-						Log.d("vortex","Redraw page received in Executor. Sending onSave event.");
-						Log.d("vortex","my parent: "+Executor.this.getClass().getCanonicalName());
+						Log.d(TAG,"Redraw page received in Executor. Sending onSave event.");
+						Log.d(TAG,"my parent: "+Executor.this.getClass().getCanonicalName());
 						myContext.registerEvent(new WF_Event_OnSave(Constants.SYNC_ID));
 
 					} else
-						Log.d("vortex"," i am not a parent");
+						Log.d(TAG," i am not a parent");
 
 
 
@@ -227,7 +229,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				}
 					/*
 				else if (intent.getAction().equals(BluetoothConnectionService.BLUETOOTH_MESSAGE_RECEIVED)) {
-					Log.d("nils","New bluetoot message received event!");
+					Log.d(TAG,"New bluetoot message received event!");
 					myContext.registerEvent(new WF_Event_OnBluetoothMessageReceived());
 				}
 					 */
@@ -248,7 +250,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				// This event has already been processed, so we do nothing.
 				return;
 			}
-			Log.d("GisTrace", "Observer: Received result with masterPicName: " + result.masterPicName);
+			Log.d(TAG, "Observer: Received result with masterPicName: " + result.masterPicName);
 			// The rest of your logic is now protected from running twice
 			if (result.isSuccess()) {
 				Block currentBlock = blocks.get(result.blockIndex);
@@ -275,7 +277,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		} else {
 			myContext.setWorkflow(wf);
 
-			Log.d("GPS","tracker created");
+			Log.d(TAG,"tracker created");
 			Map<String, String> gpsKeyHash = GlobalState.getInstance().getVariableConfiguration().createGpsKeyMap();
 			myX = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LAT);
 			myY = GlobalState.getInstance().getVariableCache().getVariable(gpsKeyHash, NamedVariables.MY_GPS_LONG);
@@ -295,7 +297,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 			fusedLocationClient = LocationServices.getFusedLocationProviderClient(this.getContext());
 
-			Log.d("nils","GETS TO ONCREATE EXECUTOR FOR WF "+wf.getLabel());
+			Log.d(TAG,"GETS TO ONCREATE EXECUTOR FOR WF "+wf.getLabel());
 			survivedCreate = true;
 		}
 
@@ -310,7 +312,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	@Override
 	public void onResume() {
-		Log.d("vortex", "in Executor onResume " + this.toString());
+		Log.d(TAG, "in Executor onResume " + this.toString());
 		gs = GlobalState.getInstance();
 		if (gs == null) {
 			Log.e("vortex","globalstate null in executor, exit");
@@ -351,7 +353,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	private void startLocationUpdates(LocationRequest locationRequest, LocationCallback locationCallback) {
-		Log.d("GPS","Start location updates "+this.hashCode());
+		Log.d(TAG,"Start location updates "+this.hashCode());
 		if (ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.getContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 			return;
 		}
@@ -363,16 +365,16 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	}
 
 	private void stopLocationUpdates() {
-		Log.d("GPS","Stop location updates "+this);
+		Log.d(TAG,"Stop location updates "+this);
 		fusedLocationClient.removeLocationUpdates(locationCallback);
 		TrackerListener.GPS_State signal = GPS_State_C(TrackerListener.GPS_State.State.disabled);
 		gs.updateCurrentPosition(signal,this.hashCode());
 	}
 
 	private void resetContext() {
-		Log.d("hash","resetting global context");
-		Log.d("hash","local: "+myContext.getHash());
-		Log.d("hash","global: "+gs.getVariableCache().getContext());
+		Log.d(TAG,"resetting global context");
+		Log.d(TAG,"local: "+myContext.getHash());
+		Log.d(TAG,"global: "+gs.getVariableCache().getContext());
 		if (myContext.getHash()==null) {
 			myContext.setHash(DB_Context.evaluate(wf.getContext()));
 		}
@@ -385,7 +387,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	public void onPause()
 	{
 
-		Log.d("Vortex", "onPause() for executor "+this.toString());
+		Log.d(TAG, "onPause() for executor "+this.toString());
 		if (myContext != null) {
 			if (myContext.hasGPSTracker())
 				stopLocationUpdates();
@@ -409,10 +411,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			name = b.getString("workflow_name");
 			statusVariable = b.getString("status_variable");
 		} else {
-			Log.d("vortex", "BUNDLE null in executor");
+			Log.d(TAG, "BUNDLE null in executor");
 			name = "Main";
 		}
-		Log.d("GisTrace", "getFlow: Attempting to load workflow with name: '" + name + "'");
+		Log.d(TAG, "getFlow: Attempting to load workflow with name: '" + name + "'");
 
 			if (statusVariable !=null) {
 				myContext.setStatusVariable(b.getString("status_variable"));
@@ -421,8 +423,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				myContext.registerEventListener(new EventListener() {
 					@Override
 					public void onEvent(Event e) {
-						//Log.d("grog","Received onSave in statusvariable change on first save event");
-						//Log.d("grogg","Context keychain is "+myContext.getKeyHash());
+						//Log.d(TAG,"Received onSave in statusvariable change on first save event");
+						//Log.d(TAG,"Context keychain is "+myContext.getKeyHash());
 						String statusVar = myContext.getStatusVariable();
 						Variable statusVariable =null;
 						if (statusVar!=null)
@@ -448,9 +450,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (name!=null && name.length()>0)
 				wf = gs.getWorkflow(name);
 			if (wf != null) {
-				Log.d("GisTrace", "getFlow: GlobalState returned workflow with label: '" + wf.getLabel() + "' containing " + wf.getBlocks().size() + " blocks.");
+				Log.d(TAG, "getFlow: GlobalState returned workflow with label: '" + wf.getLabel() + "' containing " + wf.getBlocks().size() + " blocks.");
 			} else {
-				Log.d("GisTrace", "getFlow: GlobalState returned a NULL workflow for name: '" + name + "'");
+				Log.d(TAG, "getFlow: GlobalState returned a NULL workflow for name: '" + name + "'");
 			}
 			if (wf==null&&name!=null&&name.length()>0) {
 				
@@ -478,13 +480,13 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		
 		o.addGreenText("*******EXECUTING: "+wfLabel);
 		gs.setTitle(wfLabel);
-		Log.d("vortex","in Executor run()");
+		Log.d(TAG,"in Executor run()");
 
 		myContext.resetState();
 		resetContext();
 		//DB_Context wfHash = DB_Context.evaluate(wf.getContext());
         /*if (myContext.getHash() ==null) {
-            Log.d("hash","setting mycontext hash to "+gs.getVariableCache().getContext());
+            Log.d(TAG,"setting mycontext hash to "+gs.getVariableCache().getContext());
             myContext.setHash(gs.getVariableCache().getContext());
         }
         */
@@ -498,7 +500,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			for (EvalExpr e:wf.getContext()) {
 				if (e instanceof Atom) {
 					if (((Atom)e).isVariable()) {
-						Log.d("vortex","Found variable in context:"+e.toString());
+						Log.d(TAG,"Found variable in context:"+e.toString());
 						if (contextVars==null)
 							contextVars = new ArrayList<String>();
 						contextVars.add(e.toString());
@@ -515,8 +517,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		jump.clear();
 		myListBlocks = new HashMap<>();
 
-		Log.d("hash","*******EXECUTING: "+wf.getLabel());
-		Log.d("hash","myHash: "+myContext.getHash());
+		Log.d(TAG,"*******EXECUTING: "+wf.getLabel());
+		Log.d(TAG,"myHash: "+myContext.getHash());
 		execute(0);
 	}
 
@@ -530,7 +532,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 		boolean notDone = true;
 		savedBlockPointer = -1;
-		Log.d("vortex", "in execute with blockP " + blockP);
+		Log.d(TAG, "in execute with blockP " + blockP);
 		myContext.clearExecutedBlocks();
 		try {
 
@@ -538,7 +540,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 				if (blockP >= blocks.size()) {
 
-					Log.d("vortex", "EXECUTION STOPPED ON BLOCK " + (blockP - 1));
+					Log.d(TAG, "EXECUTION STOPPED ON BLOCK " + (blockP - 1));
 					if (wfStack != null) {
 						wf = wfStack.remove(wfStack.size() - 1);
 						if (wf == null)
@@ -549,17 +551,17 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 							blockP = wf.getBlockPointer() + 1;
 							blocks = wf.getCopyOfBlocks();
-							Log.d("vortex", "popped to wf " + wf.getName() + " blockP is now " + blockP);
+							Log.d(TAG, "popped to wf " + wf.getName() + " blockP is now " + blockP);
 							continue;
 						}
 					} else {
 						notDone = false;
-						Log.d("brexit", "wfStack was empty - exiting");
+						Log.d(TAG, "wfStack was empty - exiting");
 						break;
 					}
 				}
 				Block b = blocks.get(blockP);
-				Log.d("vortex", "In execute with block " + b.getClass().getSimpleName() + " ID: " + b.getBlockId());
+				Log.d(TAG, "In execute with block " + b.getClass().getSimpleName() + " ID: " + b.getBlockId());
 
 				//Add block to list of executed blocks.
 				try {
@@ -570,11 +572,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 				if (b instanceof PageDefineBlock) {
 					PageDefineBlock bl = (PageDefineBlock) b;
-					Log.d("vortex", "Found pagedefine!");
+					Log.d(TAG, "Found pagedefine!");
 					if (bl.hasGPS()) {
 						myContext.enableGPS(bl.gpsPriority());
 						o.addText("GPS scanning started");
-						Log.d("vortex", "GPS scanning started");
+						Log.d(TAG, "GPS scanning started");
 					} else {
 						myContext.disableGPS();
 						Log.e("abba", "GPS is turned of for " + wf.getLabel());
@@ -619,7 +621,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					
 					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
 					CreateEntryFieldBlock bl = (CreateEntryFieldBlock) b;
-					Log.d("NILS", "CreateEntryFieldBlock found");
+					Log.d(TAG, "CreateEntryFieldBlock found");
 					Variable v = bl.create(myContext);
 					if (v != null)
 						visiVars.add(v);
@@ -627,7 +629,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					
 					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
 					CreateSliderEntryFieldBlock bl = (CreateSliderEntryFieldBlock) b;
-					Log.d("NILS", "CreateSliderEntryFieldBlock found");
+					Log.d(TAG, "CreateSliderEntryFieldBlock found");
 					Variable v = bl.create(myContext);
 					if (v != null)
 						visiVars.add(v);
@@ -652,7 +654,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					AddVariableToEveryListEntryBlock bl = (AddVariableToEveryListEntryBlock) b;
 
 					if (myListBlocks.get(bl.getTarget()) != null) {
-						Log.d("vortex", "Addvariable: found target list");
+						Log.d(TAG, "Addvariable: found target list");
 						myListBlocks.get(bl.getTarget()).associateVariableBlock(bl);
 
 					}
@@ -731,11 +733,11 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					
 					o.addYellowText("BlockGoSub found " + b.getBlockId());
 					String target = ((BlockGoSub) b).getTarget();
-					Log.d("vortex", "TARGET: " + target);
+					Log.d(TAG, "TARGET: " + target);
 					if (target != null) {
 						Workflow sub = gs.getWorkflow(target);
 						if (sub != null) {
-							Log.d("vortex", "Executing gosub to " + target);
+							Log.d(TAG, "Executing gosub to " + target);
 							if (wfStack == null)
 								wfStack = new ArrayList<Workflow>();
 							wfStack.add(wf);
@@ -773,7 +775,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 										String eval = bl.getEvaluation();
 
 										o.addText("Variable: " + v.getId() + " Current val: " + val + " New val: " + eval);
-										Log.d("vortex", "Variable: " + v.getId() + " Current val: " + val + " New val: " + eval);
+										Log.d(TAG, "Variable: " + v.getId() + " Current val: " + val + " New val: " + eval);
 										if (!(eval == null && val == null)) {
 											if (eval == null && val != null || val == null && eval != null || !val.equals(eval)) {
 												//Remove .0 
@@ -781,16 +783,16 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 												v.setValue(eval);
 												
 												o.addYellowText("Value has changed to or from null in setvalueblock OnSave for block " + bl.getBlockId());
-												Log.d("Vortex", "Value has changed to or from null in setvalueblock OnSave for block " + bl.getBlockId());
+												Log.d(TAG, "Value has changed to or from null in setvalueblock OnSave for block " + bl.getBlockId());
 
 												
 												o.addYellowText("BEHAVIOR: " + bl.getBehavior());
 												if (bl.getBehavior() == ExecutionBehavior.update_flow) {
 													if (myContext.myEndIsNear()) {
-														Log.d("vortex", "Disregarding event since flow reexecute already in progress.");
+														Log.d(TAG, "Disregarding event since flow reexecute already in progress.");
 														return;
 													}
-													Log.d("nils", "Variable has sideEffects...re-executing flow");
+													Log.d(TAG, "Variable has sideEffects...re-executing flow");
 													myContext.setMyEndIsNear();
 													new Handler().postDelayed(new Runnable() {
 														public void run() {
@@ -799,7 +801,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 															Set<Variable> previouslyVisibleVars = visiVars;
 															Executor.this.run();
 															for (Variable v : previouslyVisibleVars) {
-																Log.d("nils", "Previously visible: " + v.getId());
+																Log.d(TAG, "Previously visible: " + v.getId());
 																boolean found = false;
 																for (Variable x : visiVars) {
 																	found = x.getId().equals(v.getId());
@@ -808,7 +810,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 																}
 
 																if (!found) {
-																	Log.d("nils", "Variable gone.Removing");
+																	Log.d(TAG, "Variable gone.Removing");
 																	v.deleteValue();
 																	//here we need a onSave event.
 																	//myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_setvalue"));
@@ -834,7 +836,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 								return "SETVALUE BLOCK " + bl.getBlockId();
 							}
 						};
-						Log.d("nils", "Adding eventlistener for the setvalue block");
+						Log.d(TAG, "Adding eventlistener for the setvalue block");
 						myContext.registerEventListener(tiva, EventType.onSave);
 					}
 					//Evaluate
@@ -867,7 +869,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 							//Try to delay onSave.
 							//myContext.registerEvent(new WF_Event_OnSave(bl.getBlockId()));
 							delayedOnSave = new WF_Event_OnSave(bl.getBlockId());
-							Log.d("blubb", "delayed onSaveEvent in SetValue block " + bl.getBlockId());
+							Log.d(TAG, "delayed onSaveEvent in SetValue block " + bl.getBlockId());
 						}
 					} else {
 						
@@ -887,7 +889,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 							public void onEvent(Event e) {
 								//discard if redraw is coming..
 								if (myContext.myEndIsNear()) {
-									Log.d("vortex", "Disregarding onsave due to ongoing reexecute.");
+									Log.d(TAG, "Disregarding onsave due to ongoing reexecute.");
 									return;
 								}
 								//If evaluation different than earlier, re-render workflow.
@@ -900,7 +902,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 											Set<Variable> previouslyVisibleVars = visiVars;
 											Executor.this.run();
 											for (Variable v : previouslyVisibleVars) {
-												Log.d("nils", "Previously visible: " + v.getId());
+												Log.d(TAG, "Previously visible: " + v.getId());
 												boolean found = false;
 												for (Variable x : visiVars) {
 													found = x.getId().equals(v.getId());
@@ -909,7 +911,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 												}
 
 												if (!found) {
-													Log.d("nils", "Variable not found.Removing");
+													Log.d(TAG, "Variable not found.Removing");
 													v.deleteValue();
 													myContext.registerEvent(new WF_Event_OnSave("Delete_visivar_cond_cont"));
 
@@ -927,7 +929,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 								return "ConditionalContinuation BLOCK " + bl.getBlockId();
 							}
 						};
-						Log.d("nils", "Adding eventlistener for the conditional block");
+						Log.d(TAG, "Adding eventlistener for the conditional block");
 						myContext.registerEventListener(tiva, EventType.onSave);
 						//trigger event.
 						bl.evaluate();
@@ -946,7 +948,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					} else {
 						
 						o.addCriticalText("Cannot read formula: [" + formula + "] because of previous fail during the pre-Parse step. Please reimport the workflow configuration and check your log for the root cause.");
-						Log.d("nils", "Parsing of formula failed - no variables: [" + formula + "]");
+						Log.d(TAG, "Parsing of formula failed - no variables: [" + formula + "]");
 					}
 				} else if (b instanceof RuleBlock) {
 
@@ -981,7 +983,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					PersistenceHelper globalPh = gs.getGlobalPreferences();
 					final String serverFileRootDir = globalPh.get(PersistenceHelper.SERVER_URL) + globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase() + "/extras/";
 					final String cacheFolder = gs.getContext().getFilesDir() + "/" + globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT) + "/cache/";
-					Log.d("GisTrace", "Executor: Starting download for masterPicName: " + masterPicName);
+					Log.d(TAG, "Executor: Starting download for masterPicName: " + masterPicName);
 					// Pass the current block pointer 'blockP' to the ViewModel
 					gisViewModel.startGisDownload(picNames, serverFileRootDir, cacheFolder, masterPicName, blockP);
 
@@ -1001,10 +1003,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				} else if (b instanceof AddFilter) {
 					AddFilter bl = ((AddFilter) b);
 					if (myListBlocks.get(bl.getTarget()) != null) {
-						Log.d("baza", "Added filter to " + bl.getTarget());
+						Log.d(TAG, "Added filter to " + bl.getTarget());
 						myListBlocks.get(bl.getTarget()).associateFilterBlock(bl);
 					} else
-						Log.d("baza", "failed to add filter");
+						Log.d(TAG, "failed to add filter");
 				}
 
 				String cId = b.getBlockId();
@@ -1018,13 +1020,13 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					blockP++;
 
 				if (!notDone)
-					Log.d("vortex", "EXECUTION STOPPED ON BLOCK " + b.getBlockId());
+					Log.d(TAG, "EXECUTION STOPPED ON BLOCK " + b.getBlockId());
 			}
 
 
 			if (!myListBlocks.keySet().isEmpty()) {
 				addLoadDialog();
-				Log.d("baza", "I have lists...creating");
+				Log.d(TAG, "I have lists...creating");
 				Iterator<String> it = myListBlocks.keySet().iterator();
 				while(it.hasNext()) {
 					String lBlock = it.next();
@@ -1060,7 +1062,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			//Draw the UI.
 			
 			o.addYellowText("Now Drawing components recursively");
-			Log.d("vortex","Now Drawing components recursively");
+			Log.d(TAG,"Now Drawing components recursively");
 			//Draw all lists first.
 			for (WF_Static_List l:myContext.getLists())
 				l.draw();
@@ -1070,23 +1072,23 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			//open menu if any
 			if (delayedOnSave!=null) {
 
-				Log.d("blubb","executing delayed onSave");
+				Log.d(TAG,"executing delayed onSave");
 				myContext.registerEvent(delayedOnSave);
 				delayedOnSave=null;
 			}
 			if (myContext.hasMenu()) {
-				Log.d("vortex","Drawing menu");
+				Log.d(TAG,"Drawing menu");
 				gs.getDrawerMenu().openDrawer();
 			}
 
 			//Send event that flow has executed.
-			Log.d("vortex","Registering WF EXECUTION");
+			Log.d(TAG,"Registering WF EXECUTION");
 			myContext.registerEvent(new WF_Event_OnFlowExecuted("executor"));
 			if (root==null) {
 				int c = getActivity().getSupportFragmentManager().getBackStackEntryCount();
-				Log.d("blax","need to redraw previous fragment if there is one! "+c);
+				Log.d(TAG,"need to redraw previous fragment if there is one! "+c);
 				if (c>0) {
-					Log.d("blax","there is a fragment to redraw. Try broadcast!");
+					Log.d(TAG,"there is a fragment to redraw. Try broadcast!");
 					Intent intent = new Intent();
 					intent.setAction(Executor.REDRAW_PAGE);
 					intent.putExtra("RedrawAfterExecutingSub",true);
@@ -1103,20 +1105,20 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				getResources().getString(R.string.loading_please_wait), true);
 	}
 	private void removeLoadDialog() {
-		Log.d("wiz","REMOVELOAD");
+		Log.d(TAG,"REMOVELOAD");
 		if (pDialog!=null) {
 			pDialog.dismiss();
 			pDialog=null;
 		} else
-			Log.d("wiz","NULL");
+			Log.d(TAG,"NULL");
 	}
 	private int indexOf(String jNext, List<Block> blocks) {
 
 		for(int i=0;i<blocks.size();i++) {
 			String id = blocks.get(i).getBlockId();
-			//			Log.d("nils","checking id: "+id);
+			//			Log.d(TAG,"checking id: "+id);
 			if(id.equals(jNext)) {
-				Log.d("vortex","Jumping to block "+jNext);
+				Log.d(TAG,"Jumping to block "+jNext);
 				o.addText("Jumping to block "+jNext);
 				return i;
 			}
@@ -1173,7 +1175,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	public void restart() {
 		if (myContext.myEndIsNear()) {
-			Log.d("vortex","skipping restart in restart!");
+			Log.d(TAG,"skipping restart in restart!");
 			return;
 		}
 		myContext.setMyEndIsNear();
@@ -1181,7 +1183,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			public void run() {
 				//myContext.resetState();
 				Executor.this.run();
-				Log.d("vortex","workflow was restarted");
+				Log.d(TAG,"workflow was restarted");
 			}
 		}, 0);
 	}
@@ -1196,7 +1198,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			}
 		}
 		for (GisLayer layer :context.getCurrentGis().getLayers()) {
-			//Log.d("grogg","In refreshgisobjects");
+			//Log.d(TAG,"In refreshgisobjects");
 			layer.filterLayer(context.getCurrentGis().getGis());
 		}
 
@@ -1214,20 +1216,20 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (oldX!=null&&oldY!=null&&oldT!=null) {
 				long currT = TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis());
 				long timeDiff = currT - oldT;
-				//Log.d("GPS","cuurT oldT time diff: "+currT+" "+oldT+" "+timeDiff);
+				//Log.d(TAG,"cuurT oldT time diff: "+currT+" "+oldT+" "+timeDiff);
 				double oldXd = Double.parseDouble(oldX);
 				double oldYd = Double.parseDouble(oldY);
 				double distx = Math.abs(oldXd - myL.getX());
 				double disty = Math.abs(oldYd - myL.getY());
 
-				//Log.d("GPS", "Distance between mesaurements in Tracker: (x,y) " + distx + "," + disty);
+				//Log.d(TAG, "Distance between mesaurements in Tracker: (x,y) " + distx + "," + disty);
 				String accuracy = Float.toString(location.getAccuracy());
 				String x = Double.toString(myL.getX());
 				String y = Double.toString(myL.getY());
 
 
 				if (distx > 15 || disty > 15 || timeDiff > 60) {
-					//	Log.d("vortex","setting synced location");
+					//	Log.d(TAG,"setting synced location");
 					myX.setValue(x);
 					myY.setValue(y);
 					if (myAcc!=null)

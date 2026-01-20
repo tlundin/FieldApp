@@ -65,6 +65,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public abstract class WF_ClickableField extends WF_Not_ClickableField implements EventGenerator {
+	private static final String TAG = "WF_ClickableField";
+
 
 
     private final LinearLayout innerInputContainer;
@@ -131,7 +133,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             MenuItem x = menu.getItem(0);
             MenuItem y = menu.getItem(1);
             MenuItem z = menu.getItem(2);
-            Log.d("nils", "myVars has " + myVars.size() + " elements. "
+            Log.d(TAG, "myVars has " + myVars.size() + " elements. "
                     + myVars.toString());
             if (myVars.size() > 0) {
                 z.setVisible(true);
@@ -148,7 +150,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                     y.setVisible(true);
                 else {
                     y.setVisible(false);
-                    Log.d("burt",(row==null?"null":"vD: "+al.getVariableDescription(row)));
+                    Log.d(TAG,(row==null?"null":"vD: "+al.getVariableDescription(row)));
                 }
 
             } else {
@@ -182,13 +184,13 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 case R.id.menu_delete:
 
                     if(innerInputContainer.getChildCount()==1) {
-                        Log.d("boo","creating input fields!");
+                        Log.d(TAG,"creating input fields!");
                         createInputFields();
 
                     }
                     for (Entry<Variable, VariableView> pairs : myVars.entrySet()) {
                         Variable variable = pairs.getKey();
-                        Log.d("vortex", "deleting variable " + variable.getId()
+                        Log.d(TAG, "deleting variable " + variable.getId()
                                 + " with value " + variable.getValue());
                         DataType type = variable.getType();
                         View view = pairs.getValue().view;
@@ -249,7 +251,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
         // Called when the user exits the action mode
         @Override
         public void onDestroyActionMode(ActionMode mode) {
-            Log.d("hox","ondestroy! for "+getLabel());
+            Log.d(TAG,"ondestroy! for "+getLabel());
             mActionMode = null;
             revertBackgroundColor();
         }
@@ -263,7 +265,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
     WF_ClickableField(final String label, final String descriptionT,
                       WF_Context context, String id, View view, boolean isVisible, DisplayFieldBlock format) {
         super(id, label, descriptionT, context, view, isVisible, format);
-        //Log.d("vortex","Creating WF_ClickableField: label: "+label+" descr: "+descriptionT+ " id: "+id);
+        //Log.d(TAG,"Creating WF_ClickableField: label: "+label+" descr: "+descriptionT+ " id: "+id);
         //change between horizontal and vertical
 
 
@@ -307,23 +309,23 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
         getWidget().setOnClickListener(v -> {
             if (WF_ClickableField.this instanceof WF_ClickableField_Slider) {
-                Log.d("vortex","click denied! I am slider ");
+                Log.d(TAG,"click denied! I am slider ");
                 return;
             }
 
             if(innerInputContainer.getChildCount()==1) {
-                Log.d("boo","creating input fields!");
+                Log.d(TAG,"creating input fields!");
                 createInputFields();
 
             } else {
-                Log.d("boo","not! creating input fields!");
+                Log.d(TAG,"not! creating input fields!");
             }
             setBackgroundColor(Color.parseColor(Constants.Color_Pressed));
 
             // special case. No dialog.
 
             if (singleBoolean) {
-                Log.d("vortex","singleboolean true..setting radio");
+                Log.d(TAG,"singleboolean true..setting radio");
                 VariableView vv = myVars.values().iterator().next();
                 Variable var = myVars.keySet().iterator().next();
                 String value = var.getValue();
@@ -437,7 +439,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
 
         String varId = var.getId();
-        Log.d("boo","Adding "+var.getLabel());
+        Log.d(TAG,"Adding "+var.getLabel());
 
         if (virgin) {
             virgin = false;
@@ -450,7 +452,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 singleBoolean = false;
 
         if (super.getKey() == null) {
-            Log.d("zaxx", "Setting key variable to " + varId);
+            Log.d(TAG, "Setting key variable to " + varId);
             super.setKey(var);
 
         }
@@ -489,7 +491,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             vv.adapter = adapter;
 
             if (useStatic && WF_ClickableField.opt!=null) {
-                Log.d("vortex","using static");
+                Log.d(TAG,"using static");
                 useStatic=false;
                 opt = Arrays.copyOfRange(WF_ClickableField.opt,0,WF_ClickableField.opt.length);
                 if (WF_ClickableField.val!=null)
@@ -502,7 +504,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                 // Parse
                 if (listValues.startsWith("@file")) {
-                    Log.d("nils", "Found complex spinner");
+                    Log.d(TAG, "Found complex spinner");
                     if (sd == null) {
                         o.addText("");
                         o.addCriticalText("Spinner definition file has not loaded. Spinners cannot be created!");
@@ -519,12 +521,12 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                     + " is not defining any elements in the configuration file (Spinners.csv). Correct file version?");
 
                         } else {
-                            Log.d("nils", "Spinner variable: " + var.getId());
+                            Log.d(TAG, "Spinner variable: " + var.getId());
                             int i = 0;
                             opt = new String[elems.size()];
                             val = new String[elems.size()];
                             for (SpinnerElement se : elems) {
-                                Log.d("vortex", "Spinner element: " + se.opt
+                                Log.d(TAG, "Spinner element: " + se.opt
                                         + " Value: " + se.value);
                                 opt[i] = se.opt;
                                 val[i++] = se.value;
@@ -537,9 +539,9 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 } else {
                     if (listValues.startsWith("@col")) {
                         vv.listTag = "dynamic";
-                        Log.d("boo","dynamic!!");
+                        Log.d(TAG,"dynamic!!");
                     } else {
-                        Log.d("nils", "Found static list definition for"+var.getLabel()+"..parsing");
+                        Log.d(TAG, "Found static list definition for"+var.getLabel()+"..parsing");
                         opt = listValues.split("\\|");
                         if (opt == null || opt.length < 2) {
                             o.addText("");
@@ -548,9 +550,9 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         } else {
 
                             if (opt[0].contains("=")) {
-                                Log.d("nils", "found static list with value pairs");
+                                Log.d(TAG, "found static list with value pairs");
                                 // we have a value.
-                                Log.d("nils", "List found is " + listValues
+                                Log.d(TAG, "List found is " + listValues
                                         + "...opt has " + opt.length + " elements.");
                                 val = new String[opt.length];
                                 int c = 0;
@@ -586,7 +588,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             }
             if (opt != null) {
                 adapter.addAll(opt);
-                Log.d("nils", "Adapter has " + adapter.getCount() + " elements");
+                Log.d(TAG, "Adapter has " + adapter.getCount() + " elements");
                 //update static with this calc.
 
                 adapter.notifyDataSetChanged();
@@ -603,13 +605,13 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
 
         OutC w = null;
-        Log.d("vortex","in addvariable, displayout is "+displayOut+" for variable "+var.getId());
+        Log.d(TAG,"in addvariable, displayout is "+displayOut+" for variable "+var.getId());
         if (displayOut) {
             LinearLayout ll = getFieldLayout();
             w = opt!=null ? new OutSpin(ll, opt, val) : new OutC(ll, format);
             myOutputFields.put(var, w);
             outputContainer.addView(ll,0);
-            //Log.d("franco","Added viewz "+var.getLabel()+" with width: "+ll.getWidth());
+            //Log.d(TAG,"Added viewz "+var.getLabel()+" with width: "+ll.getWidth());
             // refreshInputFields();
             refreshOutputField(var, w);
 
@@ -633,7 +635,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
     }
 
     void save() {
-        Log.d("boo","in save");
+        Log.d(TAG,"in save");
         boolean saveEvent = false;
         String newValue = null, existingValue = null;
         // for now only delytevariabler.
@@ -650,7 +652,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             oldValue.put(variable, existingValue);
             DataType type = variable.getType();
             View view = pairs.getValue().view;
-            Log.d("boo", "Variable: "+variable.getLabel()+" Existing value: " + existingValue);
+            Log.d(TAG, "Variable: "+variable.getLabel()+" Existing value: " + existingValue);
             if (type == DataType.bool) {
                 // Get the yes radiobutton.
                 RadioGroup rbg = view.findViewById(R.id.radioG);
@@ -681,10 +683,10 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         newValue = v[s];
                     else
                         newValue = null;
-                    Log.d("nils", "VALUE FOR SPINNER A " + newValue);
+                    Log.d(TAG, "VALUE FOR SPINNER A " + newValue);
                 } else {
                     newValue = (String) sp.getSelectedItem();
-                    Log.d("nils", "VALUE FOR SPINNER B " + newValue);
+                    Log.d(TAG, "VALUE FOR SPINNER B " + newValue);
                 }
             } else if (type == DataType.auto_increment) {
                 EditText etview = view.findViewById(R.id.edit);
@@ -701,7 +703,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
             if (newValue == null || !newValue.equals(existingValue)
                     || variable.isUsingDefault()) {
-                Log.d("nils", "New value: " + newValue);
+                Log.d(TAG, "New value: " + newValue);
                 saveEvent = true;
 
                 if (newValue == null) {
@@ -748,7 +750,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 }
 
             } else {
-                Log.d("nils", "New value was not set: " + newValue);
+                Log.d(TAG, "New value was not set: " + newValue);
             }
         }
 
@@ -796,7 +798,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 myContext.reload();
                 return;
             }
-            Log.d("nils", "IN SAVE() SENDING EVENT");
+            Log.d(TAG, "IN SAVE() SENDING EVENT");
             gs.sendEvent(MenuActivity.REDRAW);
             myContext
                     .registerEvent(new WF_Event_OnSave(this.getId(), oldValue,this));
@@ -821,9 +823,9 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
         if (myRules == null)
             return null;
-        Log.d("vortex", "In checkRules. I have " + myRules.size() + " rules");
+        Log.d(TAG, "In checkRules. I have " + myRules.size() + " rules");
         for (Rule r : myRules) {
-            Log.d("vortex", " Rule: " + r.getCondition());
+            Log.d(TAG, " Rule: " + r.getCondition());
 
                 Boolean res = r.execute();
                 if (res != null && !res)
@@ -837,7 +839,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
     //Check, and if required, create the inputfield elements.
     void createInputFields() {
-        Log.d("vortex","in createInputFields");
+        Log.d(TAG,"in createInputFields");
 
         int vc=0;
         for (Variable var : myVars.keySet()) {
@@ -850,7 +852,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
             if (varV.showHistorical) {
                 hist = var.getHistoricalValue();
-                Log.d("vortex","historical fetched");
+                Log.d(TAG,"historical fetched");
 
             }
 
@@ -889,11 +891,11 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                     spinner.setAdapter(varV.adapter);
                     innerInputContainer.addView(sl);
-                    Log.d("nils", "Adding spinner for label " + label);
+                    Log.d(TAG, "Adding spinner for label " + label);
 
                     if (firstSpinner == null && vc==0 && autoOpenSpinner)
                         firstSpinner = spinner;
-                    Log.d("boo","Setting tag to "+varV.listTag);
+                    Log.d(TAG,"Setting tag to "+varV.listTag);
                     spinner.setTag(R.string.u1, varV.listTag);
 
                     varV.view=sl;
@@ -919,7 +921,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                 sHeader.setText(s);
                             }
                         } catch (NumberFormatException e) {
-                            Log.d("vortex", "Hist spinner value is not a number: "
+                            Log.d(TAG, "Hist spinner value is not a number: "
                                     + hist);
                         }
                     }
@@ -940,7 +942,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                         .getTag(R.string.u2);
                                 if (ems != null) {
                                     SpinnerElement e = ems.get(position);
-                                    Log.d("nils",
+                                    Log.d(TAG,
                                             "In onItemSelected. Spinner Element is "
                                                     + e.opt + " with variables "
                                                     + e.varMapping.toString());
@@ -950,24 +952,24 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                         hideOrShowViews(e.varMapping, SHOW);
                                         spinner.setTag(R.string.u2, e.varMapping);
                                         sDescr.setText(e.descr);
-                                        Log.d("nils", "DESCR TEXT SET TO " + e.descr);
+                                        Log.d(TAG, "DESCR TEXT SET TO " + e.descr);
                                     }
                                 }
                             }
                         }
 
                         private void hideOrShowViews(List<String> varIds, boolean mode) {
-                            Log.d("vortex", "In hideOrShowViews...");
+                            Log.d(TAG, "In hideOrShowViews...");
                             if (varIds == null || varIds.size() == 0)
                                 return;
 
                             for (String varId : varIds) {
-                                Log.d("vortex", "Trying to find " + varId);
+                                Log.d(TAG, "Trying to find " + varId);
                                 if (varId != null) {
                                     for (Variable v : myVars.keySet()) {
-                                        Log.d("vortex", "Comparing with " + v.getId());
+                                        Log.d(TAG, "Comparing with " + v.getId());
                                         if (v.getId().equalsIgnoreCase(varId.trim())) {
-                                            Log.d("vortex", "Match! " + v.getId());
+                                            Log.d(TAG, "Match! " + v.getId());
                                             View gView = myVars.get(v).view;
                                             gView.setVisibility(mode ? View.VISIBLE
                                                     : View.GONE);
@@ -996,7 +998,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                     break;
                 case text:
-                    Log.d("vortex", "Adding text field for dy-variable with label "
+                    Log.d(TAG, "Adding text field for dy-variable with label "
                             + label + ", name " + varId + ", type "
                             + var.getType().name());
                     View l = LayoutInflater.from(myContext.getContext()).inflate(
@@ -1036,7 +1038,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                                 @Override
                                 public void onStopTrackingTouch(SeekBar seekBar) {
-                                    Log.d("vortex", "hepp!");
+                                    Log.d(TAG, "hepp!");
                                 }
                             });
                         } else {
@@ -1075,7 +1077,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                     varV.view=l;
                     break;
                 case auto_increment:
-                    Log.d("vortex", "Adding AUTO_INCREMENT variable " + varLabel);
+                    Log.d(TAG, "Adding AUTO_INCREMENT variable " + varLabel);
                     l = LayoutInflater.from(myContext.getContext()).inflate(
                             R.layout.edit_field_numeric, null);
                     header = l.findViewById(R.id.header);
@@ -1095,13 +1097,13 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
     // @Override
     void refreshInputFields() {
         DataType numType;
-        Log.d("nils", "In refreshinputfields");
+        Log.d(TAG, "In refreshinputfields");
 
         Set<Entry<Variable, VariableView>> vars = myVars.entrySet();
         for (Entry<Variable, VariableView> entry : vars) {
             Variable variable = entry.getKey();
             String value = variable.getValue();
-            Log.d("nils", "Variable: " + variable.getLabel() + " value: "
+            Log.d(TAG, "Variable: " + variable.getLabel() + " value: "
                     + variable.getValue());
             numType = variable.getType();
 
@@ -1118,7 +1120,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 }
             } else if (numType == DataType.numeric || numType == DataType.text) {
 
-                // Log.d("nils","refreshing edittext with varid "+variable.getId());
+                // Log.d(TAG,"refreshing edittext with varid "+variable.getId());
                 EditText et = v.findViewById(R.id.edit);
                 CombinedRangeAndListFilter filter = variable.getLimitFilter();
                 if (filter != null)
@@ -1131,7 +1133,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                     et.setTextColor(myContext.getContext().getResources()
                             .getColor(R.color.purple,myContext.getContext().getTheme()));
                 } else
-                    Log.d("nils", "Variable " + variable.getId()
+                    Log.d(TAG, "Variable " + variable.getId()
                             + " is NOT YELLOW");
                 if (filter != null) {
                     if (variable.hasValueOutOfRange())
@@ -1172,7 +1174,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                 String[] opt = null;
                 String tag = (String) sp.getTag(R.string.u1);
-                Log.d("boo","TAG IS "+tag);
+                Log.d(TAG,"TAG IS "+tag);
                 String val[] = values.get(variable);
                 if (val != null) {
 
@@ -1235,7 +1237,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
         if (myRules == null)
             myRules = new ArrayList<>();
         myRules.add(r);
-        Log.d("vortex","Added rule "+r.getCondition());
+        Log.d(TAG,"Added rule "+r.getCondition());
     }
 
 }

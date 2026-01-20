@@ -21,6 +21,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class Linje extends View {
+	private static final String TAG = "Linje";
+
 
 	private final Paint p = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
 	private final Paint p1 = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
@@ -179,7 +181,7 @@ public class Linje extends View {
 	}
 	
 	public void addMarker(String start, String end, String tag) {
-		Log.d("nils","Adding marker");
+		Log.d(TAG,"Adding marker");
 		if (!Tools.isNumeric(start)||(end!=null && !Tools.isNumeric(end)))
 			return;
 		Map<String,LineMarker> lm = markers.get(start);

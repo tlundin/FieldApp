@@ -31,6 +31,8 @@ import java.util.Set;
 
 
 public class CoupledVariableGroupBlock extends Block implements EventListener {
+    private static final String TAG = "CoupledVariableGroupBlock";
+
 
     private transient WF_Context myC;
     private transient boolean active = false;
@@ -73,9 +75,9 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         myContext.addSliderGroup(this);
         if (function==null || function.isEmpty()) {
             function = "SUM";
-            Log.d("vortex","?");
+            Log.d(TAG,"?");
         }
-        Log.d("vortex","function is "+function);
+        Log.d(TAG,"function is "+function);
         String eventID = blockId==null?"BLOCK_ID_WAS_NULL":blockId;
         blockId = eventID;
         onEvent(new WF_Event_OnSave(eventID));
@@ -87,24 +89,24 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
 
     @Override
     public void onEvent(Event e) {
-        Log.d("vortex","in onEvent");
+        Log.d(TAG,"in onEvent");
         if (e.getType() == Event.EventType.onSave) {
             String argument = Expressor.analyze(argumentE);
-            Log.d("vortex","in onSave with "+ argument);
+            Log.d(TAG,"in onSave with "+ argument);
             if (!Tools.isNumeric(argument)){
-                Log.d("vortex","cannot calibrate...argument evaluates to non numeric: "+ argument);
+                Log.d(TAG,"cannot calibrate...argument evaluates to non numeric: "+ argument);
                 o.addText("");
                 o.addCriticalText("Argument to SUM in SliderGroup "+getName()+" is not numeric: "+ argument +" Expr: "+argumentE);
                 return;
             }
             final int sumToReach = Integer.parseInt(argument);
-            Log.d("vortex","sum to reach: "+sumToReach);
+            Log.d(TAG,"sum to reach: "+sumToReach);
             boolean change = false;
-            Log.d("vortex","curreval: "+currentEvaluationOfArg);
+            Log.d(TAG,"curreval: "+currentEvaluationOfArg);
             if (currentEvaluationOfArg == null || (sumToReach != currentEvaluationOfArg)) {
                 currentEvaluationOfArg = sumToReach;
                 change = true;
-                Log.d("vortex","arg change in group "+groupName);
+                Log.d(TAG,"arg change in group "+groupName);
             } //Check if a variable value has changed
             else {
                 WF_Event_OnSave onS = (WF_Event_OnSave)e;
@@ -113,7 +115,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
                     for (Variable v : variables) {
                         if (isOneofMyVariables(v)) {
                             change = true;
-                            Log.d("vortex","var change in group "+groupName);
+                            Log.d(TAG,"var change in group "+groupName);
                             break;
                         }
                     }
@@ -124,7 +126,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
                 active=true;
                 calibrateMe(myC.getSliderGroupMembers(groupName), currentEvaluationOfArg);
             } else {
-                Log.d("vortex","not required");
+                Log.d(TAG,"not required");
             }
 
         }
@@ -174,7 +176,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         final int max;
 
         boolean outsideRange(int sumToReach) {
-            Log.d("bob","SumtoReach "+sumToReach+" min:"+min+" max: "+max);
+            Log.d(TAG,"SumtoReach "+sumToReach+" min:"+min+" max: "+max);
             return sumToReach>max || sumToReach<min;
         }
     }
@@ -188,11 +190,11 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         if (sliders==null || sliders.isEmpty())
             return;
         if (functionIsStickyLimits() && sliders.size()<3) {
-            Log.d("vortex","sticky return");
+            Log.d(TAG,"sticky return");
             return;
         }
         if (functionIsSticky() && sliders.size()<2) {
-            Log.d("vortex","sticky min max return");
+            Log.d(TAG,"sticky min max return");
             return;
         }
 
@@ -207,12 +209,12 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         boolean touchedFixed=true, minFixed=functionIsStickyLimits() || functionIsStickyLimitsMin(),
                 maxFixed = functionIsStickyLimits() || functionIsStickyLimitsMax();
         if (touchedSliders!=null)
-            Log.d("rabba","touchedsliders has  "+touchedSliders.size()+" elements");
+            Log.d(TAG,"touchedsliders has  "+touchedSliders.size()+" elements");
         allSlidersTogether = calculateRange(sliders, touchedSliders, touchedFixed,minFixed,maxFixed);
         WF_ClickableField_Slider last = null;
 
         if (allSlidersTogether.outsideRange(sumToReach)) {
-            Log.d("vortex", "cannot reach sum...try to give back all but last slider");
+            Log.d(TAG, "cannot reach sum...try to give back all but last slider");
             if (touchedSliders!=null&&!touchedSliders.isEmpty()) {
                 Iterator<WF_ClickableField_Slider> it = touchedSliders.iterator();
 
@@ -224,11 +226,11 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
             }
             if (allSlidersTogether.outsideRange(sumToReach)) {
                 last = null;
-                Log.d("vortex", "cannot reach sum...try to give back all touched");
+                Log.d(TAG, "cannot reach sum...try to give back all touched");
                 touchedFixed=false;
                 allSlidersTogether = calculateRange(sliders, null, false,minFixed,maxFixed);
                 if (allSlidersTogether.outsideRange(sumToReach)) {
-                    Log.d("vortex", "cannot reach sum...try to give back all min max");
+                    Log.d(TAG, "cannot reach sum...try to give back all min max");
                     //Still outside?, try without fixing minmax
                     minFixed=false;
                     maxFixed=false;
@@ -243,7 +245,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         boolean isOutside = allSlidersTogether.outsideRange(sumToReach);
 
         if (isOutside) {
-            Log.d("vortex","over Max or below min: "+sumToReach+", "+allSlidersTogether.min
+            Log.d(TAG,"over Max or below min: "+sumToReach+", "+allSlidersTogether.min
                     +" , "+allSlidersTogether.max);
             o = LogRepository.getInstance();
             o.addText("");
@@ -267,20 +269,20 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
             }
         }
 
-        Log.d("vortex","SUM TO REACH: "+sumToReach);
-        Log.d("blabb","sl "+sliders.size()+" touch "+(touchedSliders==null?"null":touchedSliders.size())+" min "+(min==null?"null":min.size())+" max "+(max==null?"null":max.size()));
+        Log.d(TAG,"SUM TO REACH: "+sumToReach);
+        Log.d(TAG,"sl "+sliders.size()+" touch "+(touchedSliders==null?"null":touchedSliders.size())+" min "+(min==null?"null":min.size())+" max "+(max==null?"null":max.size()));
         currentSum = 0;
 
         for (WF_ClickableField_Slider slider:sliders) {
             Integer value = slider.getSliderValue();
             if (value!=null) {
                 currentSum += value;
-                Log.d("currentsum","slider "+slider.getId()+" value: "+value);
+                Log.d(TAG,"slider "+slider.getId()+" value: "+value);
             }
 
         }
-        Log.d("currentsum","Currentsum initial is: "+currentSum);
-        Log.d("vortex","number of sliders:" +slidersToCalibrate.size());
+        Log.d(TAG,"Currentsum initial is: "+currentSum);
+        Log.d(TAG,"number of sliders:" +slidersToCalibrate.size());
 
         if (slidersToCalibrate.size()>0) {
 
@@ -292,8 +294,8 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
                         //Check if any change.
                         int anyChange = 0;
                         int oldSum = currentSum;
-                        Log.d("currentsum", "Currentsum is: " + currentSum + " Min: " + functionIsMinSum() + " Max: " + functionIsMaxSum() + " SL: " + functionIsStickyLimits() + " SUM: " + functionIsSum() + " STICKY: " + functionIsSticky() + " sum to reach: " + sumToReach);
-                        Log.d("currentsum", "sliderstocalibrate has "+slidersToCalibrate.size()+" members");
+                        Log.d(TAG, "Currentsum is: " + currentSum + " Min: " + functionIsMinSum() + " Max: " + functionIsMaxSum() + " SL: " + functionIsStickyLimits() + " SUM: " + functionIsSum() + " STICKY: " + functionIsSticky() + " sum to reach: " + sumToReach);
+                        Log.d(TAG, "sliderstocalibrate has "+slidersToCalibrate.size()+" members");
                         int remainingDifference = 0;
                         for (WF_ClickableField_Slider slider : slidersToCalibrate) {
                             remainingDifference = sumToReach-currentSum;
@@ -308,9 +310,9 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
                         }
 
                         handler.postDelayed(this, 25);
-                        Log.d("vortex", "Current sum is: " + currentSum);
+                        Log.d(TAG, "Current sum is: " + currentSum);
                     } else {
-                        Log.d("vortex", "Sliders are calibrated.update variables.");
+                        Log.d(TAG, "Sliders are calibrated.update variables.");
                         updateSliderVariables(slidersToCalibrate);
                         if (touchedSliders!=null)
                             touchedSliders.clear();
@@ -325,7 +327,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         }
         else {
             active = false;
-            Log.d("vortex", "No sliders to calibrate");
+            Log.d(TAG, "No sliders to calibrate");
         }
 
 
@@ -397,16 +399,16 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
 
         if (increase>remainingDifference)
             increase=remainingDifference;
-        // Log.d("vortex","INC: "+increase);
+        // Log.d(TAG,"INC: "+increase);
 
         if ((curr+increase)<=slider.getMax()) {
-            Log.d("change","INCREASE SLIDER: "+slider.getName()+" OLD: "+curr+" NEW: "+(curr+increase));
+            Log.d(TAG,"INCREASE SLIDER: "+slider.getName()+" OLD: "+curr+" NEW: "+(curr+increase));
             currentSum+=increase;
             slider.setPosition(curr+increase);
             slider.wasIncreased();
-            //   Log.d("vortex","currsum: "+currentSum);
+            //   Log.d(TAG,"currsum: "+currentSum);
         } else
-            Log.d("vortex",slider.getId()+" is over max in increase: "+slider.getPosition());
+            Log.d(TAG,slider.getId()+" is over max in increase: "+slider.getPosition());
     }
 
     private void decreaseSlider(WF_ClickableField_Slider slider, int remainingDifference) {
@@ -423,9 +425,9 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
             currentSum-=decrease;
             slider.setPosition(curr-decrease);
             slider.wasDecreased();
-            Log.d("change","DECREASE SLIDER: "+slider.getName()+" OLD: "+curr+" NEW: "+(curr-decrease));
+            Log.d(TAG,"DECREASE SLIDER: "+slider.getName()+" OLD: "+curr+" NEW: "+(curr-decrease));
         } else
-            Log.d("vortex",slider.getName()+" is below min in increase: "+slider.getPosition());
+            Log.d(TAG,slider.getName()+" is below min in increase: "+slider.getPosition());
 
 
 

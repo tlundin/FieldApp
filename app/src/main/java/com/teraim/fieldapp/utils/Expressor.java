@@ -51,6 +51,8 @@ import java.util.Stack;
  */
 
 public class Expressor {
+	private static final String TAG = "Expressor";
+
 
 
     private static List<List<String>>  targetList = null;
@@ -241,7 +243,7 @@ public class Expressor {
             return null;
         }
         o = LogRepository.getInstance();
-        //Log.d("franco","Precompiling: "+expression);
+        //Log.d(TAG,"Precompiling: "+expression);
         List<Token> result = tokenize(expression);
         //printTokens(result);
         List<EvalExpr> endResult = new ArrayList<>();
@@ -265,7 +267,7 @@ public class Expressor {
                 //	sb.append(e);
                 //
                 //o.addText("Precompiled: "+sb);
-                //Log.d("franco","Precompiled: "+endResult.toString());
+                //Log.d(TAG,"Precompiled: "+endResult.toString());
                 return endResult;
             }
 
@@ -336,7 +338,7 @@ public class Expressor {
         }
         //evaluate in default context.
         currentKeyChain = evalContext;
-        //Log.d("franco","Analyzing "+expressions.toString());
+        //Log.d(TAG,"Analyzing "+expressions.toString());
         StringBuilder endResult = new StringBuilder();
         for (EvalExpr expr:expressions) {
             //tret=null;
@@ -351,7 +353,7 @@ public class Expressor {
 
         }
 
-        //Log.d("franco",expressions.toString()+" -->  "+endResult.toString());
+        //Log.d(TAG,expressions.toString()+" -->  "+endResult.toString());
         if (endResult.toString().isEmpty())
             return null;
         else
@@ -396,9 +398,9 @@ public class Expressor {
 
         o = LogRepository.getInstance();
         currentKeyChain = evalContext;
-        // Log.d("Vortex","Class "+expr.getClass().getCanonicalName());
+        // Log.d(TAG,"Class "+expr.getClass().getCanonicalName());
         Object eval = expr.eval();
-        //Log.d("Vortex","BoolExpr: "+expr.toString()+" evaluated to "+eval);
+        //Log.d(TAG,"BoolExpr: "+expr.toString()+" evaluated to "+eval);
         //o.addText("Expression "+expr.toString()+" evaluated to "+eval);
         variables = null;
         if (eval !=null && !(eval instanceof Boolean)) {
@@ -467,7 +469,7 @@ public class Expressor {
                     //new token either if endmarker, or a comma on toplevel.
                 } else if (t.type==TokenType.endMarker || (t.type==TokenType.comma && depth==0)) {
                     if (curr!=null && !curr.isEmpty()) {
-                        //Log.d("franco","CURR tokens: ");
+                        //Log.d(TAG,"CURR tokens: ");
                         //printTokens(curr);
                         EvalExpr ret = analyzeExpression(curr);
                         if (ret==null)
@@ -863,7 +865,7 @@ public class Expressor {
         }
 
         public Object eval() {
-            //Log.d("vortex","In eval for Atom type "+type);
+            //Log.d(TAG,"In eval for Atom type "+type);
             String value;
             switch(getType()) {
                 case variable:
@@ -875,9 +877,9 @@ public class Expressor {
                     }
 
                     value = v.getValue();
-                    //Log.d("vortex","Atom variable ["+v.getId()+"] Type "+v.getType()+" Value: "+value);
+                    //Log.d(TAG,"Atom variable ["+v.getId()+"] Type "+v.getType()+" Value: "+value);
                     if (v.getType()!= DataType.text && Tools.isNumeric(value)) {
-                        //Log.d("vortex","numeric");
+                        //Log.d(TAG,"numeric");
                         double d = Double.parseDouble(value);
                         if (v.getType()== Variable.DataType.decimal || value.contains(".") || d>Integer.MAX_VALUE || d<Integer.MIN_VALUE)
                             return d;
@@ -885,13 +887,13 @@ public class Expressor {
                             return Integer.parseInt(value);
                     }
                     if (v.getType()==Variable.DataType.bool) {
-                        	Log.d("vortex","bool");
+                        	Log.d(TAG,"bool");
                         if (value.equalsIgnoreCase("false")) {
-                            Log.d("vortex","Returning false");
+                            Log.d(TAG,"Returning false");
                             return false;
                         }
                         else if (value.equalsIgnoreCase("true")) {
-                            Log.d("vortex","Returning true");
+                            Log.d(TAG,"Returning true");
                             return true;
                         }
                         else {
@@ -899,14 +901,14 @@ public class Expressor {
                             return null;
                         }
                     }
-                    //Log.d("vortex","literal");
+                    //Log.d(TAG,"literal");
                     if (value.isEmpty()) {
                         Log.e("vortex","empty literal...returning null");
                         return null;
                     }
                     return value;
                 case number:
-                    //Log.d("vortex","this is a numeric atom");
+                    //Log.d(TAG,"this is a numeric atom");
                     if (myToken !=null && myToken.str!=null) {
                         //	System.out.println("Numeric value: "+myToken.str);
                         if (myToken.str.contains("."))
@@ -919,7 +921,7 @@ public class Expressor {
                         return null;
                     }
                 case literal:
-                    //Log.d("vortex","this is a literal atom");
+                    //Log.d(TAG,"this is a literal atom");
                     if (myToken.str.equalsIgnoreCase("false"))
                         return false;
                     else if (myToken.str.equalsIgnoreCase("true"))
@@ -974,7 +976,7 @@ public class Expressor {
         }
 
         public Object eval()  {
-            //Log.d("vortex","In eval for convo");
+            //Log.d(TAG,"In eval for convo");
             Object arg1v = arg1.eval();
 
 
@@ -995,25 +997,25 @@ public class Expressor {
                 String opS =operator.myToken.str;
                 if (opS!=null) {
                     TokenType op = TokenType.valueOfIgnoreCase(opS);
-//					Log.d("vortex","op is "+op+" which equals and? "+op.equals(TokenType.and));
+//					Log.d(TAG,"op is "+op+" which equals and? "+op.equals(TokenType.and));
                     if (op != null) {
                         if (op.equals(TokenType.or)) {
                             if (arg1v instanceof Boolean)
                                 if ((Boolean) arg1v) {
-                                    Log.d("vortex","arg1 is true so returning true");
+                                    Log.d(TAG,"arg1 is true so returning true");
                                     return true;
                                 } else
-                                    Log.d("vortex","arg1 is false");
+                                    Log.d(TAG,"arg1 is false");
                         }
                         else if (op.equals(TokenType.and)) {
-//								Log.d("vortex","operator is AND! Arg1: "+arg1v);
+//								Log.d(TAG,"operator is AND! Arg1: "+arg1v);
                             if (arg1v instanceof Boolean)
                                 if (!((Boolean) arg1v))
                                     return false;
                         }
                     }
                 }
-                Log.d("vortex","...returning null");
+                Log.d(TAG,"...returning null");
                 return null;
             }
 
@@ -1146,7 +1148,7 @@ public class Expressor {
                         /*
                         if (tret==null) {
                             tret ="foock";
-                            Log.d("vortex","first so returning "+arg1S+arg2S);
+                            Log.d(TAG,"first so returning "+arg1S+arg2S);
                             return arg1S+arg2S;
                         } else
                         */
@@ -1165,7 +1167,7 @@ public class Expressor {
                     }
                 }
             } catch (ClassCastException e) {
-                Log.d("vortex","Classcast exception for expression "+this.toString()+"arg1: "+arg1v);
+                Log.d(TAG,"Classcast exception for expression "+this.toString()+"arg1: "+arg1v);
                 
                 o.addCriticalText("Illegal arguments (wrong type) in expression: " +this.toString()+". Missing $ operator?");
 
@@ -1331,7 +1333,7 @@ public class Expressor {
         @Override
         public Object eval() {
 
-            //Log.d("vortex","Function eval: "+getType());
+            //Log.d(TAG,"Function eval: "+getType());
 
             Object result=null;
             List<Object> evalArgs = new ArrayList<>();
@@ -1446,28 +1448,28 @@ public class Expressor {
                     }
                     break;
                 case unaryMinus:
-                    //Log.d("vortex","In function unaryminus");
+                    //Log.d(TAG,"In function unaryminus");
                     if (checkPreconditions(evalArgs,1,No_Null_Numeric)){
-                        Log.d("vortex","returning: "+ (-(Integer)evalArgs.get(0)));
+                        Log.d(TAG,"returning: "+ (-(Integer)evalArgs.get(0)));
                         return -((Integer)evalArgs.get(0));
                     }
                     break;
                 case not:
- //                   Log.d("vortex","in function not with evalArgs: "+evalArgs);
+ //                   Log.d(TAG,"in function not with evalArgs: "+evalArgs);
                     if (checkPreconditions(evalArgs,1,Null_Boolean)) {
-//                        Log.d("vortex","evalArgs.get0 is "+evalArgs.get(0)+" type "+evalArgs.get(0).getClass().getSimpleName());
+//                        Log.d(TAG,"evalArgs.get0 is "+evalArgs.get(0)+" type "+evalArgs.get(0).getClass().getSimpleName());
                         return evalArgs.get(0)==null?null:!((Boolean)evalArgs.get(0));
 
                     }
                     break;
 
                 case historical:
-                    Log.d("vortex","In historical with "+evalArgs.get(0));
+                    Log.d(TAG,"In historical with "+evalArgs.get(0));
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
                         Variable var = GlobalState.getInstance().getVariableCache().getVariable(evalArgs.get(0).toString());
                         if (var != null) {
                             String value = var.getHistoricalValue();
-                            Log.d("vortex","Found historical value "+value+" for variable "+var.getLabel());
+                            Log.d(TAG,"Found historical value "+value+" for variable "+var.getLabel());
                             return value;
                         } else {
                             Log.e("vortex","Variable not found for literal: ["+evalArgs.get(0)+"]");
@@ -1480,7 +1482,7 @@ public class Expressor {
                 case hasSameValueAsHistorical:
                     String groupName = (String)evalArgs.get(0);
                     String varName = (String)evalArgs.get(1);
-                    Log.d("vortex","in samevalueas historical with group ["+groupName+"] and variable ["+varName+"]");
+                    Log.d(TAG,"in samevalueas historical with group ["+groupName+"] and variable ["+varName+"]");
 
                     if (checkPreconditions(evalArgs,2,No_Null_Literal)) {
                         Cursor c = GlobalState.getInstance().getDb().getAllVariablesForKeyMatchingGroupPrefixAndNamePostfix(GlobalState.getInstance().getVariableCache().getContext().getContext(),groupName,varName);
@@ -1496,18 +1498,18 @@ public class Expressor {
                             histVars.put (c.getString(0),c.getString(1));
                         c.close();
                         if (!vars.isEmpty()) {
-                            Log.d("vortex","Found candidates!");
+                            Log.d(TAG,"Found candidates!");
                             for (String name:vars.keySet()) {
                                 String value = vars.get(name);
                                 if (value!=null) {
                                     String historicalValue = histVars.get(name);
                                     if (historicalValue==null) {
-                                        Log.d("vortex","hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
+                                        Log.d(TAG,"hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
                                         o.addText("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" but no historical value.");
                                         return false;
                                     } else {
                                         if (!historicalValue.equals(value)) {
-                                            Log.d("vortex","hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
+                                            Log.d(TAG,"hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
                                             o.addText("hasSameValueAsHistorical returns false, since variable "+name+" has a value: "+value+" that is not the same as the historical value: "+historicalValue);
 
                                             return false;
@@ -1525,24 +1527,24 @@ public class Expressor {
                     String strRes="?";
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
                         varName = (String)evalArgs.get(0);
-                        Log.d("vortex","in listvalue with variable "+varName);
+                        Log.d(TAG,"in listvalue with variable "+varName);
                         Variable v = GlobalState.getInstance().getVariableCache().getVariable(varName);
                         if (v != null) {
                             strRes = gH?v.getHistoricalValue():v.getValue();
                             if (v.getType() == Variable.DataType.list) {
-                                Log.d("vortex", "The variable is a list with elemnts: " + GlobalState.getInstance().getVariableConfiguration().getListElements(v.getBackingDataSet()));
+                                Log.d(TAG, "The variable is a list with elemnts: " + GlobalState.getInstance().getVariableConfiguration().getListElements(v.getBackingDataSet()));
                                 List<String> lElems = GlobalState.getInstance().getVariableConfiguration().getListElements(v.getBackingDataSet());
 
                                 if (lElems != null && lElems.size() > 0) {
                                     if (lElems.get(0).equals("@file")) {
-                                        Log.d("vortex", "FILE!");
+                                        Log.d(TAG, "FILE!");
                                         List<SpinnerDefinition.SpinnerElement> spinnerDefs = GlobalState.getInstance().getSpinnerDefinitions().get(v.getId().toLowerCase());
                                         Log.e("vortex", "got definitions: " + spinnerDefs.toString());
                                         for (SpinnerDefinition.SpinnerElement spd:spinnerDefs) {
-                                            //Log.d("vortex","value: "+spd.value+" string: "+spd.opt);
+                                            //Log.d(TAG,"value: "+spd.value+" string: "+spd.opt);
                                             if (spd.value.equals(strRes)) {
                                                 strRes = spd.opt;
-                                                Log.d("vortex","match! "+spd.opt);
+                                                Log.d(TAG,"match! "+spd.opt);
                                                 break;
                                             }
                                         }
@@ -1550,11 +1552,11 @@ public class Expressor {
 
                                         Log.e("vortex","value: "+strRes);
                                         for (String elem : lElems) {
-                                            Log.d("vortex","elem: "+elem);
+                                            Log.d(TAG,"elem: "+elem);
                                             elem = elem.replace("{","").replace("}","");
                                             String[] pair = (elem.split("="));
                                             if (pair.length > 1) {
-                                                Log.d("vortex","pair[0]: "+pair[0]+" pair[1]: "+pair[1]);
+                                                Log.d(TAG,"pair[0]: "+pair[0]+" pair[1]: "+pair[1]);
                                                 if (pair[1].equals(strRes)) {
                                                     strRes = pair[0];
                                                     break;
@@ -1599,8 +1601,8 @@ public class Expressor {
                         }
                         else {
 
-                            Log.d("votex","value for column "+evalArgs.get(0)+" is "+currentKeyChain.get(evalArgs.get(0)));
-                            Log.d("votex","current keychain: "+currentKeyChain);
+                            Log.d(TAG,"value for column "+evalArgs.get(0)+" is "+currentKeyChain.get(evalArgs.get(0)));
+                            Log.d(TAG,"current keychain: "+currentKeyChain);
                             return currentKeyChain.get(evalArgs.get(0));
                         }
                     }
@@ -1618,16 +1620,16 @@ public class Expressor {
 
                         if (statusVariableName!=null) {
                             if (!statusVariableName.startsWith(Constants.STATUS_VARIABLES_GROUP_NAME+":")) {
-                                Log.d("vortex","missing group or is not a statusvariable. Try add group");
+                                Log.d(TAG,"missing group or is not a statusvariable. Try add group");
                                 statusVariableName=Constants.STATUS_VARIABLES_GROUP_NAME+":"+statusVariableName;
                             }
                             cp = GlobalState.getInstance().getDb().getLastVariableInstance(GlobalState.getInstance().getDb().createSelection(GlobalState.getInstance().getVariableCache().getContext().getContext(), statusVariableName));
                             if (cp != null) {
                                 while (cp.next()) {
-                                    Log.d("statusvar", "picker return for " + evalArgs.get(0) + " is\n" + cp.getKeyColumnValues());
+                                    Log.d(TAG, "picker return for " + evalArgs.get(0) + " is\n" + cp.getKeyColumnValues());
                                     empty = false;
                                     String varValue = cp.getVariable().value;
-                                    Log.d("vortex", "VALUE: " + varValue);
+                                    Log.d(TAG, "VALUE: " + varValue);
                                     if (combinedStatus == null && Integer.valueOf(varValue) >= WF_StatusButton.Status.ready.ordinal()) {
                                         combinedStatus = Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD;
                                     } else if (varValue.equals(Constants.STATUS_STARTAD_MED_FEL)) {
@@ -1652,7 +1654,7 @@ public class Expressor {
                         }
                         if (combinedStatus != null) {
                             if (oneInitial && combinedStatus.equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
-                                Log.d("vortex","found one that is not done!");
+                                Log.d(TAG,"found one that is not done!");
                                 combinedStatus = Constants.STATUS_STARTAD_MEN_INTE_KLAR;
                             }
                             return Integer.parseInt(combinedStatus);
@@ -1665,7 +1667,7 @@ public class Expressor {
                 case getGISobjectLength:
 
                 case getGISobjectArea:
-                    Log.d("vortex","getArea called");
+                    Log.d(TAG,"getArea called");
                     GisObject touchedGop = GlobalState.getInstance().getSelectedGop();
                     if (touchedGop!=null) {
 
@@ -1674,7 +1676,7 @@ public class Expressor {
                         else
                             return Geomatte.getArea(touchedGop.getCoordinates());
                     } else
-                        Log.d("zappa","no gop");
+                        Log.d(TAG,"no gop");
                     return null;
 
                 case getSweRefX:
@@ -1684,7 +1686,7 @@ public class Expressor {
                         return x.getValue();
                     }
                     else {
-                        Log.d("vortex","missing value for user xpos.");
+                        Log.d(TAG,"missing value for user xpos.");
                         return null;
                     }
 
@@ -1695,7 +1697,7 @@ public class Expressor {
                         return y.getValue();
                     }
                     else {
-                        Log.d("vortex","missing value for user ypos.");
+                        Log.d(TAG,"missing value for user ypos.");
                         return null;
                     }
 
@@ -1752,7 +1754,7 @@ public class Expressor {
                         return true;
 
                     }
-                    Log.d("vortex","precondition failed for function export. returning false");
+                    Log.d(TAG,"precondition failed for function export. returning false");
                     return false;
 
                 case photoExists:
@@ -1808,7 +1810,7 @@ public class Expressor {
                     return !checkPreconditions(evalArgs,-1,No_Null);
                 case getDelytaArea:
                     if (checkPreconditions(evalArgs,1,No_Null)) {
-                        Log.d("vortex", "running getDelytaArea function");
+                        Log.d(TAG, "running getDelytaArea function");
                         DelyteManager dym = DelyteManager.getInstance();
                         if (dym == null) {
                             
@@ -1830,7 +1832,7 @@ public class Expressor {
                 case allHaveValue:
 
                     String function = getType().name();
-                    Log.d("bortex","targetList is "+targetList);
+                    Log.d(TAG,"targetList is "+targetList);
                     if (checkPreconditions(evalArgs,-1,No_Null)) {
 
                         List<List<String>> rows;
@@ -1846,18 +1848,18 @@ public class Expressor {
                             rows = al.getTable().getRowsContaining(column, pattern);
                         else {
                             rows = targetList;
-                            Log.d("bortex","used targetlist for hasX!");
-                            Log.d("vortex", "found " + (rows.size() - 1) + " variables for " + pattern);
+                            Log.d(TAG,"used targetlist for hasX!");
+                            Log.d(TAG, "found " + (rows.size() - 1) + " variables for " + pattern);
                             if (pattern!=null) {
                                 pattern.trim();
                                 List<List<String>> ret = new ArrayList<>();
                                 for (int i = 0; i < rows.size(); i++) {
-                                    //Log.d("nils","i: "+i+" col: "+column.get(i));
+                                    //Log.d(TAG,"i: "+i+" col: "+column.get(i));
                                     if (al.getVarName(rows.get(i)).equals(pattern) || al.getVarName(rows.get(i)).matches(pattern)) {
                                         ret.add(rows.get(i));
                                     }
                                 }
-                                Log.d("nils", "Returning " + ret.size() + " rows in getRows(Table)");
+                                Log.d(TAG, "Returning " + ret.size() + " rows in getRows(Table)");
                                 rows = ret;
                             }
                         }
@@ -1872,7 +1874,7 @@ public class Expressor {
                             Log.e("vortex", "no variables found for filter " + pattern);
                             return null;
                         } else {
-                            Log.d("vortex", "found " + (rows.size() - 1) + " variables for " + pattern);
+                            Log.d(TAG, "found " + (rows.size() - 1) + " variables for " + pattern);
                             //for(int i=0;i<200;i++)
                             //	System.out.println(al.getVarName(rows.get(i)));
                         }
@@ -1881,12 +1883,12 @@ public class Expressor {
                         //Each argument need to either exist or not exist.
                         Map<String, String[]> values = new HashMap<>();
                         boolean allNull = true;
-                        Log.d("vortex","1st: "+evalArgs.get(0)+"op: "+evalArgs.get(1)+"constant: "+evalArgs.get(2));
+                        Log.d(TAG,"1st: "+evalArgs.get(0)+"op: "+evalArgs.get(1)+"constant: "+evalArgs.get(2));
                         final String op = (String) evalArgs.get(1);
                         final Object constant = evalArgs.get(2);
                         EvalExpr fifo;
                         for (List<String> row : rows) {
-                            Log.d("vortex", "Var name: " + al.getVarName(row));
+                            Log.d(TAG, "Var name: " + al.getVarName(row));
 
                             if (getType() == TokenType.hasValue ||
                                     getType() == TokenType.allHaveValue) {
@@ -1920,7 +1922,7 @@ public class Expressor {
                                                 if (getType() == TokenType.hasValue) {
                                                     
                                                     o.addGreenText("hasvalue succeeded on expression " + formula);
-                                                    Log.d("vortex", "hasvalue succeeded on expression " + formula);
+                                                    Log.d(TAG, "hasvalue succeeded on expression " + formula);
                                                     return (true);
                                                 }
                                             }
@@ -1928,7 +1930,7 @@ public class Expressor {
                                         }
                                     }
                                 } else {
-                                    Log.d("vortex", "null value...skipping");
+                                    Log.d(TAG, "null value...skipping");
                                 }
 
                             } else if (getType() == TokenType.hasSame) {
@@ -1944,19 +1946,19 @@ public class Expressor {
                                         String name = varNameA[size - 1];
                                         String art = varNameA[size - 2];
                                         String group = varNameA[0];
-                                        //Log.d("vortex", "name: " + name + " art: " + art + " group: " + group + " args[" + i + "]: " + evalArgs.get(i));
+                                        //Log.d(TAG, "name: " + name + " art: " + art + " group: " + group + " args[" + i + "]: " + evalArgs.get(i));
                                         if (name.equalsIgnoreCase((String) evalArgs.get(i))) {
-                                            Log.d("vortex", "found varname. Adding " + art);
+                                            Log.d(TAG, "found varname. Adding " + art);
                                             Variable v = varCache.getVariable(al.getVarName(row));
                                             String varde = null;
                                             if (v == null) {
-                                                Log.d("vortex", "var was null!");
+                                                Log.d(TAG, "var was null!");
 
                                             } else
                                                 varde = v.getValue();
                                             String[] rezult;
                                             if (values.get(art) == null) {
-                                                Log.d("vortex", "empty..creating new val arr");
+                                                Log.d(TAG, "empty..creating new val arr");
                                                 rezult = new String[evalArgs.size() - 1];
                                                 values.put(art, rezult);
                                             } else
@@ -1970,7 +1972,7 @@ public class Expressor {
                         }
                         if (getType() == TokenType.hasSame) {
                             //now we should have an array containing all values for all variables.
-                            Log.d("vortex", "printing resulting map");
+                            Log.d(TAG, "printing resulting map");
                             for (String key : values.keySet()) {
                                 String vCompare = values.get(key)[0];
                                 for (int i = 1; i < evalArgs.size() - 1; i++) {
@@ -1988,7 +1990,7 @@ public class Expressor {
 
                                 }
                             }
-                            Log.d("vortex", "all values same. Success for hasSame!");
+                            Log.d(TAG, "all values same. Success for hasSame!");
                             return true;
 
                         } else if (getType() == TokenType.hasValue) {
@@ -2018,7 +2020,7 @@ public class Expressor {
                         var = Expressor.getVariable(evalArgs.get(0).toString());
                     if (var != null) {
                         String value = var.getValue();
-                        //Log.d("vortex","Found value "+value+" for variable "+var.getLabel()+" in has!");
+                        //Log.d(TAG,"Found value "+value+" for variable "+var.getLabel()+" in has!");
                         return value != null;
                     } else {
                         Log.e("vortex","Variable not found for literal: ["+evalArgs.get(0)+"]");
@@ -2032,7 +2034,7 @@ public class Expressor {
                 case hasMost:
                 case hasAll:
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
-                        Log.d("vortex", "HASx function");
+                        Log.d(TAG, "HASx function");
                         //Apply filter parameter <filter> on all variables in current table. Return those that match.
                         float failC = 0;
                         //If any of the variables matching filter doesn't have a value, return 0. Otherwise 1.
@@ -2041,7 +2043,7 @@ public class Expressor {
                             rows = al.getTable().getRowsContaining(VariableConfiguration.Col_Variable_Name, evalArgs.get(0).toString());
                         else {
                             rows = targetList;
-                            Log.d("bortex","used targetlist for hasX!");
+                            Log.d(TAG,"used targetlist for hasX!");
                         }
                         if (rows == null || rows.size() == 0) {
                             
@@ -2162,7 +2164,7 @@ public class Expressor {
             }
             if (flags == Null_Numeric) {
                 for (Object obj:evaluatedArgumentsList) {
-                    //Log.d("vortex","In null_numeric with "+obj);
+                    //Log.d(TAG,"In null_numeric with "+obj);
                     if (obj !=null && !(obj instanceof Double)&&!(obj instanceof Integer)&&!(obj instanceof Float)) {
                         
                         o.addCriticalText("Type error. Not null & not numeric argument for function '" + getType().toString() + "'. Argument evaluated to : "+obj+" Type: "+obj.getClass().getName());

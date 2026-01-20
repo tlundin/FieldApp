@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class StatusHandler {
+	private static final String TAG = "StatusHandler";
+
 
 
 	private final DbHelper dbh;
@@ -61,11 +63,11 @@ public class StatusHandler {
 
 
 	private int getNumberOfElementsDone(Map<String, String> keyMap, String what) {
-		Log.d("nils","in getNoOfElemsDone for "+what+" with keyMap: "+(keyMap==null?"null":keyMap.toString()));
+		Log.d(TAG,"in getNoOfElemsDone for "+what+" with keyMap: "+(keyMap==null?"null":keyMap.toString()));
 		Selection statusSelector = dbh.createSelection(keyMap, what);
 		List<String> statusL = dbh.getValues(statusSelector);
 		if (statusL!=null) {
-			Log.d("nils","Got "+statusL.toString()+" for "+what);
+			Log.d(TAG,"Got "+statusL.toString()+" for "+what);
 			return selectThoseDone(statusL);
 		}
 		else
@@ -125,9 +127,9 @@ public class StatusHandler {
 	}
 
 	public Kvot getStatusProvytor() {
-		Log.d("nils","GetStatus: Provytor");
+		Log.d(TAG,"GetStatus: Provytor");
 		keySet = gs.getVariableConfiguration().createRutaKeyMap();
-		Log.d("nils","Keyset: "+keySet.toString());
+		Log.d(TAG,"Keyset: "+keySet.toString());
 		int done = getNumberOfElementsDone(keySet,"STATUS:status_provyta");
 		//set?
 		if (noOfProvytor==-1) {
@@ -144,7 +146,7 @@ public class StatusHandler {
 	}
 
 	public Kvot getStatusRutor() {
-		Log.d("nils","GetStatus: Rutor");
+		Log.d(TAG,"GetStatus: Rutor");
 		int done = getNumberOfElementsDone(null,"STATUS:status_ruta");
 		if (noOfRutor==-1) {
 			noOfRutor = ph.getI(PersistenceHelper.NO_OF_RUTOR);

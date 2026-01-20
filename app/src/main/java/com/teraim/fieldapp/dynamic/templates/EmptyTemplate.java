@@ -9,6 +9,8 @@ import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 
 public class EmptyTemplate extends Executor {
+    private static final String TAG = "EmptyTemplate";
+
 
 
     @Override
@@ -23,7 +25,7 @@ public class EmptyTemplate extends Executor {
 
     @Override
     public void onStart() {
-        Log.d("vortex","in onstart for empty fragment");
+        Log.d(TAG,"in onstart for empty fragment");
         super.onStart();
     }
 
@@ -35,19 +37,19 @@ public class EmptyTemplate extends Executor {
         if (wf!=null)
             run();
         else
-            Log.d("EmptyTemplate","wf is null");
+            Log.d(TAG,"wf is null");
 
     }
 
     @Override
     public void onStop() {
-        Log.d("blax","Emptytemplate on stop!");
+        Log.d(TAG,"Emptytemplate on stop!");
         super.onStop();
     }
 
     @Override
     public void onDestroy() {
-        Log.d("blax","on destroy!");
+        Log.d(TAG,"on destroy!");
         super.onDestroy();
     }
 }

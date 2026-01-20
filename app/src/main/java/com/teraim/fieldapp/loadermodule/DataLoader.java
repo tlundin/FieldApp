@@ -34,6 +34,8 @@ import java.util.concurrent.TimeUnit;
  * called from a background thread.
  */
 public final class DataLoader {
+    private static final String TAG = "DataLoader";
+
 
     // Private constructor to prevent instantiation of this utility class.
     private DataLoader() {}
@@ -53,7 +55,7 @@ public final class DataLoader {
             URL url = null;
             try {
                 url = new URL(module.getURL());
-                Log.d("vortex", "Trying to open connection (Attempt " + attempt + "): " + url);
+                Log.d(TAG, "Trying to open connection (Attempt " + attempt + "): " + url);
                 URLConnection ucon = url.openConnection();
                 ucon.setConnectTimeout(5000);
                 try (InputStream in = ucon.getInputStream();
@@ -88,7 +90,7 @@ public final class DataLoader {
                 try {
                     // Exponential backoff: 1s, 2s, 4s...
                     long delay = (long) (1000 * Math.pow(2, attempt - 1));
-                    Log.d("vortex", "Waiting for " + delay + "ms before retrying.");
+                    Log.d(TAG, "Waiting for " + delay + "ms before retrying.");
                     Thread.sleep(delay);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
@@ -195,7 +197,7 @@ public final class DataLoader {
     private static final long RETRY_DELAY_SECONDS = 1;
     private static LoadResult parseCSV(CI_ConfigurationModule m) throws IOException {
         LoadResult lr;
-        Log.d("vortex","parse csv");
+        Log.d(TAG,"parse csv");
         for (int attempt = 0; attempt < MAX_RETRIES; attempt++) {
             try {
                 lr = m.prepare();
@@ -275,7 +277,7 @@ public final class DataLoader {
      * "Freezes" the configuration module after it has been parsed.
      */
     private static LoadResult freeze(ConfigurationModule m) throws IOException {
-        Log.d("abba", "Freeze called for " + m.getLabel());
+        Log.d(TAG, "Freeze called for " + m.getLabel());
         if (m.freezeSteps > 0) {
             for (int i = 0; i < m.freezeSteps; i++) {
                 m.freeze(i);

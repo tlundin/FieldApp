@@ -67,6 +67,8 @@ import okhttp3.OkHttpClient;
  * There are two Scan() functions reading data from two input files (found under the /raw project folder).
  */
 public class GlobalState {
+	private static final String TAG = "GlobalState";
+
 
     //access only through getSingleton(Context).
     //This is because of the Activity lifecycle. This object might need to be re-instantiated any time.
@@ -157,20 +159,20 @@ public class GlobalState {
 
         this.logTxt = logTxt;
 
-        Log.d("fennox", "my ID is " + getMyId());
-        Log.d("jgw", "my imgmeta is " + imgMetaFormat);
+        Log.d(TAG, "my ID is " + getMyId());
+        Log.d(TAG, "my imgmeta is " + imgMetaFormat);
         if (imgMetaFormat != null)
             this.imgMetaFormat = imgMetaFormat;
 
         String uid = globalPh.get(PersistenceHelper.USERUUID_KEY);
         if (PersistenceHelper.UNDEFINED.equals(uid)) {
-            Log.d("uuid", "GENERATING userUUID");
+            Log.d(TAG, "GENERATING userUUID");
             userUUID = Tools.generateUUID();
             globalPh.put(PersistenceHelper.USERUUID_KEY, userUUID);
         } else
             userUUID = uid;
 
-        Log.d("fenris", "userUUID is " + userUUID);
+        Log.d(TAG, "userUUID is " + userUUID);
     }
 
     public static void destroyInstance() {
@@ -196,7 +198,7 @@ public class GlobalState {
     public boolean insertTeamPositions(String jsonResponse) {
 
         if (jsonResponse == null) {
-            Log.d("fenris","Json null in insertTeamPosition");
+            Log.d(TAG,"Json null in insertTeamPosition");
             return false;
         }
         try {
@@ -224,17 +226,17 @@ public class GlobalState {
 
                 // --- Now you have all the variables ---
 /*
-                Log.d("fenris","--- User " + (i + 1) + " ---");
-                Log.d("fenris","UUID: " + uuid);
-                Log.d("fenris","Name: " + name);
-                Log.d("fenris","Timestamp (ms): " + timestampMillis);
-                Log.d("fenris","Position:");
-                Log.d("fenris","  Easting: " + easting);
-                Log.d("fenris","  Northing: " + northing);
-                Log.d("fenris","--------------------");
+                Log.d(TAG,"--- User " + (i + 1) + " ---");
+                Log.d(TAG,"UUID: " + uuid);
+                Log.d(TAG,"Name: " + name);
+                Log.d(TAG,"Timestamp (ms): " + timestampMillis);
+                Log.d(TAG,"Position:");
+                Log.d(TAG,"  Easting: " + easting);
+                Log.d(TAG,"  Northing: " + northing);
+                Log.d(TAG,"--------------------");
 */
                 if (name.equals(globalPh.get(PersistenceHelper.USER_ID_KEY))) {
-                    //Log.d("fenris","skip own position");
+                    //Log.d(TAG,"skip own position");
                     continue;
                 }
 
@@ -382,15 +384,15 @@ public class GlobalState {
             for (Workflow wf : l)
                 if (wf != null) {
                     if (wf.getName() != null) {
-                        Log.d("NILS", "Adding wf with name " + wf.getName() + " and length " + wf.getName().length());
+                        Log.d(TAG, "Adding wf with name " + wf.getName() + " and length " + wf.getName().length());
                         if (ret == null)
                             ret = new TreeMap<String, Workflow>(String.CASE_INSENSITIVE_ORDER);
 
                         ret.put(wf.getName(), wf);
                     } else
-                        Log.d("NILS", "Workflow name was null in setWorkflows");
+                        Log.d(TAG, "Workflow name was null in setWorkflows");
                 } else
-                    Log.d("NILS", "Workflow was null in setWorkflows");
+                    Log.d(TAG, "Workflow was null in setWorkflows");
         }
         return ret;
     }
@@ -571,7 +573,7 @@ public class GlobalState {
             Intent intent = null;
 
             if (msg.obj instanceof String) {
-                //Log.d("vortex","IN HANDLE MESSAGE WITH MSG: "+msg.toString());
+                //Log.d(TAG,"IN HANDLE MESSAGE WITH MSG: "+msg.toString());
                 String s = (String) msg.obj;
                 intent = new Intent();
                 intent.setAction(s);
@@ -589,7 +591,7 @@ public class GlobalState {
 
 
     public void sendSyncEvent(Intent intent) {
-        Log.d("vortex", "IN SEND SYNC EVENT WITH ACTION " + intent.getAction());
+        Log.d(TAG, "IN SEND SYNC EVENT WITH ACTION " + intent.getAction());
         if (mHandler != null) {
             Message m = Message.obtain(mHandler);
             m.obj = intent;
@@ -599,7 +601,7 @@ public class GlobalState {
     }
 
     public void sendEvent(String action) {
-        Log.d("vortex", "IN SEND EVENT WITH ACTION " + action);
+        Log.d(TAG, "IN SEND EVENT WITH ACTION " + action);
         if (mHandler != null) {
             Message m = Message.obtain(mHandler);
             m.obj = action;
@@ -745,16 +747,16 @@ public class GlobalState {
              * then call context.setIsSyncable(account, AUTHORITY, 1)
              * here.
              */
-            Log.d("vortex", "Created account: " + newAccount.name);
+            Log.d(TAG, "Created account: " + newAccount.name);
             
         } else {
         	/*
         	Account[] aa = accountManager.getAccounts();
-        	Log.d("vortex","Accounts found: ");
+        	Log.d(TAG,"Accounts found: ");
         	for (Account a:aa) {
-        		Log.d("vortex",a.name);
+        		Log.d(TAG,a.name);
         		if (a.equals(newAccount)) {
-        			Log.d("vortex","failed...exists..");
+        			Log.d(TAG,"failed...exists..");
         			break;
         		}
         	}
@@ -763,7 +765,7 @@ public class GlobalState {
              * The account exists or some other error occurred. Log this, report it,
              * or handle it internally.
              */
-            Log.d("vortex", "add  sync account failed for some reason");
+            Log.d(TAG, "add  sync account failed for some reason");
         }
         return newAccount;
     }

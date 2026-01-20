@@ -16,6 +16,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
  * Created by Terje on 2016-05-17.
  */
 public class BlockCreateTable extends Block {
+    private static final String TAG = "BlockCreateTable";
+
 
     private final String name;
     private final String container;
@@ -34,7 +36,7 @@ public class BlockCreateTable extends Block {
 
     public void create(WF_Context myContext) {
 
-        Log.d("vortex","creating table.");
+        Log.d(TAG,"creating table.");
         PageWithTable pwt = (PageWithTable) myContext.getTemplate();
         if (pwt != null)
             pwt.setTableName(name);

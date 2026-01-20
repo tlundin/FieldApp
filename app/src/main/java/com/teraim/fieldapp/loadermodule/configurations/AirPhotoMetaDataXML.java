@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 
 public class AirPhotoMetaDataXML extends XMLConfigurationModule implements PhotoMetaI {
+	private static final String TAG = "AirPhotoMetaDataXML";
+
 
 
 
@@ -36,7 +38,7 @@ public class AirPhotoMetaDataXML extends XMLConfigurationModule implements Photo
 	@Override
 	protected LoadResult parse(XmlPullParser parser)
 			throws XmlPullParserException, IOException {
-		Log.d("vortex","Parsing metadata");
+		Log.d(TAG,"Parsing metadata");
 		   int eventType = parser.getEventType();
 	      while (eventType != XmlPullParser.END_DOCUMENT) {
 
@@ -50,19 +52,19 @@ public class AirPhotoMetaDataXML extends XMLConfigurationModule implements Photo
 
 	            eventType = parser.next();
 	        }
-          Log.d("found","Did not find the meta data for image GPS coordinates!");
+          Log.d(TAG,"Did not find the meta data for image GPS coordinates!");
 	      return new LoadResult(this,ErrorCode.ParseError);
 	}
 
 	private PhotoMeta readCorners(XmlPullParser parser) throws XmlPullParserException, IOException {
 		double N = -1, E = -1, S = -1, W = -1;
-		Log.d("vortex", "calling readCordners");
+		Log.d(TAG, "calling readCordners");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 			}
 
-			Log.d("vortex", "reading corners!");
+			Log.d(TAG, "reading corners!");
 			String name = parser.getName();
 			switch (name) {
 				case "westBL":

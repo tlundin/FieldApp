@@ -8,16 +8,18 @@ import java.util.List;
 
 
 public class WF_TimeOrder_Sorter implements Sorter {
+	private static final String TAG = "WF_TimeOrder_Sorter";
+
 
 	@Override
 	public List<? extends Listable> sort(List<? extends Listable> list) {
-//		Log.d("nils","Before TIME Sort: ");
+//		Log.d(TAG,"Before TIME Sort: ");
 //	for(Listable l:list)
-//			Log.d("nils",l.getLabel());
+//			Log.d(TAG,l.getLabel());
 		Collections.sort(list, WF_ListEntry.Comparators.Time);
-//		Log.d("nils","After TIME Sort: ");
+//		Log.d(TAG,"After TIME Sort: ");
 //		for(Listable l:list)
-//			Log.d("nils",l.getLabel());
+//			Log.d(TAG,l.getLabel());
 		return list;
 	}
 

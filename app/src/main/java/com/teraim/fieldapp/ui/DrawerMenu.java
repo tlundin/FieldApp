@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListener {
+	private static final String TAG = "DrawerMenu";
+
 
 	private final Activity frameActivity;
 	private SubMenu currentSubMenu = null;
@@ -65,7 +67,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 			/** Called when a drawer has settled in a completely closed state. */
 			public void onDrawerClosed(View view) {
 				super.onDrawerClosed(view);
-				Log.d("axion","drawer closed");
+				Log.d(TAG,"drawer closed");
 				open = false;
 			}
 
@@ -76,7 +78,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 				//createDrawerMenu(wfs);
 				//mAdapter.notifyDataSetChanged();				
 				super.onDrawerOpened(drawerView);
-				Log.d("axion","drawer opened");
+				Log.d(TAG,"drawer opened");
 				open=true;
 			}
 
@@ -143,7 +145,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 		return open;
 	}
 	public void closeDrawer() {
-		Log.d("axion","closing drawer");
+		Log.d(TAG,"closing drawer");
 		mDrawerLayout.closeDrawers();
 	}
 

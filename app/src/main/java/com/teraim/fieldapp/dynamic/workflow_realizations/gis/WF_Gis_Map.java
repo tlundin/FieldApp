@@ -86,6 +86,8 @@ import java.util.Map;
  * Implements A GIS Map widget. Based on  
  */
 public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, AnimationListener {
+	private static final String TAG = "WF_Gis_Map";
+
 
     private final FrameLayout mapView;
     private final Rect rect;
@@ -198,7 +200,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public WF_Gis_Map(CreateGisBlock createGisBlock, final Rect rect, String id, final FrameLayout mapView, boolean isVisible, Bitmap bmp,
                       final WF_Context myContext, final PhotoMeta photoMeta, View avstRL, List<GisLayer> daddyLayers, final int realWW, final int realHH) {
         super(id, mapView, isVisible, myContext);
-        Log.d("maga","In WF_Gis_Map create with context "+myContext.toString());
+        Log.d(TAG,"In WF_Gis_Map create with context "+myContext.toString());
         GlobalState gs = GlobalState.getInstance();
         this.myContext=myContext;
         this.myDaddy=createGisBlock;
@@ -213,7 +215,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         gisImageView.addOnAttachStateChangeListener(new View.OnAttachStateChangeListener() {
             @Override
             public void onViewAttachedToWindow(View v) {
-                Log.d("WF_Gis_Map", "GisImageView attached to window. Observers active.");
+                Log.d(TAG, "GisImageView attached to window. Observers active.");
                 gisImageView.setViewModelStoreOwner(myContext.getFragmentActivity());
                 // Observers are already registered via setViewModelStoreOwner and LiveData's lifecycle awareness.
                 // No explicit action needed here unless you explicitly deregistered them on detach and want to re-register.
@@ -221,7 +223,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
             @Override
             public void onViewDetachedFromWindow(View v) {
-                Log.d("WF_Gis_Map", "GisImageView detached from window. Removing ViewModel observers.");
+                Log.d(TAG, "GisImageView detached from window. Removing ViewModel observers.");
                 // When this specific GisImageView is removed from the window, remove its observers.
                 if (gisImageView != null) {
                     gisImageView.removeViewModelObservers();
@@ -244,8 +246,8 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                  refreshB.setImageResource(R.drawable.gis_refresh_button); // Assuming you have a normal icon
             }
         });
-        Log.d("vortex", "Image width and height is :"+ bmp.getWidth()+","+bmp.getHeight());
-        Log.d("vortex", "realWW and realHH is :"+ realWW+","+realHH);
+        Log.d(TAG, "Image width and height is :"+ bmp.getWidth()+","+bmp.getHeight());
+        Log.d(TAG, "realWW and realHH is :"+ realWW+","+realHH);
         this.realW = realWW; //bmp.getWidth();
         this.realH = realHH; //bmp.getHeight();
         this.photoMeta = photoMeta;
@@ -293,7 +295,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                                     break;
 
                             }
-                            Log.d("nudge","sweloc changed with "+changeDistance+" dir: "+d);
+                            Log.d(TAG,"sweloc changed with "+changeDistance+" dir: "+d);
                             if (gop instanceof GisPointObject) {
                                 int[] xy = new int[2];
                                 gisImageView.translateMapToRealCoordinates(sweloc,xy);
@@ -304,11 +306,11 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
                             gisImageView.redraw();
                         } else
-                            Log.d("vortex","not sweloc!! "+last.getClass().getCanonicalName());
+                            Log.d(TAG,"not sweloc!! "+last.getClass().getCanonicalName());
                     } else
-                        Log.d("vortex","coordinates null or empty!");
+                        Log.d(TAG,"coordinates null or empty!");
                 } else
-                    Log.d("vortex","Selected GOP null!!");
+                    Log.d(TAG,"Selected GOP null!!");
             }
 
             @Override
@@ -346,7 +348,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         });
 
         refreshB.setOnClickListener(v -> {
-            Log.d("vortex", "Refresh clicked. Starting refresh workflow.");
+            Log.d(TAG, "Refresh clicked. Starting refresh workflow.");
             refreshB.setImageResource(R.drawable.refresh_selector);
             // Create the specific workflow for this task
             Workflow_I refreshWorkflow = new RefreshGisWorkflow(ctx, gs);
@@ -372,7 +374,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
 
                 if (!buttonView.isPressed()) {
-                    Log.d("zaza","discarding system press");
+                    Log.d(TAG,"discarding system press");
                     return;
                 }
                 switch (buttonView.getId()) {
@@ -380,7 +382,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     case R.id.btn_Layers:
                         if (isChecked) {
                             headerT.setText(ctx.getString(R.string.layers));
-                            Log.d("vortex", "Layer checked!!");
+                            Log.d(TAG, "Layer checked!!");
                             initializeLayersMenu();
                             filterB.setOnCheckedChangeListener(null);
                             mapB.setOnCheckedChangeListener(null);
@@ -395,7 +397,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     case R.id.btn_filters:
                         if (isChecked) {
                             headerT.setText(ctx.getString(R.string.filters));
-                            Log.d("vortex", "Filter checked!!");
+                            Log.d(TAG, "Filter checked!!");
                             initializeFiltersMenu();
                             layerB.setOnCheckedChangeListener(null);
                             mapB.setOnCheckedChangeListener(null);
@@ -412,7 +414,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     case R.id.btn_bckgrounds:
                         if (isChecked) {
                             headerT.setText(ctx.getString(R.string.backgrounds));
-                            Log.d("vortex", "MAP checked!!");
+                            Log.d(TAG, "MAP checked!!");
                             initializeMapBgMenu();
                             filterB.setOnCheckedChangeListener(null);
                             layerB.setOnCheckedChangeListener(null);
@@ -477,7 +479,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     Location sweref = gop.getLocation();
                     if (sweref != null) {
                         Location latlong = Geomatte.convertToLatLong(sweref.getX(), sweref.getY());
-                        Log.d("vortex", "Nav to: " + sweref.getX() + "," + sweref.getY() + " LAT: " + latlong.getX() + " LONG: " + latlong.getY());
+                        Log.d(TAG, "Nav to: " + sweref.getX() + "," + sweref.getY() + " LAT: " + latlong.getX() + " LONG: " + latlong.getY());
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + latlong.getX() + "," + latlong.getY()));
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         ctx.startActivity(intent);
@@ -519,7 +521,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             List<Location> geoR = gisImageView.getRectGeoCoordinates();
 
             //Trigger reexecution of flow.
-            Log.d("vortex","Cutout layers has "+myLayers.size()+" members");
+            Log.d(TAG,"Cutout layers has "+myLayers.size()+" members");
             myDaddy.setCutOut(r,geoR,myLayers);
             //myContext.getTemplate().restart();
             GlobalState.getInstance().changePage(myContext.getWorkflow(), null);
@@ -651,12 +653,12 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (createGisBlock.isTeamVisible()) {
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
-                    Log.d("bortex", "team is visible! Adding layer for team "+team);
+                    Log.d(TAG, "team is visible! Adding layer for team "+team);
                     final GisLayer teamLayer = new GisLayer( "Team", "Team", true, false, true,true);
                     myLayers.add(teamLayer);
                 } //else {
                 //o = LogRepository.getInstance();
-                //Log.d("vortex", "no team but team is set to show. alarm!");
+                //Log.d(TAG, "no team but team is set to show. alarm!");
                 //o.addRow("");
                 //o.addRedText("Team name missing. Cannot show team members.");
                 //}
@@ -713,7 +715,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             // Start the CAB using the ActionMode.Callback defined above
             mActionMode = ((Activity)myContext.getContext()).startActionMode(mActionModeCallback);
         } else {
-            Log.d("vortex","Actionmode already running or gisObjMenu open...");
+            Log.d(TAG,"Actionmode already running or gisObjMenu open...");
         }
     }
 
@@ -735,13 +737,13 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
     @SuppressLint("SetTextI18n")
     public void setVisibleAvstRikt(boolean isVisible, GisObject touchedGop) {
-        Log.d("vortex","Entering setVisibleAvstRikt..");
+        Log.d(TAG,"Entering setVisibleAvstRikt..");
         if (isVisible) {
             avstRL.setVisibility(View.VISIBLE);
             String status = touchedGop.getStatusVariableValue();
             boolean isInitial = status==null || status.equals(Constants.STATUS_INITIAL);
             startB.setText(isInitial?R.string.start:R.string.continue_);
-            Log.d("borste","getstat: "+touchedGop.getStatusVariableValue());
+            Log.d(TAG,"getstat: "+touchedGop.getStatusVariableValue());
             areaT.setVisibility(View.GONE);
             circumT.setVisibility(View.GONE);
             setSelectedObjectText(touchedGop.getLabel());
@@ -802,7 +804,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     @Override
     public void onEvent(Event e) {
         if (e.getType() == EventType.onFlowExecuted) {
-            Log.d("grogg","flow executed! Initializing gis imageview!");
+            Log.d(TAG,"flow executed! Initializing gis imageview!");
             //Must be done here since all layers first needs to be added.
             //!isZoomLevel
             gisImageView.initialize(myContext.getFragmentActivity(),this,photoMeta,true);
@@ -840,7 +842,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             getGis().setClickable(true);
         }
         else if (animation.equals(layersPopupShow)) {
-            Log.d("vortex","Oooh...it ended!!");
+            Log.d(TAG,"Oooh...it ended!!");
             FrameLayout layersL = layersPopup.findViewById(R.id.LayersL);
 
             //filterB.setOnCheckedChangeListener(null);
@@ -853,18 +855,18 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 			/*
 			if (layersF.getChildCount()==0)
 			 {
-				 Log.d("vortox","setting checked");
+				 Log.d(TAG,"setting checked");
 				 layerB.setChecked(true);
 			} else {
 				View rootView = layersF.getChildAt(0);
 				for(int index=0; index<((ViewGroup)rootView).getChildCount(); ++index) {
 					View layersRow = ((ViewGroup)rootView).getChildAt(index);
-					Log.d("vortex","row found");
+					Log.d(TAG,"row found");
 					CheckBox lShow = (CheckBox) layersRow.findViewById(R.id.cbShow);
 					if (lShow!=null) {
-						Log.d("vortex", "checkbox found");
+						Log.d(TAG, "checkbox found");
 						if (lShow.isChecked()) {
-							Log.d("vortex", "isChecked ");
+							Log.d(TAG, "isChecked ");
 						}
 					}
 
@@ -924,7 +926,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             lengthT.setText("");
         else {
             String l = ctx.getString(R.string.length_) +"\n"+ new DecimalFormat("##.##").format(lengthOfPath);
-            Log.d("vortex","L streng is "+l);
+            Log.d(TAG,"L streng is "+l);
             lengthT.setText(l);
         }
 
@@ -933,7 +935,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
     public void addLayer(GisLayer layer) {
         if(layer!=null) {
-            Log.d("vortex","Succesfully added layer "+layer.getLabel());
+            Log.d(TAG,"Successfully added layer "+layer.getLabel());
             myLayers.add(layer);
 
 
@@ -981,7 +983,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 rb.setId(bgId);
                 radioGroup.addView(rb);
                 if (layer.isVisible()) {
-                    Log.d("vortex", "found visible layer " + layer.getLabel() + "...setting rb to on");
+                    Log.d(TAG, "found visible layer " + layer.getLabel() + "...setting rb to on");
                     radioGroup.clearCheck();
                     radioGroup.check(bgId);
                     currentlyChecked = bgId;
@@ -989,14 +991,14 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 bgId++;
             }
         }
-        Log.d("vortex","children: "+radioGroup.getChildCount());
+        Log.d(TAG,"children: "+radioGroup.getChildCount());
 
 		/*
                     public void onCheckedChanged2(RadioGroup group, int checkedId) {
-                        Log.d("vortex","inoncheckchanged");
+                        Log.d(TAG,"inoncheckchanged");
                         for (int i=0;i<radioGroup.getChildCount();i++) {
                             RadioButton child = (RadioButton)radioGroup.getChildAt(i);
-                            Log.d("vortex","setting checked: "+child.getId());
+                            Log.d(TAG,"setting checked: "+child.getId());
                             child.setChecked(checkedId==child.getId());
                         }
                     }
@@ -1014,34 +1016,34 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 layer = (MapGisLayer) getLayerFromLabel(text);
                 if (layer != null) {
                     layer.setVisible(false);
-                    Log.d("Vortex", "hiding layer " + layer.getLabel());
+                    Log.d(TAG, "hiding layer " + layer.getLabel());
                 } else
                     Log.e("vortex", "could not find layer " + text);
             }
             radioB = radioGroup.findViewById(checkedId);
             if (radioB==null) {
-                Log.d("vortex","cannot find radiobutton "+checkedId+" currently checked: "+currentlyChecked);
+                Log.d(TAG,"cannot find radiobutton "+checkedId+" currently checked: "+currentlyChecked);
                 return;
             }
             text = radioB.getText().toString();
             if (text.equals("None")) {
                 setZoomButtonVisible(false);
-                Log.d("vortex","found none tag");
+                Log.d(TAG,"found none tag");
             } else {
                 layer = (MapGisLayer) getLayerFromLabel(text);
-                Log.d("vortex","Layer is "+layer);
+                Log.d(TAG,"Layer is "+layer);
                 if (layer!=null) {
 
                     layer.setVisible(true);
                     final String cacheFolder = GlobalState.getInstance().getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/";
                     String cachedImgFilePath = cacheFolder + layer.getImageName();
-                    Log.d("vortex", "found layer: "+cachedImgFilePath+" for text "+text);
+                    Log.d(TAG, "found layer: "+cachedImgFilePath+" for text "+text);
                     BitmapFactory.Options options = new BitmapFactory.Options();
                     options.inJustDecodeBounds = true;
                     BitmapFactory.decodeFile(cachedImgFilePath, options);
                     int imageHeight = options.outHeight;
                     int imageWidth = options.outWidth;
-                    Log.d("vortex","image rect h w is "+imageHeight+","+imageWidth);
+                    Log.d(TAG,"image rect h w is "+imageHeight+","+imageWidth);
                     //Rect r = gisImageView.getCurrentViewSize(realW,realH);
                     //Rect r = new Rect(0, 0, imageWidth, imageHeight);
                     Bitmap bmp = Tools.getScaledImageRegion(myContext.getContext(),cachedImgFilePath,rect);
@@ -1052,18 +1054,18 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                         if (previouslyChecked !=-1) {
                             radioB = radioGroup.findViewById(previouslyChecked);
                             MapGisLayer prev_layer = (MapGisLayer) getLayerFromLabel(text);
-                            Log.d("banjo","persist forget "+PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName());
+                            Log.d(TAG,"persist forget "+PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName());
                             localPh.put(PersistenceHelper.LAYER_VISIBILITY + prev_layer.getImageName(), -1);
                         }
-                        Log.d("banjo","persist remember "+PersistenceHelper.LAYER_VISIBILITY + layer.getImageName());
+                        Log.d(TAG,"persist remember "+PersistenceHelper.LAYER_VISIBILITY + layer.getImageName());
                         localPh.put(PersistenceHelper.LAYER_VISIBILITY+layer.getImageName(),1);
                     }
                     currentlyChecked = checkedId;
                 }
                 else
-                    Log.d("vortex","oh bugger");
+                    Log.d(TAG,"oh bugger");
             }
-            Log.d("vortex","Checked radiobutton is "+radioGroup.getCheckedRadioButtonId()+" checkedID: "+checkedId+" TEXT: "+((RadioButton) radioGroup.findViewById(checkedId)).getText());
+            Log.d(TAG,"Checked radiobutton is "+radioGroup.getCheckedRadioButtonId()+" checkedID: "+checkedId+" TEXT: "+((RadioButton) radioGroup.findViewById(checkedId)).getText());
             //group.check(checkedId);
             gisImageView.redraw();
         });
@@ -1150,21 +1152,21 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         }
         if (maxLength>MaxLabelLength)
             maxLength=MaxLabelLength;
-        Log.d("vortex","max length now "+maxLength);
+        Log.d(TAG,"max length now "+maxLength);
         for (final GisLayer layer:myLayers) {
             if (layer instanceof MapGisLayer)
                 continue;
             if (layer.hasWidget()) {
-                Log.d("zaza","layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+layer.toString());
+                Log.d(TAG,"layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+layer.toString());
                 layersRow = li.inflate(R.layout.layers_row, null);
                 final CheckBox lFet = layersRow.findViewById(R.id.cbFet);
                 final CheckBox lShow = layersRow.findViewById(R.id.cbShow);
                 final CheckBox lLabels = layersRow.findViewById(R.id.cbLabels);
-                //Log.d("vortex","Layer "+layer.getLabel()+" has a widget");
+                //Log.d(TAG,"Layer "+layer.getLabel()+" has a widget");
                 TextView filterNameT = layersRow.findViewById(R.id.filterName);
                 String fixedL = Tools.fixedLengthString(layer.getLabel(),maxLength);
                 filterNameT.setText(fixedL);
-                //Log.d("vortex","length for"+fixedL+" is "+fixedL.length());
+                //Log.d(TAG,"length for"+fixedL+" is "+fixedL.length());
                 lFet.setChecked(layer.isBold());
                 lShow.setChecked(layer.isVisible());
                 lLabels.setChecked(layer.showLabels());
@@ -1172,10 +1174,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 lFet.setOnCheckedChangeListener((buttonView, isBold) -> {
                     if (lFet.isPressed()) {
                         layer.setBold(isBold);
-                        Log.d("vortex","layer "+layer.getLabel()+" setbold "+isBold);
+                        Log.d(TAG,"layer "+layer.getLabel()+" setbold "+isBold);
                         gisImageView.invalidate();
                     } else {
-                        Log.d("vortex", "discarded...by system");
+                        Log.d(TAG, "discarded...by system");
                         lFet.setChecked(!isBold);
                     }
 
@@ -1184,23 +1186,23 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 lShow.setOnCheckedChangeListener((buttonView, isChecked) -> {
                     if (lShow.isPressed()) {
                         layer.setVisible(isChecked);
-                        Log.d("vortex","layer "+layer.getLabel()+" setvisible "+isChecked);
+                        Log.d(TAG,"layer "+layer.getLabel()+" setvisible "+isChecked);
                         gisImageView.invalidate();
                     } else {
-                        Log.d("vortex", "discarded...by system");
+                        Log.d(TAG, "discarded...by system");
                         lShow.setChecked(!isChecked);
                     }
 
                 });
 
                 lLabels.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                    Log.d("baba","checking "+isChecked+" for button "+buttonView.getId());
+                    Log.d(TAG,"checking "+isChecked+" for button "+buttonView.getId());
                     if (lLabels.isPressed()) {
-                        Log.d("vortex","by user...");
+                        Log.d(TAG,"by user...");
                         layer.setShowLabels(isChecked);
                         gisImageView.invalidate();
                     } else {
-                        Log.d("vortex", "discarded...by system");
+                        Log.d(TAG, "discarded...by system");
                         lLabels.setChecked(!isChecked);
                     }
                 });
@@ -1227,7 +1229,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             return null;
         for (GisLayer gl:myLayers) {
             if (gl.getLabel().equals(label)) {
-                Log.d("vortex","MATCH Label!!");
+                Log.d(TAG,"MATCH Label!!");
                 return gl;
             }
 
@@ -1241,13 +1243,13 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
         if (myLayers==null||myLayers.isEmpty()||identifier==null)
             return null;
         for (GisLayer gl:myLayers) {
-            //Log.d("vortex","ID for layer: "+gl.getId());
+            //Log.d(TAG,"ID for layer: "+gl.getId());
             if (gl.getId().equals(identifier)) {
-                //	Log.d("vortex","MATCH GL!!");
+                //	Log.d(TAG,"MATCH GL!!");
                 return gl;
             }
         }
-        Log.d("vortex", "Did not find layer " + identifier + " from GisMap.");
+        Log.d(TAG, "Did not find layer " + identifier + " from GisMap.");
 
         return null;
     }
@@ -1261,7 +1263,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public void clearLayerCaches() {
         for (GisLayer gl:myLayers)
             gl.clearCaches();
-        Log.d("vortex","Is zoom? "+isZoomLevel);
+        Log.d(TAG,"Is zoom? "+isZoomLevel);
     }
 
 
@@ -1272,7 +1274,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
 
 
     public boolean wasShowingPopup() {
-        Log.d("vortex","popupshowing?");
+        Log.d(TAG,"popupshowing?");
         boolean ret=false;
         final View menuL = mapView.findViewById(R.id.mmenuL);
         int menuState = menuL.getVisibility();
@@ -1281,25 +1283,25 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             ret=true;
 
         }
-        Log.d("vortex","layers? "+ret);
+        Log.d(TAG,"layers? "+ret);
         menuState = gisObjectsPopUp.getVisibility();
         if (menuState == View.VISIBLE) {
             gisObjectsPopUp.startAnimation(popupHide);
             ret=true;
         }
-        Log.d("vortex","gisObjCreate? "+ret);
+        Log.d(TAG,"gisObjCreate? "+ret);
         menuState = avstRL.getVisibility();
         if (menuState == View.VISIBLE) {
             getGis().unSelectGop();
             ret=true;
         }
-        Log.d("vortex","avstRikt? "+ret);
+        Log.d(TAG,"avstRikt? "+ret);
         menuState = candidatesL.getVisibility();
         if (menuState == View.VISIBLE) {
             showCandidates(null);
             ret=true;
         }
-        Log.d("vortex","candidates? "+ret);
+        Log.d(TAG,"candidates? "+ret);
         getGis().setClickable(true);
         return ret;
     }
@@ -1316,7 +1318,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             for (final GisObject go : candidates) {
                 button = (Button) li.inflate(R.layout.gis_candidate_button, null);
                 button.setText(go.getLabel() );
-                Log.d("pex2","LABEL: "+go.getLabel());
+                Log.d(TAG,"LABEL: "+go.getLabel());
                 candidatesButtonL.addView(button);
                 button.setOnClickListener(v -> {
                     showCandidates(null);
@@ -1336,7 +1338,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
     public boolean isNotExcluded(String status) {
         Boolean b = standardFilterM.get(status);
         if (b == null) {
-            //Log.d("vortex", "something is fishy");
+            //Log.d(TAG, "something is fishy");
             return true;
         }
         return b.booleanValue();

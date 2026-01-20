@@ -23,6 +23,8 @@ import java.util.List;
  * This class is used to draw a Provyta with all its parts (delytor)
  */
 public class FixytaView extends View {
+	private static final String TAG = "FixytaView";
+
 
 
 
@@ -111,7 +113,7 @@ public class FixytaView extends View {
 					float uy = (float) (cy+focusMarker.y * oScaleF);
 					ux = ux - Marker.Pic_H/2;
 					uy = uy - Marker.Pic_H/2; 
-					Log.d("nils","gets here... "+focusMarker.dist+" iscenter: "+focusMarker.isCentre());
+					Log.d(TAG,"gets here... "+focusMarker.dist+" iscenter: "+focusMarker.isCentre());
 					
 					//if (focusMarker.isCentre()) 
 					canvas.drawText("A: "+focusMarker.getDistance()+" R: "+focusMarker.riktning, ux, uy, p);
@@ -121,7 +123,7 @@ public class FixytaView extends View {
 //					canvas.restore();
 					
 				} else {
-					//Log.d("NILS","Blue is outside radius");
+					//Log.d(TAG,"Blue is outside radius");
 					//Given that blue is outside current Max Radius, draw an arrow to indicate where..					
 					Coord t = new Coord((int) realRadiusinDeciMeter,focusMarker.riktning);
 					float x = t.x;

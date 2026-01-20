@@ -24,6 +24,8 @@ import android.util.Log;
  *
  */
 public class ZoomAnimation implements Animation {
+	private static final String TAG = "ZoomAnimation";
+
 
 	private boolean firstFrame = true;
 	
@@ -131,7 +133,7 @@ public class ZoomAnimation implements Animation {
 	}
 	
 	public void setZoom(float zoom) {
-		Log.d("vortex","zoom: "+zoom);
+		Log.d(TAG,"zoom: "+zoom);
 		this.zoom = zoom;
 	}
 	

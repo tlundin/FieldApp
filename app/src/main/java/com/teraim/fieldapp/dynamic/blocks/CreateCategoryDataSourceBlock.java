@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CreateCategoryDataSourceBlock extends Block {
+	private static final String TAG = "CreateCategoryDataSourceBlock";
+
 
 	private final List<Expressor.EvalExpr> argumentE;
 	String id=null;
@@ -32,11 +34,11 @@ public class CreateCategoryDataSourceBlock extends Block {
 		argumentE= Expressor.preCompileExpression(expressions);
 
 		myChart=chart;
-		Log.d("battox",argumentE.toString());
+		Log.d(TAG,argumentE.toString());
 		if (categories != null && argumentE!=null && (categories.length == argumentE.size())) {
 
 			myCategories = categories;
-			Log.d("vortex","categories ok");
+			Log.d(TAG,"categories ok");
 		}
 		int j=0;
 		if (colorNames!=null) {
@@ -75,9 +77,9 @@ public class CreateCategoryDataSourceBlock extends Block {
 				int j = 0;
 
 				int[] ret = Expressor.intAnalyzeList(argumentE);
-				//Log.d("botox","values: "+Expressor.analyze(argumentE));
+				//Log.d(TAG,"values: "+Expressor.analyze(argumentE));
 
-				Log.d("vortex","CurrValues: "+ Arrays.toString(ret));
+				Log.d(TAG,"CurrValues: "+ Arrays.toString(ret));
 				return ret;
 			}
 

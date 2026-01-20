@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class WF_Container extends WF_Thing implements Container {
+	private static final String TAG = "WF_Container";
+
 
 	private final ViewGroup me;
 	private final Container parent;
@@ -50,15 +52,15 @@ public class WF_Container extends WF_Thing implements Container {
 	@Override
 	public void draw() {
 
-		Log.d("nils","in WF_Container draw with ID: "+this.getId()+". I have  "+myItems.size()+" widgets.");
+		Log.d(TAG,"in WF_Container draw with ID: "+this.getId()+". I have  "+myItems.size()+" widgets.");
 		View v;
 
 		for(WF_Widget d:myItems) {
-			Log.d("vortex","Drawing "+d.getId());
+			Log.d(TAG,"Drawing "+d.getId());
 			v = d.getWidget();
 			//If the widget is the container, don't draw. The same if the comp is already attached.
 			if (v.equals(me)||(v.getParent()!=null && v.getParent().equals(me))) {
-				Log.d("nils","Parent of this object is me. Skip draw!!!");
+				Log.d(TAG,"Parent of this object is me. Skip draw!!!");
 				continue;
 			}
 			me.addView(v);
@@ -87,7 +89,7 @@ public class WF_Container extends WF_Thing implements Container {
 
 	@Override
 	public void removeAll() {
-		Log.d("nils","cleaning up container "+getId());
+		Log.d(TAG,"cleaning up container "+getId());
 		if (myItems!=null) {
 			for (WF_Widget w:myItems) 
 				me.removeView(w.getWidget());

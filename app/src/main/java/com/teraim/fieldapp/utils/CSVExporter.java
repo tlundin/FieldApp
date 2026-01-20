@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class CSVExporter extends Exporter {
+	private static final String TAG = "CSVExporter";
+
 
     private int varC=0;
 
@@ -32,7 +34,7 @@ public class CSVExporter extends Exporter {
 				Map<String,String> currentKeys = cp.getKeyColumnValues();
 				//eDialog.setExportProgress("Current keys: "+currentKeys.toString());
 
-				Log.d("vortex","Exporting csv");
+				Log.d(TAG,"Exporting csv");
 
 
 				StringBuilder header= new StringBuilder();
@@ -47,7 +49,7 @@ public class CSVExporter extends Exporter {
 				header.append("timestamp");
 
 
-				Log.d("vortex", header.toString());
+				Log.d(TAG, header.toString());
 				sw.write(header.toString());
 				sw.append(System.getProperty("line.separator"));
 				String row,value,var;
@@ -65,7 +67,7 @@ public class CSVExporter extends Exporter {
 						}
 						row += var;
 
-						Log.d("vortex",row);
+						Log.d(TAG,row);
 						sw.write(row);
 						sw.append(System.getProperty("line.separator"));
 						varC++;
@@ -102,7 +104,7 @@ public class CSVExporter extends Exporter {
 		if (isExported) {
 			ret = variable.name+","+variable.value+","+type+","+variable.lagId+","+variable.creator+","+variable.timeStamp;
 		} else 
-			Log.d("nils","Didn't export "+variable.name);
+			Log.d(TAG,"Didn't export "+variable.name);
 
 		return ret;
 	}

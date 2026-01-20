@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 
 class FixedVariable extends Variable implements Serializable {
+	private static final String TAG = "FixedVariable";
+
 
 
 
@@ -35,7 +37,7 @@ class FixedVariable extends Variable implements Serializable {
 
 
 	private static Map<String, String> keyChainCopy(Map<String,String>keyChain) {
-		Log.d("vortex","in keychaincopy with "+keyChain.toString());
+		Log.d(TAG,"in keychaincopy with "+keyChain.toString());
 		if (keyChain == null)
 			return null;
 		else

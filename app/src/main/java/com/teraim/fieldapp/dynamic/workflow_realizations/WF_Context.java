@@ -38,6 +38,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_Context {
+	private static final String TAG = "WF_Context";
+
 
 	private final FragmentActivity ctx;
 	private final List<WF_Static_List> lists= new ArrayList<>();
@@ -117,11 +119,11 @@ public class WF_Context {
 	}
 	
 	public Filterable getFilterable(String id) {
-		Log.d("nils","Getfilterable called with id "+id);
+		Log.d(TAG,"Getfilterable called with id "+id);
 		if (id==null)
 			return null;
 		for (Filterable wfl:filterables) {
-			Log.d("nils","filterable: "+wfl.getId());
+			Log.d(TAG,"filterable: "+wfl.getId());
 			String myId = wfl.getId();				
 			if(myId!=null && myId.equalsIgnoreCase(id))
 				return wfl;
@@ -134,10 +136,10 @@ public class WF_Context {
 	}
 	//TODO: If required introduce nonfilterable lists and tables. For now it is assumed that all implements filterable. 
 	public void addList(WF_Static_List l) {
-		Log.d("zorg","Added list "+l.getId());
-		Log.d("zorg","existing:");
+		Log.d(TAG,"Added list "+l.getId());
+		Log.d(TAG,"existing:");
 		for (WF_Static_List lo:lists) {
-			Log.d("zorg",lo.getId());
+			Log.d(TAG,lo.getId());
 		}
 		lists.add(l);
 		filterables.add(l);
@@ -157,7 +159,7 @@ public class WF_Context {
 	public Container getContainer(String id) {
 		if (containers == null)
 			return null;
-		//Log.d("nils","GetContainer. looking for container "+id);
+		//Log.d(TAG,"GetContainer. looking for container "+id);
 		if (id==null || id.length()==0) {
 			Log.e("nils","Container null!!");		
 			return null;
@@ -353,7 +355,7 @@ public class WF_Context {
 	}
 
 	public void reload() {
-		Log.d("hash","reloading mycontext to "+DB_Context.evaluate(getWorkflow().getContext()));
+		Log.d(TAG,"reloading mycontext to "+DB_Context.evaluate(getWorkflow().getContext()));
 		setHash(DB_Context.evaluate(getWorkflow().getContext()));
 		GlobalState.getInstance().setDBContext(getHash());
 		myTemplate.restart();
@@ -368,7 +370,7 @@ public class WF_Context {
 	}
 	
 	public boolean isContextVariable(String cVar) {
-		Log.d("boo","contextvar? "+cVar+" cVars "+contextVariables);
+		Log.d(TAG,"contextvar? "+cVar+" cVars "+contextVariables);
 		if (contextVariables == null)
 			return false;
 		return (contextVariables.contains(cVar));
@@ -391,7 +393,7 @@ public class WF_Context {
 
 	public void printD() {
 		for (String d:drawables.keySet()) {
-			Log.d("Bortex","key: "+d);
+			Log.d(TAG,"key: "+d);
 		}
 	}
 

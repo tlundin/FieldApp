@@ -13,6 +13,8 @@ import java.lang.reflect.Type;
 //implements the PhotoMeta interface.
 
 public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements PhotoMetaI {
+    private static final String TAG = "AirPhotoMetaDataIni";
+
 
     public AirPhotoMetaDataIni(Context context, PersistenceHelper gPh, PersistenceHelper ph,
                                 String urlOrPath, String fileName, String moduleName) {
@@ -51,7 +53,7 @@ public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements Photo
 
     @Override
     public LoadResult parse(String row, Integer currentRow) {
-        Log.d("franzon","Row"+currentRow+": "+row);
+        Log.d(TAG,"Row"+currentRow+": "+row);
         String[] coord = row.split("=");
         if (coord==null || coord.length!=2)
             return new LoadResult(this, LoadResult.ErrorCode.ParseError);
@@ -75,7 +77,7 @@ public class AirPhotoMetaDataIni extends CI_ConfigurationModule implements Photo
     @Override
     public void finalizeMe() {
         if (w!=null&&e!=null&&s!=null&&n!=null) {
-            Log.d("franzon","photometa is parsed");
+            Log.d(TAG,"photometa is parsed");
             setEssence(new PhotoMeta(n ,e, s, w));
         }
         else {

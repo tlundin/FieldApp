@@ -35,6 +35,8 @@ import java.util.Set;
 
 
 public class BluetoothConnectionProvider extends ConnectionProvider {
+	private static final String TAG = "BluetoothConnectionProvider";
+
 
 	//Receive Broadcast messages from the connection threads.
 	private BroadcastReceiver brr=null;
@@ -78,7 +80,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 		mBluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
 		mBluetoothAdapter.setName(Constants.BLUETOOTH_NAME);
-		Log.d("vortex","My bluetooth name is now: "+mBluetoothAdapter.getName());
+		Log.d(TAG,"My bluetooth name is now: "+mBluetoothAdapter.getName());
 		//showNotification();
 		brr = new BroadcastReceiver() {
 			@Override
@@ -91,21 +93,21 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 							BluetoothAdapter.ERROR);
 					switch (state) {
 					case BluetoothAdapter.STATE_OFF:
-						Log.d("BT","Bluetooth off");
+						Log.d(TAG,"Bluetooth off");
 						closeConnection();
 						break;
 					case BluetoothAdapter.STATE_TURNING_OFF:
-						Log.d("BT","Bluetooth turning off");
+						Log.d(TAG,"Bluetooth turning off");
 						internalState  = InternalState.closing;
 						break;
 					case BluetoothAdapter.STATE_ON:
-						Log.d("BT","Bluetooth on...starting server");
+						Log.d(TAG,"Bluetooth on...starting server");
 						if (internalState  == InternalState.opening)
 							//Try now!
 							openConnection(mPartner);
 						break;
 					case BluetoothAdapter.STATE_TURNING_ON:
-						Log.d("BT","Bluetooth turning on");
+						Log.d(TAG,"Bluetooth turning on");
 						break;
 					}
 				}
@@ -113,7 +115,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 			}};
 
 
-			Log.d("vortex","Bluetooth on create");
+			Log.d(TAG,"Bluetooth on create");
 			o.addText("BlueTooth starting ");
 
 	}
@@ -123,7 +125,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 		mPartner = partner;
 
-		Log.d("vortex","Bluetooth: Open Connection");
+		Log.d(TAG,"Bluetooth: Open Connection");
 		if (mConnected_T !=null && mConnected_T.isAlive()) {
 			Log.e("vortex","connection is running, so will disregard call to openconnection");
 		} else 
@@ -136,7 +138,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 			} 
 			//If we need to turn on bluetooth, wait for broadcast.
 			else if (!mBluetoothAdapter.isEnabled())	{
-				Log.d("vortex","Enabling bluetooth");
+				Log.d(TAG,"Enabling bluetooth");
 				mBluetoothAdapter.enable();
 
 				IntentFilter ifi = new IntentFilter();
@@ -150,7 +152,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 			}
 			else {
 				//Bluetooth is running. Try.
-				Log.d("Vortex","Bluetooth: starting client and server");
+				Log.d(TAG,"Bluetooth: starting client and server");
 
 				//Now the fun starts.
 				try {
@@ -184,7 +186,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 			if(BluetoothAdapter.getDefaultAdapter().isEnabled())
 				BluetoothAdapter.getDefaultAdapter().disable();
 			//drop reference to this object.
-			Log.d("vortex","Bluetooth: Close Connection");
+			Log.d(TAG,"Bluetooth: Close Connection");
 			if (mClient!=null)
 				mClient.cancel();
 			if (mServer!=null)
@@ -195,7 +197,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 			try {
 				LocalBroadcastManager.getInstance(ctx).unregisterReceiver(brr);
 			} catch (IllegalArgumentException e) {
-				Log.d("nils","unregisterReceiver - dropping exception");
+				Log.d(TAG,"unregisterReceiver - dropping exception");
 			}
 			internalState  = InternalState.closed;
 			broadcastEvent(ConnectionEvent.connectionClosedGracefully);
@@ -213,10 +215,10 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 	@Override
 	public void write(Object message) {
 		if (isOpen()) {
-			Log.d("vortex","internalstate is open. Passing on message");
+			Log.d(TAG,"internalstate is open. Passing on message");
 			mConnected_T.write(message);
 		} else
-			Log.d("vortex","cannot send. connection not open!");
+			Log.d(TAG,"cannot send. connection not open!");
 	}
 
 
@@ -256,19 +258,19 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 						partner = potentialPartner;
 						found = true;
 					} else
-						Log.d("vortex","No match, partner name: "+potentialPartner);
+						Log.d(TAG,"No match, partner name: "+potentialPartner);
 				}
 			}
 			if (partner == null && pairedDevices.size()>0) {
-				Log.d("vortex","Could not find partner named "+partnerName+" .Will try first device in list");
+				Log.d(TAG,"Could not find partner named "+partnerName+" .Will try first device in list");
 				partner=pairedDevices.iterator().next();
 			}
 			if (partner!=null) {
-				Log.d("Vortex","Bluetooth: Starting client connect to partner: "+partner.getName());
+				Log.d(TAG,"Bluetooth: Starting client connect to partner: "+partner.getName());
 				client = new ClientConnectThread(partner);
 				client.start();
 			} else {
-				Log.d("vortex","Bluetooth connection failed. Could not find partner named "+partnerName);
+				Log.d(TAG,"Bluetooth connection failed. Could not find partner named "+partnerName);
 				return null;
 			}
 		}
@@ -280,7 +282,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 	//Create server thread
 	private ServerThread startServer() {
 
-		Log.d("NILS","Trying to start server.");
+		Log.d(TAG,"Trying to start server.");
 		ServerThread server = new ServerThread();
 		server.start();
 
@@ -310,11 +312,11 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 		public void run() {
 			BluetoothSocket socket = null;
 			// Keep listening until exception occurs or a socket is returned
-			Log.d("NILS","Server is started");
+			Log.d(TAG,"Server is started");
 			while (true) {
 				try {
 					socket = mmServerSocket.accept();
-					Log.d("NILS","SERVER got a SOCKET");
+					Log.d(TAG,"SERVER got a SOCKET");
 
 				} catch (IOException e) {
 					Log.e("NILS","Exception in ServerThread");
@@ -324,7 +326,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 				// If a connection was accepted
 				if (socket != null) {
 					// Do work to manage the connection (in a separate thread)
-					Log.d("NILS","calling managesocket");
+					Log.d(TAG,"calling managesocket");
 					startConnectedThread(socket);
 					try {
 						mmServerSocket.close();
@@ -397,12 +399,12 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 				try {
 					// Connect the device through the socket. This will block
 					// until it succeeds or throws an exception
-					Log.d("Vortex","Trying to connect to sister device. Attempts left: "+attempts);
+					Log.d(TAG,"Trying to connect to sister device. Attempts left: "+attempts);
 					mmSocket.connect();
 				} catch (IOException connectException) {
 					// Unable to connect; close the socket and get out
-					Log.d("Vortex","Failed to connect");
-					Log.d("Vortex","Msg: "+connectException.getMessage());
+					Log.d(TAG,"Failed to connect");
+					Log.d(TAG,"Msg: "+connectException.getMessage());
 					//Tell the world.
 
 					if (mConnected_T==null) {
@@ -419,7 +421,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 			}
 			if (mConnected_T!=null) {
-				Log.d("vortex","socket already aquired...i can exit");
+				Log.d(TAG,"socket already aquired...i can exit");
 			} else {
 				if (success) {
 					// Do work to manage the connection (in a separate thread)
@@ -427,7 +429,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 				} else {
 					cancel();
 					o.addText("");
-					Log.d("vortex","Gave up, no more attempts");
+					Log.d(TAG,"Gave up, no more attempts");
 					o.addCriticalText("Bluetooth connection failed. Make sure that both devices have turned on Bluetooth and that they are within reach of eachother!");
 				}
 			}
@@ -447,17 +449,17 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 	}	
 
 	private void startConnectedThread(BluetoothSocket mmSocket) {
-		Log.d("Vortex","connected to sister device");		
+		Log.d(TAG,"connected to sister device");		
 		if (mConnected_T== null) {
 			mConnected_T = new ConnectedThread(gs,mmSocket);
 			mConnected_T.start();
-			Log.d("Vortex","Connected!");
+			Log.d(TAG,"Connected!");
 			internalState = InternalState.open;
 			broadcastEvent(ConnectionEvent.connectionGained);
 
 
 		} else
-			Log.d("vortex","socket already received!");
+			Log.d(TAG,"socket already received!");
 	}
 
 	private class ConnectedThread extends Thread {
@@ -548,7 +550,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 
 		void cancel() {
 			if (mConnected_T==null ) {
-				Log.d("vortex","I was already closed...");
+				Log.d(TAG,"I was already closed...");
 				return;
 			}
 			try {
@@ -563,7 +565,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 				e.printStackTrace();
 			}
 			if (mmSocket.isConnected()) {
-				Log.d("nils","ISCONNECTED CALLING SOCKET CLOSE!!!");
+				Log.d(TAG,"ISCONNECTED CALLING SOCKET CLOSE!!!");
 				//Is this always called anyway??
 				try {
 					mmSocket.close();

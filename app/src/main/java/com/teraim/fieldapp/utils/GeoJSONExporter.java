@@ -22,6 +22,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 public class GeoJSONExporter extends Exporter {
+	private static final String TAG = "GeoJSONExporter";
+
 
     private JsonWriter writer;
 	private final List<String> coordLess = new ArrayList<>();
@@ -46,7 +48,7 @@ public class GeoJSONExporter extends Exporter {
 				writer.setIndent("  ");
 				//Begin main obj
 				writer.beginObject();
-				Log.d("nils","Writing header");
+				Log.d(TAG,"Writing header");
 				write("name","Export");
 				write("type","FeatureCollection");
 				writer.name("crs");
@@ -81,10 +83,10 @@ public class GeoJSONExporter extends Exporter {
 					rutMap.put(uid,currentHash.get(NamedVariables.AreaTerm));
 
 					sub = currentHash.get("sub");
-					Log.d("SUB","Current HASH "+currentHash.toString());
+					Log.d(TAG,"Current HASH "+currentHash.toString());
 
 
-					//Log.d("botox","CURRENT_HASH: "+currentHash);
+					//Log.d(TAG,"CURRENT_HASH: "+currentHash);
 					if (uid==null) {
 						Log.e("vortex","missing uid!!!");
 						Log.e("vortex","keyhash: "+currentHash);
@@ -106,7 +108,7 @@ public class GeoJSONExporter extends Exporter {
 							gisObjH.put(sub, gisObjM);
 							if (sub == null)
 								gisObjM.put("GISTYP", currentHash.get(GisConstants.TYPE_COLUMN));
-							//Log.d("vortex","keyhash: "+currentHash.toString());
+							//Log.d(TAG,"keyhash: "+currentHash.toString());
 						}
 
 						//Hack for multiple sub1 variables.
@@ -124,7 +126,7 @@ public class GeoJSONExporter extends Exporter {
 								//Check if this variable is supposed to be exported.
 								boolean isLocal = gs.getVariableConfiguration().isLocal(gs.getVariableConfiguration().getCompleteVariableDefinition(name));
 								if (isLocal) {
-									//Log.d("vortex","skipping "+name+" since it is marked local");
+									//Log.d(TAG,"skipping "+name+" since it is marked local");
 									//o.addText("skipping "+name+" since it is marked local");
 
 								} else {
@@ -151,13 +153,13 @@ public class GeoJSONExporter extends Exporter {
 						});
 
 				} while (cp.next());
-				Log.d("vortex","now inserting into json.");
+				Log.d(TAG,"now inserting into json.");
 				//For each fixedGid (uid)...
 				if (gisObjects!=null) {
 					final int sz = gisObjects.keySet().size();
 					int curr = 0;
 					for (final String keyUID:gisObjects.keySet()) {
-						//Log.d("vortex", "sub sets under " + keyUID);
+						//Log.d(TAG, "sub sets under " + keyUID);
 						final int cf = curr++;
 						if (ctx != null)
 							((Activity)ctx).runOnUiThread(new Runnable() {
@@ -174,7 +176,7 @@ public class GeoJSONExporter extends Exporter {
 							Log.e("vortex", "NULL gisobjM.Keys: "+gisObjH.keySet());
 							gisObjM = gisObjH.get(gisObjH.keySet().iterator().next());
 							//String coor = gisObjM.remove(GisConstants.GPS_Coord_Var_Name);
-							//Log.d("vortex","COOR is "+coor);
+							//Log.d(TAG,"COOR is "+coor);
 
 							continue;
 						}
@@ -188,7 +190,7 @@ public class GeoJSONExporter extends Exporter {
 							Log.e("fortex", "Object " + keyUID + " is missing GPS Coordinates!!!");
 
 							//for (String mKey : gisObjM.keySet()) {
-							//	Log.d("fortex","variable: " + mKey + ", value: " + gisObjM.get(mKey));
+							//	Log.d(TAG,"variable: " + mKey + ", value: " + gisObjM.get(mKey));
 							//}
 
 
@@ -201,7 +203,7 @@ public class GeoJSONExporter extends Exporter {
 							if (uidFromGlobal !=null) {
 								//remove braces.
 								//uidFromGlobal = uidFromGlobal.replaceAll("[{}]", " ");
-								//Log.d("vortex","trying to find coords from globalId");
+								//Log.d(TAG,"trying to find coords from globalId");
 								coordinates = getCoordinates(uidFromGlobal, gisObjM.remove(GisConstants.GPS_Coord_Var_Name));
 
 							}
@@ -210,7 +212,7 @@ public class GeoJSONExporter extends Exporter {
 									o.addText("");
 									o.addCriticalText("Failed to find replacement coord with " + uidFromGlobal + " for [" + keyUID + "]");
 								} else
-									Log.d("vortex","uidfromglobal failed for "+keyUID);
+									Log.d(TAG,"uidfromglobal failed for "+keyUID);
 								coordLess.add(keyUID);
 								continue;
 							} else {
@@ -231,7 +233,7 @@ public class GeoJSONExporter extends Exporter {
 						}
 						polygons = coordinates.split("\\|");
 						String geoType= gisObjM.get(GisConstants.Geo_Type);
-						Log.d("gorgon","geotype: "+geoType);
+						Log.d(TAG,"geotype: "+geoType);
 							//Try to figure out geotype from number of coordinates
 							if (geoType==null) {
 								if (polygons.length == 1) {
@@ -248,7 +250,7 @@ public class GeoJSONExporter extends Exporter {
 								}
 							}
 						if (geoType==null){
-							Log.d("brex","WRONG: "+polygons[0]);
+							Log.d(TAG,"WRONG: "+polygons[0]);
 							o.addText("");
 							o.addCriticalText("Failed to assign geotype for " + keyUID+" with polygons length = "+polygons.length+" and coordinates "+coordinates);
 							continue;
@@ -273,8 +275,8 @@ public class GeoJSONExporter extends Exporter {
 						writer.beginObject();
 						write("type", geoType);
 						writer.name("coordinates");
-						Log.d("brex","RUTA: "+rutMap.get(keyUID));
-						Log.d("brex","GID: "+keyUID);
+						Log.d(TAG,"RUTA: "+rutMap.get(keyUID));
+						Log.d(TAG,"GID: "+keyUID);
 
 						if (isPoly||isLineString)
 							writer.beginArray();
@@ -284,12 +286,12 @@ public class GeoJSONExporter extends Exporter {
 							String[] coords = polygon.split(",");
 							if (isPoly)
 								writer.beginArray();
-							Log.d("vortex", "is poly? "+isPoly);
-							Log.d("vortex", "geotype is  "+geoType);
-							Log.d("vortex", "Length is "+coords.length);
+							Log.d(TAG, "is poly? "+isPoly);
+							Log.d(TAG, "geotype is  "+geoType);
+							Log.d(TAG, "Length is "+coords.length);
 							try {
 								for (int i = 0; i < coords.length; i += 2) {
-									Log.d("vortex", "coord [" + i + "] :" + coords[i]+" [" + (i+1) + "] :" + coords[i+1]);
+									Log.d(TAG, "coord [" + i + "] :" + coords[i]+" [" + (i+1) + "] :" + coords[i+1]);
 									writer.beginArray();
 									printCoord(writer, coords[i]);
 									printCoord(writer, coords[i + 1]);
@@ -297,7 +299,7 @@ public class GeoJSONExporter extends Exporter {
 								}
 								//Close poly if not done.
 								if (isPoly && !lastCoordEqualToFirst(coords)) {
-									Log.d("vortex","Closing poly..");
+									Log.d(TAG,"Closing poly..");
 									writer.beginArray();
 									printCoord(writer, coords[0]);
 									printCoord(writer, coords[1]);
@@ -330,7 +332,7 @@ public class GeoJSONExporter extends Exporter {
 						//write("author",cp.getKeyColumnValues().get("author"));
 						for (String mKey : gisObjM.keySet()) {
 							write(mKey, gisObjM.get(mKey));
-							Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
+							Log.d(TAG, "var, value: " + mKey + "," + gisObjM.get(mKey));
 						}
 						//Check if there are other sub than default.
 						if (gisObjH != null && !gisObjH.isEmpty()) {
@@ -338,17 +340,17 @@ public class GeoJSONExporter extends Exporter {
 							writer.beginArray();
 							for (String key : gisObjH.keySet()) {
 								if (key == null) {
-									//Log.d("volde", "skipping null key");
+									//Log.d(TAG, "skipping null key");
 									continue;
 								}
-								//Log.d("volde", "found some extra under " + key);
+								//Log.d(TAG, "found some extra under " + key);
 								gisObjM = gisObjH.get(key);
 								if (gisObjM != null) {
 									writer.beginObject();
 									write("sub".toUpperCase(Locale.ROOT), key);
 									for (String mKey : gisObjM.keySet()) {
 										write(mKey, gisObjM.get(mKey));
-										//Log.d("volde", "var, value: " + mKey + "," + gisObjM.get(mKey));
+										//Log.d(TAG, "var, value: " + mKey + "," + gisObjM.get(mKey));
 									}
 									writer.endObject();
 								}
@@ -373,8 +375,8 @@ public class GeoJSONExporter extends Exporter {
 				//End of all.
 				writer.endObject();
 
-				Log.d("nils","finished writing JSON");
-				//Log.d("nils", sw.toString());
+				Log.d(TAG,"finished writing JSON");
+				//Log.d(TAG, sw.toString());
 				if (!coordLess.isEmpty()&&globalPh.getB(PersistenceHelper.DEVELOPER_SWITCH)) {
 					o.addText("");
 					o.addCriticalText("No coordinates found for these objects:");

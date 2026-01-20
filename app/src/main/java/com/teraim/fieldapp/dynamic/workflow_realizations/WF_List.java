@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 
 public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
+	private static final String TAG = "WF_List";
+
 
 	private final List<Listable> list = new  ArrayList<>(); //Instantiated in constructor
 	private final List<Filter> myFilters=new ArrayList<>();
@@ -87,13 +89,13 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 			}
 			filteredList = listx;
 		}
-		//Log.d("nils","before sorter: "+System.currentTimeMillis());
+		//Log.d(TAG,"before sorter: "+System.currentTimeMillis());
 		if (mySorters != null) {
 			for (Sorter s : mySorters) {
 				filteredList = (List<Listable>) s.sort(filteredList);
 			}
 		}
-		//Log.d("nils","After sorter: "+System.currentTimeMillis());
+		//Log.d(TAG,"After sorter: "+System.currentTimeMillis());
 
 	}
 
@@ -121,30 +123,30 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 	private int intC=0;
 	private boolean drawActive = false;
 	public void draw() {
-		//Log.d("draw","DRAW CALLED "+ (++intC)+" times in list"+this.getId());
-		Log.d("nils","DrawActive "+drawActive);
+		//Log.d(TAG,"DRAW CALLED "+ (++intC)+" times in list"+this.getId());
+		Log.d(TAG,"DrawActive "+drawActive);
 		if (!drawActive) {
 			drawActive = true;
-			Log.d("zorgo","in redraw..."+(intC++)+" for list "+getId()+" wf_list: "+WF_List.this+" handler: "+this);
+			Log.d(TAG,"in redraw..."+(intC++)+" for list "+getId()+" wf_list: "+WF_List.this+" handler: "+this);
 
 			//If list requires recalc, do it.
 			if (redraw) {
 				this.reSortAndFilter();
 				prepareDraw();
 				redraw=false;
-				Log.d("baza","redraw list "+this.getId()+" filtered: "+filteredList.size()+" all: "+list.size());
+				Log.d(TAG,"redraw list "+this.getId()+" filtered: "+filteredList.size()+" all: "+list.size());
 				for (Listable l:filteredList) {
 					//l.refreshInputFields();
 					l.refresh();
 					//Everything is WF_Widgets, so this is safe!
 					myW.addView(((WF_Widget)l).getWidget());
-					//Log.d("vortex","Drawing: "+l.getLabel());
+					//Log.d(TAG,"Drawing: "+l.getLabel());
 				}
-				//Log.d("nils","Settingdrawactive to false");
+				//Log.d(TAG,"Settingdrawactive to false");
 
 			} else
-				Log.d("vortex","no redraw required");
-			//Log.d("nils","Settingdrawactive to true from list"+this.getId());
+				Log.d(TAG,"no redraw required");
+			//Log.d(TAG,"Settingdrawactive to true from list"+this.getId());
 
 			//final ProgressDialog progress = new ProgressDialog(myContext.getContext());
 
@@ -161,7 +163,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 
 
 		} else
-			Log.d("nils","DISCARDED DRAW CALL");
+			Log.d(TAG,"DISCARDED DRAW CALL");
 
 
 
@@ -178,7 +180,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 		}
 
 		//for (Listable li:list)
-		//Log.d("vortex","li label li key: "+li.getLabel()+" "+li.getKey());
+		//Log.d(TAG,"li label li key: "+li.getLabel()+" "+li.getKey());
 		Iterator<Listable> it = list.iterator();
 		while (it.hasNext()) {
 			Listable li = it.next();
@@ -206,7 +208,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 					added=true;
 				} else {
 					Log.e("zuzz", "added false!" + li.getKey() + ", " + inFiltered + ", " + isRemoved);
-					Log.d("zuzz","INF: "+filteredList.toString());
+					Log.d(TAG,"INF: "+filteredList.toString());
 				}
 				int index=filteredList.size()-1;
 				if (mySorters != null) {
@@ -226,14 +228,14 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 			}
 		}
 
-		Log.d("vortex","couldnt find "+l+" in prepareInc0");
+		Log.d(TAG,"couldnt find "+l+" in prepareInc0");
 
 		return false;
 	}
 
 
 	void prepareDraw() {
-		Log.d("zorg","DISCARDED ALL");
+		Log.d(TAG,"DISCARDED ALL");
 		myW.removeAllViews();
 	}
 /*

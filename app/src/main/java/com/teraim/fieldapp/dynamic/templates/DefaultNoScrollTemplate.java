@@ -23,6 +23,8 @@ import java.util.List;
  */
 
 public class DefaultNoScrollTemplate extends Executor {
+	private static final String TAG = "DefaultNoScrollTemplate";
+
 
 	private View view;
 	private LinearLayout my_root;
@@ -31,7 +33,7 @@ public class DefaultNoScrollTemplate extends Executor {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("nils","In onCreate - DefaultNoScroll");
+		Log.d(TAG,"In onCreate - DefaultNoScroll");
 
 		
 	}
@@ -39,7 +41,7 @@ public class DefaultNoScrollTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","NoScroll template - I'm in the onPause method");
+		Log.d(TAG,"NoScroll template - I'm in the onPause method");
 	}
 	
 	
@@ -47,7 +49,7 @@ public class DefaultNoScrollTemplate extends Executor {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.d("nils","I'm in the onCreateView method for defaultNoScroll");
+		Log.d(TAG,"I'm in the onCreateView method for defaultNoScroll");
 		if (GlobalState.getInstance()==null) {
 			Log.e("Vortex", "globalstate is null...exiting");
 			return null;
@@ -64,16 +66,16 @@ public class DefaultNoScrollTemplate extends Executor {
 			Log.e("brexit","mycontext was null! Couldnt add containers");
 		
 		if (wf!=null) {
-			Log.d("vortex","Executing workflow!!");
+			Log.d(TAG,"Executing workflow!!");
 			run();
 			
 		} else
-			Log.d("vortex","No workflow found in oncreate default!!!!");
+			Log.d(TAG,"No workflow found in oncreate default!!!!");
 			
 		} else {
 			//If view exists, we are moving backwards in the stack. GIS objects need to drop their cached values.
 			if (myContext!=null && myContext.getCurrentGis()!=null) {
-				Log.d("gipp","Clearing gis cache in onCreateView");
+				Log.d(TAG,"Clearing gis cache in onCreateView");
 				myContext.getCurrentGis().clearLayerCaches();
 				myContext.getCurrentGis().getGis().initializeAndSiftGisObjects();
 			}
@@ -100,7 +102,7 @@ public class DefaultNoScrollTemplate extends Executor {
 
 	@Override
 	public void onStart() {
-		Log.d("nils","I'm in the onStart method");
+		Log.d(TAG,"I'm in the onStart method");
 		super.onStart();
 
 

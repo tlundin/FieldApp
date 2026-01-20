@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GisMultiPointObject extends GisPathObject {
+	private static final String TAG = "GisMultiPointObject";
+
 
 	private final FullGisObjectConfiguration poc;
 	
@@ -49,7 +51,7 @@ public class GisMultiPointObject extends GisPathObject {
 		if (this.getWorkflow()==null)
 			return false;
 		//Only linestrings can be touched.
-		//Log.d("vortex", "in istouch for linestr "+this.getLabel());
+		//Log.d(TAG, "in istouch for linestr "+this.getLabel());
 		if (isLineString()) {
 			Log.e("vortex", "this is no linestring...exiting.");
 			return false;

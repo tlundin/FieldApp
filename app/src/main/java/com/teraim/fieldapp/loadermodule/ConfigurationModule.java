@@ -23,6 +23,8 @@ import java.util.concurrent.ExecutorService;
  * ensures the loading process correctly handles all outcomes.
  */
 public abstract class ConfigurationModule {
+	private static final String TAG = "ConfigurationModule";
+
 
 	// Enums
 	public enum FileFormat { json, xml, csv, ini, jgw, txt }
@@ -86,14 +88,14 @@ public abstract class ConfigurationModule {
 			// 1. Check for a cached version first, unless forced to reload.
 			if (!forceReload) {
 				if (thawSynchronously().errCode == ErrorCode.thawed) {
-					Log.d("ConfigModule", "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
+					Log.d(TAG, "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
 					// FIX: Always invoke the callback on success to notify the loader.
 					cb.onFileLoaded(new LoadResult(this, ErrorCode.thawed));
 					return; // Stop execution here.
 				}
 			}
 			// 2. If no valid cache, or if forced, proceed with network download.
-			Log.d("ConfigModule", "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
+			Log.d(TAG, "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
 			// Assuming DataLoader performs the synchronous network request.
 			LoadResult networkResult = DataLoader.loadAndParseAndFreeze(this);
 			if (networkResult.errCode == ErrorCode.frozen ) {
@@ -116,7 +118,7 @@ public abstract class ConfigurationModule {
 
 	public LoadResult thawSynchronously() {
 		Type essenceType = getEssenceType();
-		Log.d("ConfigModule", "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName() + "");
+		Log.d(TAG, "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName() + "");
 		if (essenceType == null) {
 			Log.e("ConfigModule", "getEssenceType() returned null for " + this.getClass().getSimpleName());
 			return new LoadResult(this, ErrorCode.thawFailed);

@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GisPolygonObject extends GisPathObject {
+	private static final String TAG = "GisPolygonObject";
+
 
 	private Map<String, List<Location>> polygons;
 	private FullGisObjectConfiguration conf;
@@ -28,7 +30,7 @@ public class GisPolygonObject extends GisPathObject {
 		this.polygons=null;
 		polyString = polygons;
 		this.conf=conf;
-		//Log.d("fisk","Added "+keyChain.toString()+" name:"+conf.getName()+" db "+conf.getObjectKeyHash());
+		//Log.d(TAG,"Added "+keyChain.toString()+" name:"+conf.getName()+" db "+conf.getObjectKeyHash());
 	}
 
 	//Called when the object is imported using only a partial configuration. 
@@ -37,7 +39,7 @@ public class GisPolygonObject extends GisPathObject {
 			Map<String, String> attributes) {
 		super(keyChain,null,attributes);
 		this.polygons=polygons;
-		//Log.d("vortex","polygons key "+polygons.keySet()+" cont: "+polygons.values());
+		//Log.d(TAG,"polygons key "+polygons.keySet()+" cont: "+polygons.values());
 	}
 
 	private static Map<String, List<Location>> buildMap(String polygons, String coordType) {
@@ -50,7 +52,7 @@ public class GisPolygonObject extends GisPathObject {
 			ret.put("Poly 1", new ArrayList<Location>());
 		else {
 		for (String poly:polys) {
-			//Log.d("pulla","in poly with poly: ["+poly+"]");
+			//Log.d(TAG,"in poly with poly: ["+poly+"]");
 			ret.put("Poly "+i, GisObject.createListOfLocations(poly, coordType));
 			
 			i++;
@@ -76,7 +78,7 @@ public class GisPolygonObject extends GisPathObject {
 		if (myCoordinates==null)
 				Log.e("Vortex","No poly 1 found");
 		//else
-		//	Log.d("vortex","coordies "+myCoordinates);
+		//	Log.d(TAG,"coordies "+myCoordinates);
 		return myCoordinates;
 	}
 
@@ -135,7 +137,7 @@ public class GisPolygonObject extends GisPathObject {
 			return false;
 		myCoordinates =  getCoordinates() ;
 		if (myCoordinates == null||myCoordinates.isEmpty()) {
-			Log.d("vortex", "found no coordinates...exiting");
+			Log.d(TAG, "found no coordinates...exiting");
 			return false;
 		}
 		distanceToClick = ClickThresholdInMeters;
@@ -163,7 +165,7 @@ public class GisPolygonObject extends GisPathObject {
 			Location A = myCoordinates.get(i);
 			Location B = myCoordinates.get(i+1);
 			double dist = Geomatte.pointToLineDistance3(A, B, mapLocationForClick,pxr,pyr);
-			//Log.d("vortex","dist to "+this.getId()+" is "+dist+ "Thresh was Divided by pxr: "+ClickThresholdInMeters/pxr);
+			//Log.d(TAG,"dist to "+this.getId()+" is "+dist+ "Thresh was Divided by pxr: "+ClickThresholdInMeters/pxr);
 			if (dist<distanceToClick) 
 				distanceToClick=dist;
 		}

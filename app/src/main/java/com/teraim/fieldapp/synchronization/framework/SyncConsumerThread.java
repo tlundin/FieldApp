@@ -15,6 +15,8 @@ import com.teraim.fieldapp.utils.DbHelper;
 import com.teraim.fieldapp.utils.Tools;
 
 public class SyncConsumerThread extends Thread {
+    private static final String TAG = "SyncConsumerThread";
+
 
     private final Handler mCaller;
 
@@ -41,7 +43,7 @@ public class SyncConsumerThread extends Thread {
                         nSyncEntriesTotal += ses.length;
                         dbHelper.insertSyncEntries(syncReport, ses, gs.getLogger());
                         syncReport.currentRow++;
-                        Log.d("sync","map now has "+syncReport.getTimeStampedMap().size() +" entries");
+                        Log.d(TAG,"map now has "+syncReport.getTimeStampedMap().size() +" entries");
                     } else {
                         Log.e("sync", "Corrupted row in sync data");
                     }
@@ -50,7 +52,7 @@ public class SyncConsumerThread extends Thread {
             c.close();
             if (id!=-1) {
                 dbHelper.insertIfMax(syncReport);
-                Log.d("sync", "Deleting entries in table_sync with id less than or equal to " + id);
+                Log.d(TAG, "Deleting entries in table_sync with id less than or equal to " + id);
                 dbHelper.deleteConsumedSyncEntries(id);
                 //send a message to refresh any ui currently drawn
 

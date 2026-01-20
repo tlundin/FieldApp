@@ -11,6 +11,8 @@ import java.util.List;
 
 
 public class Geomatte {
+	private static final String TAG = "Geomatte";
+
 	private final static double d2r = (Math.PI / 180.0);
 	//calculate haversine distance for linear distance
 
@@ -47,27 +49,27 @@ public class Geomatte {
 
 
 	public static double sweDist(double myY,double myX,double destY, double destX) {	
-		//Log.d("NILS","diffX: diffY: "+(myX-destX)+" "+(myY-destY));
-		//Log.d("NILS","Values  x1 y1 x2 y2: "+myX+" "+myY+" "+destX+" "+destY);
-        //Log.d("NILS","res: "+res);
+		//Log.d(TAG,"diffX: diffY: "+(myX-destX)+" "+(myY-destY));
+		//Log.d(TAG,"Values  x1 y1 x2 y2: "+myX+" "+myY+" "+destX+" "+destY);
+        //Log.d(TAG,"res: "+res);
 		return Math.sqrt(Math.pow((myX-destX),2)+Math.pow(myY-destY, 2));
 
 	}
 	
 	private static double sweDist(Location location, Location location2) {
-		//Log.d("Vortex","swedist: x1,y1  - x2,y2"+location.getX()+","+location.getY()+" - "+location2.getX()+","+location2.getY());
+		//Log.d(TAG,"swedist: x1,y1  - x2,y2"+location.getX()+","+location.getY()+" - "+location2.getX()+","+location2.getY());
 		return sweDist(location.getX(),location.getY(),location2.getX(),location2.getY());
 	}
 	
 	public static double lengthOfPath(List<Location> myDots) {
 		if (myDots==null || myDots.size()<2) {
-			Log.d("vortex","too few coordinates in lengthofpath...returning 0");
+			Log.d(TAG,"too few coordinates in lengthofpath...returning 0");
 			return 0;
 		}
 		double length = 0;
 		
 		for (int i = 0 ; i < myDots.size()-1; i++) {
-			//Log.d("vortex","mydots: "+myDots.get(i)+","+myDots.get(i+1));
+			//Log.d(TAG,"mydots: "+myDots.get(i)+","+myDots.get(i+1));
 			length += sweDist(myDots.get(i),myDots.get(i+1));
 		}
 		return length;
@@ -95,12 +97,12 @@ public class Geomatte {
 		double dy = destY-userY;
 		double dx = destX-userX;
 		double a2 = Math.atan2(dy,dx);
-		//Log.d("NILS","ATAN2 (r) (g)"+a2+" "+57.2957795*a2);
+		//Log.d(TAG,"ATAN2 (r) (g)"+a2+" "+57.2957795*a2);
 		if (a2>-PI&&a2<=PI/2)
 			alfa = (PI/2-a2);
 		else
 			alfa = (PI/2-a2)+2*PI;
-		//Log.d("NILS","ALFA I RADIER: Grader: "+alfa+" "+ 57.2957795*alfa);
+		//Log.d(TAG,"ALFA I RADIER: Grader: "+alfa+" "+ 57.2957795*alfa);
 		return alfa;
 
 
@@ -114,16 +116,16 @@ public class Geomatte {
 		//double a = Math.abs(destY-centerY); **not needed.
 
         double  beta = Math.acos(b/ dest);
-		Log.d("NILS","b,c,beta: "+b+" "+ dest +" "+beta);
+		Log.d(TAG,"b,c,beta: "+b+" "+ dest +" "+beta);
 		//Gamma is the top angle in a 90 deg. triangle.
 		double gamma = Math.PI/2-beta; // 90 grader - beta i radianer = 90*pi/180 = 1*pi/2.
 		//alfa is PI+gamma if destx - x is negative.
 		double alfa =  Math.PI+gamma;
-		Log.d("NILS","gamma: "+gamma);
+		Log.d(TAG,"gamma: "+gamma);
 
 		//Alfa should also be equal to Atan2(y,x).
 		double alfa2 = Math.atan2(destY, destX);
-		Log.d("NILS","ALFA: "+alfa+" ALFA (tan2): "+alfa2);
+		Log.d(TAG,"ALFA: "+alfa+" ALFA (tan2): "+alfa2);
 		return alfa;
 
 
@@ -248,7 +250,7 @@ public class Geomatte {
 		y = Math.round(y * 1000.0) / 1000.0;
 		x = Math.round(x * 1000.0) / 1000.0;
 
-		//Log.d("NILS"," lat long (x,y): "+x+" "+y);
+		//Log.d(TAG," lat long (x,y): "+x+" "+y);
 		return new SweLocation(x,y);
 	}
 

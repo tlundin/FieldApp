@@ -19,6 +19,8 @@ import java.util.List;
 
 
 public class ListInputTemplate extends Executor {
+	private static final String TAG = "ListInputTemplate";
+
     private List<WF_Container> myLayouts;
 
 
@@ -29,7 +31,7 @@ public class ListInputTemplate extends Executor {
 			Log.e("vortex","No context, exit");
 			return null;
 		}
-		Log.d("nils","in onCreateView of ListInputTemplate");
+		Log.d(TAG,"in onCreateView of ListInputTemplate");
 		myLayouts = new ArrayList<WF_Container>();
 
         /* (non-Javadoc)
@@ -65,7 +67,7 @@ public class ListInputTemplate extends Executor {
 	public void onStart() {
 		super.onStart();
 
-		Log.d("nils","in onStart");
+		Log.d(TAG,"in onStart");
 		//myContainer.removeAllViews();
 		//Create blocks for template functions.
 	

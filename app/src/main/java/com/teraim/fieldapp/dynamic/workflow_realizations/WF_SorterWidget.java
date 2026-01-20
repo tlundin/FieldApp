@@ -24,6 +24,8 @@ import java.util.TreeSet;
 
 
 public class WF_SorterWidget extends WF_Widget {
+	private static final String TAG = "WF_SorterWidget";
+
 
 
     private transient WF_Filter existing=null;
@@ -46,7 +48,7 @@ public class WF_SorterWidget extends WF_Widget {
 
 		//buttonPanel.setBackgroundColor(Color.parseColor("red"));
 		buttonPanel.setOrientation(LinearLayout.VERTICAL);
-		Log.d("vortex","orientation: "+((orientation==LinearLayout.HORIZONTAL)?"Horizontal":"Vertical"));
+		Log.d(TAG,"orientation: "+((orientation==LinearLayout.HORIZONTAL)?"Horizontal":"Vertical"));
 		buttonPanel.setLayoutParams(lp);
 
         LayoutInflater inflater = LayoutInflater.from(ctx.getContext());
@@ -56,7 +58,7 @@ public class WF_SorterWidget extends WF_Widget {
 		//	@Override
 		//	public void onClick(View view) {
 		//		if (existing !=null) {
-		//		    Log.d("vortex","onclick wildcard");
+		//		    Log.d(TAG,"onclick wildcard");
 		//			targetList.removeFilter(existing);
 		//			existing = null;
         //            targetList.draw();
@@ -71,7 +73,7 @@ public class WF_SorterWidget extends WF_Widget {
 				@Override
 				public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
 					String ch = compoundButton.getText().toString();
-					Log.d("Strand","User pressed "+ch+" ischecked is "+isChecked);
+					Log.d(TAG,"User pressed "+ch+" ischecked is "+isChecked);
 					//This shall apply a new Alpha filter on target.
 					//First, remove any existing alpha filter.
 					targetList.removeFilter(existing);
@@ -111,14 +113,14 @@ public class WF_SorterWidget extends WF_Widget {
 				b.setText(c);
 				b.setOnCheckedChangeListener(cl);
 				buttonPanel.addView(b);
-				//Log.d("nils","Added button "+c);
+				//Log.d(TAG,"Added button "+c);
 			}
 		} else if (type.equals("column") ) {
             final CompoundButton.OnCheckedChangeListener cl = new CompoundButton.OnCheckedChangeListener(){
                 @Override
                 public void onCheckedChanged(CompoundButton compoundButton, boolean isChecked) {
                     String ch = compoundButton.getText().toString();
-                    Log.d("Strand","User pressed "+ch+" ischecked is "+isChecked);
+                    Log.d(TAG,"User pressed "+ch+" ischecked is "+isChecked);
                     //This shall apply a new Alpha filter on target.
                     //First, remove any existing alpha filter.
                     targetList.removeFilter(existing);
@@ -152,7 +154,7 @@ public class WF_SorterWidget extends WF_Widget {
 			Table t = al.getTable();
 			List<List<String>> rows = t.getRowsContaining(selectionField,selectionPattern);
 			if (rows!=null) {
-				Log.d("nils","SORTERWIDGET: GETROWS RETURNED "+rows.size()+" FOR SELFIELD "+selectionField+" AND SELP: "+selectionPattern);
+				Log.d(TAG,"SORTERWIDGET: GETROWS RETURNED "+rows.size()+" FOR SELFIELD "+selectionField+" AND SELP: "+selectionPattern);
 
 				int cIndex = t.getColumnIndex(displayField);
 				if (cIndex != -1) {
@@ -188,7 +190,7 @@ public class WF_SorterWidget extends WF_Widget {
 							b.setTextOn(txt);
 							b.setOnCheckedChangeListener(cl);
 							buttonPanel.addView(b);				
-							//Log.d("nils","Added button "+txt+" length "+txt.length());
+							//Log.d(TAG,"Added button "+txt+" length "+txt.length());
 						}
 
 
@@ -204,7 +206,7 @@ public class WF_SorterWidget extends WF_Widget {
 		} else if (type.equals("column_toggle") ) {
 			final CompoundButton.OnCheckedChangeListener dl = (button, isChecked) -> {
                 String ch = button.getText().toString();
-                Log.d("Strand","User pressed "+ch);
+                Log.d(TAG,"User pressed "+ch);
                 //This shall apply a new Alpha filter on target.
                 //First, remove any existing alpha filter.
                 targetList.removeFilter(existing);
@@ -223,7 +225,7 @@ public class WF_SorterWidget extends WF_Widget {
 			Table t = al.getTable();
 			List<List<String>> rows = t.getRowsContaining(selectionField,selectionPattern);
 			if (rows!=null) {
-				Log.d("nils","SORTERWIDGET: GETROWS RETURNED "+rows.size()+" FOR SELFIELD "+selectionField+" AND SELP: "+selectionPattern);
+				Log.d(TAG,"SORTERWIDGET: GETROWS RETURNED "+rows.size()+" FOR SELFIELD "+selectionField+" AND SELP: "+selectionPattern);
 
 				int cIndex = t.getColumnIndex(displayField);
 				if (cIndex != -1) {
@@ -264,7 +266,7 @@ public class WF_SorterWidget extends WF_Widget {
 							toggleB.setChecked(false);
 							toggleB.setOnCheckedChangeListener(dl);
 							buttonPanel.addView(toggleB);
-							Log.d("cair","Added toggle button "+txt+" length "+txt.length());
+							Log.d(TAG,"Added toggle button "+txt+" length "+txt.length());
 						}
 
 

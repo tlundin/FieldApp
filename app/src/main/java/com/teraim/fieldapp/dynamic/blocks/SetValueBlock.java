@@ -6,6 +6,8 @@ import com.teraim.fieldapp.utils.Expressor.EvalExpr;
 import java.util.List;
 
 public class SetValueBlock extends Block {
+	private static final String TAG = "SetValueBlock";
+
 
 
 	public enum ExecutionBehavior {
@@ -60,7 +62,7 @@ public class SetValueBlock extends Block {
 			return subst;
 		if (subst!=null && !sr.iAmAString()) { 
 			subst = re.parseExpression(formula,subst);
-			Log.d("vortex","YYY Evaluate "+subst);
+			Log.d(TAG,"YYY Evaluate "+subst);
 			return subst;
 		}
 		if (sr.iAmAString() && subst  == null) {
@@ -68,7 +70,7 @@ public class SetValueBlock extends Block {
 			return null;
 		}
 		else {
-			Log.d("nils","New eval returns "+subst);
+			Log.d(TAG,"New eval returns "+subst);
 			return subst;
 		}
 

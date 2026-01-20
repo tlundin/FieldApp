@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * via LiveData objects.
  */
 public class StatefulModuleLoader implements ModuleLoaderCb {
+    private static final String TAG = "StatefulModuleLoader";
+
 
     private final LoadStage stage;
     private final List<ConfigurationModule> modules;
@@ -45,7 +47,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
         this.modules = modules;
         this.forceReload = forceReload;
         final int NUMBER_OF_CORES = Runtime.getRuntime().availableProcessors();
-        Log.d("StatefulModuleLoader","number of threads: "+NUMBER_OF_CORES);
+        Log.d(TAG,"number of threads: "+NUMBER_OF_CORES);
         this.executor = Executors.newFixedThreadPool(Math.max(2, NUMBER_OF_CORES));
         this.modulesInProgress = new AtomicInteger(modules.isEmpty() ? 0 : modules.size());
 
@@ -87,7 +89,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
                 checkIfAllDone();
                 break;
             case reloadDependant:
-                Log.d("StatefulModuleLoader", "reloadDependant");
+                Log.d(TAG, "reloadDependant");
             default:
                 System.out.println("Module [" + module.getLabel() + "] finished with unhandled code: " + result.errCode);
                 checkIfAllDone();
@@ -111,7 +113,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
     private void checkIfAllDone() {
         // This is the old, incorrect position for the update
         // updateProgress();
-        Log.d("StatefulModuleLoader", "checkIfAllDone"+" modules in progress "+modulesInProgress.get());
+        Log.d(TAG, "checkIfAllDone"+" modules in progress "+modulesInProgress.get());
 
         if (modulesInProgress.decrementAndGet() == 0) {
             // --- This block now executes only for the very last module ---
@@ -146,7 +148,7 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
      * Generates and posts a summary string for the UI to display progress.
      */
     private void updateProgress(AtomicInteger modulesInProgress) {
-        Log.d("StatefulModuleLoader", "updateProgress");
+        Log.d(TAG, "updateProgress");
         LogRepository.getInstance().addColorText("Modules in progress ["+modulesInProgress.get()+"]", Color.parseColor("#E6E6FA"));
         StringBuilder sb = new StringBuilder();
         long completed = modules.stream().filter(m ->

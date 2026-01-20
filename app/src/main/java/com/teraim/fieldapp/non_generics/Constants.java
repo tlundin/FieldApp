@@ -34,6 +34,8 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class Constants {
+	private static final String TAG = "Constants";
+
 
 
     public static final String VORTEX_VERSION = "11.28";
@@ -195,7 +197,7 @@ public class Constants {
         List<ConfigurationModule> ret = new ArrayList<>();
         //Workflow xml. Named same as bundle.
         final String pathOrURL = server + bundle.toLowerCase() + "/";
-        Log.d("vortex","Parthorurl is now"+pathOrURL);
+        Log.d(TAG,"Parthorurl is now"+pathOrURL);
         String cachePath = context.getFilesDir()+"/"+bundle.toLowerCase(Locale.ROOT) + "/cache/";
         ret.add(new WorkFlowBundleConfiguration(context,cachePath,globalPh,ph,pathOrURL,bundle,debugConsole));
         ret.add(new SpinnerConfiguration(context,globalPh,ph,pathOrURL,debugConsole));
@@ -214,7 +216,7 @@ public class Constants {
         File[] listOfFiles = folder.listFiles();
         if (listOfFiles!=null) {
             for (File f:listOfFiles) {
-                Log.d("vortex","scanning "+f.getName());
+                Log.d(TAG,"scanning "+f.getName());
                 if (f.isFile() && f.getName().endsWith(".json"))
                     ret.add(f.getName().substring(0, f.getName().length()-".json".length()));
             }

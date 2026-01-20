@@ -11,6 +11,8 @@ import java.util.Set;
  * Created by Terje on 2016-11-14.
  */
 public class TimeStampedMap {
+    private static final String TAG = "TimeStampedMap";
+
 
     //uid, mapped to variable id, mapped to timestamp.
     private final Map<Unikey,Map<String,ContentValues>> myMap = new HashMap<>();
@@ -20,7 +22,7 @@ public class TimeStampedMap {
 
 
     public void add(Unikey uniqueKey, String varName, ContentValues cv) {
-        //Log.d("bang","uid: "+uniqueKey+" vn: "+varName);
+        //Log.d(TAG,"uid: "+uniqueKey+" vn: "+varName);
 
         Map<String, ContentValues> ves = myMap.get(uniqueKey);
 
@@ -35,10 +37,10 @@ public class TimeStampedMap {
             ves.put(varName, cv);
             size++;
             //if (natura)
-            //    Log.d("froobos","Adding NATURA: "+cv.getAsString("timestamp"));
+            //    Log.d(TAG,"Adding NATURA: "+cv.getAsString("timestamp"));
         }
         else {
-            //Log.d("zoobaz","VAR: "+varName+" ts: "+existingCV);
+            //Log.d(TAG,"VAR: "+varName+" ts: "+existingCV);
             try {
                 long existingStamp = existingCV.getAsLong("timestamp");
                 long newTimeStamp = cv.getAsLong("timestamp");
@@ -46,12 +48,12 @@ public class TimeStampedMap {
                 //    long existing = Long.parseLong(existingStamp);
                 //    long newTs = Long.parseLong(newTimeStamp);
                     //if (natura) {
-                    //    Log.d("froobos","Replaing NATURA: existing: "+existing+" new: "+newTs);
+                    //    Log.d(TAG,"Replaing NATURA: existing: "+existing+" new: "+newTs);
                     //}
                     if (existingStamp < newTimeStamp)
                         ves.put(varName, cv);
 
-                    //Log.d("zoobaz","SWAP!");
+                    //Log.d(TAG,"SWAP!");
                 //}
 
             } catch (NumberFormatException ignored) {
@@ -66,7 +68,7 @@ public class TimeStampedMap {
         Map<String, ContentValues> ves = myMap.get(uniqueKey);
 
         if (ves!=null && ves.get(varName)!=null) {
-            Log.d("zoobaz","found variable "+varName);
+            Log.d(TAG,"found variable "+varName);
             return ves.get(varName);
         }
 
@@ -86,7 +88,7 @@ public class TimeStampedMap {
     public int delete(Map<String,String> keys, String pattern) {
 
 
-        Log.d("bascar", "KEYS :" + keys);
+        Log.d(TAG, "KEYS :" + keys);
         //check that each key exists.
 
         String uid = keys.get("uid");
@@ -98,7 +100,7 @@ public class TimeStampedMap {
         if (pattern==null){
            vars = (myMap.remove(Unikey.FindKeyFromParts(uid, null, myMap.keySet())));
            if (vars!=null) {
-               Log.d("bascar", "deleteall removed something!");
+               Log.d(TAG, "deleteall removed something!");
                return vars.size();
            } else
                return 0;
@@ -107,7 +109,7 @@ public class TimeStampedMap {
             int result = 0;
             for(String var:vars.keySet()) {
                 if (var.matches(pattern) ) {
-                    Log.d("bascar","deleting "+var);
+                    Log.d(TAG,"deleting "+var);
                     result++;
                 }
             }
@@ -118,19 +120,19 @@ public class TimeStampedMap {
 
 
       public void delete(Unikey uniqueKey, String variableName) {
-        //Log.d("bascar","In deleteTimeSTMap with: "+uniqueKey+","+variableName);
+        //Log.d(TAG,"In deleteTimeSTMap with: "+uniqueKey+","+variableName);
         if (uniqueKey==null || variableName==null) {
             return;
         }
         Map<String, ContentValues> ves = myMap.get(uniqueKey);
         if (ves!=null && ves.get(variableName)!=null) {
-            Log.d("bascar","Deleting "+variableName+" from Timestamped map");
+            Log.d(TAG,"Deleting "+variableName+" from Timestamped map");
             ves.remove(variableName);
             if (ves.isEmpty())
                 myMap.remove(uniqueKey);
             return;
         }
-        Log.d("bascar","no entry for "+variableName+" in sync cache");
+        Log.d(TAG,"no entry for "+variableName+" in sync cache");
 
     }
 
@@ -145,7 +147,7 @@ public class TimeStampedMap {
         if (key==null)
             key = new Unikey(uid,sub);
         //else
-         //   Log.d("bascar","found existing key for "+uid);
+         //   Log.d(TAG,"found existing key for "+uid);
         return key;
 
     }

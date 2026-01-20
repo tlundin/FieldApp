@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BlockAddColumnsToTable extends Block {
+	private static final String TAG = "BlockAddColumnsToTable";
+
 
 	private final String name=null;
     private String target=null;
@@ -63,11 +65,11 @@ public class BlockAddColumnsToTable extends Block {
 				//check for "-" interval.
 				key = key.trim();
 				if (key.contains("-")) {
-					Log.d("vortex","found potential range in colkey: "+key);
+					Log.d(TAG,"found potential range in colkey: "+key);
 					String[] rangeA = key.split("-");
 					if (rangeA!=null && rangeA.length==2) {
 						String n1 = rangeA[0].trim(); String n2 = rangeA[1].trim();
-						Log.d("vortex","found likely range: "+n1+"-"+n2);
+						Log.d(TAG,"found likely range: "+n1+"-"+n2);
 						if (Tools.isNumeric(n1)&&Tools.isNumeric(n2)) {
 							int start = Integer.parseInt(rangeA[0]);
 							int end = Integer.parseInt(rangeA[1]);
@@ -80,7 +82,7 @@ public class BlockAddColumnsToTable extends Block {
 				} else
 					columnKeyL.add(key);
 				}
-				Log.d("vortex","Colkey: "+columnKeyL.toString()+" \nLabels: "+labels.toString());
+				Log.d(TAG,"Colkey: "+columnKeyL.toString()+" \nLabels: "+labels.toString());
 			}
 		}
 		myTable.addColumns(labels,columnKeyL,type,width,backgroundColor,textColor);

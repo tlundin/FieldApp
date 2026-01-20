@@ -24,6 +24,8 @@ import static com.teraim.fieldapp.utils.Tools.cutKeyMap;
 
 
 public class VariableCache {
+	private static final String TAG = "VariableCache";
+
 
     private final static String vCol = "value";
     String varID;
@@ -57,7 +59,7 @@ public class VariableCache {
                 i++;
             }
         }
-        Log.d("vortex", "RESET: INVALIDATED " + i + " variables");
+        Log.d(TAG, "RESET: INVALIDATED " + i + " variables");
         newcache.clear();
         globalCache = this.createOrGetCache(null);
         currentCache = globalCache;
@@ -66,7 +68,7 @@ public class VariableCache {
     public void setCurrentContext(DB_Context context) {
         currentHash = context.getContext();
         currentCache = this.createOrGetCache(currentHash);
-        Log.d("vortex", "currentCache is now based on " + context);
+        Log.d(TAG, "currentCache is now based on " + context);
         myDbContext = context;
     }
 
@@ -79,7 +81,7 @@ public class VariableCache {
         Map<String, Variable> ret = newcache.get(myKeyHash);
         if (ret == null) {
             if (myKeyHash != null) {
-                Log.d("vortex", "Creating Empty Cache for " + myKeyHash + " hash: " + myKeyHash.hashCode());
+                Log.d(TAG, "Creating Empty Cache for " + myKeyHash + " hash: " + myKeyHash.hashCode());
                 Map<String, String> copy = copyKeyHash(myKeyHash);
                 ret = new HashMap<String, Variable>();
                 newcache.put(copy, ret);
@@ -93,7 +95,7 @@ public class VariableCache {
     public void preCache() {
         long time = System.currentTimeMillis();
         for(String varId: preCacheVariables) {
-            //Log.d("v", "Precaching all variables for " + varId);
+            //Log.d(TAG, "Precaching all variables for " + varId);
             DbHelper.Selection s = gs.getDb().createSelection(null, varId);
             DbHelper.DBColumnPicker p = gs.getDb().getAllVariableInstances(s);
             Variable v;
@@ -101,11 +103,11 @@ public class VariableCache {
                 DbHelper.StoredVariableData sv = p.getVariable();
                 List<String> varDesc = gs.getVariableConfiguration().getCompleteVariableDefinition(varId);
                 if (varDesc == null) {
-                    Log.d("vortex","skipping precache of variable "+varId);
+                    Log.d(TAG,"skipping precache of variable "+varId);
                     continue;
                 }
                 v = new Variable(varId, gs.getVariableConfiguration().getVarLabel(varDesc), varDesc, p.getKeyColumnValues(), gs, vCol, sv.value, true, null);
-                //Log.d("v", "precaching " + varId+" hash: "+p.getKeyColumnValues() + " with value " + sv.value);
+                //Log.d(TAG, "precaching " + varId+" hash: "+p.getKeyColumnValues() + " with value " + sv.value);
                 String uid = p.getKeyColumnValues().get("uid");
                 if (preCache.get(uid) == null)
                     preCache.put(uid, new HashMap<String, Variable>());
@@ -114,7 +116,7 @@ public class VariableCache {
             p.close();
 
         }
-        Log.d("spandex","precache time: "+(System.currentTimeMillis()-time)+" precache size "+preCache.size());
+        Log.d(TAG,"precache time: "+(System.currentTimeMillis()-time)+" precache size "+preCache.size());
     }
 
     public Map<String, Variable> createOrGetCache(Map<String, String> myKeyHash) {
@@ -124,12 +126,12 @@ public class VariableCache {
         if (ret == null) {
             if (myKeyHash != null) {
 
-                //Log.d("vortex", "Creating Cache for " + myKeyHash + " hash: " + myKeyHash.hashCode());
+                //Log.d(TAG, "Creating Cache for " + myKeyHash + " hash: " + myKeyHash.hashCode());
                 copy = copyKeyHash(myKeyHash);
 
             }
             else
-                Log.d("vortex", "Creating Cache for keyhash null");
+                Log.d(TAG, "Creating Cache for keyhash null");
 
             ret = createAllVariablesForKey(copy);
             if (ret == null) {
@@ -139,9 +141,9 @@ public class VariableCache {
 
 
             newcache.put(copy, ret);
-            Log.d("vortex","time: "+(System.currentTimeMillis()-t)+" variables created: "+ret.size());
+            Log.d(TAG,"time: "+(System.currentTimeMillis()-t)+" variables created: "+ret.size());
         } else {
-            //Log.d("vortex", "Returning existing cache for " + myKeyHash+" : "+ret);
+            //Log.d(TAG, "Returning existing cache for " + myKeyHash+" : "+ret);
 
         }
 
@@ -161,13 +163,13 @@ public class VariableCache {
     public void deleteCacheEntry(Map<String, String> myKeyHash) {
         Map<String, Variable> ret = newcache.remove(myKeyHash);
         if (ret != null) {
-            Log.d("vortex", "found and deleted " + myKeyHash + " from cache");
+            Log.d(TAG, "found and deleted " + myKeyHash + " from cache");
         } else
             Log.e("vortex", "key hash does not exist in deletecacheentry." + myKeyHash);
     }
 
     private Map<String, Variable> createAllVariablesForKey(Map<String, String> myKeyHash) {
-        Log.d("vorto","adding hash "+myKeyHash);
+        Log.d(TAG,"adding hash "+myKeyHash);
         GlobalState gs = GlobalState.getInstance();
         long time = System.currentTimeMillis();
         Map<String, Variable> ret = null;
@@ -207,7 +209,7 @@ public class VariableCache {
                         String[] rowKHA=null;
                         if (myKeyHash != null) {
                             myKeyhashSize = myKeyHash.keySet().size();
-                            //Log.d("gungo","myKSize: "+myKeyhashSize+" myKeyHash: "+myKeyHash.keySet()+"rowKH: "+rowKH);
+                            //Log.d(TAG,"myKSize: "+myKeyhashSize+" myKeyHash: "+myKeyHash.keySet()+"rowKH: "+rowKH);
                         }
                         if (rowKH != null && !rowKH.isEmpty()) {
                             rowKHA = rowKH.split("\\|");
@@ -215,8 +217,8 @@ public class VariableCache {
 
                         if (rowKHA !=null && myKeyhashSize != rowKHA.length) {
 
-                            Log.d("part", "partiell nyckel. IN ROW: " + rowKH + " IN DB: " + (myKeyHash == null ? "null" : myKeyHash.toString()));
-                            Log.d("part","searching if there is one unique result on partial key");
+                            Log.d(TAG, "partiell nyckel. IN ROW: " + rowKH + " IN DB: " + (myKeyHash == null ? "null" : myKeyHash.toString()));
+                            Log.d(TAG,"searching if there is one unique result on partial key");
                             if (myKeyHash == null) {
                                 Log.e("vortex","Keyhash null for "+varName+" Dropping");
                                 //gs.getDb().deleteVariable(varName,gs.getDb().createSelection(null, varName),false);
@@ -234,18 +236,18 @@ public class VariableCache {
                         else
                             v = new Variable(varName, header, row, myKeyHash, gs, vCol, variableValues.norm, true, variableValues.hist);
                         ret.put(varName.toLowerCase(), v);
-						//Log.d("vorto","Added "+varName+" to cache with value n:"+variableValues.norm+" h: "+variableValues.hist);
+						//Log.d(TAG,"Added "+varName+" to cache with value n:"+variableValues.norm+" h: "+variableValues.hist);
                     }
                 }
             } else
-                Log.d("vortex", "Map empty in CreateAllVariablesForKey");
+                Log.d(TAG, "Map empty in CreateAllVariablesForKey");
 
 
         }
         long ctime = System.currentTimeMillis();
-        //Log.d("vortex", "Generating all variables took: " + (ctime - time) + " ms");
-        //Log.d("vortex", "Key: " + myKeyHash);
-        //Log.d("vortex", "Variables found: "+(ret==null?"null":ret.keySet()));
+        //Log.d(TAG, "Generating all variables took: " + (ctime - time) + " ms");
+        //Log.d(TAG, "Key: " + myKeyHash);
+        //Log.d(TAG, "Variables found: "+(ret==null?"null":ret.keySet()));
         return ret;
     }
 
@@ -253,7 +255,7 @@ public class VariableCache {
     public void put(Variable v) {
         Map<String, Variable> map = newcache.get(v.getKeyChain());
         if (map!=null) {
-            Log.d("vortex","succesfully added variable "+v.getId()+"to "+v.getKeyChain());
+            Log.d(TAG,"successfully added variable "+v.getId()+"to "+v.getKeyChain());
             map.put(v.getId(), v);
         }
     }
@@ -272,15 +274,15 @@ public class VariableCache {
     }
 
     public Variable getVariable(Map<String, String> keyChain, String varId) {
-        //Log.d("spandex","in getvar for "+varId+" with keychain "+keyChain);
+        //Log.d(TAG,"in getvar for "+varId+" with keychain "+keyChain);
         if (preCacheVariables.contains(varId)) {
             Map<String, Variable> entry = preCache.get(keyChain.get("uid"));
             if (entry != null) {
                 Variable v = entry.get(varId);
                 if (v == null)
-                    Log.d("v", "Variable not found for uid " + keyChain.get("uid"));
+                    Log.d(TAG, "Variable not found for uid " + keyChain.get("uid"));
                 else {
-                    //Log.d("v", "Precache Variable found for uid " + keyChain.get("uid"));
+                    //Log.d(TAG, "Precache Variable found for uid " + keyChain.get("uid"));
                     return v;
                 }
             }
@@ -292,7 +294,7 @@ public class VariableCache {
 
     //A variable that is given a value at start.
     public Variable getCheckedVariable(Map<String, String> keyChain, String varId, String value, Boolean wasInDatabase) {
-        //Log.d("spandex","in getcheckedvar for "+varId+" with keychain "+keyChain);
+        //Log.d(TAG,"in getcheckedvar for "+varId+" with keychain "+keyChain);
         return getVariable(keyChain, createOrGetCache(keyChain), varId, value, wasInDatabase);
     }
 
@@ -328,9 +330,9 @@ public class VariableCache {
 
 
     public Variable getVariable(Map<String, String> hash, Map<String, Variable> cache, String varId, String defaultValue, Boolean hasValueInDB) {
-        //Log.d("vortex", "in CACHE GetVariable for " + varId);
+        //Log.d(TAG, "in CACHE GetVariable for " + varId);
         long t0 = System.currentTimeMillis();
-        //Log.d("vortex","cache is "+cache);
+        //Log.d(TAG,"cache is "+cache);
         if (varId == null) {
             Log.e("vortex","getVariable in Cache called with VarId = null");
             return null;
@@ -358,59 +360,59 @@ public class VariableCache {
 
             if (variable == null) {
                 //for (String s:cache.keySet())
-                //	Log.d("vortex","In cache: "+s);
-                //Log.d("nils","Creating new CacheList entry for "+varId);
+                //	Log.d(TAG,"In cache: "+s);
+                //Log.d(TAG,"Creating new CacheList entry for "+varId);
                 String header = gs.getVariableConfiguration().getVarLabel(row);
                 DataType type = gs.getVariableConfiguration().getnumType(row);
-                //Log.d("vortex","T1:"+(System.currentTimeMillis()-t0));
+                //Log.d(TAG,"T1:"+(System.currentTimeMillis()-t0));
                 //TODO: ABRAKA CHANGE TO FALSE BELOW
                 if (type == DataType.array)
                     variable = new ArrayVariable(varId, header, row, hash, gs, vCol, defaultValue, hasValueInDB, "*NULL*");
                 else {
-                    //Log.d("vortex","varche defval: "+defaultValue+" for "+varId);
+                    //Log.d(TAG,"varche defval: "+defaultValue+" for "+varId);
                     variable = new Variable(varId, header, row, hash, gs, vCol, defaultValue, hasValueInDB, "*NULL*");
                 }
                 cache.put(varId.toLowerCase(), variable);
             } else
-                Log.d("vortex", "Found " + variable.getId() + " in global cache with value " + variable.getValue() + " varhash:" + tryThis);
+                Log.d(TAG, "Found " + variable.getId() + " in global cache with value " + variable.getValue() + " varhash:" + tryThis);
 
         } else {
-            //Log.d("vortex","Found "+variable.getId()+" in cache with value "+variable.getValue()+" varobj: "+variable.toString());
+            //Log.d(TAG,"Found "+variable.getId()+" in cache with value "+variable.getValue()+" varobj: "+variable.toString());
 
             //hasValueInDB = false, if value is null in DB, NULL if no known value, true if known value.
             if (variable.unknown && hasValueInDB!=null) {
                 variable.unknown=false;
             }
             if (variable.getValue() == null && defaultValue != null && !defaultValue.equals(Constants.NO_DEFAULT_VALUE)) {
-                Log.d("vortex", "defTrigger on " + defaultValue);
+                Log.d(TAG, "defTrigger on " + defaultValue);
                 variable.setDefaultValue(defaultValue);
             }
-            //Log.d("vortex","default value: "+defaultValue);
+            //Log.d(TAG,"default value: "+defaultValue);
         }
-        //Log.d("vortex","Te:"+(System.currentTimeMillis()-t0));
-        //Log.d("vortex", "variable found with value " + variable.getValue());
+        //Log.d(TAG,"Te:"+(System.currentTimeMillis()-t0));
+        //Log.d(TAG, "variable found with value " + variable.getValue());
         return variable;
     }
 
 
     //Check if two maps are equal
     private static boolean Eq(Map<String, String> chainToFind, Map<String, String> varChain) {
-        //		Log.d("nils","in Varcache EQ");
+        //		Log.d(TAG,"in Varcache EQ");
         if (chainToFind == null && varChain == null)
             return true;
         if (chainToFind == null || varChain == null || chainToFind.size() < varChain.size()) {
-            //			Log.d("nils","eq returns false. Trying to match: "+(chainToFind==null?"null":chainToFind.toString())+" with: "+(varChain==null?"null":varChain.toString()));
+            //			Log.d(TAG,"eq returns false. Trying to match: "+(chainToFind==null?"null":chainToFind.toString())+" with: "+(varChain==null?"null":varChain.toString()));
             return false;
         }
-        //		Log.d("nils","ChainToFind: "+chainToFind.toString());
-        //		Log.d("nils","VarChain: "+varChain.toString());
+        //		Log.d(TAG,"ChainToFind: "+chainToFind.toString());
+        //		Log.d(TAG,"VarChain: "+varChain.toString());
         for (String key : varChain.keySet()) {
             if (chainToFind.get(key) == null) {
-                //				Log.d("nils","eq returns false. Key "+key+" is not in Chaintofind: "+chainToFind.toString());
+                //				Log.d(TAG,"eq returns false. Key "+key+" is not in Chaintofind: "+chainToFind.toString());
                 return false;
             }
             if (!chainToFind.get(key).equals(varChain.get(key))) {
-                //				Log.d("nils","eq returns false. Key "+key+" has different value than varchain with same key: "+chainToFind.get(key)+","+varChain.get(key));
+                //				Log.d(TAG,"eq returns false. Key "+key+" has different value than varchain with same key: "+chainToFind.get(key)+","+varChain.get(key));
                 return false;
             }
 
@@ -420,22 +422,22 @@ public class VariableCache {
 
     //Check if two maps are equal
     private static boolean SubsetOf(Map<String, String> chainToFind, Map<String, String> varChain) {
-        //		Log.d("nils","in Varcache EQ");
+        //		Log.d(TAG,"in Varcache EQ");
         if (chainToFind == null && varChain == null)
             return true;
         if (chainToFind == null || varChain == null || varChain.size() < chainToFind.size()) {
-            //			Log.d("nils","eq returns false. Trying to match: "+(chainToFind==null?"null":chainToFind.toString())+" with: "+(varChain==null?"null":varChain.toString()));
+            //			Log.d(TAG,"eq returns false. Trying to match: "+(chainToFind==null?"null":chainToFind.toString())+" with: "+(varChain==null?"null":varChain.toString()));
             return false;
         }
-        Log.d("nils", "ChainToFind: " + chainToFind.toString());
-        Log.d("nils", "VarChain: " + varChain.toString());
+        Log.d(TAG, "ChainToFind: " + chainToFind.toString());
+        Log.d(TAG, "VarChain: " + varChain.toString());
         for (String key : chainToFind.keySet()) {
             if (chainToFind.get(key) == null) {
-                Log.d("nils", "SubsetOf returns false. Key " + key + " is not in Chaintofind: " + chainToFind.toString());
+                Log.d(TAG, "SubsetOf returns false. Key " + key + " is not in Chaintofind: " + chainToFind.toString());
                 return false;
             }
             if (!chainToFind.get(key).equals(varChain.get(key))) {
-                Log.d("nils", "SubsetOf returns false. Key " + key + " has different value than varchain with same key: " + chainToFind.get(key) + "," + varChain.get(key));
+                Log.d(TAG, "SubsetOf returns false. Key " + key + " has different value than varchain with same key: " + chainToFind.get(key) + "," + varChain.get(key));
                 return false;
             }
 
@@ -445,14 +447,14 @@ public class VariableCache {
 
 
     public void invalidateOnName(String varId) {
-        Log.d("nils", "invalidating variable named " + varId);
+        Log.d(TAG, "invalidating variable named " + varId);
         Variable v = currentCache.get(varId.toLowerCase());
 
         if (v != null) {
-            Log.d("nils", "Found variable " + v.getId() + ". Invalidating..");
+            Log.d(TAG, "Found variable " + v.getId() + ". Invalidating..");
             v.invalidate();
         } else {
-            Log.d("nils", "Could not find variable " + varId + " in invalidateOnName");
+            Log.d(TAG, "Could not find variable " + varId + " in invalidateOnName");
         }
 
     }
@@ -460,7 +462,7 @@ public class VariableCache {
     //Invalidate all variables in any group containing at least one instance matching the keyChain.
 
     public void invalidateOnKey(Map<String, String> keyChain, boolean exactMatch) {
-        Log.d("nils", "invalidating all variables in Cache matching " + keyChain.toString() + " with exactMatch set to " + exactMatch);
+        Log.d(TAG, "invalidating all variables in Cache matching " + keyChain.toString() + " with exactMatch set to " + exactMatch);
         if (exactMatch) {
             //invalidate all variables with the given key.
             this.refreshCache(keyChain);
@@ -470,7 +472,7 @@ public class VariableCache {
         else {
             for (Map<String, String> chain : newcache.keySet()) {
                 if (SubsetOf(keyChain, chain)) {
-                    Log.d("vortex", "found subset chain " + chain.toString());
+                    Log.d(TAG, "found subset chain " + chain.toString());
                     this.refreshCache(chain);
                     this.deleteCacheEntry(chain);
 
@@ -482,16 +484,16 @@ public class VariableCache {
     //Delete all variables with the given hash with sync
 /*
     public void deleteAll(Map<String, String> keyChain) {
-        Log.d("vortex","In delete all variables!");
+        Log.d(TAG,"In delete all variables!");
         Map<String, Variable> varMap = newcache.remove(keyChain);
         if (varMap==null)
            ; //varMap = createAllVariablesForKey(keyChain);
         else {
-            Log.d("vortex", "Already have cached!");
+            Log.d(TAG, "Already have cached!");
 
         if (varMap!=null && varMap.values()!=null && !varMap.values().isEmpty()) {
             for (Variable v : varMap.values()) {
-                Log.d("vortex", "deleting " + v.getLabel());
+                Log.d(TAG, "deleting " + v.getLabel());
                 v.deleteValue();
             }
         }
@@ -502,34 +504,34 @@ public class VariableCache {
 
     //Find all variables in cache with a given keyhash that belongs to the given group.
     public List<Variable> findVariablesBelongingToGroup(Map<String, String> keyChain, String groupName) {
-        Log.d("vortex", "In FindVariablesBelongingToGroup");
+        Log.d(TAG, "In FindVariablesBelongingToGroup");
         //Identify matching variables.
         Map<String, Variable> cache = newcache.get(keyChain);
         if (cache != null) {
-            Log.d("vortex", "findVariablesBelongingToGroup: " + keyChain.toString() + " size of cache " + cache.size());
+            Log.d(TAG, "findVariablesBelongingToGroup: " + keyChain.toString() + " size of cache " + cache.size());
             boolean found = false;
             groupName = groupName.toLowerCase();
             Set<String> myKeys = new HashSet<String>();
             for (String varName : cache.keySet()) {
-                Log.d("vortex", "Looking at varName: " + varName);
+                Log.d(TAG, "Looking at varName: " + varName);
                 //Take first in each list.
                 if (varName.startsWith(groupName)) {
-                    Log.d("vortex", "found one: " + varName);
+                    Log.d(TAG, "found one: " + varName);
                     myKeys.add(varName);
                 }
 
             }
             if (myKeys.isEmpty()) {
-                Log.d("vortex", "found no variable of group " + groupName);
+                Log.d(TAG, "found no variable of group " + groupName);
                 return null;
             }
-            Log.d("vortex", "myKeys has " + myKeys.size() + " members");
+            Log.d(TAG, "myKeys has " + myKeys.size() + " members");
             List<Variable> resultSet = new ArrayList<Variable>();
             for (String vName : myKeys)
                 resultSet.add(cache.get(vName));
             return resultSet;
         }
-        Log.d("vortex", "No cache exists for" + keyChain);
+        Log.d(TAG, "No cache exists for" + keyChain);
         return null;
 
     }
@@ -540,17 +542,17 @@ public class VariableCache {
     private final static String uniqueKey = "uid";
     public boolean turboRemoveOrInvalidate(String uniqueKeyValue, String sub, String variableName, boolean invalidate) {
 //        if (prevValue!=null && prevValue.equals(uniqueKeyValue))
-        //Log.d("bascar","turbo1 "+uniqueKeyValue+" "+variableName);
+        //Log.d(TAG,"turbo1 "+uniqueKeyValue+" "+variableName);
         boolean success =false;
         for (Map<String, String> chain : newcache.keySet()) {
-            //Log.d("bascar","turbo2 chain: "+chain+" uniq: "+uniqueKey+" uval: "+uniqueKeyValue);
+            //Log.d(TAG,"turbo2 chain: "+chain+" uniq: "+uniqueKey+" uval: "+uniqueKeyValue);
             if (chain!=null && chain.containsKey(uniqueKey) && chain.get(uniqueKey).equals(uniqueKeyValue)) {
-                //Log.d("bascar","turbo3 Varname: "+variableName+"cache:"+newcache.get(chain));
+                //Log.d(TAG,"turbo3 Varname: "+variableName+"cache:"+newcache.get(chain));
                 if (sub==null || (chain.containsKey("sub") && sub.equals(chain.get("sub")))) {
                     Variable v = newcache.get(chain).get(variableName.toLowerCase());
                     if (v != null) {
 
-                        Log.d("maggan", "Invalidated " + v.getId() + "SUB: "+sub+" UUID: "+uniqueKeyValue+". Chain eq to prevchain?" + (prevChain != null && prevChain.equals(chain)));
+                        Log.d(TAG, "Invalidated " + v.getId() + "SUB: "+sub+" UUID: "+uniqueKeyValue+". Chain eq to prevchain?" + (prevChain != null && prevChain.equals(chain)));
                         if (invalidate)
                             v.invalidate();
                         else
@@ -565,13 +567,13 @@ public class VariableCache {
     }
 
     public void insert(String name, Map<String, String> keyHash, String newValue) {
-        //Log.d("vortex", "In insert with " + keyHash.toString());
+        //Log.d(TAG, "In insert with " + keyHash.toString());
         Map<String, Variable> vars = newcache.get(keyHash);
         if (vars != null) {
-            //Log.d("vortex", "finding " + name);
+            //Log.d(TAG, "finding " + name);
             Variable var = vars.get(name.toLowerCase());
             if (var != null) {
-                Log.d("vortex", "replacing value " + var.getValue() + " with " + newValue);
+                Log.d(TAG, "replacing value " + var.getValue() + " with " + newValue);
                 var.setOnlyCached(newValue);
             } else {
                 Log.e("vortex", "did not find variable " + name + " in cache");
@@ -583,45 +585,45 @@ public class VariableCache {
     }
 
     public void delete(String name, Map<String, String> keyHash) {
-        Log.d("vortex", "In delete with " + keyHash.toString());
+        Log.d(TAG, "In delete with " + keyHash.toString());
         Map<String, Variable> vars = newcache.get(keyHash);
         if (vars != null) {
-            Log.d("vortex", "finding " + name);
+            Log.d(TAG, "finding " + name);
             Variable var = vars.get(name.toLowerCase());
             if (var != null) {
-                Log.d("vortex", "removing variable " + name);
+                Log.d(TAG, "removing variable " + name);
                 //Variable removedVar = vars.remove(name.toLowerCase());
                 //if (removedVar!=null) {
-                //    Log.d("vortex","REMOVED!");
+                //    Log.d(TAG,"REMOVED!");
                 //    removedVar.invalidate();
                 //} else
                 //    Log.e("vortex","REMOVE FAILED ");
                 //if (vars.get(name.toLowerCase())!=null)
-                //    Log.d("vortex","still able to find "+name);
+                //    Log.d(TAG,"still able to find "+name);
                 var.setOnlyCached(null);
             } else {
-                Log.d("vortex", "did not find variable " + name + " in cache");
+                Log.d(TAG, "did not find variable " + name + " in cache");
             }
         } else
-            Log.d("vortex", "not found!");
+            Log.d(TAG, "not found!");
     }
 
     public void printCache() {
-        Log.d("vortex", "newCache: ");
+        Log.d(TAG, "newCache: ");
         for (Map<String, String> key : newcache.keySet()) {
             if (key != null) {
-                Log.d("vortex", key.toString() + ", HASH: " + key.hashCode());
+                Log.d(TAG, key.toString() + ", HASH: " + key.hashCode());
                 Map<String, Variable> varMap = newcache.get(key);
                 for (String vKey : varMap.keySet()) {
                     Variable v = varMap.get(vKey);
                     if (v.getKeyChain().equals(key))
-                        Log.d("vortex", "        " + v.getId() + " värde: " + v.getValue()+" invalid: "+v.isInvalidated()+" isusingdef: "+v.isUsingDefault());
+                        Log.d(TAG, "        " + v.getId() + " värde: " + v.getValue()+" invalid: "+v.isInvalidated()+" isusingdef: "+v.isUsingDefault());
                     else
                         Log.e("vortex", "       " + v.getId() + " Nyckel: " + v.getKeyChain()+" värde: "+v.getValue());
                 }
 
             } else
-                Log.d("vortex", "*NULL*");
+                Log.d(TAG, "*NULL*");
         }
     }
 

@@ -77,6 +77,8 @@ import java.util.TreeSet;
 import java.util.UUID;
 
 public class Tools {
+	private static final String TAG = "Tools";
+
 
 	// You can add this as a static helper method in a utility class or directly in SettingsFragment
 // (though a separate utility class is cleaner for image manipulation).
@@ -110,7 +112,7 @@ public class Tools {
 	}
 	public static void sendMail (Activity ctx,String fileName,String email)
 	{
-		Log.d("vortex","full name is "+fileName);
+		Log.d(TAG,"full name is "+fileName);
 		File[] externalStorageVolumes =
 				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
 		File primaryExternalStorage = externalStorageVolumes[0];
@@ -144,7 +146,7 @@ public class Tools {
 	}
 */
     public static int eraseFolder(String s) {
-		Log.d("franzon","Erasing cache folder");
+		Log.d(TAG,"Erasing cache folder");
 		File dir = new File(s);
 		if (dir.isDirectory())
 		{
@@ -153,7 +155,7 @@ public class Tools {
                 for (String aChildren : children) {
                     new File(dir, aChildren).delete();
                 }
-				Log.d("vortex", "erased " + children.length + " files from cache");
+				Log.d(TAG, "erased " + children.length + " files from cache");
 				return children.length;
 			}
 		}
@@ -273,7 +275,7 @@ public class Tools {
 
 	public static void witeObjectToFile(Object object, String filename) throws IOException {
 
-		Log.d("nils","Writing frozen object to file "+filename);
+		Log.d(TAG,"Writing frozen object to file "+filename);
 		ObjectOutputStream objectOut = null;
 		try {
 			FileOutputStream fileOut = new FileOutputStream(filename);
@@ -314,7 +316,7 @@ public class Tools {
 			object = objectIn.readObject();
 
 		} catch (Exception e) {
-			Log.d("vortex","thaw failed ");
+			Log.d(TAG,"thaw failed ");
 			e.printStackTrace();
 			object=null;
 		}  finally {
@@ -416,7 +418,7 @@ public class Tools {
 			return null;
 		} catch (IOException e) {
 			// This is expected if the file doesn't exist, so don't spam the log with a stack trace.
-			Log.d("Tools.JsonIO", "IOException reading file (may not exist yet): " + fileName);
+			Log.d(TAG, "IOException reading file (may not exist yet): " + fileName);
 			return null;
 		}
 	}
@@ -436,16 +438,16 @@ public class Tools {
 			Long startTime = System.currentTimeMillis();
 			Object result = gson.fromJson(reader, typeOfT);
 //			System.out.println("DEBUG: JSON being read from file:"+rawJsonContent);
-			Log.d("bamboo",fileName+" read in "+(System.currentTimeMillis()-startTime)+"ms");
+			Log.d(TAG,fileName+" read in "+(System.currentTimeMillis()-startTime)+"ms");
 //			T returnType = (T) result;
-//			Log.d("bamboo","returning "+returnType.getClass().getCanonicalName());
+//			Log.d(TAG,"returning "+returnType.getClass().getCanonicalName());
 			return (T) result;
 		} catch (JsonSyntaxException e) {
 			Log.e("Tools.JsonIO", "JSON syntax error in file: " + fileName);
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			Log.d("Tools.JsonIO", "IOException reading file (may not exist yet): " + fileName);
+			Log.d(TAG, "IOException reading file (may not exist yet): " + fileName);
 			return null;
 		}
 	}
@@ -472,7 +474,7 @@ public class Tools {
 
 	public static Unit convertToUnit(String unit) {
 		if (unit == null) {
-			//Log.d("unit","translates to undefined");
+			//Log.d(TAG,"translates to undefined");
 			return Unit.nd;
 		}
 		Unit[] units = Unit.values();
@@ -509,7 +511,7 @@ public class Tools {
 			decoder = BitmapRegionDecoder.newInstance(fileName, true);
 
 			if (memorized!=null) {
-				Log.d("vortex","trying memorized insample: "+memorized);
+				Log.d(TAG,"trying memorized insample: "+memorized);
 				inSampleSize=memorized;
 			} else {
 				WindowManager wm = (WindowManager) ctx.getSystemService(Context.WINDOW_SERVICE);
@@ -517,8 +519,8 @@ public class Tools {
 				Point size = new Point();
 				display.getSize(size);
 				inSampleSize = Math.round((float) r.width() / (float) size.x);
-				Log.d("vortex","r width: "+r.width()+" screen width: "+size.x);
-				Log.d("vortex","trying insampleSize "+inSampleSize);
+				Log.d(TAG,"r width: "+r.width()+" screen width: "+size.x);
+				Log.d(TAG,"trying insampleSize "+inSampleSize);
 			}
 
 
@@ -537,7 +539,7 @@ public class Tools {
 			if (decoder!=null)
 				decoder.recycle();
 			inSampleMemory.put(r,inSampleSize+2);
-			Log.d("vortex","trying insampleSize "+(inSampleSize+2));
+			Log.d(TAG,"trying insampleSize "+(inSampleSize+2));
 			return getScaledImageRegion(ctx,fileName,r);
 		}
 
@@ -558,26 +560,26 @@ public class Tools {
 			ex.printStackTrace();
 			return null;
 		}
-		Log.d("vortex","w h "+decoder.getWidth()+","+decoder.getHeight());
+		Log.d(TAG,"w h "+decoder.getWidth()+","+decoder.getHeight());
 		final BitmapFactory.Options options = new BitmapFactory.Options();
 		options.inJustDecodeBounds=true;
 		Bitmap piece;
 		decoder.decodeRegion(r,options);
 		int realW = options.outWidth;
 		int realH = options.outHeight;
-		Log.d("vortex","Wp Wh: "+realW+","+realH);
+		Log.d(TAG,"Wp Wh: "+realW+","+realH);
 		DisplayMetrics metrics = ctx.getResources().getDisplayMetrics();
 		//height is then the ratio times this..
 		int tHeight = (int) ((double) metrics.widthPixels *.66f);
 		//use target values to calculate the correct inSampleSize
 		options.inSampleSize = Tools.calculateInSampleSize(options, (int) (double) metrics.widthPixels, tHeight);
-		Log.d("nils"," Calculated insamplesize "+options.inSampleSize);
+		Log.d(TAG," Calculated insamplesize "+options.inSampleSize);
 		//now create real bitmap using insampleSize
 		options.inJustDecodeBounds = false;
-		Log.d("vortex","stime: "+System.currentTimeMillis()/1000);
+		Log.d(TAG,"stime: "+System.currentTimeMillis()/1000);
 		piece = decoder.decodeRegion(r,options);
-		Log.d("vortex","ptime: "+System.currentTimeMillis()/1000);
-		Log.d("vortex","piece w: b: "+piece.getWidth()+","+piece.getRowBytes());
+		Log.d(TAG,"ptime: "+System.currentTimeMillis()/1000);
+		Log.d(TAG,"piece w: b: "+piece.getWidth()+","+piece.getRowBytes());
 		return piece;
 	}
 	public static Bitmap getScaledImage(Context ctx,String fileName) {
@@ -601,7 +603,7 @@ public class Tools {
 		if (realW>0) {
 			double ratio = realH/realW;
 			//Height should not be higher than width.
-			Log.d("nils", "realW realH"+realW+" "+realH);
+			Log.d(TAG, "realW realH"+realW+" "+realH);
 
 			//Find out screen size.
 
@@ -615,11 +617,11 @@ public class Tools {
 			//use target values to calculate the correct inSampleSize
 			options.inSampleSize = Tools.calculateInSampleSize(options, (int) (double) metrics.widthPixels, tHeight);
 
-			Log.d("nils"," Calculated insamplesize "+options.inSampleSize);
+			Log.d(TAG," Calculated insamplesize "+options.inSampleSize);
 			//now create real bitmap using insampleSize
 
 			options.inJustDecodeBounds = false;
-			Log.d("nils","Filename: "+fileName);
+			Log.d(TAG,"Filename: "+fileName);
 			return BitmapFactory.decodeFile(fileName,options);
 
 
@@ -694,7 +696,7 @@ public class Tools {
 	public static Map<String,String> cutKeyMap(String columns, Map<String,String> fullHash) {
 		if (columns.isEmpty())
 			return null;
-		//Log.d("cutkey","cols: "+columns+"fhash: "+((fullHash==null)?"null":fullHash.toString()));
+		//Log.d(TAG,"cols: "+columns+"fhash: "+((fullHash==null)?"null":fullHash.toString()));
 		Map<String,String> ret = new HashMap<String,String>();
 		if (fullHash == null) {
 			Log.e("vortex","Hash null - so returning empty in cutkeymap. Columns: "+columns);
@@ -740,7 +742,7 @@ public class Tools {
 	}
 
 	public static boolean doesFileExist(String folder, String fileName) {
-		Log.d("vortex","Looking for file "+fileName+ "in folder "+folder);
+		Log.d(TAG,"Looking for file "+fileName+ "in folder "+folder);
 		File f = new File(folder,fileName);
 		return (f.exists() && !f.isDirectory());
 	}
@@ -755,7 +757,7 @@ public class Tools {
 
 	public static boolean isNumeric(Object num)
 	{
-		//Log.d("vortex","isnumeric "+num);
+		//Log.d(TAG,"isnumeric "+num);
 		if (num == null)
 			return false;
 		if (num instanceof Double || num instanceof Float || num instanceof Integer)
@@ -765,7 +767,7 @@ public class Tools {
 			if (str==null||str.length()==0)
 				return false;
 			int i=0;
-			//Log.d("vortex","isnumeric? str "+str);
+			//Log.d(TAG,"isnumeric? str "+str);
 			for (char c : str.toCharArray())
 			{
 
@@ -774,10 +776,10 @@ public class Tools {
 				}
 				i++;
 			}
-			//Log.d("vortex","isnumeric yes");
+			//Log.d(TAG,"isnumeric yes");
 			return true;
 		} else {
-			Log.d("fenris","isNumeric returns false...not a string: "+num.getClass()+" "+num);
+			Log.d(TAG,"isNumeric returns false...not a string: "+num.getClass()+" "+num);
 			return false;
 		}
 	}
@@ -821,7 +823,7 @@ public class Tools {
 
 	public static String generateUUID(){
         final String uuid = UUID.randomUUID().toString().replace("-", "");
-        Log.d("fenris","uuid = " + uuid);
+        Log.d(TAG,"uuid = " + uuid);
         return uuid;
     }
 	public static String[] generateList(Variable variable) {
@@ -832,22 +834,22 @@ public class Tools {
 
 		LogRepository o = gs.getLogger();
 		List<String>listValues = al.getListElements(variable.getBackingDataSet());
-		Log.d("nils","Found dynamic list definition for variable "+variable.getId()+": "+listValues);
+		Log.d(TAG,"Found dynamic list definition for variable "+variable.getId()+": "+listValues);
 
 		if (listValues!=null&&listValues.size()>0) {
 			String [] columnSelector = listValues.get(0).split("=");
 			String[] column=null;
 			boolean error = false;
 			if (columnSelector[0].equalsIgnoreCase("@col")) {
-				Log.d("nils","found column selector");
+				Log.d(TAG,"found column selector");
 				//Column to select.
 				String dbColName = gs.getDb().getDatabaseColumnName(columnSelector[1]);
 				if (dbColName!=null) {
-					Log.d("nils","Real Column name for "+columnSelector[1]+" is "+dbColName);
+					Log.d(TAG,"Real Column name for "+columnSelector[1]+" is "+dbColName);
 					column = new String[1];
 					column[0]=dbColName;
 				} else {
-					Log.d("nils","Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
+					Log.d(TAG,"Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
 					o.addText("");
 					o.addCriticalText("Column referenced in List definition for variable "+variable.getLabel()+" not found: "+columnSelector[1]);
 					error = true;
@@ -857,7 +859,7 @@ public class Tools {
 					Map<String,String>keySet = new HashMap<String,String>();
 					if (listValues.size()>1) {
 						//yes..include these in search
-						Log.d("nils","found additional keys...");
+						Log.d(TAG,"found additional keys...");
 						String[] keyPair;
 						for (int i=1;i<listValues.size();i++) {
 							keyPair = listValues.get(i).split("=");
@@ -871,18 +873,18 @@ public class Tools {
 									o.addCriticalText("The variable "+keyPair[1]+" used for dynamic list "+variable.getLabel()+" is not returning a value");
 								}
 							} else {
-								Log.d("nils","Keypair error: "+ Arrays.toString(keyPair));
+								Log.d(TAG,"Keypair error: "+ Arrays.toString(keyPair));
 								o.addText("");
 								o.addCriticalText("Keypair referenced in List definition for variable "+variable.getLabel()+" cannot be read: "+ Arrays.toString(keyPair));
 							}
 						}
 
 					} else
-						Log.d("nils","no additional keys..only column");
+						Log.d(TAG,"no additional keys..only column");
 					Selection s = gs.getDb().createCoulmnSelection(keySet);
 					List<String[]> values = gs.getDb().getUniqueValues(column, s);
 					if (values !=null) {
-						Log.d("nils","Got "+values.size()+" results");
+						Log.d(TAG,"Got "+values.size()+" results");
 						//Remove duplicates and sort.
 						SortedSet<String> ss = new TreeSet<String>(new Comparator<String>(){
 							public int compare(String a, String b){
@@ -929,12 +931,12 @@ public class Tools {
 	/*
 	public static SpinnerDefinition thawSpinners(Context myC) {		
 		SpinnerDefinition sd=null;
-		Log.d("nils","NO NETWORK. Loading file spinner def");
+		Log.d(TAG,"NO NETWORK. Loading file spinner def");
 		sd = (SpinnerDefinition)Tools.readObjectFromFile(myC,Constants.CONFIG_FILES_DIR+Constants.WF_FROZEN_SPINNER_ID);		
 		if (sd==null) 
-			Log.d("vortex","No frozen Spinner definition");
+			Log.d(TAG,"No frozen Spinner definition");
 		else
-			Log.d("nils","Thawspinners called. Returned "+sd.size()+" spinners");
+			Log.d(TAG,"Thawspinners called. Returned "+sd.size()+" spinners");
 		return sd;
 
 	}
@@ -945,13 +947,13 @@ public class Tools {
 		if (m1.size() != m2.size())
 			return true;
 		for (String key: m1.keySet()) {
-			//Log.d("nils","Key:"+key+" m1: "+(m1==null?"null":m1.toString())+" m2: "+(m2==null?"null":m2.toString()));
+			//Log.d(TAG,"Key:"+key+" m1: "+(m1==null?"null":m1.toString())+" m2: "+(m2==null?"null":m2.toString()));
 			if (m1.get(key)==null&&m2.get(key)==null)
 				continue;
 			if ((m1.get(key)==null || m2.get(key)==null)||!m1.get(key).equals(m2.get(key)))
 				return true;
 		}
-		//Log.d("nils","keys equal..no header");
+		//Log.d(TAG,"keys equal..no header");
 		return false;
 	}
 
@@ -970,13 +972,13 @@ public class Tools {
 						result.add(input.substring(start,current));
 					result.add("");
 				} else {
-					//Log.d("nils","Last char: "+input.charAt(current));
+					//Log.d(TAG,"Last char: "+input.charAt(current));
 					result.add(input.substring(start));
 				}
 			}
 			else if (input.charAt(current) == ',' && !inQuotes) {
 				String toAdd = input.substring(start, current);
-				//Log.d("Adding",toAdd);
+				//Log.d(TAG,toAdd);
 
 				result.add(toAdd);
 				start = current + 1;
@@ -997,7 +999,7 @@ public class Tools {
 
 
 	public static void restart(Activity context) {
-		Log.d("gipp","restarting...");
+		Log.d(TAG,"restarting...");
 		if (GlobalState.getInstance()!=null)
 			GlobalState.destroy();
 		android.app.FragmentManager fm = context.getFragmentManager();
@@ -1016,8 +1018,8 @@ public class Tools {
 		Map<String,String> res = new HashMap<String,String>();
 		Map<String, String> longer,shorter;
 		//if (shorter!=null && longer!=null){
-		//	Log.d("vortex","Longer: "+longer.toString());
-		//	Log.d("vortex","shorter: "+shorter.toString());
+		//	Log.d(TAG,"Longer: "+longer.toString());
+		//	Log.d(TAG,"shorter: "+shorter.toString());
 		//}
 
 		if (k1!=null &&!k1.isEmpty()) {
@@ -1046,7 +1048,7 @@ public class Tools {
 		Set<String> sK = shorter.keySet();
 		for (String key:longer.keySet()) {
 			if (!sK.contains(key)) {
-				//Log.d("vortex","KEY DIFFERENT:"+key);
+				//Log.d(TAG,"KEY DIFFERENT:"+key);
 				res.put(key, longer.get(key));
 			}
 		}
@@ -1077,7 +1079,7 @@ public class Tools {
 		if (!varString.contains("["))
 			return varString;
 		if (keyHash!=null)
-			Log.d("vortex","Keyhash: "+keyHash.toString());
+			Log.d(TAG,"Keyhash: "+keyHash.toString());
 		int cIndex=0;
 		String res="";
 		do {
@@ -1095,11 +1097,11 @@ public class Tools {
 			String interPS = interpret(varString.substring(hakeS, hakeE),keyHash);
 			String preS = varString.substring(cIndex, hakeS-1);
 			res = res+preS+interPS;
-			//Log.d("vortex","Res is now "+res);
+			//Log.d(TAG,"Res is now "+res);
 			cIndex=hakeE+1;
 		} while(cIndex<varString.length());
 		String postS = varString.substring(cIndex,varString.length());
-		Log.d("vortex","Parse String returns "+res+postS);
+		Log.d(TAG,"Parse String returns "+res+postS);
 		return res+postS;
 	}
 	 */
@@ -1129,7 +1131,7 @@ public class Tools {
 
 					if (result) {
 						logger.addText("Succesfully cached " + fileName);
-						Log.d("vortex","Cached "+fileName);
+						Log.d(TAG,"Cached "+fileName);
 					}
 					else {
 						logger.addCriticalText("Failed to cache "+fileName);
@@ -1193,14 +1195,14 @@ public class Tools {
 
 			//File already cached
 			if(file.exists()) {
-				Log.d("vortex","NO cache - file exists");
+				Log.d(TAG,"NO cache - file exists");
 				return true;
 			}
 
 			Tools.createFoldersIfMissing(new File(fileName));
 			boolean success = false;
 			try {
-				Log.d("vortex","urlString: "+url);
+				Log.d(TAG,"urlString: "+url);
 				URL _url = new URL(url);
 				URLConnection ucon = _url.openConnection();
 				ucon.setConnectTimeout(5000);
@@ -1222,7 +1224,7 @@ public class Tools {
 				return false;
 			} finally {
 				if (!success) {
-					Log.d("vortex","caching failed...deleting temp file");
+					Log.d(TAG,"caching failed...deleting temp file");
 					file.delete();
 				}
 			}
@@ -1244,7 +1246,7 @@ public class Tools {
 
 	public static void saveUrl(final String filename, final String urlString, WebLoaderCb cb)
 			throws IOException {
-		Log.d("vortex","urlString: "+urlString);
+		Log.d(TAG,"urlString: "+urlString);
 		try (BufferedInputStream in = new BufferedInputStream(new URL(urlString).openStream());
 			 FileOutputStream fout = new FileOutputStream(filename)) {
 			final byte data[] = new byte[1024];
@@ -1261,7 +1263,7 @@ public class Tools {
 
 		fileName = folder+fileName;
 		File f = new File(fileName);
-		Log.d("vortex", "getCached: " + fileName);
+		Log.d(TAG, "getCached: " + fileName);
 		if (f.exists()) {
 
 			return f;
@@ -1331,7 +1333,7 @@ public class Tools {
 			}
 		}
 		if (o==null)
-			Log.d("vortex","returning null in bytestoobject for "+ Arrays.toString(inB) +" with l "+inB.length+" inBS "+ Arrays.toString(inB));
+			Log.d(TAG,"returning null in bytestoobject for "+ Arrays.toString(inB) +" with l "+inB.length+" inBS "+ Arrays.toString(inB));
 		return o;
 	}
 
@@ -1397,11 +1399,11 @@ public class Tools {
 				if (vs == null) {
 					return null;
 				}
-				Log.d("VEXXOR",vs);
+				Log.d(TAG,vs);
 				int _av = vs.indexOf("app_version");
 				int _s = vs.indexOf('\"',_av)+1;
 				int _e = vs.indexOf('\"',_s);
-				Log.d("VEXXOR","_av "+_av+"_s "+_s+"_e "+_e);
+				Log.d(TAG,"_av "+_av+"_s "+_s+"_e "+_e);
 				ss = vs.substring(_s,_e);
 			}
 		} catch (IOException e) {

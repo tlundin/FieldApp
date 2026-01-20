@@ -6,6 +6,8 @@ import android.util.Log;
 import com.teraim.fieldapp.non_generics.DelyteManager.Coord;
 
 public class Marker {
+	private static final String TAG = "Marker";
+
 	public final static float Pic_H = 32;
 	public int x,y;
 	public int riktning;
@@ -33,7 +35,7 @@ public class Marker {
 
 	public void setValue(String avst, String rikt, boolean isCentre) {
 		if(avst==null||rikt==null||avst.length()==0||rikt.length()==0) {
-			Log.d("nils","null or empty in setValue Marker class");
+			Log.d(TAG,"null or empty in setValue Marker class");
 			return;
 		}
 		isCent = isCentre;

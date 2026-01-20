@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class DynamicGisPoint extends GisPointObject implements TrackerListener {
+	private static final String TAG = "DynamicGisPoint";
+
 	
 	private boolean multivar = false;
 	private Variable myXVar;
@@ -25,8 +27,8 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 
 	public DynamicGisPoint(FullGisObjectConfiguration conf, Map<String, String> keyChain,Variable x, Variable y, String statusVar,String statusVal,boolean me) {
 		super(conf,keyChain,null,statusVar,statusVal);
-		Log.d("Glapp","1. Creating user gis with variable x y "+x.getId()+","+y.getId());
-		Log.d("Glapp","Selection: "+x.getSelection().selection+", args: "+ Tools.printSelectionArgs(x.getSelection().selectionArgs));
+		Log.d(TAG,"1. Creating user gis with variable x y "+x.getId()+","+y.getId());
+		Log.d(TAG,"Selection: "+x.getSelection().selection+", args: "+ Tools.printSelectionArgs(x.getSelection().selectionArgs));
 		multivar=true;
 		updated_by_gps =true;
 		myXVar=x;
@@ -37,7 +39,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 
 	public DynamicGisPoint(FullGisObjectConfiguration conf, Map<String, String> keyChain, Variable v1, String statusVar, String statusVal) {
 		super(conf,keyChain,null,statusVar,statusVal);
-		Log.d("Glapp","Creating dyna gis with variable "+v1.getLabel());
+		Log.d(TAG,"Creating dyna gis with variable "+v1.getLabel());
 		multivar=false;
 		myXYVar=v1;
 	}
@@ -82,7 +84,7 @@ public class DynamicGisPoint extends GisPointObject implements TrackerListener {
 		latestUpdate=System.currentTimeMillis();
 		if (signal.state == GPS_State.State.newValueReceived) {
 			myLocation = new SweLocation(signal.x,signal.y);
-            //Log.d("Glapp","updated user position"+System.currentTimeMillis());
+            //Log.d(TAG,"updated user position"+System.currentTimeMillis());
 		}
 	}
 

@@ -35,6 +35,8 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class SendLog extends Activity {
+    private static final String TAG = "SendLog";
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,7 +53,7 @@ public class SendLog extends Activity {
 
             @Override
             public void onClick(View arg0) {
-                Log.d("abla","button1 clicked");
+                Log.d(TAG,"button1 clicked");
                 sendLogFile();
                finish();
             }
@@ -68,7 +70,7 @@ public class SendLog extends Activity {
             }
 
         });
-        Log.d("abla","survived create");
+        Log.d(TAG,"survived create");
 
 
 
@@ -158,8 +160,8 @@ public class SendLog extends Activity {
         String fullName = path + "/crashlog";
         String exportName = extractLogToFile(); // This now provides the filename for the server
 
-        Log.d("vortex", "Local file path is " + fullName);
-        Log.d("vortex", "Exporting with name " + exportName);
+        Log.d(TAG, "Local file path is " + fullName);
+        Log.d(TAG, "Exporting with name " + exportName);
 
         if (exportName == null) {
             Log.e("vortex", "Export name is null, aborting.");
@@ -225,7 +227,7 @@ public class SendLog extends Activity {
 //    private void sendLogFile ()
 //    {
 //        String fullName = extractLogToFile();
-//        Log.d("vortex","full name is "+fullName);
+//        Log.d(TAG,"full name is "+fullName);
 //        if (fullName == null)
 //            return;
 //        File logFile = new File(fullName);

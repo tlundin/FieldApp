@@ -23,6 +23,8 @@ import java.util.List;
  */
 
 public class TwoPanelsTemplate extends Executor {
+	private static final String TAG = "TwoPanelsTemplate";
+
 
 
 
@@ -35,7 +37,7 @@ public class TwoPanelsTemplate extends Executor {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("nils","In onCreate for TwoPanel");
+		Log.d(TAG,"In onCreate for TwoPanel");
 
 		
 	}
@@ -48,7 +50,7 @@ public class TwoPanelsTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","I'm in the onPause method, twopanel");
+		Log.d(TAG,"I'm in the onPause method, twopanel");
 	}
 
 
@@ -56,7 +58,7 @@ public class TwoPanelsTemplate extends Executor {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.d("vortex","I'm in the onCreateView method for twopanel");
+		Log.d(TAG,"I'm in the onCreateView method for twopanel");
 		if (myContext == null) {
 			Log.e("vortex","No context, exit");
 			return null;
@@ -70,10 +72,10 @@ public class TwoPanelsTemplate extends Executor {
 		myContext.addContainers(getContainers());
 
 		if (wf!=null) {
-			Log.d("vortex","Executing workflow!!");
+			Log.d(TAG,"Executing workflow!!");
 			run();
 		} else
-			Log.d("vortex","No workflow found in oncreate two columns!!!!");
+			Log.d(TAG,"No workflow found in oncreate two columns!!!!");
 			
 		
 		return v;
@@ -97,7 +99,7 @@ public class TwoPanelsTemplate extends Executor {
 
 	@Override
 	public void onStart() {
-		Log.d("nils","I'm in the onStart method");
+		Log.d(TAG,"I'm in the onStart method");
 		super.onStart();
 
 

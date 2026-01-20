@@ -22,6 +22,8 @@ import java.util.regex.Pattern;
 
 
 public class VariableConfiguration implements Serializable {
+	private static final String TAG = "VariableConfiguration";
+
 
 	/**
 	 * 
@@ -173,7 +175,7 @@ public class VariableConfiguration implements Serializable {
 	public boolean isLocal(List<String> row) {
 		if (row!=null) {
 			String s = row.get(fromNameToColumn.get(requiredColumns.get(SCOPE)));
-			//Log.d("nils","getvarislocal uses string "+s);
+			//Log.d(TAG,"getvarislocal uses string "+s);
 			return (s != null && s.startsWith("local"));
 		}
 		Log.e("vortex","row was null...cannot determine if local or global. Will default to local");
@@ -192,11 +194,11 @@ public class VariableConfiguration implements Serializable {
 	public String getKeyChain(List<String> row) {
 		//Check for null or empty
 		if (row==null) {
-			Log.d("vortex","row was null in getKeyChain");
+			Log.d(TAG,"row was null in getKeyChain");
 			return null;
 		}
 		//else 
-		//	Log.d("vortex","Row is "+row+" length_: "+row.size()+" fromname "+fromNameToColumn);
+		//	Log.d(TAG,"Row is "+row+" length_: "+row.size()+" fromname "+fromNameToColumn);
 		Pattern pattern = Pattern.compile("\\s");
 		Matcher matcher = pattern.matcher(row.get(0));
 		if(matcher.find()) {
@@ -261,7 +263,7 @@ public class VariableConfiguration implements Serializable {
 		String  res= myTable.getElement(Col_Group_Label, row);
 		//If this is a non-art variable, use varlabel instead.
 		if (res==null) {
-			//Log.d("vortex","failed to find value for column "+Col_Group_Label+ ". Will use varlabel "+this.getVarLabel(row)+" instead.");
+			//Log.d(TAG,"failed to find value for column "+Col_Group_Label+ ". Will use varlabel "+this.getVarLabel(row)+" instead.");
 			//gs.getLogger().addText("");
 			//gs.getLogger().addYellowText("failed to find value for column "+Col_Group_Label+ ". Will use variable label "+this.getVarLabel(row)+" instead.");
 			res =this.getVarLabel(row);
@@ -297,7 +299,7 @@ public class VariableConfiguration implements Serializable {
 	/*
 		Variable v = varCache.get(varId);
 		if (v!=null) {
-			//Log.d("nils","found cached var: "+varId);//+" backing: "+this.getCompleteVariableDefinition(varId));
+			//Log.d(TAG,"found cached var: "+varId);//+" backing: "+this.getCompleteVariableDefinition(varId));
 			return v;
 		}
 		else {
@@ -320,7 +322,7 @@ public class VariableConfiguration implements Serializable {
 		String keyChain = null;
 		Variable v = varCache.get(varId);
 		if (v!=null) {
-			//Log.d("nils","found cached var: "+varId);//+" backing: "+this.getCompleteVariableDefinition(varId));
+			//Log.d(TAG,"found cached var: "+varId);//+" backing: "+this.getCompleteVariableDefinition(varId));
 			return v;
 		}
 		else {
@@ -361,7 +363,7 @@ public class VariableConfiguration implements Serializable {
 				value = cMap.get(key);
 			if (value!=null) {
 				vMap.put(key, value);
-				//Log.d("nils","Adding keychain key:"+key+" value: "+value);
+				//Log.d(TAG,"Adding keychain key:"+key+" value: "+value);
 			}
 			else {
 				Log.e("nils","Couldn't find key "+key+" in current context");
@@ -456,7 +458,7 @@ public class VariableConfiguration implements Serializable {
 			if (vl!=null)
 				for (Variable v:vl)
 					if (v.getKeyChain()!=null && v.getKeyChain().get(key)!=null) {
-						Log.d("nils","variable "+v.getId()+" contained "+key);
+						Log.d(TAG,"variable "+v.getId()+" contained "+key);
 						v.invalidateKey();
 					}
 		}

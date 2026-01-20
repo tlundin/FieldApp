@@ -22,6 +22,8 @@ import com.teraim.fieldapp.dynamic.types.NudgeListener;
  * Created by Terje on 2016-07-12.
  */
 public class NudgeView extends View {
+    private static final String TAG = "NudgeView";
+
 
     private static  int MARGIN_RIGHT = 0;
     private static  int MARGIN_BOTTOM = 0 ;
@@ -83,7 +85,7 @@ public class NudgeView extends View {
 
         diameter = dpMeasure(diameter);
 
-    Log.d("vortex"," NEW DIAMETER: "+diameter);
+    Log.d(TAG," NEW DIAMETER: "+diameter);
         rectF= new RectF();
 
         Matrix m = new Matrix();
@@ -141,33 +143,33 @@ public class NudgeView extends View {
                             //distance from center
                             float y = Math.abs(event.getY()-(h - diameter /2));
                             float x = Math.abs(event.getX()-(w - diameter /2));
-                            Log.d("vortex","x: "+x+" y: "+y+" w: "+w+" h:"+h+" evX: "+event.getX()+" evy: "+event.getY()+ "evM?"+(event.getY()>(h- diameter)));
+                            Log.d(TAG,"x: "+x+" y: "+y+" w: "+w+" h:"+h+" evX: "+event.getX()+" evy: "+event.getY()+ "evM?"+(event.getY()>(h- diameter)));
                             if(y < centralButtonR && x < centralButtonR) {
-                                Log.d("vortex","bulls eye!");
+                                Log.d(TAG,"bulls eye!");
                                 c=true;
                                 //stop here.
                                 return true;
                             }
                             if (event.getX()>(w- diameter /2)) {
                                 if (y<=x) {
-  //                                  Log.d("vortex", "Fan HÖ vettu");
+  //                                  Log.d(TAG, "Fan HÖ vettu");
                                     r = true;
                                 }
                             } else if (event.getX()>(w- diameter)) {
                                 if (y<=x) {
- //                                   Log.d("vortex", "Fan VÄ vettu");
+ //                                   Log.d(TAG, "Fan VÄ vettu");
                                     l = true;
                                 }
                             }
                             if (event.getY() > (h - diameter /2)) {
                                 if (x<=y) {
- //                                   Log.d("vortex", "Fan NER vettu");
+ //                                   Log.d(TAG, "Fan NER vettu");
                                     d = true;
                                 }
                             } else if (event.getY() > (h - diameter)) {
                                 if (x<=y) {
                                     u = true;
- //                                   Log.d("vortex", "Fan UPP vettu");
+ //                                   Log.d(TAG, "Fan UPP vettu");
                                 }
                             }
                             //Start timer for automatic nudging.
@@ -277,7 +279,7 @@ public class NudgeView extends View {
 
     @Override
     protected void onSizeChanged(int ww, int hh, int oldw, int oldh) {
-        Log.d("vortex","on size changed...new: "+ww+","+hh+", old: "+oldw+","+oldh);
+        Log.d(TAG,"on size changed...new: "+ww+","+hh+", old: "+oldw+","+oldh);
         this.w = ww-MARGIN_RIGHT;
         this.h = hh-MARGIN_BOTTOM;
         float edge_Margin = diameter / 7;
