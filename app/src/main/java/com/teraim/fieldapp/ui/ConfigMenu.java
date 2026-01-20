@@ -1,7 +1,6 @@
 package com.teraim.fieldapp.ui;
 
 import android.accounts.Account;
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -11,8 +10,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.StrictMode;
-import android.provider.MediaStore;
 import android.text.InputFilter;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -25,9 +22,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.preference.CheckBoxPreference;
 import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
@@ -56,6 +56,8 @@ import java.util.concurrent.Executors;
  * This is the standard approach for settings screens using the AndroidX Preference library.
  */
 public class ConfigMenu extends AppCompatActivity {
+	private static final String TAG = "ConfigMenu";
+
 
 	private static boolean anyChange = false;
 
@@ -86,74 +88,19 @@ public class ConfigMenu extends AppCompatActivity {
 		private AlertDialog progressDialog; // Use AlertDialog for progress display
 		private ListPreference logPref; // Changed to ListPreference for consistency
 		private MapNeedlePreference mapNeedlePref; // New preference for map needles
+		private ActivityResultLauncher<Uri> captureQrImageLauncher;
+		private Uri pendingQrImageUri;
 
-		// Note: onActivityResult is deprecated. For a modern approach, consider using the Activity Result APIs.
-		// However, for a direct migration, this will still function.
 		@Override
-		public void onActivityResult(int requestCode, int resultCode, Intent data) {
-			super.onActivityResult(requestCode, resultCode, data);
-			Log.d("vortex", "IN ONACTIVITY RESULT ");
-
-			Log.d("vortex", "request code " + requestCode + " result code " + resultCode);
-			if (requestCode == Constants.QR_SCAN_REQUEST) {
-				if (Activity.RESULT_OK == resultCode) {
-					Log.d("vortex", "code img taken...scan!");
-					String url = (new BarcodeReader(requireActivity())).analyze();
-
-					Log.d("vortex", "GOT " + (url == null ? "null" : url));
-
-
-					//www.teraim.com?project=Rlotst&team=Rlo2017&name=Lotta&sync=Internet&control=major
-					if (url != null) {
-						Uri uri = Uri.parse(url);
-
-						final String application = uri.getQueryParameter("application");
-						final String team = uri.getQueryParameter("team");
-						final String name = uri.getQueryParameter("name");
-						final String server = uri.getPath();
-
-						(new AlertDialog.Builder(requireActivity())).setTitle("Recieved QR configuration")
-								.setMessage("The following QR setting was received:" +
-										Tools.printIfNotNull("\nApplication: ", application) +
-										Tools.printIfNotNull("\nTeam: ", team) +
-										Tools.printIfNotNull("\nName: ", name) +
-										Tools.printIfNotNull("\nServer: ", server) +
-										"\n********************" +
-										"\nApply these changes?"
-
-								)
-								.setCancelable(false)
-								.setNegativeButton(R.string.cancel, (dialog, which) -> {
-
-								})
-								.setPositiveButton(R.string.ok, (dialog, which) -> {
-
-
-									if (team != null)
-										teamPref.setText(team);
-
-									if (application != null) {
-										appPref.setText(application);
-									}
-									if (name != null)
-										userPref.setText(name);
-									if (server != null)
-										serverPref.setText(server);
-								})
-								.show();
-						askForRestart();
-
-					} else {
-						new AlertDialog.Builder(requireActivity()).setTitle("Error")
-								.setMessage("NO QR code found in image.")
-								.setPositiveButton(R.string.ok, (dialog, which) -> {
-								})
-								.setCancelable(false)
-								.setIcon(android.R.drawable.ic_dialog_alert)
-								.show();
-					}
+		public void onCreate(Bundle savedInstanceState) {
+			super.onCreate(savedInstanceState);
+			captureQrImageLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
+				if (result != null && result) {
+					handleQrCaptureResult();
+				} else {
+					Log.d(TAG, "QR capture cancelled or failed.");
 				}
-			}
+			});
 		}
 
 
@@ -278,7 +225,7 @@ public class ConfigMenu extends AppCompatActivity {
 								int n = 0; // To store the count of erased files
 
 								if (!bundleName.isEmpty()) {
-									Log.d("vortex", "Erasing cache for " + bundleName);
+									Log.d(TAG, "Erasing cache for " + bundleName);
 									// Perform file system cleanup
 									n = Tools.eraseFolder(requireContext().getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/");
 
@@ -290,7 +237,7 @@ public class ConfigMenu extends AppCompatActivity {
 									GlobalState gs = GlobalState.getInstance();
 									if (gs != null) {
 										if (gs.getDb() != null) {
-											Log.d("vortex", "cleaning database");
+											Log.d(TAG, "cleaning database");
 											// Perform database cleanup
 											gs.getDb().cleanDatabase();
 										}
@@ -316,7 +263,6 @@ public class ConfigMenu extends AppCompatActivity {
 			final Preference QRPref = findPreference("scan_qr_code");
 
 			QRPref.setOnPreferenceClickListener(preference -> {
-				Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 				File[] externalStorageVolumes =
 						ContextCompat.getExternalFilesDirs(requireContext(), null);
 				File primaryExternalStorage = externalStorageVolumes[0];
@@ -326,12 +272,12 @@ public class ConfigMenu extends AppCompatActivity {
 					picsDir.mkdirs();
 				}
 				File file = new File(picsDir, Constants.TEMP_BARCODE_IMG_NAME);
-				Uri outputFileUri = Uri.fromFile(file);
-				intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-				// Exposing file Uris is discouraged. Consider using FileProvider for better security.
-				StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
-				StrictMode.setVmPolicy(builder.build());
-				startActivityForResult(intent, Constants.QR_SCAN_REQUEST);
+				pendingQrImageUri = FileProvider.getUriForFile(
+						requireContext(),
+						requireContext().getPackageName() + ".fileprovider",
+						file
+				);
+				captureQrImageLauncher.launch(pendingQrImageUri);
 				return true;
 			});
 
@@ -354,6 +300,12 @@ public class ConfigMenu extends AppCompatActivity {
 		}
 
 		@Override
+		public void onDestroyView() {
+			dismissProgressDialog();
+			super.onDestroyView();
+		}
+
+		@Override
 		public void onResume() {
 			super.onResume();
 			getPreferenceScreen().getSharedPreferences()
@@ -364,10 +316,10 @@ public class ConfigMenu extends AppCompatActivity {
 				SharedPreferences sharedPreferences, @NonNull String key) {
 			askForRestart();
 			Preference pref = findPreference(key);
-			Log.d("blarpa", "getzz with key " + key);
+			Log.d(TAG, "getzz with key " + key);
 			// This can be null if the preference is not on the current screen.
 			if (pref == null) {
-				Log.d("blarpa", "pref null with key " + key);
+				Log.d(TAG, "pref null with key " + key);
 				return;
 			}
 
@@ -377,7 +329,7 @@ public class ConfigMenu extends AppCompatActivity {
 				EditTextPreference etp = (EditTextPreference) pref;
 				if (!isEmpty(etp.getText())) {
 					if (key.equals(PersistenceHelper.BUNDLE_NAME)) {
-						Log.d("vortex", "changing bundle");
+						Log.d(TAG, "changing bundle");
 						char[] strA = etp.getText().toCharArray();
 						if (strA.length > 0) {
 							strA[0] = Character.toUpperCase(strA[0]);
@@ -388,7 +340,7 @@ public class ConfigMenu extends AppCompatActivity {
 						teamPref.setText(syncGroup);
 						teamPref.setSummary(syncGroup);
 					} else if (key.equals(PersistenceHelper.SERVER_URL)) {
-						Log.d("vortex", "changing server");
+						Log.d(TAG, "changing server");
 						etp.setText(Tools.server(etp.getText()));
 					}
 				}
@@ -398,7 +350,7 @@ public class ConfigMenu extends AppCompatActivity {
 				pref.setSummary(letp.getEntry());
 				if (key.equals(PersistenceHelper.LOG_LEVEL)) {
 					String logLevelStr = letp.getValue();
-					Log.d("blarpa", "changing log level to " + logLevelStr);
+					Log.d(TAG, "changing log level to " + logLevelStr);
 
 					if ("CRITICAL".equalsIgnoreCase(logLevelStr)) {
 						LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
@@ -409,8 +361,8 @@ public class ConfigMenu extends AppCompatActivity {
 			} else if (pref instanceof MapNeedlePreference) { //
 				// The MapNeedlePreference manages its own summary based on selection.
 				// No additional logic needed here, just ensure askForRestart() is called.
-				Log.d("vortex", "Map needle set changed via custom preference.");
-				Log.d("ConfigMenu", "key: "+mapNeedlePref.getKey()+" value "+getPreferenceManager().getSharedPreferences().getInt(mapNeedlePref.getKey(),-1));
+				Log.d(TAG, "Map needle set changed via custom preference.");
+				Log.d(TAG, "key: "+mapNeedlePref.getKey()+" value "+getPreferenceManager().getSharedPreferences().getInt(mapNeedlePref.getKey(),-1));
 			}
 		}
 
@@ -422,7 +374,71 @@ public class ConfigMenu extends AppCompatActivity {
 			return s == null || s.isEmpty();
 		}
 
+		private void handleQrCaptureResult() {
+			if (!isAdded()) {
+				Log.d(TAG, "QR capture result ignored: fragment not attached.");
+				return;
+			}
+			Log.d(TAG, "QR image captured, starting scan.");
+			String url = (new BarcodeReader(requireActivity())).analyze();
+
+			Log.d(TAG, "GOT " + (url == null ? "null" : url));
+
+			//www.teraim.com?project=Rlotst&team=Rlo2017&name=Lotta&sync=Internet&control=major
+			if (url != null) {
+				Uri uri = Uri.parse(url);
+
+				final String application = uri.getQueryParameter("application");
+				final String team = uri.getQueryParameter("team");
+				final String name = uri.getQueryParameter("name");
+				final String server = uri.getPath();
+
+				(new AlertDialog.Builder(requireActivity())).setTitle("Recieved QR configuration")
+						.setMessage("The following QR setting was received:" +
+								Tools.printIfNotNull("\nApplication: ", application) +
+								Tools.printIfNotNull("\nTeam: ", team) +
+								Tools.printIfNotNull("\nName: ", name) +
+								Tools.printIfNotNull("\nServer: ", server) +
+								"\n********************" +
+								"\nApply these changes?"
+
+						)
+						.setCancelable(false)
+						.setNegativeButton(R.string.cancel, (dialog, which) -> {
+
+						})
+						.setPositiveButton(R.string.ok, (dialog, which) -> {
+
+
+							if (team != null)
+								teamPref.setText(team);
+
+							if (application != null) {
+								appPref.setText(application);
+							}
+							if (name != null)
+								userPref.setText(name);
+							if (server != null)
+								serverPref.setText(server);
+						})
+						.show();
+				askForRestart();
+
+			} else {
+				new AlertDialog.Builder(requireActivity()).setTitle("Error")
+						.setMessage("NO QR code found in image.")
+						.setPositiveButton(R.string.ok, (dialog, which) -> {
+						})
+						.setCancelable(false)
+						.setIcon(android.R.drawable.ic_dialog_alert)
+						.show();
+			}
+		}
+
 		private void showProgressDialog() {
+			if (!isAdded() || progressDialog != null) {
+				return;
+			}
 			// Using AlertDialog with a custom layout for a more modern look than ProgressDialog
 			AlertDialog.Builder builder = new AlertDialog.Builder(requireActivity());
 			LayoutInflater inflater = getLayoutInflater();
@@ -439,10 +455,13 @@ public class ConfigMenu extends AppCompatActivity {
 
 		// Helper method to dismiss the progress dialog
 		private void dismissProgressDialog() {
-			if (progressDialog != null && progressDialog.isShowing()) {
-				progressDialog.dismiss();
-				progressDialog = null;
+			if (progressDialog == null) {
+				return;
 			}
+			if (progressDialog.isShowing()) {
+				progressDialog.dismiss();
+			}
+			progressDialog = null;
 		}
 
 		private void setSummaryForListPreference(ListPreference preference, String selectedValue) {

@@ -61,6 +61,8 @@ import java.util.Arrays;
  *
  */
 public class Start extends MenuActivity implements StartProvider {
+    private static final String TAG = "Start";
+
 
     //	private Map<String,List<String>> menuStructure;
 
@@ -109,7 +111,7 @@ public class Start extends MenuActivity implements StartProvider {
             }
         });*/
 
-        Log.d("nils","in START onCreate");
+        Log.d(TAG,"in START onCreate");
         startInstance = this;
         shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
@@ -238,14 +240,14 @@ public class Start extends MenuActivity implements StartProvider {
         }
         intent.setAction ("com.teraim.fieldapp.SEND_LOG"); // see step 5.
         intent.setFlags (Intent.FLAG_ACTIVITY_NEW_TASK); // required when starting from Application
-        Log.d("vortex","Sending log file. Starting SendLog.");
+        Log.d(TAG,"Sending log file. Starting SendLog.");
         startActivity (intent);
         System.exit(1); // kill off the crashed app
     }
 
     @Override
     protected void onResume() {
-        Log.d("nils","In START onResume");
+        Log.d(TAG,"In START onResume");
         //Check if program is already up.
         if (!loading)
             checkStatics();
@@ -259,7 +261,7 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     protected void onStart() {
-        Log.d("nils","In START onStart");
+        Log.d(TAG,"In START onStart");
         super.onStart();
     }
 
@@ -326,7 +328,7 @@ public class Start extends MenuActivity implements StartProvider {
                         .commit();
 
             } else {
-                Log.d("vortex", "No need to run initial load - globalstate exists");
+                Log.d(TAG, "No need to run initial load - globalstate exists");
 
             }
         }
@@ -343,7 +345,7 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        Log.d("nils","In oncofigChanged");
+        Log.d(TAG,"In oncofigChanged");
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
 
@@ -378,11 +380,11 @@ public class Start extends MenuActivity implements StartProvider {
             return;
         }
         if(GlobalState.getInstance() == null) {
-            Log.d("vortex", "Global state is null in changepage - cannot continue");
+            Log.d(TAG, "Global state is null in changepage - cannot continue");
             return;
         }
         if (isFinishing()) {
-            Log.d("vortex","This activity is finishing! Cannot continue");
+            Log.d(TAG,"This activity is finishing! Cannot continue");
             return;
         }
 
@@ -392,12 +394,12 @@ public class Start extends MenuActivity implements StartProvider {
             template = "DefaultTemplate";
 
         //Set context.
-        Log.d("gipp","CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"] with template "+wf.getTemplate());
+        Log.d(TAG,"CHANGING PAGE TO: xxxxxxxx ["+wf.getName()+"] with template "+wf.getTemplate());
         DB_Context cHash = DB_Context.evaluate(wf.getContext());
 
         //if Ok err is null.
         if (cHash.isOk()) {
-            Log.d("hash","setting global context to "+cHash);
+            Log.d(TAG,"setting global context to "+cHash);
             GlobalState.getInstance().setDBContext(cHash);
             debugLogger.addText("Context now [");
             debugLogger.addGreenText(cHash.toString());
@@ -448,7 +450,7 @@ public class Start extends MenuActivity implements StartProvider {
         setTitle(label);
         //If previous was an empty fragment, remove it
         if (emptyFragmentToExecute!=null) {
-            Log.d("blax","removing empty fragment");
+            Log.d(TAG,"removing empty fragment");
             ft.remove(emptyFragmentToExecute);
             emptyFragmentToExecute=null;
         }
@@ -456,8 +458,8 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.d("vortex","IN ONACTIVITY RESULT ");
-        Log.d("vortex","request code "+requestCode+" result code "+resultCode);
+        Log.d(TAG,"IN ONACTIVITY RESULT ");
+        Log.d(TAG,"request code "+requestCode+" result code "+resultCode);
         androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
         Fragment f = fm.findFragmentById(R.id.content_frame);
         if (f instanceof Executor)
@@ -488,13 +490,13 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if ((keyCode == KeyEvent.KEYCODE_BACK)) {
-            //Log.d("vortex","gets here key back");
+            //Log.d(TAG,"gets here key back");
 
             if (mPopupWindow!=null) {
-                //Log.d("vortex", "popup is not null");
+                //Log.d(TAG, "popup is not null");
                 if (mPopupWindow.isShowing()) {
 
-                    //Log.d("vortex", "closed popup, exiting");
+                    //Log.d(TAG, "closed popup, exiting");
                     mPopupWindow.dismiss();
                     return true;
                 }
@@ -506,12 +508,12 @@ public class Start extends MenuActivity implements StartProvider {
             androidx.fragment.app.FragmentManager fm = getSupportFragmentManager();
             Fragment currentContentFrameFragment = fm.findFragmentById(R.id.content_frame);
             int x = fm.getBackStackEntryCount();
-            Log.d("gipp", "backstack count: " + x);
+            Log.d(TAG, "backstack count: " + x);
             if (currentContentFrameFragment == null) {
-                Log.d("gipp", "current fragment is null");
+                Log.d(TAG, "current fragment is null");
                 return false;
             } else
-                Log.d("gipp", "current content fragment: "+currentContentFrameFragment.getClass().getName());
+                Log.d(TAG, "current content fragment: "+currentContentFrameFragment.getClass().getName());
             if (currentContentFrameFragment.getClass().getName().equals("com.teraim.fieldapp.dynamic.templates.StartupFragment")) {
                 String dialogText = getString(R.string.exit_app);
                 new AlertDialog.Builder(this)
@@ -537,7 +539,7 @@ public class Start extends MenuActivity implements StartProvider {
 
             if (currentContentFrameFragment instanceof Executor) {
                 final WF_Context wfCtx = ((Executor) currentContentFrameFragment).getCurrentContext();
-                Log.d("gipp", "current context: " + wfCtx);
+                Log.d(TAG, "current context: " + wfCtx);
                 wfCtx.printD();
                 boolean map = false;
 
@@ -545,15 +547,15 @@ public class Start extends MenuActivity implements StartProvider {
                     if (wfCtx.getCurrentGis() != null) {
                         map = true;
                         if (wfCtx.getCurrentGis().wasShowingPopup()) {
-                            //Log.d("gipp", "closed popup, exiting");
+                            //Log.d(TAG, "closed popup, exiting");
                             return true;
                         }
                     }
                     Workflow wf = wfCtx.getWorkflow();
-                    //Log.d("gipp", "gets here wf is " + wf.getLabel());
+                    //Log.d(TAG, "gets here wf is " + wf.getLabel());
                     if (wf != null) {
                         if (map) {
-                            //Log.d("gipp", "gets here too");
+                            //Log.d(TAG, "gets here too");
                             wfCtx.upOneMapLevel();
                         }
                     }
@@ -676,9 +678,9 @@ public class Start extends MenuActivity implements StartProvider {
         FragmentManager fm = getFragmentManager();
         Fragment currentFragment = fm.findFragmentById(R.id.content_frame); // Use your container ID
         if (currentFragment != null) {
-            Log.d("gipp", "Current fragment is: " + currentFragment.getClass().getSimpleName());
+            Log.d(TAG, "Current fragment is: " + currentFragment.getClass().getSimpleName());
         } else
-            Log.d("gipp", "Current fragment is null");
+            Log.d(TAG, "Current fragment is null");
 
         // 2. Get Back Stack Info
         int backStackCount = fm.getBackStackEntryCount();

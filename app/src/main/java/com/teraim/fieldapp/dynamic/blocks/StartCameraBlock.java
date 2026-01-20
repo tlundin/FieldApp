@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.util.List;
 
 public class StartCameraBlock extends Block implements EventListener {
+    private static final String TAG = "StartCameraBlock";
+
 
     private final List<Expressor.EvalExpr> fileNameE;
     private final String rawName;
@@ -28,7 +30,7 @@ public class StartCameraBlock extends Block implements EventListener {
     public StartCameraBlock(String id, String fileName) {
         this.blockId = id;
         fileNameE = Expressor.preCompileExpression(fileName);
-        Log.d("blaha","precompile foto! "+fileNameE + "orig: "+fileName);
+        Log.d(TAG,"precompile foto! "+fileNameE + "orig: "+fileName);
         rawName = fileName;
     }
 
@@ -39,7 +41,7 @@ public class StartCameraBlock extends Block implements EventListener {
                 ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(),  null);
         File primaryExternalStorage = externalStorageVolumes[0];
         String PIC_ROOT_DIR = primaryExternalStorage+"pics/";
-        Log.d("foto","foto evaluates to "+fileName);
+        Log.d(TAG,"foto evaluates to "+fileName);
         o.addText("StartCameraBlock fileName will be ["+PIC_ROOT_DIR +fileName+"]");
         if (fileName!=null) {
             File newfile = new File(PIC_ROOT_DIR + fileName);
@@ -68,7 +70,7 @@ public class StartCameraBlock extends Block implements EventListener {
     @Override
     public void onEvent(Event event) {
         if (event.getType() == Event.EventType.onActivityResult) {
-            Log.d("vortex","picture saved  ");
+            Log.d(TAG,"picture saved  ");
             myContext.registerEvent(new WF_Event_OnSave("photo"));
         }
     }

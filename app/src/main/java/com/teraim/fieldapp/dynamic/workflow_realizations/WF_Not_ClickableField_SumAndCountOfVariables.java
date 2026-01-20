@@ -18,6 +18,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_ClickableField implements EventListener {
+	private static final String TAG = "WF_Not_ClickableField_SumAndCountOfVariables";
+
 
     private final WF_Static_List targetList;
 	private final WF_Context myContext;
@@ -71,20 +73,20 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 
 	@Override
 	public void onEvent(Event e) {
-		Log.d("nils","In ADDNUMBER event targetListId: "+targetList.getId()+" e.getProvider: "+e.getProvider()+
+		Log.d(TAG,"In ADDNUMBER event targetListId: "+targetList.getId()+" e.getProvider: "+e.getProvider()+
 				"type of event: "+e.getType().name());
 		if (e.getType().equals(EventType.onFlowExecuted)) {
 			long t = System.currentTimeMillis();
 			matchAndRecalculateMe();
 			refresh();
-			Log.d("vortex","sum calc time "+(System.currentTimeMillis()-t));
+			Log.d(TAG,"sum calc time "+(System.currentTimeMillis()-t));
 		} else
 			if (e.getProvider().equals(targetList.getId())) {
-			//Log.d("nils","This is my list!");
+			//Log.d(TAG,"This is my list!");
 			matchAndRecalculateMe();
 			refresh();
 		} else
-			Log.d("nils","event discarded - from wrong list");
+			Log.d(TAG,"event discarded - from wrong list");
 
 	}
 
@@ -122,7 +124,7 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 			String val=v.getValue();
 
 			if (val!=null&&!val.isEmpty()) {
-				//Log.d("nils","VAR: "+v.getId()+"VALUE: "+v.getValue());
+				//Log.d(TAG,"VAR: "+v.getId()+"VALUE: "+v.getValue());
 				if (myType == Type.count) {
 					sum++;
 				}
@@ -143,7 +145,7 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 			variablesWithNoValue+="]";
 			o.addYellowText("Sum zero in Count/Add Block. with pattern ["+myPattern+"] No value found for:");
 			o.addText(variablesWithNoValue);
-			Log.d("vortex","VARIABLES WITH NO VALUE:"+variablesWithNoValue);
+			Log.d(TAG,"VARIABLES WITH NO VALUE:"+variablesWithNoValue);
 		} else {
 			o.addGreenText("Found match(es) in Count/Add Block with pattern ["+myPattern+"]");
 		}

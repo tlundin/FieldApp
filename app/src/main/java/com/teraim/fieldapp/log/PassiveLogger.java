@@ -28,14 +28,14 @@
 //
 //    }
 //    public void addRedText(String text) {
-//        Log.d("amazon","hasred!");
+//        Log.d(TAG,"hasred!");
 //        if (!hasRed) {
 //            hasRed = true;
 //            LocalBroadcastManager.getInstance(myContext).sendBroadcast(new Intent(MenuActivity.REDRAW));
 //        }
 //        addText(text);
-//        //Log.d("vortex","hasRed true for "+this.toString());
-//        //Log.d("vortex",""+this.toString());
+//        //Log.d(TAG,"hasRed true for "+this.toString());
+//        //Log.d(TAG,""+this.toString());
 //    }
 //    public void addGreenText(String text) {
 //       addText(text);

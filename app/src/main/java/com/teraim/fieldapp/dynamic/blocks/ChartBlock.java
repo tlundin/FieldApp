@@ -24,6 +24,8 @@ import org.achartengine.model.CategorySeries;
  * Created by Terje on 2016-07-19.
  */
 public abstract class ChartBlock  extends Block implements EventListener {
+    private static final String TAG = "ChartBlock";
+
 
     transient GraphicalView chart;
     transient Context ctx;
@@ -51,7 +53,7 @@ public abstract class ChartBlock  extends Block implements EventListener {
         try {
             textSizeF = Float.parseFloat(textSize);
         } catch (NumberFormatException e) {
-            Log.d("vortex", "error in format...default to 10");
+            Log.d(TAG, "error in format...default to 10");
         }
         this.blockId = blockId;
         this.name = name;
@@ -63,7 +65,7 @@ public abstract class ChartBlock  extends Block implements EventListener {
         this.isVisible = isVisible;
         this.height = height;
         this.width = width;
-        Log.d("vortex", "height" + height);
+        Log.d(TAG, "height" + height);
         if (margins!=null) {
             String[] ms = margins.split(" ");
             if (ms.length > 0) {
@@ -89,7 +91,7 @@ public abstract class ChartBlock  extends Block implements EventListener {
         //(In case this block is executed after the datasource block)
         myContext.registerEventListener(this, Event.EventType.onFlowExecuted);
         myContext.registerEventListener(this, Event.EventType.onSave);
-        Log.d("blio","now listening to onsave");
+        Log.d(TAG,"now listening to onsave");
         o = LogRepository.getInstance();
 
 
@@ -111,43 +113,43 @@ public abstract class ChartBlock  extends Block implements EventListener {
     @Override
     public void onEvent(Event e) {
 
-        Log.d("blio","got event "+e.getType());
+        Log.d(TAG,"got event "+e.getType());
         if (e.getType() == Event.EventType.onFlowExecuted) {
             WF_Container myContainer = (WF_Container) myContext.getContainer(container);
             //Create chart chart if not already done.
             if (chart == null) {
-                Log.d("vortex", "got onAttach event in pieblock. h w " + height + "," + width);
+                Log.d(TAG, "got onAttach event in pieblock. h w " + height + "," + width);
 
                 if (myContainer != null) {
                     //call abstract for specialization
                     initializeChart();
-                    Log.d("vortex","After initChar for: "+getName());
+                    Log.d(TAG,"After initChar for: "+getName());
                     myWidget = new WF_Widget(blockId, chart, isVisible, myContext);
                     myContainer.add(myWidget);
                     myContainer.getViewGroup().addView(myWidget.getWidget(), insertIndex);
                     myWidget.getWidget().post(new Runnable() {
                         @Override
                         public void run() {
-                            Log.d("rasco","www");
+                            Log.d(TAG,"www");
                             WF_Container myContainer = (WF_Container) myContext.getContainer(container);
                             LinearLayout.LayoutParams layoutParams = (LinearLayout.LayoutParams) chart.getLayoutParams();
                             if (height < 0) {
                                 height = myContainer.getViewGroup().getHeight();
                             } else {
-                                Log.d("vortex", "Applying DIP measurements for height." + height );
+                                Log.d(TAG, "Applying DIP measurements for height." + height );
                                 height = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, height, ctx.getResources().getDisplayMetrics());
                             }
                             if (width < 0) {
                                 if (width == -1)
                                     width = myContainer.getViewGroup().getWidth();
                                 else {
-                                    Log.d("bretox","w set to fill!");
+                                    Log.d(TAG,"w set to fill!");
                                     int w = myContainer.getViewGroup().getWidth();
                                     width = w;
                                     height = w;
                                 }
                             } else {
-                                Log.d("vortex", "Applying DIP measurements for width." + height );
+                                Log.d(TAG, "Applying DIP measurements for width." + height );
                                 width = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, width, ctx.getResources().getDisplayMetrics());
                             }
 
@@ -155,10 +157,10 @@ public abstract class ChartBlock  extends Block implements EventListener {
                             layoutParams.width = width;
 
                             myWidget.getWidget().requestLayout();
-                            Log.d("vortex","My name: "+getName());
-                            Log.d("vortex","W: "+layoutParams.width+" H:"+layoutParams.height);
-                            Log.d("vortex","chart is attached: "+myWidget.getWidget().isShown()+" w"+myWidget.getWidget().getWidth()+" h:"+myWidget.getWidget().getHeight());
-                            Log.d("vortex","chart is attached: "+ chart.isShown()+" "+myWidget.isVisible());
+                            Log.d(TAG,"My name: "+getName());
+                            Log.d(TAG,"W: "+layoutParams.width+" H:"+layoutParams.height);
+                            Log.d(TAG,"chart is attached: "+myWidget.getWidget().isShown()+" w"+myWidget.getWidget().getWidth()+" h:"+myWidget.getWidget().getHeight());
+                            Log.d(TAG,"chart is attached: "+ chart.isShown()+" "+myWidget.isVisible());
                         }
                     });
                 } else {
@@ -174,9 +176,9 @@ public abstract class ChartBlock  extends Block implements EventListener {
             }
 
         } else if (e.getType() == Event.EventType.onSave) {
-            Log.d("blio","onsave event occured myDatasource is "+myDataSource);
+            Log.d(TAG,"onsave event occured myDatasource is "+myDataSource);
             if (myDataSource != null && myDataSource.hasChanged()) {
-                Log.d("vortex","trying to repaing chart");
+                Log.d(TAG,"trying to repaing chart");
                 generate();
                 chart.repaint();
             }

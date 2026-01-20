@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Set;
 
 public class CombinedRangeAndListFilter implements TextFilter {
+	private static final String TAG = "CombinedRangeAndListFilter";
+
 
 	private final List<TextFilter> myFilters;
 	private final StringBuilder myPrint;
@@ -54,17 +56,17 @@ public class CombinedRangeAndListFilter implements TextFilter {
 		//Set if default filter triggers.
 		mVar.setOutOfRange(false);
 		for (TextFilter filter:myFilters) {
-			//Log.d("nils","checking filter "+c+" hasdefault: "+hasDefault);
+			//Log.d(TAG,"checking filter "+c+" hasdefault: "+hasDefault);
 			if (filter.filter(source, start, end,dest, dstart, dend)==null){
 				if (hasDefault && c==0) {
-//					Log.d("nils","Default triggered!");
+//					Log.d(TAG,"Default triggered!");
 					mVar.setOutOfRange(true);
 				} else {
-//					Log.d("nils","Other filter triggered.");
+//					Log.d(TAG,"Other filter triggered.");
 				}
 				return null;
 			} //else
-//				Log.d("nils","Filter did not trigger");
+//				Log.d(TAG,"Filter did not trigger");
 			c++;
 		}
 		//If no filter ok - disallow.

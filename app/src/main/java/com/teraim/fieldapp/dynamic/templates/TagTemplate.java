@@ -56,6 +56,8 @@ import java.util.Set;
 
 
 public class TagTemplate extends Executor implements EventListener, OnGesturePerformedListener {
+	private static final String TAG = "TagTemplate";
+
 
 
 	private static final int MAX_TAG = 5,MAX_DELPUNKTER =6;
@@ -255,7 +257,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 		if (dym.getDelytor().size()>0) {
 			updateAreaField();
 		} else
-			Log.d("nils","NO DELYTOR WHEN TIME TO DRAW AREA");
+			Log.d(TAG,"NO DELYTOR WHEN TIME TO DRAW AREA");
 
 
 		return v;
@@ -284,7 +286,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 		float a;
 		for (Delyta d:dym.getDelytor()) {			
 			a=d.getArea();
-			Log.d("nils","Area for dy "+d.getId()+" is "+a);
+			Log.d(TAG,"Area for dy "+d.getId()+" is "+a);
 			if (a==0) 
 				Log.e("nils","AREA WAS 0 in updateAreaField for DY "+d.getId());
 			else {
@@ -306,11 +308,11 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 			tv= el.findViewById(R.id.value);
 			h.setText("DY "+id+":");
 			tv.setText((String.format("%.2f", (aMap.get(id)/100f)))+"\u33A1");
-			Log.d("nils","AREA added for delyta "+id+": "+aMap.get(id));
+			Log.d(TAG,"AREA added for delyta "+id+": "+aMap.get(id));
 			areaL.addView(el);
 		}
 
-		Log.d("nils","exiting area calc");
+		Log.d(TAG,"exiting area calc");
 
 	}
 
@@ -328,7 +330,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 
 
 	private void drawEmptyTable() {
-		Log.d("nils","In drawEmptyTable");
+		Log.d(TAG,"In drawEmptyTable");
 		gl.removeAllViews();
 		TextView header; LinearLayout l,tagRow;
 		for (int j = 1; j<= MAX_TAG; j++) {
@@ -381,7 +383,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 						@Override
 						public boolean onKey(View v, int keyCode, KeyEvent event) {
 							if (keyCode == KeyEvent.KEYCODE_TAB || keyCode == KeyEvent.KEYCODE_ENTER) {
-								Log.d("nils","GETS A TAB OR ENTER");
+								Log.d(TAG,"GETS A TAB OR ENTER");
 								LinearLayout l2 = (LinearLayout)(gl.getChildAt(ii+(jj%COLS+1)*COLS));
 								EditText avst = ((EditText)(l2).findViewById(R.id.avst));
 								if(!Tools.isNumeric(avst.getText().toString()))
@@ -481,7 +483,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 			try {
 				int input = Integer.parseInt(newVal.trim());
 				return (input<=360);
-			} catch (NumberFormatException nfe) {Log.d("nils","this is no number"); }
+			} catch (NumberFormatException nfe) {Log.d(TAG,"this is no number"); }
 			return false;
 
 		}
@@ -504,7 +506,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 			try {
 				int input = Integer.parseInt(newVal.trim());
 				return (input<=100);
-			} catch (NumberFormatException nfe) {Log.d("nils","this is no number"); }
+			} catch (NumberFormatException nfe) {Log.d(TAG,"this is no number"); }
 			return false;
 
 		}
@@ -541,7 +543,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				if (!res.isEmpty())
 					res = res.substring(0, res.length()-1);
 				tagTextView.setText(res);
-				Log.d("vortex","SETTTING TEXT TO "+res);
+				Log.d(TAG,"SETTTING TEXT TO "+res);
 				createDelytorFromTable();
 				dym.analyze();
 				TagTemplate.this.updateAreaField();
@@ -567,7 +569,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 			headerTxt.setText("Ändra tåg "+row);
 			int i=0;			
 			String[] rawTA = rawTag.split(",");
-			Log.d("vortex","rawTA has "+rawTA.length+" elements" );
+			Log.d(TAG,"rawTA has "+rawTA.length+" elements" );
 				boolean avst=true;
 				for (String s:rawTA) {
 					if (avst) {
@@ -597,13 +599,13 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 
 
 	private void fillTable() {
-		Log.d("nils","In fillTable");
+		Log.d(TAG,"In fillTable");
 		gl.removeAllViews();
 		delytor.clear();
 		String tag="";
 		int row =0; 
 		for (Delyta dy:dym.getDelytor()) {	
-			Log.d("vortex","row is "+row+" Tåg: "+dy.getTagPrettyPrint());
+			Log.d(TAG,"row is "+row+" Tåg: "+dy.getTagPrettyPrint());
 			if (!dy.isBackground()) {
 				delytor.add(dy);
 				tag = dy.getTagCommaPrint();
@@ -663,11 +665,11 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 			String tagT = tagTextView.getText().toString();
 			if (tagT==null||tagT.length()==0) {
 				tagTextView.setText("Lägg till tåg");
-				Log.d("vortex","lenght 0 or null for row "+row);
+				Log.d(TAG,"lenght 0 or null for row "+row);
 				continue;
 			}
 			if (tagT.startsWith("L")) {
-				Log.d("vortex","started with L!! "+row);
+				Log.d(TAG,"started with L!! "+row);
 				continue;
 			}
 			//parse...find x,y
@@ -682,7 +684,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 					break;
 				}
 				avst = tagT.substring(start,co);
-				Log.d("vortex","avst: "+avst);
+				Log.d(TAG,"avst: "+avst);
 				start = co+1;
 				co = tagT.indexOf(',', start);
 				if (co==-1) {
@@ -697,11 +699,11 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 					break;
 				}
 				rikt = tagT.substring(start,co);
-				Log.d("vortex","rikt: "+rikt);
+				Log.d(TAG,"rikt: "+rikt);
 				start = co+1;
 				tagCoordinateList.add(new Coord(Integer.parseInt(avst),Integer.parseInt(rikt)));
 			}
-			Log.d("vortex","tåg "+row+" ErrorCode "+errorArray[row]);
+			Log.d(TAG,"tåg "+row+" ErrorCode "+errorArray[row]);
 			
 			if (tagCoordinateList.size()<=1) {
 				err=true;
@@ -724,7 +726,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 		}
 		//Check if no delyta. In that case, add default.
 		if (dym.getDelytor().isEmpty()) {
-			Log.d("nils","Adding default in createdelytorfromtable");
+			Log.d(TAG,"Adding default in createdelytorfromtable");
 			Toast.makeText(getActivity(), "Inga tåg satta", Toast.LENGTH_LONG).show();
 			dym.addDefault();
 		}
@@ -794,9 +796,9 @@ private void drawTrains() {
 
 	@Override
 	public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {
-		Log.d("nils","Number of gestures available: "+gestureLib.getGestureEntries().size());
+		Log.d(TAG,"Number of gestures available: "+gestureLib.getGestureEntries().size());
 		ArrayList<Prediction> predictions = gestureLib.recognize(gesture);
-		Log.d("nils","Number of predictions: "+predictions.size());
+		Log.d(TAG,"Number of predictions: "+predictions.size());
 		for (Prediction prediction : predictions) {
 			if (prediction.score > .5 && prediction.name.equals("right")) {
 				if (dym.hasUnsavedChanges()) {

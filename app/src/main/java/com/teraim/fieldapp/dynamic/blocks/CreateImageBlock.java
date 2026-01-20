@@ -45,6 +45,8 @@ import java.util.regex.Pattern;
  *
  */
 	public class CreateImageBlock extends Block implements EventListener {
+	private static final String TAG = "CreateImageBlock";
+
 
 	private transient ImageView img = null;
 	private transient WF_Context myContext;
@@ -70,10 +72,10 @@ import java.util.regex.Pattern;
 		this.myContext = myContext;
 		o = LogRepository.getInstance();
 		WF_Container myContainer = (WF_Container)myContext.getContainer(container);
-		Log.d("botox","Source name is "+source);
+		Log.d(TAG,"Source name is "+source);
 		if (myContainer != null && sourceE!=null) {
 			dynImgName = Expressor.analyze(sourceE);
-			Log.d("botox","my image name before: "+dynImgName);
+			Log.d(TAG,"my image name before: "+dynImgName);
 
 			ScaleType scaleT=ScaleType.FIT_XY;
 			img = new ImageView(myContext.getContext());
@@ -83,9 +85,9 @@ import java.util.regex.Pattern;
 				//Try to parse as regexp.
 				String fileName = this.figureOutFileToLoad(dynImgName);
 				if (fileName==null) {
-					Log.d("botox","Failed to find file using "+dynImgName+" as regexp pattern");
+					Log.d(TAG,"Failed to find file using "+dynImgName+" as regexp pattern");
 				} else {
-					Log.d("botox","Filename now: "+fileName);
+					Log.d(TAG,"Filename now: "+fileName);
 					dynImgName=fileName;
 				}
 
@@ -161,22 +163,22 @@ import java.util.regex.Pattern;
 					Display display = myContext.getFragmentActivity().getWindowManager().getDefaultDisplay();
 					Point size = new Point();
 					display.getSize(size);
-					Log.d("botox","Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
+					Log.d(TAG,"Img size "+"realW: "+realW+" realH: "+realH+" screen size "+" x: "+size.x+" y: "+size.y);
 
 					int x = size.x/2;
 					int y = size.y/3;
 					options.inSampleSize = Tools.calculateInSampleSize(options,x,y);
-					Log.d("botox", "insample was "+Tools.calculateInSampleSize(options,x,y));
+					Log.d(TAG, "insample was "+Tools.calculateInSampleSize(options,x,y));
 					options.inJustDecodeBounds = false;
 					Bitmap bip = BitmapFactory.decodeFile(PIC_ROOT_DIR+dynImgName,options);
 					CreateImageBlock.this.myContext.getFragmentActivity().runOnUiThread(new Runnable() {
 						public void run() {
 							if(Looper.myLooper() == Looper.getMainLooper())
-								Log.d("botox","In UI thread");
+								Log.d(TAG,"In UI thread");
 							if (bip!=null)
 								img.setImageBitmap(bip);
 							else
-								Log.d("botox","Could not decode image "+dynImgName);
+								Log.d(TAG,"Could not decode image "+dynImgName);
 						}
 					});
 
@@ -186,7 +188,7 @@ import java.util.regex.Pattern;
 
 		}
 		else {
-			Log.d("botox","Did not find picture "+dynImgName);
+			Log.d(TAG,"Did not find picture "+dynImgName);
 		}
 	}
 
@@ -214,10 +216,10 @@ import java.util.regex.Pattern;
 			});
 
 			if (flists!=null && flists.length>0) {
-				Log.d("botox","found file matches for pattern "+pattern);
+				Log.d(TAG,"found file matches for pattern "+pattern);
 				long max = -1; File fMax=null;
 				for (File fl:flists) {
-					Log.d("vortex",fl.getName()+" "+fl.lastModified());
+					Log.d(TAG,fl.getName()+" "+fl.lastModified());
 					long lm = fl.lastModified();
 					if (lm>max) {
 						max = lm;
@@ -274,7 +276,7 @@ import java.util.regex.Pattern;
 
 	@Override
 	public void onEvent(Event e) {
-		Log.d("botox","Img was taken");
+		Log.d(TAG,"Img was taken");
 		String fileName = this.figureOutFileToLoad(dynImgName);
 		if (fileName!=null)
 			dynImgName=fileName;

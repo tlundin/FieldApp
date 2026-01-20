@@ -18,6 +18,8 @@ import java.util.TreeMap;
 @SuppressLint("UseSparseArrays")
 
 public class Table implements Serializable {
+	private static final String TAG = "Table";
+
 
 	private static final long serialVersionUID = 1183209171210448314L;
 	//The table is a Map of key=Header,value=List of Data.
@@ -42,7 +44,7 @@ public class Table implements Serializable {
 		this.keyChainIndex = keyChainIndex;
 		this.variableIdIndex = nameIndex;
 		myColumns = columnNames;
-		Log.d("nils","Created table with column names: "+myColumns.toString());
+		Log.d(TAG,"Created table with column names: "+myColumns.toString());
 	}
 
 	public enum ErrCode {
@@ -96,7 +98,7 @@ public class Table implements Serializable {
 		}
 		for (String key:keys) {
 			if (!keyParts.contains(key)&&key.trim().length()>0) {
-				//Log.d("nils","found new key part: "+key);
+				//Log.d(TAG,"found new key part: "+key);
 				//Add to existing Database model.
 				keyParts.add(key.trim());
 			}
@@ -121,7 +123,7 @@ public class Table implements Serializable {
 	}
 
 	public List<List<String>> getRowsContaining(String columnName, String pattern) {
-		Log.d("nils","Trying to find rows matching column "+columnName+" and pattern "+pattern);
+		Log.d(TAG,"Trying to find rows matching column "+columnName+" and pattern "+pattern);
 	
 		List<List<String>> ret = null;
 		List<String> column = colTable.get(columnName);
@@ -129,27 +131,27 @@ public class Table implements Serializable {
 			pattern.trim();
 			ret = new ArrayList<List<String>>();
 			for(int i = 0;i<column.size();i++) {
-				//Log.d("nils","i: "+i+" col: "+column.get(i));
+				//Log.d(TAG,"i: "+i+" col: "+column.get(i));
 				if (column.get(i).equals(pattern)||column.get(i).matches(pattern)) {
 					ret.add(rowTable.get(i));
 				}
 			}
 			if (ret!=null)
-				Log.d("nils","Returning "+ret.size()+" rows in getRows(Table)");
+				Log.d(TAG,"Returning "+ret.size()+" rows in getRows(Table)");
 				
 		} 
 		return ret;
 	}
 	
 	public List<List<String>> getRowsStartingWith(String columnName, String prefix) {
-		//Log.d("nils","Trying to find rows matching column "+columnName+" and pattern "+pattern);
+		//Log.d(TAG,"Trying to find rows matching column "+columnName+" and pattern "+pattern);
 	
 		List<List<String>> ret = null;
 		List<String> column = colTable.get(columnName);
 		if(column!=null && prefix!=null) {
 			prefix.trim();
 			for(int i = 0;i<column.size();i++) {
-				//Log.d("nils","i: "+i+" col: "+column.get(i));
+				//Log.d(TAG,"i: "+i+" col: "+column.get(i));
 				if (column.get(i).startsWith(prefix)) {
 					if (ret == null)
 						ret = new ArrayList<List<String>>();
@@ -157,13 +159,13 @@ public class Table implements Serializable {
 				}
 			}
 //			if (ret!=null)
-//				Log.d("nils","Returning "+ret.size()+" rows in getRows(Table)");
+//				Log.d(TAG,"Returning "+ret.size()+" rows in getRows(Table)");
 		} 
 		return ret;
 	}
 
 	public int getColumnIndex(String c) {
-		//Log.d("vortex","My columns: "+myColumns.toString());
+		//Log.d(TAG,"My columns: "+myColumns.toString());
 		for (int i=0;i<myColumns.size();i++)
 			if (c.equalsIgnoreCase(myColumns.get(i)))
 				return i;
@@ -188,10 +190,10 @@ public class Table implements Serializable {
 
 		for(int i = 0;i<column.size();i++) {
 			if (column.get(i).equals(key.trim())) {
-				//Log.d("nils","found master variable "+key+" in Artlista");
+				//Log.d(TAG,"found master variable "+key+" in Artlista");
 				return rowTable.get(i);
 			}
-			//Log.d("nils","nomatch: "+column.get(i)+" "+key+" l1: "+column.get(i).length()+" "+"l2:"+key.length());
+			//Log.d(TAG,"nomatch: "+column.get(i)+" "+key+" l1: "+column.get(i).length()+" "+"l2:"+key.length());
 		}
 		
 		Log.e("nils","Did not find master variable "+key+" in Artlista column: "+columnName);
@@ -206,7 +208,7 @@ public class Table implements Serializable {
 		if (index !=-1) {	
 			if (row.size()>index)
 				result = row.get(index);
-			//Log.d("nils","found field "+columnName+": "+result+" in class Table");
+			//Log.d(TAG,"found field "+columnName+": "+result+" in class Table");
 		} else {
 			LogRepository.getInstance().addCriticalText("Did not find column named "+columnName);
 			Log.e("nils","Did NOT find field ["+columnName+"] in class Table. Columns available:");
@@ -224,18 +226,18 @@ public class Table implements Serializable {
 		for (Integer key:rowTable.keySet()) {
 			List<String> l = rowTable.get(key);
 			//if (GlobalState.getInstance().getVariableConfiguration().getVarName(l).)
-			Log.d("vortex","Row: "+key+":");
-			Log.d("vortex",l.toString());
+			Log.d(TAG,"Row: "+key+":");
+			Log.d(TAG,l.toString());
 		}
 
 	}
 	public void printTable() {
 		Map<Integer, List<String>> x = rowTable;
-		Log.d("vortex",myColumns.toString());
+		Log.d(TAG,myColumns.toString());
 		for (Integer key:rowTable.keySet()) {
 			List<String> l = rowTable.get(key);
-			Log.d("vortex","Row: "+key+":");
-			Log.d("vortex",l.toString());
+			Log.d(TAG,"Row: "+key+":");
+			Log.d(TAG,l.toString());
 		}
 	}
 	

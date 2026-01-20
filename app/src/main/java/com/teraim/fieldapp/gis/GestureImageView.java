@@ -38,6 +38,8 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 public class GestureImageView extends androidx.appcompat.widget.AppCompatImageView  {
+	private static final String TAG = "GestureImageView";
+
 
 
 
@@ -177,7 +179,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	}
 
 	private void setupCanvas(int measuredWidth, int measuredHeight, int orientation) {
-		Log.d("vortex","layout is called now");
+		Log.d(TAG,"layout is called now");
 		if(deviceOrientation != orientation) {
 			layout = false;
 			deviceOrientation = orientation;
@@ -304,7 +306,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 		if(recycle && drawable instanceof BitmapDrawable) {
 			Bitmap bitmap = ((BitmapDrawable)drawable).getBitmap();
 			if(bitmap != null) {
-				Log.d("vortex","recycling!");
+				Log.d(TAG,"recycling!");
 				bitmap.recycle();
 			}
 		}
@@ -331,7 +333,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 				drawable.draw(canvas);
 				canvas.restore();
 			} //else
-			//	Log.d("vortex", "nodraw since drawable is null");
+			//	Log.d(TAG, "nodraw since drawable is null");
 
 			if(drawLock.availablePermits() <= 0) {
 				drawLock.release();
@@ -405,18 +407,18 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 
 	public void setImageBitmap(Bitmap image) {
 		if (image==null)
-			Log.d("vortex","Image null!");
+			Log.d(TAG,"Image null!");
 		if(this.drawable != null) {
 			this.recycle();
-			Log.d("vortex","REcycle!");
+			Log.d(TAG,"REcycle!");
 		}
 		this.drawable = new BitmapDrawable(getResources(), image);
 		if (drawable!=null) {
-			Log.d("vortex", "Drawable not null!");
+			Log.d(TAG, "Drawable not null!");
 			layout=false;
 		}
 		else
-			Log.d("vortex","Drawable null!");
+			Log.d(TAG,"Drawable null!");
 		initImage();
 	}
 
@@ -501,7 +503,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	public void handleScale(float scaleDiff) {
 		
 		//float newScale = scaleAdjust+scaleDiff;
-		//Log.d("vortex","new scale: "+newScale);
+		//Log.d(TAG,"new scale: "+newScale);
 		
 		gestureImageViewTouchListener.startZoom(centerX, centerY, scaleDiff);
 		//oldScale = scaleAdjust; 
@@ -517,16 +519,16 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	 */
 
 	public boolean handleScaleOut(float scaleDiff) {
-		Log.d("vortex","ScaleAdjust: "+scaleAdjust+" fitScaleHori: "+fitScaleHorizontal+" minSc: "+gestureImageViewTouchListener.getMinScale());
+		Log.d(TAG,"ScaleAdjust: "+scaleAdjust+" fitScaleHori: "+fitScaleHorizontal+" minSc: "+gestureImageViewTouchListener.getMinScale());
 		gestureImageViewTouchListener.startZoom(centerX, centerY, scaleDiff);
 		boolean maxReached = (Math.abs(scaleAdjust - fitScaleHorizontal) < 0.1);
-		Log.d("vortex2","ScaleAdjust: "+scaleAdjust+" fitScaleHori: "+fitScaleHorizontal+" minSc: "+gestureImageViewTouchListener.getMinScale());
-		Log.d("vortex","maxReached: "+maxReached);
+		Log.d(TAG,"ScaleAdjust: "+scaleAdjust+" fitScaleHori: "+fitScaleHorizontal+" minSc: "+gestureImageViewTouchListener.getMinScale());
+		Log.d(TAG,"maxReached: "+maxReached);
 		return (maxReached) ;		
 	}
 	
 	public float getScale() {
-		Log.d("vortex","getScale returns "+scaleAdjust);
+		Log.d(TAG,"getScale returns "+scaleAdjust);
 		return scaleAdjust;
 	}
 
@@ -748,7 +750,7 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	}
 	
 	private void setStartingScale(float startingScale) {
-		Log.d("vortex","setting startingscale to "+startingScale);
+		Log.d(TAG,"setting startingscale to "+startingScale);
 		this.startingScale = startingScale;
 	}
 	
@@ -760,12 +762,12 @@ public class GestureImageView extends androidx.appcompat.widget.AppCompatImageVi
 	@Override
 	public void setOnClickListener(OnClickListener l) {
 		this.onClickListener = l;
-		Log.d("vortex","setting click listener?");
+		Log.d(TAG,"setting click listener?");
 		
 		if(gestureImageViewTouchListener != null) {
 			gestureImageViewTouchListener.setOnClickListener(l);
 		} else
-			Log.d("vortex","no listener?");
+			Log.d(TAG,"no listener?");
 	}
 	
 	@Override

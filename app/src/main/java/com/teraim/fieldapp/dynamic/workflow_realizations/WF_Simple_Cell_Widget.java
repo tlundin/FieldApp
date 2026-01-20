@@ -35,6 +35,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventListener {
+	private static final String TAG = "WF_Simple_Cell_Widget";
+
 
 	private final Map<String, String> myHash;
 	private final CheckBox myCheckBox;
@@ -219,7 +221,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 		@Override
 		public void addVariable(final String varId, boolean displayOut,String format,boolean isVisible,boolean showHistorical, String prefetchValue) {
 			myVariable = GlobalState.getInstance().getVariableCache().getCheckedVariable(myHash, varId, prefetchValue, prefetchValue!=null);
-			//Log.d("bozo","prefetchvalue for "+varId+"is "+prefetchValue);
+			//Log.d(TAG,"prefetchvalue for "+varId+"is "+prefetchValue);
 			if (myVariable!=null) {
 				String val = myVariable.getValue();
 				myCheckBox.setChecked(val!=null && val.equals("true"));

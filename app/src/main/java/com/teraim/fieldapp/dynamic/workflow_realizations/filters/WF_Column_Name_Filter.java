@@ -9,6 +9,8 @@ import java.util.List;
 
 //Specialized filter. Will filter a list on Prefix.
 public class WF_Column_Name_Filter extends WF_Filter {
+	private static final String TAG = "WF_Column_Name_Filter";
+
 
 	private String myPrefix = "";
 	String filterColumn;
@@ -32,23 +34,23 @@ public class WF_Column_Name_Filter extends WF_Filter {
 	public void filter(List<? extends Listable> list) {
 		String key;
 		Iterator<? extends Listable> it = list.iterator();
-		//Log.d("filterz","filtering with type "+filterType.name());
+		//Log.d(TAG,"filtering with type "+filterType.name());
 		while(it.hasNext()) {
 			Listable l = it.next();
 
-			//Log.d("filterz","l "+l+" key "+l.getSortableField(columnToMatch)+" coltomatch "+columnToMatch);
+			//Log.d(TAG,"l "+l+" key "+l.getSortableField(columnToMatch)+" coltomatch "+columnToMatch);
 			key = l.getSortableField(columnToMatch);
 			if (key==null)
 				continue;
 			if (match(key)) {
 				it.remove();
 				//if (!key.isEmpty())
-				//  Log.d("filterz", "filter REMOVES element " + l.getKey()+" Label: "+l.getLabel());// + " because " + key.charAt(0) + " doesn't match " + myPrefix);
+				//  Log.d(TAG, "filter REMOVES element " + l.getKey()+" Label: "+l.getLabel());// + " because " + key.charAt(0) + " doesn't match " + myPrefix);
 
 			}
 			else {
-				//Log.d("filterz", "filter KEEPS element " + l.getKey()+" Label: "+l.getLabel()+" column: "+key);// + " because " + key.charAt(0) + " doesn't match " + myPrefix);
-				//Log.d("nils","filter match for element "+key+" because "+key.charAt(0)+" match "+myPrefix);
+				//Log.d(TAG, "filter KEEPS element " + l.getKey()+" Label: "+l.getLabel()+" column: "+key);// + " because " + key.charAt(0) + " doesn't match " + myPrefix);
+				//Log.d(TAG,"filter match for element "+key+" because "+key.charAt(0)+" match "+myPrefix);
 				totMatch = true;
 			}
 
@@ -107,7 +109,7 @@ public class WF_Column_Name_Filter extends WF_Filter {
 
 					match=true;
 					if (facet.length()!=myPrefix.length()) {
-						//Log.d("vortex","found NO match for key"+key+" facet "+facet+" and myPrefix: "+myPrefix);
+						//Log.d(TAG,"found NO match for key"+key+" facet "+facet+" and myPrefix: "+myPrefix);
 						match = false;
 						continue;
 					}

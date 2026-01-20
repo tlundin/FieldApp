@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GisObject {
+	private static final String TAG = "GisObject";
+
 
 
 	static final double ClickThresholdInMeters = 30;
@@ -41,7 +43,7 @@ public class GisObject {
 		this.statusVariableId=statusVarName;
 		this.statusVariableValue=statusVariableValue;
 		//if (statusVariableValue!=null && statusVariableValue.equals(Constants.STATUS_KLAR_I_DB))
-		//	Log.d("plaxxo","status 100 for "+statusVarName+" "+conf.getRawLabel());
+		//	Log.d(TAG,"status 100 for "+statusVarName+" "+conf.getRawLabel());
 	}
 
 	List<Location> myCoordinates;
@@ -78,14 +80,14 @@ public class GisObject {
 	public String getLabel() {
 
 		if (label!=null) {
-			//Log.d("pex2","returning "+label);
+			//Log.d(TAG,"returning "+label);
 			return label;
 		}
 		if (foc.getLabelExpression()==null) {
-			//Log.d("pex2","returning null");
+			//Log.d(TAG,"returning null");
 			return null;
 		}
-		//Log.d("pex2","In getLabel gisobject..analyzing: "+foc.getLabelExpression()+" with keychain "+keyChain);
+		//Log.d(TAG,"In getLabel gisobject..analyzing: "+foc.getLabelExpression()+" with keychain "+keyChain);
 		label = Expressor.analyze(foc.getLabelExpression(),keyChain);
 		//@notation for id
 		if (label!=null && label.startsWith("@")) {
@@ -96,7 +98,7 @@ public class GisObject {
 		}
 		if (label==null)
 			label = "";
-		//Log.d("pex2","returning OUT"+label);
+		//Log.d(TAG,"returning OUT"+label);
 		return label;
 	}
 
@@ -131,9 +133,9 @@ public class GisObject {
 		if (statusVariableId==null || statusVariableValue==null)
 			return null;
 		int statusValue = Integer.parseInt(statusVariableValue);
-		//Log.d("fenris","statvar "+statusVariableId+" value was "+statusVariableValue+" statval is "+statusValue);
+		//Log.d(TAG,"statvar "+statusVariableId+" value was "+statusVariableValue+" statval is "+statusValue);
 		if (statusVariableId.equals("STATUS:status_trakter")) {
-			//Log.d("fenris","gop "+this.getLabel()+" object "+this.hashCode()+" has status "+statusVariableValue);
+			//Log.d(TAG,"gop "+this.getLabel()+" object "+this.hashCode()+" has status "+statusVariableValue);
 			if (statusVariableValue.equals(Constants.STATUS_HIGH_PRIORITY))
 					return "#9900ff";
 			else if (statusVariableValue.equals(Constants.STATUS_INITIAL))
@@ -195,7 +197,7 @@ public class GisObject {
 				}
 			}
 		}
-		//Log.d("vortex","createlistlocations returning: "+ret.toString());
+		//Log.d(TAG,"createlistlocations returning: "+ret.toString());
 
 		return ret;
 	}

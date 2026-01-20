@@ -289,7 +289,7 @@ public class DbHelper extends SQLiteOpenHelper {
         try (Cursor c = db().query(true, TABLE_VARIABLES, columns, selection, selectionArgs, null, null, null, null)) {
             if (c.moveToNext()) {
                 for (int i = 0; i < c.getColumnCount(); i++) {
-                    Log.d("vortex", "COL: " + c.getColumnName(i) + ":" + c.getString(i));
+                    Log.d(TAG, "createNotNullSelection: column " + c.getColumnName(i) + " value " + c.getString(i));
                     newKeyHash.put(getRealColumnNameFromDatabaseName(c.getColumnName(i)), c.getString(i));
                 }
 
@@ -524,12 +524,12 @@ public class DbHelper extends SQLiteOpenHelper {
         _db.execSQL(CREATE_SYNC_TABLE);
         _db.execSQL(CREATE_TIMESTAMP_TABLE);
 
-        Log.d("NILS", "DB CREATED");
+        Log.d(TAG, "onCreate: database created");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase _db, int oldVersion, int newVersion) {
-        Log.d("NILS", "UPDATE CALLED");
+        Log.d(TAG, "onUpgrade: upgrading from " + oldVersion + " to " + newVersion);
         // Drop older books table if existed
         _db.execSQL("DROP TABLE IF EXISTS variabler");
         _db.execSQL("DROP TABLE IF EXISTS audit");
@@ -556,18 +556,17 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         if (exporter == null)
             return new Report(ExportReport.EXPORTFORMAT_UNKNOWN);
-        Log.d("nils", "Started export");
-        Log.d("vortex", "filename: " + exportFileName + " context: " + context);
+        Log.d(TAG, "export: started file=" + exportFileName + " context=" + context);
         String selection = "";
 
         if (exporter instanceof GeoJSONExporter) {
-            Log.d("vortex", "geojsonexport");
+            Log.d(TAG, "export: GeoJSON mode");
             selection = (getDatabaseColumnName("uid") + " NOT NULL " + (context != null ? "AND " : ""));
         }
 
         List<String> selArgs = null;
         if (context != null) {
-            Log.d("vortex", "context: " + context.toString());
+            Log.d(TAG, "export: context=" + context);
             //selection = "";
             String col;
             //Build query
@@ -592,8 +591,8 @@ public class DbHelper extends SQLiteOpenHelper {
             }
         }
         //Select.
-        Log.d("vortex", "selection is " + selection);
-        Log.d("vortex", "Args is " + selArgs);
+        Log.d(TAG, "export: selection=" + selection);
+        Log.d(TAG, "export: selectionArgs=" + selArgs);
         String[] selArgsA = null;
         if (selArgs != null)
             selArgsA = selArgs.toArray(new String[selArgs.size()]);
@@ -602,17 +601,17 @@ public class DbHelper extends SQLiteOpenHelper {
             c = db().query(TABLE_VARIABLES, null, selection,
                     selArgsA, null, null, null, null);
         } catch (SQLiteException e) {
-            Log.d("dbhelper","sqlexception on query with "+selection+" args: "+print(selArgsA));
+            Log.d(TAG, "export: query failed selection=" + selection + " args=" + print(selArgsA));
         }
 
         if (c != null) {
-            Log.d("nils", "Variables found in db for context " + context);
+            Log.d(TAG, "export: variables found for context " + context);
             //Wrap the cursor in an object that understand how to pick it!
             Report r = exporter.writeVariables(new DBColumnPicker(c));
             if (r != null && r.noOfVars > 0) {
                 final Report res;
                 if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.getData())) {
-                    Log.d("nils", "Exported file succesfully");
+                    Log.d(TAG, "export: file written successfully");
                     LogRepository logger = LogRepository.getInstance();
                     logger.addText("Exported to folder: "+exportFolder);
                     c.close();
@@ -1198,7 +1197,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public SyncReport insertSyncEntries(SyncReport changes, SyncEntry[] ses, LogRepository o) {
 
         if (ses == null || ses.length==0) {
-            Log.d("sync", "syncentry contained no data");
+            Log.d(TAG, "insertSyncEntries: no sync entries");
             return null;
         }
         final VariableCache variableCache = GlobalState.getInstance().getVariableCache();
@@ -1319,7 +1318,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
             //Erase set of values. Targets incoming sync entries only.
             else if (s.isDeleteMany()) {
-                Log.d("bascar","Indeletemany. ");
+                Log.d(TAG, "insertSyncEntries: delete-many start");
                 Map keyPairs = s.getKeys();
                 String pattern = s.getTarget();
                 if (keyPairs != null) {
@@ -1327,17 +1326,17 @@ public class DbHelper extends SQLiteOpenHelper {
                     int affectedRows = tsMap.delete(keyPairs,pattern);
                     //
                     changes.deletes += affectedRows;
-                    Log.d("bascar","Affected rows in sync cache: "+affectedRows);
+                    Log.d(TAG, "insertSyncEntries: sync cache rows affected " + affectedRows);
                     //cache entries deleted in erase.
                     affectedRows = this.erase(s.getChange(), pattern);
-                    Log.d("bascar","Affected rows in database:" +affectedRows);
+                    Log.d(TAG, "insertSyncEntries: database rows affected " + affectedRows);
 
                 } else {
                     o.addCriticalText("DB_ERASE Failed. Message corrupt");
                     changes.faults++;
                 }
             } else {
-                Log.d("vortex","Got here... "+s.getTarget()+" "+s.getAction());
+                Log.d(TAG, "insertSyncEntries: unhandled action " + s.getAction() + " target " + s.getTarget());
             }
 
         }
@@ -1393,7 +1392,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private final StringBuilder whereClause = new StringBuilder();
 
     private int delete(Map<String,String> keys, long timeStamp, String team) throws SQLException {
-        Log.d("plekk","Delete with "+keys.toString()+" ts "+timeStamp+" team "+team);
+        Log.d(TAG, "delete: keys=" + keys + " timestamp=" + timeStamp + " team=" + team);
         //contains the delete key,value pairs found in the delete entry.
         if (keys ==null)
             return 0;
@@ -1410,7 +1409,7 @@ public class DbHelper extends SQLiteOpenHelper {
         whereArgs[n] = timeStamp+"";
         whereClause.append(LAG+" = ? AND "+TIMESTAMP+" <= ?");
 
-        Log.d("plekk","Calling delete with Selection: "+whereClause+" args: "+print(whereArgs));
+        Log.d(TAG, "delete: selection=" + whereClause + " args=" + print(whereArgs));
         //Calling delete with Selection: L4= ? AND L2= ? AND L1= ? AND L3= ? AND timestamp <= ? AND var = ? args: [0]: 2B1AFEF6-6C71-45DC-BB26-AF0B362E9073 [1]: 999994 [2]: 2016 [3]: Angsobete [4]: 1474478318 [5]: null [6]: STATUS:status_angsochbete
 
         return
@@ -1424,7 +1423,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public SyncReport synchronise(SyncEntry[] ses, UIProvider ui, LogRepository o, SyncStatusListener syncListener) {
         if (ses == null) {
-            Log.d("sync", "ses är tom! i synchronize");
+            Log.d(TAG, "synchronise: empty sync entry array");
             return null;
         }
         Set<String> touchedVariables = new HashSet<String>();
@@ -1584,7 +1583,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 } else {
                     if (s.isDelete()) {
                         keySet.clear();
-                        Log.d("sync", "Got Delete for: " + s.getTarget());
+                        Log.d(TAG, "synchronise: delete entry for " + s.getTarget());
                         String[] sChanges = null;
                         if (s.getChange() != null)
                             sChanges = s.getChange().split("\\|");
@@ -1614,8 +1613,8 @@ public class DbHelper extends SQLiteOpenHelper {
                             }
 
                         }
-                        Log.d("sync", "DELETE WITH PARAMETER NAMED " + name);
-                        Log.d("sync","Keyset:  "+keySet.toString());
+                        Log.d(TAG, "synchronise: delete variable " + name);
+                        Log.d(TAG, "synchronise: delete keySet " + keySet);
 
                         Selection sel = this.createSelection(keySet, name);
                         if (sel.selectionArgs != null) {
@@ -1804,7 +1803,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
         //create WHERE part of delete statement.
         String deleteStatement = "år=" + Constants.getYear() + ",ruta=" + currentRuta + ",provyta=" + currentProvyta + ",delyta=" + Constants.NOT_NULL;
-        Log.d("nils", "In EraseDelytor: [" + deleteStatement + "]");
+        Log.d(TAG, "eraseDelytor: delete statement " + deleteStatement);
 
         //Do it!
         erase(deleteStatement, null);
@@ -1816,7 +1815,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
 
     public void eraseSmaProvyDelytaAssoc(String currentRuta, String currentProvyta) {
-        Log.d("vortex", "Calling erase with r " + currentRuta + ", p " + currentProvyta + " db: " + db);
+        Log.d(TAG, "eraseSmaProvyDelytaAssoc: ruta=" + currentRuta + " provyta=" + currentProvyta + " db=" + db);
         String yCol = columnMapper.getDbNameOrNull("år");
         String rCol = columnMapper.getDbNameOrNull("ruta");
         String pyCol = columnMapper.getDbNameOrNull("provyta");
@@ -1850,12 +1849,12 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public boolean deleteHistory() {
         try {
-            Log.d("nils", "deleting all historical values");
+            Log.d(TAG, "deleteHistory: deleting historical values");
             SelectionBuilder selectionBuilder = new SelectionBuilder();
             selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
             int rows = db().delete(TABLE_VARIABLES, selectionBuilder.buildSelection(), selectionBuilder.buildArgs());
         } catch (SQLiteException e) {
-            Log.d("nils", "not a nils db");
+            Log.d(TAG, "deleteHistory: not a NILS database");
             return false;
         }
         return true;
@@ -1863,7 +1862,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
     public boolean deleteHistoryEntries(String typeColumn, String typeValue) {
         try {
-            Log.d("nils", "deleting historical values of type " + typeValue);
+            Log.d(TAG, "deleteHistoryEntries: deleting historical values type=" + typeValue);
             SelectionBuilder selectionBuilder = new SelectionBuilder();
             selectionBuilder.addEquals(getDatabaseColumnName("år"), Constants.HISTORICAL_TOKEN_IN_DATABASE);
             selectionBuilder.addEqualsWithCollateNoCase(getDatabaseColumnName(typeColumn), typeValue);
@@ -1872,9 +1871,9 @@ public class DbHelper extends SQLiteOpenHelper {
                     selectionBuilder.buildSelection(),
                     selectionBuilder.buildArgs()
             );
-            Log.d("nils", "Deleted " + rows + " rows of history");
+            Log.d(TAG, "deleteHistoryEntries: deleted " + rows + " historical rows");
         } catch (SQLiteException e) {
-            Log.d("nils", "not a nils db");
+            Log.d(TAG, "deleteHistoryEntries: not a NILS database");
             return false;
         }
         return true;
@@ -1890,7 +1889,7 @@ public class DbHelper extends SQLiteOpenHelper {
             for (String pyType : pyTypes) {
                 keyHash.put("var", "STATUS:status_" + pyType);
                 deleteAllVariablesUsingKey(keyHash);
-                Log.d("vortex", "Erased status variables for " + pyType);
+                Log.d(TAG, "cleanDatabase: erased status variables for " + pyType);
             }
         }
     }
@@ -1972,7 +1971,7 @@ public class DbHelper extends SQLiteOpenHelper {
         if (gpsCoord == null || geoType == null) {
             Log.e("vortex", "Insert failed for " + GisConstants.GPS_Coord_Var_Name + ". Hash: " + go.getKeyHash().toString());
         } else
-            Log.d("vortex", "succesfully inserted new gisobject");
+            Log.d(TAG, "insertGisObject: inserted new GIS object");
     }
 
     //Get values for all instances of a given variable, from a keychain with * values.
@@ -2028,8 +2027,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public DBColumnPicker getLastVariableInstance(Selection s) {
-        Log.d("fenris sa:",print(s.selectionArgs));
-        Log.d("fenris selection",s.selection);
+        Log.d(TAG, "getLastVariableInstance: selectionArgs " + print(s.selectionArgs));
+        Log.d(TAG, "getLastVariableInstance: selection " + s.selection);
         Cursor c = db().query(TABLE_VARIABLES, null, s.selection,
                 s.selectionArgs, null, null, "timestamp DESC", "1");
         return new DBColumnPicker(c);
@@ -2213,7 +2212,7 @@ public class DbHelper extends SQLiteOpenHelper {
         Cursor c = getPrefetchCursor(keyChain, namePrefix, variatorColumn);
         Map<String, Map<String, String>> ret = new HashMap<String, Map<String, String>>();
         if (c != null && c.moveToFirst()) {
-            Log.d("nils", "In prefetchValues. Got " + c.getCount() + " results. PrefetchValues " + namePrefix + " with key " + keyChain.toString());
+            Log.d(TAG, "preFetchValues: got " + c.getCount() + " results for " + namePrefix + " with key " + keyChain);
             do {
                 String varId = c.getString(0);
                 if (varId != null) {
@@ -2224,7 +2223,7 @@ public class DbHelper extends SQLiteOpenHelper {
                     }
                     varMap.put(c.getString(1), c.getString(2));
                 }
-                Log.d("nils", "varid: " + c.getString(0) + " variator: " + c.getString(1) + " value: " + c.getString(2));
+                Log.d(TAG, "preFetchValues: varId=" + c.getString(0) + " variator=" + c.getString(1) + " value=" + c.getString(2));
             } while (c.moveToNext());
 
         }
@@ -2247,7 +2246,7 @@ public class DbHelper extends SQLiteOpenHelper {
         }
         String selection = selectionBuilder.buildSelection();
         String[] selectionArgs = selectionBuilder.buildArgs();
-        Log.d("nils", "Query selection: " + selection);
+        Log.d(TAG, "getPrefetchCursor: selection " + selection);
         //Return cursor.
         return db().query(
                 TABLE_VARIABLES,
@@ -2276,7 +2275,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String selection = selectionBuilder.buildSelection();
         String[] selectionArgs = selectionBuilder.buildArgs();
 
-        Log.d("vortex", "Query selection: " + selection);
+        Log.d(TAG, "getAllVariablesForKeyMatchingGroupPrefixAndNamePostfix: selection " + selection);
         //Return cursor.
         return db().query(
                 TABLE_VARIABLES,
@@ -2383,12 +2382,12 @@ public class DbHelper extends SQLiteOpenHelper {
 
         db().beginTransaction();
         if (idsToDelete.size()>0) {
-            Log.d("sync","Deleteing "+idsToDelete.size()+" rows");
+            Log.d(TAG, "insertIfMax: deleting " + idsToDelete.size() + " rows");
             sr.deletes+=idsToDelete.size();
 
             String delStr = String.format("DELETE FROM "+TABLE_VARIABLES+" WHERE id IN (%s)", TextUtils.join(", ", idsToDelete));
             db().execSQL(delStr);
-            Log.d("sync","delStr: "+delStr);
+            Log.d(TAG, "insertIfMax: delete SQL " + delStr);
         }
 
         ContentValues cv;
@@ -2407,16 +2406,15 @@ public class DbHelper extends SQLiteOpenHelper {
             }
         }
         endTransactionSuccess();
-        Log.d("berokk","STATS:");
-        Log.d("berokk","inserts: "+ sr.inserts);
-        Log.d("berokk","insertArrays: "+ sr.insertsArray);
-        Log.d("berokk","deletes: "+ sr.deletes);
-        Log.d("berokk","failedDel: "+ sr.failedDeletes);
-        Log.d("berokk","faultInKeys: "+ sr.faultInKeys);
-        Log.d("berokk","faultInValues: "+ sr.faultInValues);
-        Log.d("berokk","refused: "+ sr.refused);
-        Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
-        Log.d("berokk","time used: "+(System.currentTimeMillis()-t));
+        Log.d(TAG, "insertIfMax: stats");
+        Log.d(TAG, "insertIfMax: inserts=" + sr.inserts);
+        Log.d(TAG, "insertIfMax: insertArrays=" + sr.insertsArray);
+        Log.d(TAG, "insertIfMax: deletes=" + sr.deletes);
+        Log.d(TAG, "insertIfMax: failedDeletes=" + sr.failedDeletes);
+        Log.d(TAG, "insertIfMax: faultInKeys=" + sr.faultInKeys);
+        Log.d(TAG, "insertIfMax: faultInValues=" + sr.faultInValues);
+        Log.d(TAG, "insertIfMax: refused=" + sr.refused);
+        Log.d(TAG, "insertIfMax: elapsedMs=" + (System.currentTimeMillis() - t));
 
     }
 
@@ -2438,7 +2436,7 @@ public class DbHelper extends SQLiteOpenHelper {
         return getSyncTimestamp(Constants.TIMESTAMP_SYNC_RECEIVE,syncgroup);
     }
     private void saveSyncTimestamp(String timeStampLabel, String syncgroup,long ts) {
-        Log.d("antrax","Saving timestamp "+ts+ "for syncgroup "+syncgroup);
+        Log.d(TAG, "saveSyncTimestamp: saving timestamp " + ts + " for syncgroup " + syncgroup);
         db().execSQL("INSERT into "+TABLE_TIMESTAMPS+" (SYNCGROUP,LABEL,VALUE) values (?,?,?)",new String[]{syncgroup,timeStampLabel,Long.toString(ts)});
     }
 

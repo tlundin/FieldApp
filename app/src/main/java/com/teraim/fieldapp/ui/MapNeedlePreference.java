@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapNeedlePreference extends Preference {
+    private static final String TAG = "MapNeedlePreference";
+
 
     private int selectedValue = 0; // Stores the selected individual icon index (0 to 11)
 
@@ -110,7 +112,7 @@ public class MapNeedlePreference extends Preference {
     @Override
     protected void onClick() {
         super.onClick();
-        Log.d("MapNeedlePref", "MapNeedlePreference clicked!");
+        Log.d(TAG, "MapNeedlePreference clicked!");
         showMapNeedleDialog();
     }
 
@@ -204,7 +206,7 @@ public class MapNeedlePreference extends Preference {
         final int NUM_COLUMNS = 3;
         final int NUM_ROWS = 2;
 
-        Log.d("MapNeedlePreference", "Cropping from resource " + context.getResources().getResourceEntryName(imageSetResourceId) +
+        Log.d(TAG, "Cropping from resource " + context.getResources().getResourceEntryName(imageSetResourceId) +
                 ". Full image dims: " + totalWidth + "x" + totalHeight +
                 ". Expected individual icon dims: " + IDEAL_ICON_WIDTH + "x" + IDEAL_ICON_HEIGHT + " (approx. 341x512)");
 
@@ -254,7 +256,7 @@ public class MapNeedlePreference extends Preference {
                             croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                             out.flush();
                             out.close();
-                            // Log.d("MapNeedlePreference", "Saved debug icon to: " + debugFile.getAbsolutePath());
+                            // Log.d(TAG, "Saved debug icon to: " + debugFile.getAbsolutePath());
                         }
                     } catch (Exception e) {
                         Log.e("MapNeedlePreference", "Error saving debug bitmap for " + imageSetResourceId, e);

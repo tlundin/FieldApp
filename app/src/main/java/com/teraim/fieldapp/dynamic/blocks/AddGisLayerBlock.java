@@ -10,6 +10,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LogRepository;
 
 public class AddGisLayerBlock extends Block {
+	private static final String TAG = "AddGisLayerBlock";
+
 
 	private final String name;
     private final String label;
@@ -41,7 +43,7 @@ public class AddGisLayerBlock extends Block {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
 			if (!myGis.isZoomLevel()) {
 			final GisLayer gisLayer = new GisLayer(name,label,isVisible,isBold,hasWidget,showLabels);
-			Log.d("fenris","Adding layer "+name+" with myObj"+gisLayer.hashCode());
+			Log.d(TAG,"Adding layer "+name+" with myObj"+gisLayer.hashCode());
 			myGis.addLayer(gisLayer);
 			}
 		} else {

@@ -33,6 +33,8 @@ import java.net.URLConnection;
  * app, using the Android sync adapter framework.
  */
 public class SyncAdapter extends AbstractThreadedSyncAdapter {
+    private static final String TAG = "SyncAdapter";
+
 
     private final ContentResolver mContentResolver;
     private final int MaxSyncableRowsServer;
@@ -82,7 +84,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     SyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mContentResolver = context.getContentResolver();
-        Log.d("sync", "SyncAdapter Constructor was called at "+ Tools.getCurrentTime());
+        Log.d(TAG, "SyncAdapter Constructor was called at "+ Tools.getCurrentTime());
         //Number of Rows of x Entries from others.
         MaxSyncableRowsServer = 10;
         //Number of SyncEntries per row.
@@ -97,13 +99,13 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                       long timestamp_receive
     ) {
 
-        Log.d("sync", "SYNC INIT was called at "+ Tools.getCurrentTime());
+        Log.d(TAG, "SYNC INIT was called at "+ Tools.getCurrentTime());
         mTeam = team;
         mUser = user;
         mApp = app;
         mUUID = uuid;
         mClient = client;
-        //Log.d("sync","mTeam now: "+mTeam);
+        //Log.d(TAG,"mTeam now: "+mTeam);
         mTimestamp_receive=timestamp_receive;
         USER_STOPPED_SYNC = false;
         LOCKED = false;
@@ -113,7 +115,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     public void onPerformSync(Account accounts, Bundle extras, String authority,
                               ContentProviderClient provider, SyncResult syncResult) {
 
-        Log.d("sync", "************onPerformSync [" + mUser + "]");
+        Log.d(TAG, "************onPerformSync [" + mUser + "]");
 
         if (LOCKED) {
             Log.e("sync", "Locked...exit");
@@ -131,7 +133,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             mClient.send(Message.obtain(null, SyncService.MSG_SYNC_RUN_STARTED));
         } catch (RemoteException e) {
             e.printStackTrace();
-            Log.d("sync", "client not responding..exit");
+            Log.d(TAG, "client not responding..exit");
             syncResult.hasHardError();
             return;
         }
@@ -166,14 +168,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         updateCounter(dataOut.timestamp, Constants.TIMESTAMP_SYNC_SEND);
                         hasMoreToDo = dataOut.hasMore;
                     } else
-                        Log.d("sync", "No data was sent.");
+                        Log.d(TAG, "No data was sent.");
 
                 } catch (SyncFailedException e) {
-                    Log.d("sync", "Sync failed exception during send");
+                    Log.d(TAG, "Sync failed exception during send");
                     errorCode = SyncService.ERR_SYNC_ERROR;
                     e.printStackTrace();
                 } catch (IOException e) {
-                    Log.d("sync", "IO exception during send.");
+                    Log.d(TAG, "IO exception during send.");
                     errorCode = SyncService.ERR_SEND_FAILED;
                     e.printStackTrace();
                 }
@@ -191,7 +193,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
                         int numberOfEntriesFromServer = Integer.parseInt((String) in.readObject());
 
                         if (numberOfEntriesFromServer == 0) {
-                            Log.d("sync", "No new data");
+                            Log.d(TAG, "No new data");
                         } else {
                             //receive data
                             ContentValues[] dataToInsert = new ContentValues[numberOfEntriesFromServer];
@@ -204,14 +206,14 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
 
                             //insert to temporary table
                             int rowsInserted = mContentResolver.bulkInsert(SYNC_DATA_URI, dataToInsert);
-                            Log.d("sync", "Rows inserted: " + rowsInserted + " rows received: " + numberOfEntriesFromServer);
+                            Log.d(TAG, "Rows inserted: " + rowsInserted + " rows received: " + numberOfEntriesFromServer);
                             if (!hasDataToInsert && rowsInserted > 0)
                                 hasDataToInsert = true;
 
                         }
                         //new timestamp = timestamp to read from next time.
                         Long newTimestamp = (Long) in.readObject();
-                        Log.d("sync", "Timestamp server --> me: " + newTimestamp);
+                        Log.d(TAG, "Timestamp server --> me: " + newTimestamp);
 
                         updateCounter(newTimestamp, Constants.TIMESTAMP_SYNC_RECEIVE);
                         mTimestamp_receive = newTimestamp;
@@ -237,7 +239,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             }
         }
 //        if (hasMoreToDo) {
-//            Log.d("sync","has more to send or read. Request new sync at time "+Tools.getCurrentTime());
+//            Log.d(TAG,"has more to send or read. Request new sync at time "+Tools.getCurrentTime());
 //            syncResult.fullSyncRequested = true;
 //        }
 
@@ -253,7 +255,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         } else
             //Check if there are unprocessed rows in sync table.
             if (hasDataToInsert) {
-                Log.d("sync", "sync data exists to insert");
+                Log.d(TAG, "sync data exists to insert");
                 try {
                     mClient.send(Message.obtain(null, SyncService.MSG_SYNC_DATA_READY_FOR_INSERT));
                 } catch (RemoteException e) {
@@ -286,7 +288,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         int rows,maxToSync,rowCount=0;
         String action,changes,variable;
         rows = c.getCount();
-        //Log.d("sync",rows+" rows to sync from ["+mUser+"] to ["+mTeam+"]");
+        //Log.d(TAG,rows+" rows to sync from ["+mUser+"] to ["+mTeam+"]");
 
         maxToSync = Math.min(c.getCount(), MaxSyncableEntriesClient);
         boolean hasMore = maxToSync== MaxSyncableEntriesClient;
@@ -297,7 +299,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
             entryStamp	=	c.getLong(c.getColumnIndex("timestamp"));
             variable    = 	c.getString(c.getColumnIndex("target"));
             //Keep track of the highest timestamp in the set!
-            //Log.d("sync","variable: "+variable);
+            //Log.d(TAG,"variable: "+variable);
             if (entryStamp>maxStamp)
                 maxStamp=entryStamp;
             syncEntries[rowCount++] = new SyncEntry(SyncEntry.action(action),changes,entryStamp,variable,mUser);
@@ -307,10 +309,10 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         c.close();
 
         if (syncEntries.length == 0) {
-            Log.d("sync","no data , returning endofstream");
+            Log.d(TAG,"no data , returning endofstream");
             return new StampedData(new EndOfStream(), maxStamp, false);
         } else {
-            Log.d("sync","returning stamped entries: "+syncEntries.length);
+            Log.d(TAG,"returning stamped entries: "+syncEntries.length);
             return new StampedData(syncEntries,maxStamp,hasMore);
         }
 
@@ -318,7 +320,7 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private URLConnection getSyncConnection() throws IOException {
-        //Log.d("sync","getSyncConn called for "+uri);
+        //Log.d(TAG,"getSyncConn called for "+uri);
         URL url ;
         URLConnection conn;
         url = new URL(Constants.SyncDataURI);
@@ -340,16 +342,16 @@ public class SyncAdapter extends AbstractThreadedSyncAdapter {
         //app name
         out.writeObject(mApp);
 
-        //Log.d("sync","sent header ");
+        //Log.d(TAG,"sent header ");
     }
 
     void userAbortedSync() {
-        Log.d("sync","USER_STOPPED now true");
+        Log.d(TAG,"USER_STOPPED now true");
         USER_STOPPED_SYNC = true;
     }
 
     public static void forceSyncToHappen() {
-        Log.d("sync","trying to force sync");
+        Log.d(TAG,"trying to force sync");
         Bundle bundle = new Bundle();
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
         bundle.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);

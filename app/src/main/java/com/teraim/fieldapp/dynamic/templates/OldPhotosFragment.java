@@ -37,6 +37,8 @@ import java.io.File;
 import java.util.ArrayList;
 
 public class OldPhotosFragment extends Fragment implements OnGesturePerformedListener {
+	private static final String TAG = "OldPhotosFragment";
+
 
 	private GestureLibrary gestureLib;
     private ImageHandler imgHandler;
@@ -47,7 +49,7 @@ public class OldPhotosFragment extends Fragment implements OnGesturePerformedLis
 			Bundle savedInstanceState) {
 
 		gs = GlobalState.getInstance();
-		Log.d("nils","in onCreateView of old photos");
+		Log.d(TAG,"in onCreateView of old photos");
         View v = inflater.inflate(R.layout.template_foto_right, container, false);
 		TextView header = v.findViewById(R.id.header);
 		header.setText("Historiska foton härifrån ("+Constants.getHistoricalPictureYear()+")");
@@ -210,12 +212,12 @@ public class OldPhotosFragment extends Fragment implements OnGesturePerformedLis
 
 	@Override
 	public void onGesturePerformed(GestureOverlayView overlay, Gesture gesture) {
-		Log.d("nils","Number of gestures available: "+gestureLib.getGestureEntries().size());
+		Log.d(TAG,"Number of gestures available: "+gestureLib.getGestureEntries().size());
 		ArrayList<Prediction> predictions = gestureLib.recognize(gesture);
-		Log.d("nils","Number of predictions: "+predictions.size());
+		Log.d(TAG,"Number of predictions: "+predictions.size());
 		for (Prediction prediction : predictions) {
 			if (prediction.score > .5) {
-				Log.d("nils","MATCH!!");
+				Log.d(TAG,"MATCH!!");
 				if (prediction.name.equals("right")) {
 					getFragmentManager().popBackStackImmediate();
 

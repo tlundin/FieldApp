@@ -26,6 +26,8 @@ import java.util.List;
  * This class is used to draw a Provyta with all its parts (delytor)
  */
 public class ProvytaView extends View {
+	private static final String TAG = "ProvytaView";
+
 
 
 
@@ -103,7 +105,7 @@ public class ProvytaView extends View {
     float rScaleF=0;
 
     public void setIndicatorLocation(int deg) {
-        Log.d("nils","got "+deg);
+        Log.d(TAG,"got "+deg);
 	}
 
 
@@ -130,7 +132,7 @@ public class ProvytaView extends View {
 		cx = w/2;
 		cy = (h/2+margY);//h/2;
 		//tag.lineTo(w-50,0);
-		//Log.d("NILS","w h r"+w+" "+h+" "+r);
+		//Log.d(TAG,"w h r"+w+" "+h+" "+r);
         float realRadiusinMeter = 100;
         float oScaleF = r / realRadiusinMeter;
 		//A dot in the middle!
@@ -194,7 +196,7 @@ public class ProvytaView extends View {
 		/*
 		if (focusMarker.hasPosition()) {
 			double alfa;
-			//Log.d("NILS","Blue has position");
+			//Log.d(TAG,"Blue has position");
 			if(focusMarker.getDistance()<realRadiusinMeter) {
 				alfa = 0;//focusMarker.getMovementDirection();
 				float degAlfa = (float)(180*alfa/Math.PI);
@@ -206,14 +208,14 @@ public class ProvytaView extends View {
 				int uy = (int) (cy+focusMarker.y*rScaleF);
 				int icony = (int)(MovingMarker.Pic_H/2+MovingMarker.Pic_H *  Math.cos(alfa));
 				uy = uy + icony;
-				//Log.d("NILS","iconx icony "+iconx+" "+icony);
+				//Log.d(TAG,"iconx icony "+iconx+" "+icony);
 				canvas.save();
 				canvas.rotate(180+degAlfa, ux, uy);
 				canvas.drawBitmap(focusMarker.bmp, ux, uy, null);
 				canvas.restore();
 				msg = "X: "+ux+" Y: "+uy+" icX: "+(-iconx)+" icY: "+icony;
 			} else {
-				//Log.d("NILS","Blue is outside radius");
+				//Log.d(TAG,"Blue is outside radius");
 				//Given that blue is outside current Max Radius, draw an arrow to indicate where..
 				alfa = Geomatte.getRikt2(focusMarker.y, focusMarker.x,0,0);
 				float x = (float)(cx + r * Math.sin(alfa));
@@ -276,10 +278,10 @@ public class ProvytaView extends View {
 //					continue;	
 //				else {
 					RectF oval = new RectF(-r+cx, -r+cy, r+cx, r+cy);	
-					Log.d("nils","start - end"+s.start.rikt+"-"+s.end.rikt);
+					Log.d(TAG,"start - end"+s.start.rikt+"-"+s.end.rikt);
 					float start = s.start.rikt;
 					float end = Delyta.rDist((int)start,s.end.rikt);
-					Log.d("nils","Drawing arc from "+start+" with sweep "+end);
+					Log.d(TAG,"Drawing arc from "+start+" with sweep "+end);
 					start = start-90;
 					if (start<0)
 						start +=360;
@@ -295,7 +297,7 @@ public class ProvytaView extends View {
 				startY = cy+(s.start.y*oScaleF);
 				endX = cx+(s.end.x*oScaleF);
 				endY = cy+(s.end.y*oScaleF);				
-				Log.d("nils","Drawing Start: "+startX+","+startY+" End: "+endX+","+endY);
+				Log.d(TAG,"Drawing Start: "+startX+","+startY+" End: "+endX+","+endY);
 				p.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
 //				c.drawLine(startX,startY,endX,endY, d.isSelected()?pySelected:p);	
 				c.drawLine(startX,startY,endX,endY, p);
@@ -306,7 +308,7 @@ public class ProvytaView extends View {
 		if (numPos!=null) {
 			float nx = cx+(numPos.x*oScaleF);
 			float ny = cy+(numPos.y*oScaleF);
-			Log.d("nils","Drawing number at: "+nx+","+ny);
+			Log.d(TAG,"Drawing number at: "+nx+","+ny);
 			px.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
 			c.drawText(d.getId()+"["+Math.round(d.getArea()/100)+"]", nx, ny, pl);
 		}	}

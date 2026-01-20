@@ -14,6 +14,8 @@ import java.util.Map;
 import static com.teraim.fieldapp.utils.Expressor.preCompileExpression;
 
 public class BlockDeleteMatchingVariables extends Block {
+	private static final String TAG = "BlockDeleteMatchingVariables";
+
 
     private final String context;
     private String pattern;
@@ -28,7 +30,7 @@ public class BlockDeleteMatchingVariables extends Block {
 		if (context !=null)
 			contextE = preCompileExpression(context);
 		System.err.println("Bananas: "+((contextE == null)?"null":contextE.toString()));
-		//Log.d("vortex","BLOCKDELETEEXIT");
+		//Log.d(TAG,"BLOCKDELETEEXIT");
 	}
 
 	
@@ -37,12 +39,12 @@ public class BlockDeleteMatchingVariables extends Block {
 	public void create(WF_Context ctx) {
 		o = LogRepository.getInstance();
 		o.addText("Now deleting all variables under Context: ["+context+"] and pattern "+pattern);
-		//Log.d("papp","Now deleting all variables under Context: ["+context+"] and pattern "+pattern);
+		//Log.d(TAG,"Now deleting all variables under Context: ["+context+"] and pattern "+pattern);
 		DB_Context evaluatedContext = DB_Context.evaluate(contextE);
 		if (evaluatedContext.isOk()) {
 			Map<String, String> hash = evaluatedContext.getContext();
 			if (hash == null) {
-				Log.d("vortex","failed to build context..exiting delete matching variables");
+				Log.d(TAG,"failed to build context..exiting delete matching variables");
 				return;
 			}
 			//Delete database entries.
@@ -62,14 +64,14 @@ public class BlockDeleteMatchingVariables extends Block {
 			}
 			int rowsAffected = GlobalState.getInstance().getDb().erase(keyBuilder.toString(),pattern);
 			if (rowsAffected>0) {
-				Log.d("vortex",("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + keyBuilder + "] and pattern [" + pattern + "]"));
+				Log.d(TAG,("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + keyBuilder + "] and pattern [" + pattern + "]"));
 				o.addText("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + hash + "] and pattern [" + keyBuilder.toString() + "]");
 				//Create sync entry.
-				Log.d("vortex","Creating Erase sync entry for "+keyBuilder.toString());
+				Log.d(TAG,"Creating Erase sync entry for "+keyBuilder.toString());
 				GlobalState.getInstance().getDb().insertEraseAuditEntry(keyBuilder.toString(),pattern);
 			}
 			else {
-				Log.d("vortex","Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+keyBuilder.toString()+"]");
+				Log.d(TAG,"Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+keyBuilder.toString()+"]");
 				o.addText("");
 				o.addYellowText("Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+keyBuilder.toString()+"]");
 

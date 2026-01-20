@@ -28,6 +28,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ModuleLoaderViewModel extends ViewModel {
+    private static final String TAG = "ModuleLoaderViewModel";
+
 
     /**
      * A helper class to wrap the final result of a workflow execution.
@@ -102,7 +104,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                     } else {
                         // This is the FINAL success. Post to both STATE and EVENT streams.
                         LogRepository.getInstance().addColorText("ViewModel has finished loading.", Color.parseColor("#E6E6FA"));
-                        Log.d("ViewModel", "Final SUCCESS. Posting state and event.");
+                        Log.d(TAG, "Final SUCCESS. Posting state and event.");
                         WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry,myContext);
                         _workflowState.postValue(successResult);
                         _onSuccessEvent.postValue(new Event<>(successResult));
@@ -112,7 +114,7 @@ public class ModuleLoaderViewModel extends ViewModel {
                     }
                 } else {
                     // On failure, we only update the STATE.
-                    Log.d("ViewModel", "FAILURE. Posting state.");
+                    Log.d(TAG, "FAILURE. Posting state.");
                     LogRepository.getInstance().addCriticalText("ModuleLoader failed.");
                     _workflowState.postValue(new WorkflowResult(LoadingStatus.FAILURE, null,null));
                     // Cleanup is crucial when using observeForever

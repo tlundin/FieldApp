@@ -10,6 +10,8 @@ import java.net.URL;
 import java.net.URLConnection;
 
 class WebService extends AsyncTask<String, String, String>{
+	private static final String TAG = "WebService";
+
 
 	//public final String SERVICE_URI = "http://teraim.com/vortexservice.php?";
 
@@ -29,7 +31,7 @@ class WebService extends AsyncTask<String, String, String>{
 		URL url;
 		URLConnection conn;
 		try {
-			Log.d("vortex","In webservice");
+			Log.d(TAG,"In webservice");
 			url = new URL(uri[0]);
 			conn = url.openConnection();
 			conn.setDoInput(true);

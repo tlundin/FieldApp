@@ -23,6 +23,8 @@ import java.io.OutputStreamWriter;
 import java.util.concurrent.TimeUnit;
 
 public class BackupManager {
+	private static final String TAG = "BackupManager";
+
 
 	private static BackupManager singleton;
 	private final GlobalState gs;
@@ -51,7 +53,7 @@ public class BackupManager {
 			path = globalPh.get(PersistenceHelper.BACKUP_LOCATION);
 
 		if (path==null||path.length()==0) {
-			Log.d("vortex","Path was null for backupdir. will try default path");
+			Log.d(TAG,"Path was null for backupdir. will try default path");
 			path = Constants.DEFAULT_EXT_BACKUP_DIR;
 		}
 
@@ -88,7 +90,7 @@ public class BackupManager {
 	public boolean backupDatabase(String backupFileName) {
 		String appName = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
 		LogRepository logger = LogRepository.getInstance();
-		Log.d("vortex","starting backup for "+ctx.getDatabasePath(appName));
+		Log.d(TAG,"starting backup for "+ctx.getDatabasePath(appName));
 		logger.addText("Starting backup for "+ctx.getDatabasePath(appName));
 		File dbFile = ctx.getDatabasePath(appName);
 		try {
@@ -101,7 +103,7 @@ public class BackupManager {
 			}
 			String outFileName = dir+"/"+backupFileName;
 
-			Log.d("vortex","Output folder: "+outFileName);
+			Log.d(TAG,"Output folder: "+outFileName);
 			// Transfer bytes from the inputfile to the outputfile
 			byte[] buffer = new byte[1024];
 			int length;
@@ -124,7 +126,7 @@ public class BackupManager {
 			e.printStackTrace();
 			return false;
 		}
-		Log.d("vortex","backup done");
+		Log.d(TAG,"backup done");
 		gs.getPreferences().put(PersistenceHelper.TIME_OF_LAST_BACKUP,System.currentTimeMillis());
 		logger.addText("Backup done");
 		return true;
@@ -136,8 +138,8 @@ public class BackupManager {
 				ContextCompat.getExternalFilesDirs(gs.getContext(), null);
 		File primaryExternalStorage = externalStorageVolumes[0];
 		//String state = Environment.getExternalStorageState();
-		//Log.d("vortex","ext state: "+state);
-		//Log.d("backup stordir: ", Environment.getExternalStorageDirectory().toString());
+		//Log.d(TAG,"ext state: "+state);
+		//Log.d(TAG, Environment.getExternalStorageDirectory().toString());
 
 
 		//File sdCard = Environment.getExternalStorageDirectory();
@@ -202,7 +204,7 @@ public class BackupManager {
 			e.printStackTrace();
 			return ret;
 		}
-		Log.d("vortex","file succesfully written to backup: "+exportFileName);
+		Log.d(TAG,"file successfully written to backup: "+exportFileName);
 
 		return ret;
 
@@ -239,7 +241,7 @@ public class BackupManager {
 			e.printStackTrace();
 			return ret;
 		}
-		Log.d("vortex","file succesfully written to backup: "+exportFileName);
+		Log.d(TAG,"file successfully written to backup: "+exportFileName);
 
 		return ret;
 
@@ -260,16 +262,16 @@ public class BackupManager {
 
 		if (gs.getGlobalPreferences().getB(PersistenceHelper.BACKUP_AUTOMATICALLY)) {
 			long timeOfLast = gs.getPreferences().getL(PersistenceHelper.TIME_OF_LAST_BACKUP);
-			Log.d("vortex", "time of last backup: " + timeOfLast);
+			Log.d(TAG, "time of last backup: " + timeOfLast);
 			if (System.currentTimeMillis() - timeOfLast > Constants.BACKUP_FREQUENCY) {
-				Log.d("vortex", "Time to backup!");
+				Log.d(TAG, "Time to backup!");
 				return true;
 			}  else {
-				Log.d("vortex","No backup required");
+				Log.d(TAG,"No backup required");
 				gs.getLogger().addGreenText("Database backup not required");
 			}
 		} else {
-			Log.d("vortex","Autobackup is off");
+			Log.d(TAG,"Autobackup is off");
 			gs.getLogger().addGreenText("Database auto-backup turned off");
 		}
 		return false;
@@ -295,7 +297,7 @@ public class BackupManager {
 				ContextCompat.getExternalFilesDirs(gs.getContext(), null);
 		File primaryExternalStorage = externalStorageVolumes[0];
 		File dbFile = ctx.getDatabasePath(appName);
-		Log.d("vortex","starting restore for "+dbFile);
+		Log.d(TAG,"starting restore for "+dbFile);
 		
 		try {
 			
@@ -309,7 +311,7 @@ public class BackupManager {
 
 			String backupFile = dir+"/"+backupFileName;
 
-			Log.d("vortex","Restore file: "+backupFile);
+			Log.d(TAG,"Restore file: "+backupFile);
 			// Transfer bytes from the inputfile to the outputfile
 			byte[] buffer = new byte[1024];
 			int length;
@@ -333,7 +335,7 @@ public class BackupManager {
 			e.printStackTrace();
 			return false;
 		}
-		Log.d("vortex","restore done");
+		Log.d(TAG,"restore done");
 		return true;
 	}
 

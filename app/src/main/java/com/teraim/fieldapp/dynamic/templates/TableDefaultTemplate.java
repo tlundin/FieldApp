@@ -30,6 +30,8 @@ import java.util.Map;
  */
 
 public class TableDefaultTemplate extends Executor implements Animation.AnimationListener {
+	private static final String TAG = "TableDefaultTemplate";
+
 
 
 
@@ -46,7 +48,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("nils","In onCreate");
+		Log.d(TAG,"In onCreate");
 
 
 	}
@@ -54,13 +56,13 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","I'm in the onPause method");
+		Log.d(TAG,"I'm in the onPause method");
 	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 							 Bundle savedInstanceState) {
-		Log.d("nils","I'm in the onCreateView method");
+		Log.d(TAG,"I'm in the onCreateView method");
 		popupVisible=new HashMap<String, Boolean>();
 		if (myContext == null) {
 			Log.e("vortex","No context, exit");
@@ -95,11 +97,11 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 		*/
 
 		if (wf!=null) {
-			Log.d("cair","Executing workflow!!");
+			Log.d(TAG,"Executing workflow!!");
 			run();
 
 		} else
-			Log.d("cair","No workflow found in oncreate default!!!!");
+			Log.d(TAG,"No workflow found in oncreate default!!!!");
 
 		popupShow = AnimationUtils.loadAnimation(getActivity(), R.anim.popup_show);
 		popupShow.setAnimationListener(this);
@@ -133,13 +135,13 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 	public boolean execute(String function, String target) {
 		if(animationRunning)
 			return false;
-		Log.d("cair","Called execute with target "+target);
+		Log.d(TAG,"Called execute with target "+target);
 		if (function.equals("template_pop_up_filters") ) {
 
 			Boolean popupVis = popupVisible.get(target);
 			if (popupVis==null || !popupVis) {
 				if (filterPop==null) {
-					Log.d("cair","creating!");
+					Log.d(TAG,"creating!");
 					filterPop= (LinearLayout) inflater.inflate(R.layout.filter_menu_pop, null);
 
 				}
@@ -156,20 +158,20 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 					frame.addView(filterPop);
 					filterPop.startAnimation(popupShow);
 				}
-				Log.d("cair", "animation started!");
+				Log.d(TAG, "animation started!");
 				popupVisible.put(target,true);
 			} else {
-				Log.d("cair","deleting!");
+				Log.d(TAG,"deleting!");
 				popupVisible.remove(target);
 
 				if (popupVisible.isEmpty()) {
 					filterPop.startAnimation(popupHide);
-					Log.d("cair","empty! closing!");
+					Log.d(TAG,"empty! closing!");
 					closePopIfUp();
 				}
 				else {
 					View targetO;
-					Log.d("cair","removing!");
+					Log.d(TAG,"removing!");
 					if (target.equals("filter_C1"))
 						targetO=filterC1o;
 					else if (target.equals("filter_C2"))
@@ -200,7 +202,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 			filterWasRemoved=true;
 		}
 		//need to review togglestate for columns.
-		Log.d("cair","show edited...adding filter: "+toggleStateH);
+		Log.d(TAG,"show edited...adding filter: "+toggleStateH);
 		fieldList.draw();
 		//Need to do uncollapse at this point in time.
 //		if (filterWasRemoved)
@@ -211,7 +213,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 
 	@Override
 	public void onStart() {
-		Log.d("nils","I'm in the onStart method");
+		Log.d(TAG,"I'm in the onStart method");
 		super.onStart();
 
 
@@ -220,7 +222,7 @@ public class TableDefaultTemplate extends Executor implements Animation.Animatio
 
 	public void onAnimationStart(Animation animation) {
 		if (animation.equals(popupShow)) {
-			Log.d("cair","popshoe!");
+			Log.d(TAG,"popshoe!");
 			filterPop.setVisibility(View.VISIBLE);
 		}
 		animationRunning = true;

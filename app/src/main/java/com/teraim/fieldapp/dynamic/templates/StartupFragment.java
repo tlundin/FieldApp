@@ -67,6 +67,8 @@ import java.util.Set;
  */
 
 public class StartupFragment extends Executor {
+    private static final String TAG = "StartupFragment";
+
 
     // UI Elements
     private ViewGroup my_root;
@@ -155,7 +157,7 @@ public class StartupFragment extends Executor {
                 switch (result.status()) {
                     case LOADING:
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate Loading",getColor(requireContext(),R.color.purple));
-                        Log.d("StartupFragment", "Loading....");
+                        Log.d(TAG, "Loading....");
 
                         break;
                     case SUCCESS:
@@ -168,7 +170,7 @@ public class StartupFragment extends Executor {
                             LogRepository.getInstance().addColorText("Setting provyte types: " + provyteTypes.toString(), getColor(requireContext(), R.color.purple));
                             GlobalState.getInstance().setProvYtaTypes(provyteTypes);
                             persistProvYtaTypes(provyteTypes);
-                            Log.d("StartupFragment", "ProvYta types set and persisted after full load.");
+                            Log.d(TAG, "ProvYta types set and persisted after full load.");
                         }
                         break;
                     case FAILURE:
@@ -195,10 +197,10 @@ public class StartupFragment extends Executor {
         // This is the primary entry point for the automatic load.
         // If GlobalState is not initialized, it means we need to load the configuration.
         if (GlobalState.getInstance() == null) {
-            Log.d("StartupFragment", "GlobalState is null. Starting initial configuration load.");
+            Log.d(TAG, "GlobalState is null. Starting initial configuration load.");
             Bundle b = this.getArguments();
             if (b != null && b.getBoolean(Constants.RELOAD_DB_MODULES)) {
-                Log.d("StartupFragment", "Reload of DB modules triggered by configuration change");
+                Log.d(TAG, "Reload of DB modules triggered by configuration change");
                 loadAllModules = true;
             }
             startLoadingProcess(loadAllModules); // 'false' means this is not a forced reload
@@ -283,7 +285,7 @@ public class StartupFragment extends Executor {
                     .setTitle(R.string.ladda_styrfiler)
                     .setMessage(R.string.ladda_descr)
                     .setPositiveButton("Ok", (dialog, which) -> {
-                        Log.d("StartupFragment", "User triggered a force reload.");
+                        Log.d(TAG, "User triggered a force reload.");
                         if (GlobalState.getInstance() != null) {
                             GlobalState.getInstance().getDrawerMenu().clear();
                             GlobalState.destroyInstance();
@@ -351,7 +353,7 @@ public class StartupFragment extends Executor {
     private boolean initIfFirstTime() {
         boolean first = globalPh.get(PersistenceHelper.FIRST_TIME_KEY, PersistenceHelper.UNDEFINED).equals(PersistenceHelper.UNDEFINED);
         if (first) {
-            Log.d("StartupFragment", "First time execution detected. Initializing.");
+            Log.d(TAG, "First time execution detected. Initializing.");
             return true;
         }
         return false;
@@ -390,7 +392,7 @@ public class StartupFragment extends Executor {
         if (ph != null && provYtaTypes != null) {
             String provYtaTypesString = String.join(",", provYtaTypes);
             ph.put(KEY_PROVYTE_TYPES, provYtaTypesString);
-            Log.d("StartupFragment", "Persisted ProvYta types: " + provYtaTypesString);
+            Log.d(TAG, "Persisted ProvYta types: " + provYtaTypesString);
         }
     }
 
@@ -405,7 +407,7 @@ public class StartupFragment extends Executor {
                 loadedProvYtaTypes.addAll(Arrays.asList(provYtaTypesString.split(",")));
             }
             GlobalState.getInstance().setProvYtaTypes(loadedProvYtaTypes);
-            Log.d("StartupFragment", "Loaded ProvYta types from persistence: " + loadedProvYtaTypes.toString());
+            Log.d(TAG, "Loaded ProvYta types from persistence: " + loadedProvYtaTypes.toString());
         }
     }
 

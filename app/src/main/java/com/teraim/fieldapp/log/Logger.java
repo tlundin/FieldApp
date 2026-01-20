@@ -46,8 +46,8 @@
 //		s.setSpan(new TextAppearanceSpan(myContext, R.style.RedStyle),0,s.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 //		myTxt.append(s);
 //		if (log!=null) log.setText(myTxt);
-//		//Log.d("vortex","hasRed true for "+this.toString());
-//		//Log.d("vortex",""+this.toString());
+//		//Log.d(TAG,"hasRed true for "+this.toString());
+//		//Log.d(TAG,""+this.toString());
 //	}
 //	public void addGreenText(String text) {
 //		s = new SpannableString(text);
@@ -85,7 +85,7 @@
 //				final int scrollAmount = layout.getLineTop(log.getLineCount()) - log.getHeight();
 //				// if there is no need to scroll, scrollAmount will be <=0
 //				if (scrollAmount > 0) {
-//					//Log.d("vortex","scrollamount is "+scrollAmount);
+//					//Log.d(TAG,"scrollamount is "+scrollAmount);
 //					log.scrollTo(0, scrollAmount);
 //				}
 //				else

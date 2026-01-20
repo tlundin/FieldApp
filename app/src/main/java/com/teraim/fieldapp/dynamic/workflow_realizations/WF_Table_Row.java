@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Listable> {
+	private static final String TAG = "WF_Table_Row";
+
 	private transient WF_Table myWfTable;
 	private List<String> myRow;
 	private List<WF_Cell> myColumns;
@@ -36,7 +38,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		this.id=id;
 
 		this.myWfTable = myWfTable;
-		//Log.d("vortex","Added header "+this.getLabel() );
+		//Log.d(TAG,"Added header "+this.getLabel() );
 
 	}
 	//Add the Entry (row header)
@@ -150,9 +152,9 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 
 			@Override
 			public void onClick(View v) {
-				Log.d("vortex","column "+myHeaderIndex+" clicked!");
+				Log.d(TAG,"column "+myHeaderIndex+" clicked!");
 				myWfTable.setSelectedColumnIndex(myHeaderIndex);
-				Log.d("vortex","selectedcolumnindex is now "+myWfTable.getSelectedColumnIndex());
+				Log.d(TAG,"selectedcolumnindex is now "+myWfTable.getSelectedColumnIndex());
 
 			}
 
@@ -192,7 +194,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 			//	widget.addVariable(v, true,null,true,true);
 			myColumns.add(widget);
 			((TableRow)getWidget()).addView(widget.getWidget());
-			//Log.d("feodor","Row now has "+((TableRow) getWidget()).getChildCount()+" children");
+			//Log.d(TAG,"Row now has "+((TableRow) getWidget()).getChildCount()+" children");
 	}
 
 	public TextView addAggregateTextCell(String backgroundColor, String textColor) {
@@ -203,8 +205,8 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		((TableRow)this.getWidget()).addView(emptyCell);
 		bg.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor));
 		tv.setTextColor(Tools.getColorResource(myContext.getContext(),textColor));
-//		Log.d("vortex","var for row "+this.getLabel());
-//		Log.d("vortex","v: "+al.getVarName(myRow)+" key: "+al.getKeyChain(myRow));
+//		Log.d(TAG,"var for row "+this.getLabel());
+//		Log.d(TAG,"v: "+al.getVarName(myRow)+" key: "+al.getKeyChain(myRow));
 		return tv;
 	}
 

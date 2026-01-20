@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 
 public class GroupsConfiguration extends CSVConfigurationModule {
+	private static final String TAG = "GroupsConfiguration";
+
 
 	private final LogRepository o;
 	private boolean scanHeader;
@@ -46,7 +48,7 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 		groups=new HashMap<String,List<List<String>>>();
 		groupIndex = -1;
 		nameIndex = -1;
-		Log.d("vortex","in prepare for groups");
+		Log.d(TAG,"in prepare for groups");
 		singleton = this;
 		return null;
 	}
@@ -56,7 +58,7 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 
 	@Override
 	public LoadResult parse(String row, Integer currentRow) {
-		//Log.d("vortex","group parsing "+row);
+		//Log.d(TAG,"group parsing "+row);
 		//if no header, abort.
 		if (scanHeader && row == null) {
 			
@@ -65,7 +67,7 @@ public class GroupsConfiguration extends CSVConfigurationModule {
 		}
 		//Scan header.
 		if (scanHeader && row!=null) {
-			Log.d("vortex","Header for groups is "+row);
+			Log.d(TAG,"Header for groups is "+row);
 
 			groupsFileHeaderS = row.split(",");
 			o.addText("Header for Groups file: "+row);

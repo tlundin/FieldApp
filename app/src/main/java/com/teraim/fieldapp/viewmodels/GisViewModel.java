@@ -22,6 +22,8 @@ import java.util.concurrent.Executors;
 import android.graphics.Color;
 import com.teraim.fieldapp.log.LogRepository;
 public class GisViewModel extends ViewModel {
+    private static final String TAG = "GisViewModel";
+
 
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -80,9 +82,9 @@ public class GisViewModel extends ViewModel {
 
             // After attempting all downloads, signal completion to the Executor.
             // This will now happen even if some non-critical images failed.
-            Log.d("GisViewModel", "All pictures have been processed.");
+            Log.d(TAG, "All pictures have been processed.");
             _progressState.postValue(new ProgressState(false, 100, "Download complete"));
-            Log.d("GisTrace", "ViewModel: Posting result with masterPicName: " + masterPicName);
+            Log.d(TAG, "ViewModel: Posting result with masterPicName: " + masterPicName);
             // Pass the blockIndex when creating the successful result
             _downloadResult.postValue(new Event<>(new GisResult(cacheFolder, masterPicName, blockIndex)));
         });
@@ -103,7 +105,7 @@ public class GisViewModel extends ViewModel {
         File file = new File(cacheFolder, fileName.replace("/", "|"));
 
         if(file.exists()) {
-            Log.d("GisViewModel","File already cached: " + fileName);
+            Log.d(TAG,"File already cached: " + fileName);
             return file.length(); // Return file size if already exists
         }
 

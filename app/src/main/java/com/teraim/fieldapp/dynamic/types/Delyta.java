@@ -13,6 +13,8 @@ import java.util.List;
 
 
 public class Delyta {
+	private static final String TAG = "Delyta";
+
 
 	public List<Segment> tag;
 	private List<Coord> rawData=null;
@@ -38,21 +40,21 @@ public class Delyta {
 
 	public ErrCode create(List<Coord> raw) {
 
-		Log.d("nils","Got coordinates: "+raw.toString());
+		Log.d(TAG,"Got coordinates: "+raw.toString());
 		String sue = "";
 		if (raw == null||raw.size()==0)
 			return null;
 		for (Coord c:raw) {
 			sue += "r: "+c.rikt+" a:"+c.avst+",";
 		}
-		Log.d("nils",sue);
+		Log.d(TAG,sue);
 
 		if (raw.get(0).avst!=Rad||raw.get(raw.size()-1).avst!=Rad) {
-			Log.d("nils","Start eller slutpunkt ligger inte på radien");
+			Log.d(TAG,"Start eller slutpunkt ligger inte på radien");
 			return ErrCode.EndOrStartNotOnRadius;
 		}
 		if (raw.size()<2) {
-			Log.d("nils","För kort tåg! Tåg måste ha fler än två punkter.");
+			Log.d(TAG,"För kort tåg! Tåg måste ha fler än två punkter.");
 			return ErrCode.TooShort;
 		}
 		tag = new ArrayList<Segment>();
@@ -61,8 +63,8 @@ public class Delyta {
 		Coord start,end;
 		boolean isArc=false,previousWasArc = true;
 		for (int i =0 ; i<raw.size()-1;i++) {	
-			Log.d("nils","start: ("+raw.get(i).avst+","+raw.get(i).rikt+")");
-			Log.d("nils","end: ("+raw.get(i+1).avst+","+raw.get(i+1).rikt+")");
+			Log.d(TAG,"start: ("+raw.get(i).avst+","+raw.get(i).rikt+")");
+			Log.d(TAG,"end: ("+raw.get(i+1).avst+","+raw.get(i+1).rikt+")");
 			start = raw.get(i);
 			end = raw.get(i+1);	
 			isArc = (start.avst==Rad && end.avst==Rad && !previousWasArc);
@@ -70,12 +72,12 @@ public class Delyta {
 			if(rDist(start.rikt,end.rikt)>1||Math.abs(start.avst-end.avst)>0||(rDist(start.rikt,end.rikt)>0&&isArc))
 				tag.add(new Segment(start,end,isArc));
 			else
-				Log.d("nils","Dist and avst same. Did not add tåg");
+				Log.d(TAG,"Dist and avst same. Did not add tåg");
 		}
 		//close the loop End -> Start. IsArc is always true.
 		if (rDist(raw.get(raw.size()-1).rikt,raw.get(0).rikt)>1) {
 			tag.add(new Segment(raw.get(raw.size()-1),raw.get(0),true));
-			Log.d("nils","Added ending arc from "+tag.get(tag.size()-1).start.rikt+" to "+tag.get(tag.size()-1).end.rikt);
+			Log.d(TAG,"Added ending arc from "+tag.get(tag.size()-1).start.rikt+" to "+tag.get(tag.size()-1).end.rikt);
 		} else
 			Log.e("nils","No ending arc added. Start & end are next to each other");
 		//Calc area.
@@ -158,7 +160,7 @@ public class Delyta {
 	        	result = !result;
 	         }
 	      }
-	      Log.d("nils","contains for smaprov at ["+test.x+","+test.y+"] are "+(result?"inside":"outside")+" delyta "+delNr);
+	      Log.d(TAG,"contains for smaprov at ["+test.x+","+test.y+"] are "+(result?"inside":"outside")+" delyta "+delNr);
 	      return result;
 	 */
 	/*
@@ -217,7 +219,7 @@ public class Delyta {
 				int endToPoleDist = pDist(s.end.rikt,pole.rikt);
 				int endToStartDist = pDist(s.end.rikt,s.start.rikt);
 				if (endToPoleDist < endToStartDist) {				
-					Log.d("nils","This arc goes through pole");
+					Log.d(TAG,"This arc goes through pole");
 					min=0;
 					break;
 				}
@@ -227,7 +229,7 @@ public class Delyta {
 			d = calcDistance(r1,v1,r2,v2);
 			if (d<min)
 				min = d;
-			Log.d("nils","DISTANCE TO "+(pole.equals(West)?"WEST":"SOUTH")+" for ("+s.start.avst+","+s.start.rikt+") to ("+pole.avst+","+pole.rikt+"): "+d);
+			Log.d(TAG,"DISTANCE TO "+(pole.equals(West)?"WEST":"SOUTH")+" for ("+s.start.avst+","+s.start.rikt+") to ("+pole.avst+","+pole.rikt+"): "+d);
 		}
 		return (float)min;
 	}
@@ -240,14 +242,14 @@ public class Delyta {
 		
 		float Dx,Dy,x1y2,x2y1;
 		float ret=-1,max=10000;
-		Log.d("vortex","In distance calc..");
+		Log.d(TAG,"In distance calc..");
 		for (Segment s:tag) {
-			Log.d("vortex","Segment: "+DelyteManager.printSegment(s));
+			Log.d(TAG,"Segment: "+DelyteManager.printSegment(s));
 			if (s.isArc) {
 				int endToPoleDist = pDist(s.end.rikt,Pole.rikt);
 				int endToStartDist = pDist(s.end.rikt,s.start.rikt);
 				if (endToPoleDist < endToStartDist) {				
-					Log.d("nils","This arc goes through pole");
+					Log.d(TAG,"This arc goes through pole");
 					max=0;
 					break;
 				}
@@ -262,10 +264,10 @@ public class Delyta {
 					Coord shortest = dStart<=dEnd?s.start:s.end;
 					Dx = shortest.x-Pole.x;
 					Dy = shortest.y-Pole.y;
-					//Log.d("vortex","dStart dEnd, shortest dx dy"+dStart+","+dEnd+","+shortest.rikt+","+Dx+","+Dy);
+					//Log.d(TAG,"dStart dEnd, shortest dx dy"+dStart+","+dEnd+","+shortest.rikt+","+Dx+","+Dy);
 					ret = (float)Math.sqrt(Dx*Dx+Dy*Dy);
 					
-					Log.d("nils","DISTANCE TO "+(Pole.equals(West)?"WEST":"SOUTH")+" For ARC: "+ret);
+					Log.d(TAG,"DISTANCE TO "+(Pole.equals(West)?"WEST":"SOUTH")+" For ARC: "+ret);
 
 				}
 
@@ -281,7 +283,7 @@ public class Delyta {
 				float slope = Dy/Dx;
 				*/
 				
-				Log.d("nils","DISTANCE TO "+(Pole.equals(West)?"WEST":"SOUTH")+" for SIDE: "+ret);
+				Log.d(TAG,"DISTANCE TO "+(Pole.equals(West)?"WEST":"SOUTH")+" for SIDE: "+ret);
 				
 
 			}
@@ -329,7 +331,7 @@ public class Delyta {
 			n = i==(areaC.size()-1)?0:i+1;
 			T+= areaC.get(i).x*(areaC.get(n).y-areaC.get(p).y);
 		}
-		Log.d("nils","Area calculate to be "+T/2);
+		Log.d(TAG,"Area calculate to be "+T/2);
 		delytePolygon = areaC;
 		/*
 		if (T/2>18000) {
@@ -349,16 +351,16 @@ public class Delyta {
 	//should be coordinates on the radius. with grad running 0..359. 
 	private void addArcCoords(List<Coord> areaC, Coord start, Coord end) {
 		int i = (int)start.rikt;
-		Log.d("nils","Stratos: "+start.rikt+" endos: "+end.rikt);
+		Log.d(TAG,"Stratos: "+start.rikt+" endos: "+end.rikt);
 		while (i!=end.rikt) {
 			i=(i+1)%360;					
 			areaC.add(new Coord(Rad,i));
-			//Log.d("nils",""+i);
+			//Log.d(TAG,""+i);
 		}
 	}
 
 	public void setId(int delyteID) {
-		Log.d("nils","DelyteID set to "+delyteID);
+		Log.d(TAG,"DelyteID set to "+delyteID);
 		delNr=delyteID;
 	}
 
@@ -392,7 +394,7 @@ public class Delyta {
 			res = res.substring(0, res.length()-1);
 		else
 			Log.e("nils","Something is wrong...rawData empty");
-		Log.d("nils", "getTåg returns: ["+res+"]");
+		Log.d(TAG, "getTåg returns: ["+res+"]");
 		return res;
 	}
 
@@ -427,7 +429,7 @@ public class Delyta {
 	}
 
 	public int getColor() {
-		Log.d("nils","color: "+DelytaColor[this.getId()>0?this.getId():0]);
+		Log.d(TAG,"color: "+DelytaColor[this.getId()>0?this.getId():0]);
 		return DelytaColor[delNr>=0&&delNr<6?delNr:0];
 	}
 	

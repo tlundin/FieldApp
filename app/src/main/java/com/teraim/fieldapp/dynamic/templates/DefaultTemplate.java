@@ -23,6 +23,8 @@ import java.util.List;
  */
 
 public class DefaultTemplate extends Executor {
+	private static final String TAG = "DefaultTemplate";
+
 
 
 
@@ -35,7 +37,7 @@ public class DefaultTemplate extends Executor {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("nils","In onCreate");
+		Log.d(TAG,"In onCreate");
 
 		
 	}
@@ -48,7 +50,7 @@ public class DefaultTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
-		Log.d("nils","Default template - I'm in the onPause method");
+		Log.d(TAG,"Default template - I'm in the onPause method");
 	}
 
 
@@ -56,7 +58,7 @@ public class DefaultTemplate extends Executor {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		Log.d("nils","I'm in the onCreateView method");
+		Log.d(TAG,"I'm in the onCreateView method");
 		if (myContext == null) {
 			Log.e("vortex","No context, exit");
 			return null;
@@ -68,10 +70,10 @@ public class DefaultTemplate extends Executor {
 		myContext.addContainers(getContainers());
 
 		if (wf!=null) {
-			Log.d("vortex","Executing workflow!!");
+			Log.d(TAG,"Executing workflow!!");
 			run();
 		} else
-			Log.d("vortex","No workflow found in oncreate default!!!!");
+			Log.d(TAG,"No workflow found in oncreate default!!!!");
 			
 		
 		return v;
@@ -94,7 +96,7 @@ public class DefaultTemplate extends Executor {
 
 	@Override
 	public void onStart() {
-		Log.d("nils","I'm in the onStart method");
+		Log.d(TAG,"I'm in the onStart method");
 		super.onStart();
 
 

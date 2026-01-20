@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 
 public class DB_Context implements Serializable {
+	private static final String TAG = "DB_Context";
+
 	
 	/**
 	 * 
@@ -75,15 +77,15 @@ public class DB_Context implements Serializable {
 		Map<String, String> keyHash = null;
 		boolean  hasWildCard = false;
 		LogRepository o = LogRepository.getInstance();
-		//Log.d("vortex","In evaluate Context!!");
+		//Log.d(TAG,"In evaluate Context!!");
 
 		if (eContext==null) {
-			Log.d("vortex","No change to context: "+GlobalState.getInstance().getVariableCache().getContext());
+			Log.d(TAG,"No change to context: "+GlobalState.getInstance().getVariableCache().getContext());
 			return GlobalState.getInstance().getVariableCache().getContext();
 		} else {
 			keyHash = new HashMap<String, String>();
 			//rawHash = new HashMap<String, Variable>();
-			//Log.d("nils","Evaluating context: "+eContext);
+			//Log.d(TAG,"Evaluating context: "+eContext);
 			//Returns fully evaluated context as a string
 			String cContext = Expressor.analyze(eContext);
 			if (cContext==null) {
@@ -97,7 +99,7 @@ public class DB_Context implements Serializable {
 
 				} else {
 					for (String pair:pairs) {
-						//Log.d("nils","found pair: "+pair);
+						//Log.d(TAG,"found pair: "+pair);
 						if (pair!=null&&!pair.isEmpty()) {
 							String[] kv = pair.split("=");
 
@@ -110,7 +112,7 @@ public class DB_Context implements Serializable {
 							} else {
 								String arg = kv[0].trim();
 								String val = kv[1].trim();
-								//Log.d("nils","Keypair: "+arg+","+val);
+								//Log.d(TAG,"Keypair: "+arg+","+val);
 								
 								if (val.isEmpty()||arg.isEmpty()) {
 									err = "Empty key or value in context keypair for context "+cContext;
@@ -129,7 +131,7 @@ public class DB_Context implements Serializable {
 								}
 								if (err==null)
 									keyHash.put(arg, val);
-								//Log.d("nils","Added "+arg+","+val+" to current context");
+								//Log.d(TAG,"Added "+arg+","+val+" to current context");
 
 							}
 						}
@@ -141,10 +143,10 @@ public class DB_Context implements Serializable {
 				o.addCriticalText(err);
 				return new DB_Context(err);
 			} else {
-				//Log.d("vortex","DB_CONTEXT evaluate returns: "+keyHash+ " for "+eContext+" isPartial "+hasWildCard);
+				//Log.d(TAG,"DB_CONTEXT evaluate returns: "+keyHash+ " for "+eContext+" isPartial "+hasWildCard);
 				if (hasWildCard) {
 					keyHash=GlobalState.getInstance().getDb().createNotNullSelection(keyHash);
-					Log.d("vortex","DB_CONTEXT ACTUALLY returns: "+keyHash+ " for "+eContext+" isPartial "+hasWildCard);
+					Log.d(TAG,"DB_CONTEXT ACTUALLY returns: "+keyHash+ " for "+eContext+" isPartial "+hasWildCard);
 				}
 				return new DB_Context(cContext,keyHash);
 			}

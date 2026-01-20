@@ -40,10 +40,10 @@
 //		float version = -1;
 //		try {
 //			url = new URL(module.getURL());
-//			Log.d("vortex","trying to open connection");
+//			Log.d(TAG,"trying to open connection");
 //			URLConnection ucon = url.openConnection();
-//			Log.d("FRAGG",url.toString());
-//			Log.d("vortex","setting timeout");
+//			Log.d(TAG,url.toString());
+//			Log.d(TAG,"setting timeout");
 //			ucon.setConnectTimeout(5000);
 //			in = ucon.getInputStream();
 //			InputStreamReader inStream = new InputStreamReader(in, "UTF-8");
@@ -58,8 +58,8 @@
 //					Log.e("vortex", "cannot read data..exiting");
 //					return new LoadResult(module, ErrorCode.IOError);
 //				}
-//				Log.d("amazon","h1: "+headerRow1);
-//                Log.d("amazon","h2: "+headerRow2);
+//				Log.d(TAG,"h1: "+headerRow1);
+//                Log.d(TAG,"h2: "+headerRow2);
 //				reader.reset();
 //				version = getVersion(null,headerRow2);
 //
@@ -72,7 +72,7 @@
 //					}
 //					version = getVersion(headerRow1,null);
 //					if (version == -1) {
-//						Log.d("jack","no version, rewinding");
+//						Log.d(TAG,"no version, rewinding");
 //						reader.reset();
 //					}
 //				}
@@ -89,7 +89,7 @@
 //				if (loadResult.errCode==ErrorCode.parsed)
 //					return freeze(module);
 //				else {
-//					Log.d("abba",module.getLabel()+" returns "+loadResult.errorMessage);
+//					Log.d(TAG,module.getLabel()+" returns "+loadResult.errorMessage);
 //					return loadResult;
 //				}
 //			}

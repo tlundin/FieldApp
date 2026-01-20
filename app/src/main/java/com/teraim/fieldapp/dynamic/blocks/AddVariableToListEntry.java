@@ -9,6 +9,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 
 public class AddVariableToListEntry extends Block {
+	private static final String TAG = "AddVariableToListEntry";
+
 
 	/**
 	 * 
@@ -45,7 +47,7 @@ public class AddVariableToListEntry extends Block {
 		
 		WF_Static_List l= myContext.getList(targetList);
 			if (l!=null) {
-				Log.d("nils","Found entry field in AddVariableToListEntry");
+				Log.d(TAG,"Found entry field in AddVariableToListEntry");
 				Variable var = l.addVariableToListEntry(varNameSuffix,isDisplayed,targetField,format,isVisible,showHistorical,initialValue);
 				if (var == null) {
 					Log.e("nils","Didn't find list entry"+targetField+ " in AddVariableToListEntry");

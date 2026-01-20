@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class EventBroker {
+	private static final String TAG = "EventBroker";
+
 
 	private final Map<EventType,List<EventListener>> eventListeners= new ConcurrentHashMap<EventType,List<EventListener>>();
 
@@ -33,25 +35,25 @@ public class EventBroker {
 			eventListeners.put(et, els);
 		}
 		if (els.contains(el))
-			Log.d("vortex","registerEventListener discarded...listener already exist");
+			Log.d(TAG,"registerEventListener discarded...listener already exist");
 		else {
 			els.add(el);
-			//Log.d("nils","Added eventlistener for event "+et.name());
+			//Log.d(TAG,"Added eventlistener for event "+et.name());
 		}
 
 	}
 
 	public void onEvent(Event e) {
-		Log.d("Frax","Received event "+e.getType().name()+" from "+e.getProvider());
+		Log.d(TAG,"Received event "+e.getType().name()+" from "+e.getProvider());
 		List<EventListener> els = eventListeners.get(e.getType());
 		if (els==null) {
-			Log.d("nils","No eventlistener exists for event "+e.getType().name());
+			Log.d(TAG,"No eventlistener exists for event "+e.getType().name());
 		} else {
-			//Log.d("grogg","sending event "+e.getType()+" to "+els.size()+" listeners:");
+			//Log.d(TAG,"sending event "+e.getType()+" to "+els.size()+" listeners:");
 			//int i =0;
 			for(EventListener el:els) {
 
-				//Log.d("grogg","LISTENER NUMBER "+i+": "+el.getName());
+				//Log.d(TAG,"LISTENER NUMBER "+i+": "+el.getName());
 				el.onEvent(e);
 				//i++;
 			}
@@ -60,7 +62,7 @@ public class EventBroker {
 	}
 
 	public void removeAllListeners() {
-		Log.d("nils","remove all listeneres called on EVENTBROKER");
+		Log.d(TAG,"remove all listeneres called on EVENTBROKER");
 		eventListeners.clear();
 	}
 

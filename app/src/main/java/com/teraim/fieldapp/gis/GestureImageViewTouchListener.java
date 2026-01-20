@@ -26,6 +26,8 @@ import android.view.View.OnLongClickListener;
 import android.view.View.OnTouchListener;
 
 class GestureImageViewTouchListener implements OnTouchListener {
+	private static final String TAG = "GestureImageViewTouchListener";
+
 
 	private final GestureImageView image;
 	private OnClickListener onClickListener;
@@ -151,7 +153,7 @@ class GestureImageViewTouchListener implements OnTouchListener {
 			boolean doubleTapped=false;
 			@Override
 			public boolean onDoubleTap(MotionEvent e) {
-				Log.d("vortex","double tap!");
+				Log.d(TAG,"double tap!");
 				if (image==null || image.isClickable()) {
 					if (currentScale != 8.0f)
 						startZoom(e);
@@ -288,7 +290,7 @@ class GestureImageViewTouchListener implements OnTouchListener {
 		} else {
 
 			reset();
-			//Log.d("vrtex","GETZZZZ");
+			//Log.d(TAG,"GETZZZZ");
 			//zoomAnimation.setZoom(fitScaleVertical);
 			//zoomTo = fitScaleVertical / currentScale;
 			//zoomAnimation.setTouchX(image.getCenterX());
@@ -361,7 +363,7 @@ class GestureImageViewTouchListener implements OnTouchListener {
 
 									float newX = scaleVector.end.x;
 									float newY = scaleVector.end.y;
-									//Log.d("vortex","newscale, centerX,centerY,newX, newY "+newScale+","+centerX+","+centerY+","+newX+","+newY);
+									//Log.d(TAG,"newscale, centerX,centerY,newX, newY "+newScale+","+centerX+","+centerY+","+newX+","+newY);
 									handleScale(newScale, newX, newY);
 								}
 							}
@@ -406,7 +408,7 @@ class GestureImageViewTouchListener implements OnTouchListener {
 
 
 	private void handleUp() {
-		//Log.d("vortex","Touched is now false");
+		//Log.d(TAG,"Touched is now false");
 		touched = false;
 		multiTouch = false;
 
@@ -492,7 +494,7 @@ class GestureImageViewTouchListener implements OnTouchListener {
 			last.y = current.y;
 
 			if(canDragX || canDragY) {
-				//Log.d("vortex","XY "+next.x+","+next.y);
+				//Log.d(TAG,"XY "+next.x+","+next.y);
 				image.setPosition(next.x, next.y);
 
 				if(imageListener != null) {

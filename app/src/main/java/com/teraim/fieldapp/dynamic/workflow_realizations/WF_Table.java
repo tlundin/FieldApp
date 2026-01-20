@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_Table extends WF_List  {
+	private static final String TAG = "WF_Table";
+
 
 	//protected final List<Listable> tableRows = new  ArrayList<Listable>(); //Instantiated in constructor
 	protected final List<Filter> myFilters=new ArrayList<Filter>();
@@ -86,7 +88,7 @@ public class WF_Table extends WF_List  {
 
 		this.myVariator=variatorColumn;
 		allInstances = gs.getDb().preFetchValues(myContext.getKeyHash(), selectionPattern, myVariator);
-		Log.d("nils","in addTexts. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
+		Log.d(TAG,"in addTexts. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
 
 		//Rows are not containing unique entries. only need one of each.
 		Map<String,List<String>>uRows = new HashMap<String,List<String>>();
@@ -122,7 +124,7 @@ public class WF_Table extends WF_List  {
 		boolean showAll=true;
 		if (index == selectedColumnIndex) {
 			selectedColumnIndex = -1;
-			Log.d("vortex","Deselected existing column.");
+			Log.d(TAG,"Deselected existing column.");
 
 		} else {
 			showAll = false;
@@ -168,7 +170,7 @@ public class WF_Table extends WF_List  {
 		String k,l;
 		int width = -1;
 		if (widthS!=null) try {
-			Log.d("baloba","seting with "+width);
+			Log.d(TAG,"seting with "+width);
 			width = Integer.parseInt(widthS);
 
 		} catch (NumberFormatException e) {}
@@ -183,11 +185,11 @@ public class WF_Table extends WF_List  {
 			
 		}
 		if (headerCell!=null) {
-			Log.d("baloba","Headercell!!!");
+			Log.d(TAG,"Headercell!!!");
 			headerCell.setMinimumWidth(width);
 		}
 		//for (String s:columnKeys)
-		//	Log.d("vortex","my columns: "+s);
+		//	Log.d(TAG,"my columns: "+s);
 		if (type!=null && type.equals("simple"))
 			tableTypeSimple=true;
 		
@@ -197,7 +199,7 @@ public class WF_Table extends WF_List  {
 		if (this.getSelectedColumnIndex() == -1) {
 			if (columnKeys != null) {
 				int numColumns = columnKeys.size();
-				Log.d("vortex", "uncollapsing all columns: " + numColumns);
+				Log.d(TAG, "uncollapsing all columns: " + numColumns);
 				for (int i = 1; i < numColumns + 1; i++) {
 					tableView.setColumnCollapsed(i, false);
 				}
@@ -267,7 +269,7 @@ public class WF_Table extends WF_List  {
 		@Override
 		public void onEvent(Event e) {
 			if (e.getType()==Event.EventType.onSave) {
-				Log.d("vortex","caught onSave in aggregate_column!");
+				Log.d(TAG,"caught onSave in aggregate_column!");
 				if (myCells!=null) {
 					//loop over mycells (or over rows...doesnt matter. Equal number)
 					TextView tv=null; CheckBox cb = null;
@@ -290,10 +292,10 @@ public class WF_Table extends WF_List  {
 						for (WF_Cell cell:row.getCells()) {
 							vars=cell.getAssociatedVariables();
 							//Evaluate expression with given variables as context.
-							//Log.d("vortex","Cell has these variables: ");
+							//Log.d(TAG,"Cell has these variables: ");
 
 							//for (Variable v:vars)
-							//	Log.d("vortex",v.getId());
+							//	Log.d(TAG,v.getId());
 							if (isLogical) {
 								Boolean result = Expressor.analyzeBooleanExpression(expressionE, vars);
 
@@ -342,7 +344,7 @@ public class WF_Table extends WF_List  {
 								}
 							}
 							if (done) {
-								//Log.d("vortex","I am done..exiting");
+								//Log.d(TAG,"I am done..exiting");
 								break;
 							}
 						}
@@ -446,9 +448,9 @@ public class WF_Table extends WF_List  {
 				Log.e("vortex","No variableIds found for "+wft.getLabel());
 				return;
 			} else {
-				//Log.d("vortex","varIds contains "+varIds.size()+" variables");
+				//Log.d(TAG,"varIds contains "+varIds.size()+" variables");
 				for (String varGr:varIds) {
-					//Log.d("vortex","varGr: "+varGr);
+					//Log.d(TAG,"varGr: "+varGr);
 					if (varGr.endsWith(variableSuffix)) {
 						varGrId = varGr;
 						break;
@@ -463,7 +465,7 @@ public class WF_Table extends WF_List  {
 			}
 			//Construct variablename. 
 			//String varId = varNamePrefix+Constants.VariableSeparator+varGrId+Constants.VariableSeparator+variableSuffix;
-			//Log.d("vortex","Adding variable "+varGrId);
+			//Log.d(TAG,"Adding variable "+varGrId);
 			if (tableTypeSimple) {
 				List<String> row = gs.getVariableConfiguration().getCompleteVariableDefinition(varGrId);
 				if (row != null) {
@@ -493,8 +495,8 @@ public class WF_Table extends WF_List  {
 					prefetchValue = valueMap.get(colKey);
 				}
 				if (prefetchValue!=null) {
-					Log.d("vortex","valueMap: "+valueMap.toString()+" colKey: "+colKey);
-					Log.d("vortex","found prefetch value "+prefetchValue);
+					Log.d(TAG,"valueMap: "+valueMap.toString()+" colKey: "+colKey);
+					Log.d(TAG,"found prefetch value "+prefetchValue);
 				}
 				cell.addVariable(varGrId, displayOut, format, isVisible, showHistorical,prefetchValue);
 				columnIndex++;
@@ -508,21 +510,21 @@ public class WF_Table extends WF_List  {
 	@Override
 	public void draw() {
 		super.draw();
-		Log.d("vortex", "This is after draw");
-		Log.d("vortex", "selected column: " + selectedColumnIndex);
+		Log.d(TAG, "This is after draw");
+		Log.d(TAG, "selected column: " + selectedColumnIndex);
 		if (selectedColumnIndex != -1 && !tableView.isColumnCollapsed(selectedColumnIndex))
-			Log.d("vortex", "And this matches the collapsed in tableview");
+			Log.d(TAG, "And this matches the collapsed in tableview");
 
 		//Need to check that all cells are visible that should be.
 		if (selectedColumnIndex != -1) {
 			for (Listable l : get()) {
 				WF_Table_Row wft = (WF_Table_Row) l;
-				//Log.d("vortex", l.getLabel() + " Cells: " + wft.getCells().size());
+				//Log.d(TAG, l.getLabel() + " Cells: " + wft.getCells().size());
 				//for (int i =0;i<wft.getCells().size();i++) {
 				WF_Cell cell = wft.getCells().get(selectedColumnIndex-1);
 				if (!cell.getWidget().isShown())
 					cell.getWidget().setVisibility(View.VISIBLE);
-//				Log.d("Vortex", "cell " + selectedColumnIndex + " is shown? " + cell.getWidget().isShown());
+//				Log.d(TAG, "cell " + selectedColumnIndex + " is shown? " + cell.getWidget().isShown());
 			}
 		}
 	}

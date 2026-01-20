@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class FilterFactory {
+	private static final String TAG = "FilterFactory";
+
 
 	private static final int MAX_MIN = 999999999;
 
@@ -72,7 +74,7 @@ public class FilterFactory {
 		limitDesc = limitDesc.replace("\"", "");
 		Set<String> allowedValues= new HashSet<String>();
 		List<Range> allowedRanges= new ArrayList<Range>();
-		//Log.d("nils","Creating input filter from: "+limitDesc);
+		//Log.d(TAG,"Creating input filter from: "+limitDesc);
 		//Each element in the string is comma separated.
 		String[] elems = limitDesc.split(",");
 		for (String elem:elems) {
@@ -95,9 +97,9 @@ public class FilterFactory {
 				if (r.min< currentMin)
 					currentMin = r.min;
 			}
-			//Log.d("nils","CurrentMin is set to "+currentMin);
+			//Log.d(TAG,"CurrentMin is set to "+currentMin);
 		} //else
-		//	Log.d("nils","allowedranges was null for "+limitDesc);
+		//	Log.d(TAG,"allowedranges was null for "+limitDesc);
 		boolean hasDefaultFilter = false;
 		if (currentMin >0 && currentMin <MAX_MIN) {
 			allowedRanges.add(0,new Range(0, currentMin -1));

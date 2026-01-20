@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GISListConfiguration extends CI_ConfigurationModule {
+    private static final String TAG = "GISListConfiguration";
+
     public static final String NAME = "content";
     private List<String> gisTypes = new ArrayList<>();
 
@@ -24,13 +26,13 @@ public class GISListConfiguration extends CI_ConfigurationModule {
 
     @Override
     public LoadResult prepare() throws IOException, Dependant_Configuration_Missing {
-        Log.d("GISListConfiguration","prepare()");
+        Log.d(TAG,"prepare()");
         return null;
     }
 
     @Override
     public LoadResult parse(String row, Integer currentRow) throws IOException {
-        Log.d("GISListConfiguration","In parse with row: "+row);
+        Log.d(TAG,"In parse with row: "+row);
         if (row.length()>0) {
             gisTypes.add(row.trim());
         }

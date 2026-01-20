@@ -43,8 +43,8 @@ public class SyncContentProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         GlobalState gs = GlobalState.getInstance();
-        Log.d("sync","In insert. Globalstate is null? "+(gs==null)+" uri: "+uri);
-        Log.d("sync","Match URI returns: "+sUriMatcher.match(uri));
+        Log.d(TAG,"In insert. Globalstate is null? "+(gs==null)+" uri: "+uri);
+        Log.d(TAG,"Match URI returns: "+sUriMatcher.match(uri));
         long _id=-1;
         if (gs!=null) {
             final SQLiteDatabase db = gs.getDb().db();
@@ -132,7 +132,7 @@ public class SyncContentProvider extends ContentProvider {
 
                     //Timestamp key includes team name, since change of team name should lead to resync from zero.
                     Long timestamp = gs.getDb().getSendTimestamp(syncGroup);
-                    Log.d("burlesk", "SYNCPROVIDER - Timestamp for last sync in Query is " + timestamp);
+                    Log.d(TAG, "SYNCPROVIDER - Timestamp for last sync in Query is " + timestamp);
                     c = db.query(DbHelper.TABLE_AUDIT, null,
                             "timestamp > ? AND lag = ?", new String[]{timestamp.toString(), syncGroup}, null, null, "timestamp asc", null);
                 }

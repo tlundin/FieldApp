@@ -12,6 +12,8 @@ import org.achartengine.renderer.DefaultRenderer;
 import org.achartengine.renderer.SimpleSeriesRenderer;
 
 public class RoundChartBlock extends ChartBlock  {
+	private static final String TAG = "RoundChartBlock";
+
 
 
 	private String startAngle;
@@ -23,7 +25,7 @@ public class RoundChartBlock extends ChartBlock  {
 						   boolean isVisible) {
 		super(blockId,name,label,container,textSize,margins,height,width,displayValues,isVisible);
 		this.startAngle = startAngle;
-		Log.d("vortex","height"+height);
+		Log.d(TAG,"height"+height);
 
 	}
 
@@ -68,7 +70,7 @@ public class RoundChartBlock extends ChartBlock  {
 			defaultRenderer.setLabelsColor(Color.parseColor("#696969"));
 			defaultRenderer.setPanEnabled(false);
 			if (intMargins!=null) {
-				Log.d("patox","setting margins to "+margins);
+				Log.d(TAG,"setting margins to "+margins);
 				defaultRenderer.setMargins(intMargins);
 			}
 
@@ -100,7 +102,7 @@ public class RoundChartBlock extends ChartBlock  {
 		//If all elements are 0, we want to make a default chart with a message.
 		boolean sumzero = true;
 		for(int i=0;i<myDataSource.getSize();i++) {
-			Log.d("vortex","current value "+i+": "+currentValues[i]);
+			Log.d(TAG,"current value "+i+": "+currentValues[i]);
 			if (hasCategories)
 				distributionSeries.add(myDataSource.getCategories()[i],currentValues[i]);
 			else

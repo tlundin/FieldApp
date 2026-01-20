@@ -12,6 +12,8 @@ import com.teraim.fieldapp.utils.Expressor;
 import java.util.List;
 
 public class BlockAddAggregateColumnToTable extends Block {
+	private static final String TAG = "BlockAddAggregateColumnToTable";
+
 
 	private Expressor.EvalExpr expressionE=null;
 
@@ -37,7 +39,7 @@ public class BlockAddAggregateColumnToTable extends Block {
 		List<Expressor.EvalExpr> tmp = Expressor.preCompileExpression(expression);
 		if (tmp!=null) {
 			this.expressionE = tmp.get(0);
-			Log.d("vortex", "Bananas rule " + expression);
+			Log.d(TAG, "Bananas rule " + expression);
 		}
 		this.textColor=textColor;
 		this.backgroundColor=backgroundColor;

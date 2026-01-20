@@ -92,6 +92,8 @@ import okhttp3.Response;
  * @author Terje
  */
 public  class ButtonBlock extends Block  implements EventListener {
+	private static final String TAG = "ButtonBlock";
+
 	private transient WF_Context myContext;
 	private transient PopupWindow mpopup = null;
 	private transient WF_Button button = null;
@@ -140,7 +142,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 	}
 
 	public ButtonBlock(String id,String lbl,String action, String name,String container,String target, String type, String statusVariableS,boolean isVisible,String exportFormat,String exportMethod, boolean enabled, String buttonContextS, String statusContextS,boolean requestSync, String imgFilter) {
-		//Log.d("NILS","Button "+name+" with context: "+buttonContextS);
+		//Log.d(TAG,"Button "+name+" with context: "+buttonContextS);
 		this.blockId=id;
 		this.textE = Expressor.preCompileExpression(lbl);
 		this.onClick=action;
@@ -158,9 +160,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 		this.imgFilterE=Expressor.preCompileExpression(imgFilter);
 		if (statusVar!=null && statusContextE==null)
 			statusContextE=buttonContextE;
-		Log.d("blorg","button "+textE+" statusVar: "+statusVar+" status_context: "+statusContextS);
+		Log.d(TAG,"button "+textE+" statusVar: "+statusVar+" status_context: "+statusContextS);
 		this.syncRequired = requestSync;
-		//Log.d("vortex","syncRequired is "+syncRequired);
+		//Log.d(TAG,"syncRequired is "+syncRequired);
 		//if export, what kind of delivery method
 
 		if (exportMethod!=null) {
@@ -171,7 +173,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 					if (exportMethod.contains("@")) {
 						targetMailAdress = exportMethod.substring(7, exportMethod.length());
-						Log.d("vortex", "Target mail address is : " + targetMailAdress);
+						Log.d(TAG, "Target mail address is : " + targetMailAdress);
 					} else {
 						//config error
 						targetMailAdress = null;
@@ -198,20 +200,20 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 
 	public void onEvent(Event e) {
-		Log.d("bulla","in event for button "+this.getText());
+		Log.d(TAG,"in event for button "+this.getText());
 
 		if (button!=null && !myContext.myEndIsNear()) {
 			button.setText(getText());
 			if (button instanceof WF_StatusButton) {
-				Log.d("bulla","calling refresh for "+this.getText());
+				Log.d(TAG,"calling refresh for "+this.getText());
 				((WF_StatusButton)button).refreshStatus();
 			}
-			Log.d("bulla","aftercall");
+			Log.d(TAG,"aftercall");
 			if (buttonContextE!=null&&!buttonContextE.isEmpty())
 				buttonContext = DB_Context.evaluate(buttonContextE);
 
 		} else
-			Log.d("vortex","disregarded event on button");
+			Log.d(TAG,"disregarded event on button");
 	}
 
 	public String getName() {
@@ -236,15 +238,15 @@ public  class ButtonBlock extends Block  implements EventListener {
 		o=gs.getLogger();
 		final LayoutInflater inflater = (LayoutInflater)ctx.getSystemService
 				(Context.LAYOUT_INFLATER_SERVICE);
-		Log.d("nils","In CREATE for BUTTON "+getText());
+		Log.d(TAG,"In CREATE for BUTTON "+getText());
 		Container myContainer = myContext.getContainer(containerId);
 		if (myContainer!=null) {
 			//Is the context provided already?
 			if (buttonContextOld!=null)
 				buttonContext=buttonContextOld;
 			else {
-				Log.d("vortex","ButtonContextS: "+buttonContextE);
-				Log.d("vortex","statusContextS: "+statusContextE);
+				Log.d(TAG,"ButtonContextS: "+buttonContextE);
+				Log.d(TAG,"statusContextS: "+statusContextE);
 				//If not, parse the buttoncontext if provided in the button.
 				//Else, use context in flow
 				if (buttonContextE!=null&&!buttonContextE.isEmpty())
@@ -255,14 +257,14 @@ public  class ButtonBlock extends Block  implements EventListener {
 				}
 			}
 
-			Log.d("nils","Buttoncontext set to: "+buttonContext+" for button: "+getText());
+			Log.d(TAG,"Buttoncontext set to: "+buttonContext+" for button: "+getText());
 
 			if (type == Type.action) {
 				button=null;
 				if (statusVar!=null) {
 					button = new WF_StatusButton(blockId, WF_StatusButton.createInstance(0, getText(), ctx), isVisible, myContext, statusVar,statusContextE);
 					if(((WF_StatusButton)button).refreshStatus()) {
-						Log.d("vortex","sucessfully created statusbutton "+(button instanceof WF_StatusButton));
+						Log.d(TAG,"sucessfully created statusbutton "+(button instanceof WF_StatusButton));
 					} else {
 						//button=null;
 						o.addText("");
@@ -270,7 +272,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 							o.addCriticalText("Statusvariable [" + statusVar + "], has something wrong with its context. Check precompile log.");
 							button = null;
 						}
-						Log.d("abba","buttonContext: "+buttonContext.getContext().toString());
+						Log.d(TAG,"buttonContext: "+buttonContext.getContext().toString());
 						//o.addCriticalText("Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 						Log.e("vortex", "Statusvariable [" + statusVar + "], buttonblock " + blockId + " does not exist. Will use normal button");
 
@@ -303,7 +305,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 								String statusVar = myContext.getStatusVariable();
 
 								if (statusVar != null) {
-									Log.d("vorto", "found statusvar named " + statusVar);
+									Log.d(TAG, "found statusvar named " + statusVar);
 									statusVariable = varCache.getVariable(buttonContext.getContext(), statusVar);
 								} else
 									statusVariable = null;
@@ -314,7 +316,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 								View popUpView = null; // inflating popup layout
 
 								if (myRules != null && myRules.size() > 0) {
-									Log.d("nils", "I have " + myRules.size() + " rules!");
+									Log.d(TAG, "I have " + myRules.size() + " rules!");
 									validationResult = null;
 									//We have rules. Each rule adds a line in the popup.
 									popUpView = inflater.inflate(R.layout.rules_popup, null);
@@ -339,13 +341,13 @@ public  class ButtonBlock extends Block  implements EventListener {
 													Log.e("vortex", "SETTING STATUSVAR: " + statusVariable.getId() + " key: " + statusVariable.getKeyChain() + "Value: " + statusVariable.getValue());
 													//Save value of all variables to database in current flow.
 												} else
-													Log.d("nils", "Found no status variable");
+													Log.d(TAG, "Found no status variable");
 											}
 											Set<Variable> variablesToSave = myContext.getTemplate().getVariables();
-											Log.d("vortex", "Variables To save contains " + (variablesToSave == null ? "null" : variablesToSave.size() + " objects."));
+											Log.d(TAG, "Variables To save contains " + (variablesToSave == null ? "null" : variablesToSave.size() + " objects."));
 											if (variablesToSave != null) {
 												for (Variable var : variablesToSave) {
-													Log.d("vortex", "Saving " + var.getLabel());
+													Log.d(TAG, "Saving " + var.getLabel());
 													boolean resultOfSave = var.setValue(var.getValue());
 												}
 											}
@@ -397,7 +399,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 												body = row.findViewById(R.id.body);
 												indicator = row.findViewById(R.id.indicator);
 												indicator.setImageResource(indicatorId);
-												Log.d("nils", " Rule header " + r.getRuleHeader() + " rule body: " + r.getRuleText());
+												Log.d(TAG, " Rule header " + r.getRuleHeader() + " rule body: " + r.getRuleText());
 												header.setText(r.getRuleHeader());
 												body.setText(r.getRuleText());
 												frame.addView(row);
@@ -417,18 +419,18 @@ public  class ButtonBlock extends Block  implements EventListener {
 									mpopup.showAtLocation(popUpView, Gravity.TOP, 0, 0);    // Displaying popup
 								else {
 									//no rules? Then validation is always ok.
-									Log.d("nils", "No rules found - exiting");
+									Log.d(TAG, "No rules found - exiting");
 									if (statusVariable != null) {
 										statusVariable.setValue(WF_StatusButton.Status.ready.ordinal() + "");
 										//Log.e("grogg","PSETTING STATUSVAR: "+statusVariable.getId()+" key: "+statusVariable.getKeyChain()+ "Value: "+statusVariable.getValue());
 										myContext.registerEvent(new WF_Event_OnSave(ButtonBlock.this.getBlockId()));
 
 									} else
-										Log.d("nils", "Found no status variable");
+										Log.d(TAG, "Found no status variable");
 									Set<Variable> variablesToSave = myContext.getTemplate().getVariables();
-									Log.d("nils", "Variables To save contains " + variablesToSave.size() + " objects.");
+									Log.d(TAG, "Variables To save contains " + variablesToSave.size() + " objects.");
 									for (Variable var : variablesToSave) {
-										Log.d("nils", "Saving " + var.getLabel());
+										Log.d(TAG, "Saving " + var.getLabel());
 										var.setValue(var.getValue());
 									}
 									goBack();
@@ -439,7 +441,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 								String target = getTarget();
 								Workflow wf = gs.getWorkflow(target);
 								if (buttonContext != null) {
-									Log.d("vortex", "Will use buttoncontext: " + buttonContext);
+									Log.d(TAG, "Will use buttoncontext: " + buttonContext);
 									gs.setDBContext(buttonContext);
 								}
 								if (wf == null) {
@@ -449,12 +451,12 @@ public  class ButtonBlock extends Block  implements EventListener {
 								} else {
 									o.addText("");
 									o.addText("Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
-									Log.d("Vortex", "Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
+									Log.d(TAG, "Action button pressed. Executing wf: " + target + " with statusvar " + statusVar);
 									//If the template called is empty, mark this flow as "caller" to make it possible to refresh its ui after call ends.
 									String calledTemplate = wf.getTemplate();
-									Log.d("vortex", "template: " + calledTemplate);
+									Log.d(TAG, "template: " + calledTemplate);
 									if (calledTemplate == null) {
-										Log.d("vortex", "call to empty template flow. setcaller.");
+										Log.d(TAG, "call to empty template flow. setcaller.");
 										myContext.setCaller();
 									}
 									gs.changePage(wf, statusVar);
@@ -517,7 +519,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 														"com.teraim.fieldapp.fileprovider",
 														photoFile);
 												intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-												Log.d("photo", "storing image to " + photoFile);
+												Log.d(TAG, "storing image to " + photoFile);
 												((Activity) ctx).startActivityForResult(intent, Constants.TAKE_PICTURE);
 											}
 										}
@@ -635,7 +637,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 										ExportReport exportResult = jRep.getReport();
 										if (exportResult == ExportReport.OK) {
 											msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
-											Log.d("vortex", "Exportmetod: " + exportMethod);
+											Log.d(TAG, "Exportmetod: " + exportMethod);
 											if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
 												//nothing more to do...file is already on disk.
 											} else if (exportMethod.startsWith("mail")) {
@@ -700,7 +702,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 														File directory = new File(imageFolder);
 														File[] imgs = directory.listFiles();
-														Log.d("Files", "Size: " + imgs.length);
+														Log.d(TAG, "Size: " + imgs.length);
 														String filter = null;
 														if (imgFilterE != null)
 															filter = Expressor.analyze(imgFilterE, buttonContext.getContext());
@@ -710,17 +712,17 @@ public  class ButtonBlock extends Block  implements EventListener {
 														Set<String> alreadyExported = sp.getStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, Collections.emptySet());
 														Set<String> newSetAfterExport = new HashSet<String>();
 														newSetAfterExport.addAll(alreadyExported);
-														Log.d("Mando", "Images I know: " + alreadyExported.toString());
+														Log.d(TAG, "Images I know: " + alreadyExported.toString());
 														for (int i = 0; i < imgs.length; i++) {
-															Log.d("Files", "Image name: " + imgs[i].getName());
+															Log.d(TAG, "Image name: " + imgs[i].getName());
 															String imageName = imgs[i].getName();
 															if (isInFilter(imageName, filter) && !alreadyExported.contains(imageName)) {
 																imgNames.add(imageName);
 																String imgPath = imgs[i].getPath();
-																Log.d("vortex", "imgpath is " + imgPath);
+																Log.d(TAG, "imgpath is " + imgPath);
 																imagesToExport.add(new ExportEntry(imageName, imgPath));
 															} else
-																Log.d("Mando", "Excluded " + imageName);
+																Log.d(TAG, "Excluded " + imageName);
 														}
 														int totalToExport = imgNames.size() + 1;
 														((Activity) ctx).runOnUiThread(new Runnable() {
@@ -738,7 +740,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 															@Override
 															public void onFailure(Call call, IOException e) {
 																// Cancel the post on failure.
-																Log.d("FAIL", e.getMessage());
+																Log.d(TAG, e.getMessage());
 																final String err = e.getMessage();
 																final int MAX_LENGTH = 250;
 																String displayMessage;
@@ -798,7 +800,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			exporter.getDialog().setCheckSend(Exporter.SUCCESS);
 																			exporter.getDialog().setOutCome(eMsg.toString());
 																			if (button instanceof WF_StatusButton) {
-																				Log.d("fenris","status set to ready_exported");
+																				Log.d(TAG,"status set to ready_exported");
 																				((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready_exported);
 																			}
 																		});
@@ -900,7 +902,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 			} else if (type == Type.toggle) {
 				final String text =this.getText();
 				o.addText("Creating Toggle Button with text: "+text);
-				Log.d("cair","Creating Toggle Button with text: "+text);
+				Log.d(TAG,"Creating Toggle Button with text: "+text);
 				final ToggleButton toggleB = new ToggleButton(ctx);
 				//final ToggleButton toggleB = (ToggleButton)LayoutInflater.from(ctx).inflate(R.layout.toggle_button,null);
 				//ToggleButton toggleB = new ToggleButton(ctx);
@@ -922,17 +924,17 @@ public  class ButtonBlock extends Block  implements EventListener {
 							Log.e("cair","Button clicked ("+text+") but found no action");
 						} else {
 							o.addText("Togglebutton "+text+" pressed. Executing function "+onClick);
-							Log.d("cair","Togglebutton "+text+" pressed. Executing function "+onClick+" I am checked: "+isChecked);
+							Log.d(TAG,"Togglebutton "+text+" pressed. Executing function "+onClick+" I am checked: "+isChecked);
 							String target = getTarget();
 							if (onClick.startsWith("template")) {
 								boolean result = myContext.getTemplate().execute(onClick, target);
 								if (!result) {
-									Log.d("cair","toggling!");
+									Log.d(TAG,"toggling!");
 									toggleB.toggle();
 								}
 							}
 							else if (onClick.equals("toggle_visible")) {
-								Log.d("cair","Executing toggle");
+								Log.d(TAG,"Executing toggle");
 								Drawable d = myContext.getDrawable(target);
 								if (d!=null) {
 									if(d.isVisible())
@@ -942,7 +944,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 								} else {
 									Log.e("cair","Couldn't find target "+target+" for button");
 									for (Drawable dd:myContext.getDrawables()) {
-										Log.d("cair",((WF_Widget)dd).getId());
+										Log.d(TAG,((WF_Widget)dd).getId());
 									}
 									o.addText("");
 									o.addCriticalText("Target for button missing: "+target);

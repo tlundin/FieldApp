@@ -23,6 +23,8 @@ import java.util.Locale;
 import java.util.Set;
 
 public class GisDatabaseWorkflow implements Workflow_I {
+    private static final String TAG = "GisDatabaseWorkflow";
+
 
     // Dependencies needed for the workflow
     private final Context context;
@@ -75,13 +77,13 @@ public class GisDatabaseWorkflow implements Workflow_I {
     public LoadJob getInitialJob() {
         // If a pre-filtered list was provided, use it directly for the first job.
         if (modulesToDownload != null) {
-            Log.d("Workflow", "Executing workflow with a pre-filtered list of " + modulesToDownload.size() + " modules.");
+            Log.d(TAG, "Executing workflow with a pre-filtered list of " + modulesToDownload.size() + " modules.");
             stageCount = 1; // Start at stage 1
             return new LoadJob(LoadStage.FILES, modulesToDownload);
         }
 
         // Otherwise, generate the full list of initial modules as before.
-        Log.d("Workflow", "Executing workflow with the full list of initial modules.");
+        Log.d(TAG, "Executing workflow with the full list of initial modules.");
         List<ConfigurationModule> initialModules = new LinkedList<>();
         String cachePath = context.getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/";
 
@@ -132,7 +134,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         List<ConfigurationModule> modules = new ArrayList<>();
         if (gisTypes != null) {
             for (String gisType : gisTypes) {
-                Log.d("vortex", "gis type is " + gisType);
+                Log.d(TAG, "gis type is " + gisType);
                 modules.add(new GisObjectConfiguration(context, globalPh, ph, gisFolder, gisType, debugConsole, myDb, t));
             }
         }
@@ -151,7 +153,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
                 GisObjectConfiguration gisObjectConfig = (GisObjectConfiguration) module;
                 if (gisObjectConfig.isProvYtaOrTrakt()) {
                     mapObjectsToRefresh.add(gisObjectConfig.getFileName());
-                    Log.d("Workflow", "Collected types to refresh: " + gisObjectConfig.getFileName());
+                    Log.d(TAG, "Collected types to refresh: " + gisObjectConfig.getFileName());
                 }
             }
         }

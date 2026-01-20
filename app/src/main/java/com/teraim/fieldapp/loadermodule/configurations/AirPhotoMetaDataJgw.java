@@ -18,6 +18,8 @@ import java.util.Locale;
  */
 
 public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements PhotoMetaI {
+    private static final String TAG = "AirPhotoMetaDataJgw";
+
 
     private final String[] pars = new String[6];
     private final String imgUrlorPath;
@@ -25,9 +27,9 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     public AirPhotoMetaDataJgw(Context context, PersistenceHelper gPh, PersistenceHelper ph,
                                 String urlOrPath, String fileName, String moduleName) {
         super(context,gPh, ph, FileFormat.jgw, urlOrPath, fileName, moduleName);
-        Log.d("jgw","setting simple version to false");
-        Log.d("jgw","urlorpath: "+urlOrPath);
-        Log.d("jgw","fileName: "+fileName);
+        Log.d(TAG,"setting simple version to false");
+        Log.d(TAG,"urlorpath: "+urlOrPath);
+        Log.d(TAG,"fileName: "+fileName);
 
 
         imgUrlorPath = fileName+".jpg";
@@ -44,7 +46,7 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
     @Override
     public LoadResult prepare()  {
         //null means nothing to report and no error
-        Log.d("jgw","in prepare");
+        Log.d(TAG,"in prepare");
 
         //need to check the size of the real image.
         BitmapFactory.Options options = new BitmapFactory.Options();
@@ -52,18 +54,18 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
 
         String pathName = GlobalState.getInstance().getContext().getFilesDir()+"/"+globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/cache/"+imgUrlorPath;
         BitmapFactory.decodeFile(pathName, options);
-        Log.d("jgw","imgUrlorPath: "+imgUrlorPath);
-        Log.d("jgw","cached image path: "+pathName);
+        Log.d(TAG,"imgUrlorPath: "+imgUrlorPath);
+        Log.d(TAG,"cached image path: "+pathName);
         //File directory = new File(Constants.VORTEX_ROOT_DIR+globalPh.get(PersistenceHelper.BUNDLE_NAME)+"/cache/");
         //File[] files = directory.listFiles();
-        //Log.d("jgw", "Size: "+ files.length);
+        //Log.d(TAG, "Size: "+ files.length);
         //for (int i = 0; i < files.length; i++)
         //{
-        //    Log.d("jgw", "FileName:" + files[i].getName());
+        //    Log.d(TAG, "FileName:" + files[i].getName());
         //}
         Width = options.outWidth;
         Height = options.outHeight;
-        Log.d("jgw","WIDTH HEIGHT "+Width+","+Height);
+        Log.d(TAG,"WIDTH HEIGHT "+Width+","+Height);
         if (Width==0 && Height==0)
             return new LoadResult(this, LoadResult.ErrorCode.ParseError,"Could not calculate image width and height for "+imgUrlorPath);
         return null;
@@ -71,7 +73,7 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
 
     @Override
     public LoadResult parse(String row, Integer currentRow)  {
-        Log.d("jgw","Row"+currentRow+": "+row);
+        Log.d(TAG,"Row"+currentRow+": "+row);
         if (currentRow<=pars.length) {
             pars[currentRow-1]=row;
             return null;
@@ -98,7 +100,7 @@ public class AirPhotoMetaDataJgw extends CI_ConfigurationModule implements Photo
             double S = (WorldY + (Height * YCellSize)) - (YCellSize / 2);
 
             setEssence(new PhotoMeta(N, E, S, W));
-            Log.d("jgw","N: E: S: W: "+N+","+E+","+","+S+","+W);
+            Log.d(TAG,"N: E: S: W: "+N+","+E+","+","+S+","+W);
         }
         catch(NumberFormatException ex) {
             Log.e("jgw","Photometa file is corrupt");

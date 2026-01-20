@@ -13,6 +13,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
 import com.teraim.fieldapp.utils.Tools.Unit;
 
 public class CreateEntryFieldBlock extends DisplayFieldBlock {
+	private static final String TAG = "CreateEntryFieldBlock";
+
 
 	private transient WF_ClickableField myField;
 	private final String name;
@@ -65,23 +67,23 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 		o = gs.getLogger();
 		if(myContainer !=null) {
 			VariableConfiguration al = gs.getVariableConfiguration();
-			Log.d("vortex","current hash: "+ gs.getVariableCache().getContext());
+			Log.d(TAG,"current hash: "+ gs.getVariableCache().getContext());
 			Variable v = gs.getVariableCache().getVariable(name,initialValue,-1);
 			if (v == null) {
 				o.addText("");
 				o.addCriticalText("Failed to create entryfield for block " + blockId);
-				Log.d("nils", "Variable " + name + " referenced in block_create_entry_field not found.");
+				Log.d(TAG, "Variable " + name + " referenced in block_create_entry_field not found.");
 				o.addCriticalText("Variable ["+name+"] referenced in block_create_entry_field not found.");
 				o.addCriticalText("Current DB Context: ["+ gs.getVariableCache().getContext()+"]");
 			} else	{	
 				myField = new WF_ClickableField_Selection_OnSave(label==null||label.equals("")?v.getLabel():label,
 						al.getDescription(v.getBackingDataSet()),myContext,name,isVisible,autoOpenSpinner,this);
-				//Log.d("nils", "In CreateEntryField. Description: "+al.getDescription(v.getBackingDataSet()));
-				//Log.d("nils","Backing data: "+v.getBackingDataSet().toString());
+				//Log.d(TAG, "In CreateEntryField. Description: "+al.getDescription(v.getBackingDataSet()));
+				//Log.d(TAG,"Backing data: "+v.getBackingDataSet().toString());
 				myField.addVariable(v, true,format,true,showHistorical);
 				myContext.addDrawable(v.getId(), myField);
 
-				Log.d("vortex","Adding Entryfield "+v.getId()+" to container "+containerId);
+				Log.d(TAG,"Adding Entryfield "+v.getId()+" to container "+containerId);
 				o.addText("Adding Entryfield "+v.getId()+" to container "+containerId);
 				myContainer.add(myField);
 				//				myField.refreshInputFields();	

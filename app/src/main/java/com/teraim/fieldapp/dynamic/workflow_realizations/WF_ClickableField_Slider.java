@@ -16,6 +16,8 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Event;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.EventListener;
 
 public class WF_ClickableField_Slider extends WF_ClickableField implements EventListener {
+	private static final String TAG = "WF_ClickableField_Slider";
+
 
 	private final SeekBar sb;
 	private final LinearLayout ll;
@@ -48,7 +50,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 					tv.setText(WF_ClickableField_Slider.this.min + progress +"");
 				//remove me from group..
 				if (groupName!=null && fromUser) {
-					//Log.d("zaxx","groupname: "+groupName);
+					//Log.d(TAG,"groupname: "+groupName);
 					CoupledVariableGroupBlock myGroup = myContext.getSliderGroup(groupName);
 					if (myGroup!=null)
 						myGroup.removeSliderFromCalibration(WF_ClickableField_Slider.this);
@@ -85,7 +87,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			}
 		});
 		if (groupName!=null) {
-			Log.d("Vortex","Adding seekbar to group "+groupName);
+			Log.d(TAG,"Adding seekbar to group "+groupName);
 			myContext.addSliderToGroup(groupName,this);
 		}
 		this.groupName = groupName ;
@@ -101,7 +103,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 	@Override
 	public LinearLayout getFieldLayout() {
-		Log.d("brexit","Getting field layout for slide!!");
+		Log.d(TAG,"Getting field layout for slide!!");
 		if (this.format.isHorisontal())
 			ll.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT,LinearLayout.LayoutParams.WRAP_CONTENT));
 		else
@@ -118,19 +120,19 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 	public void onEvent(Event e) {
 
 		if (myContext.myEndIsNear()) {
-			Log.d("vortex","myendisnear...discarding event in slider");
+			Log.d(TAG,"myendisnear...discarding event in slider");
 			return;
 		}
 		if (getId() == null || !getId().equals(e.getProvider())) {
 			if (getId() == null) {
 				Log.e("gulp","MY ID IS NULL THIS IS NOT GOOD");
 			}
-			Log.d("nils","In onEvent for WF_ClickableField_Slider_OnSave. Provider: "+e.getProvider());
+			Log.d(TAG,"In onEvent for WF_ClickableField_Slider_OnSave. Provider: "+e.getProvider());
 			//Check that group is not active. If it is, this event should be dropped.
 			if (getGroup()!=null) {
 				CoupledVariableGroupBlock group = myContext.getSliderGroup(getGroup());
 				if (group!=null && group.isActive()) {
-					Log.d("vortex", "DISCARD ACTIVE GROUP");
+					Log.d(TAG, "DISCARD ACTIVE GROUP");
 
 					return;
 				}
@@ -139,7 +141,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			refresh();
 			setSeekBarAccordingToVariableValue();
 		} else
-			Log.d("nils","Discarded...from me");
+			Log.d(TAG,"Discarded...from me");
 	}
 
 	@Override
@@ -179,7 +181,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 						min = Integer.parseInt(pair[0]);
 						max = Integer.parseInt(pair[1]);
-						Log.d("vortex", "managed to set min max to " + min + "," + max);
+						Log.d(TAG, "managed to set min max to " + min + "," + max);
 						sb.setMax(max);
 					} catch (NumberFormatException e) {
 					}
@@ -216,7 +218,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			o.addCriticalText("Cannot initialize seekbar with variable "+var.getId()+".");
 			return;
 		}
-		Log.d("vortex","Calling initialize seekbar for "+var.getId()+" with value "+var.getValue());
+		Log.d(TAG,"Calling initialize seekbar for "+var.getId()+" with value "+var.getValue());
 		setSeekBarAccordingToVariableValue();
 	}
 
@@ -225,7 +227,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 		if (var!=null && var.getValue()!=null) {
 			try {
 				int value = Integer.parseInt(var.getValue());
-				Log.d("Exeter","setting progress to "+value+" for "+this.label);
+				Log.d(TAG,"setting progress to "+value+" for "+this.label);
 				sb.post(new Runnable() {
 					@Override
 					public void run() {
@@ -264,7 +266,7 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 			o.addText("");
 			o.addCriticalText("The variable used for slider " + this.getId() + " is not containing a numeric value: "+var.getValue());
 		}
-		Log.d("vortex","var null or integer exep in getSliderValue for "+this.getName());
+		Log.d(TAG,"var null or integer exep in getSliderValue for "+this.getName());
 		return null;
 	}
 

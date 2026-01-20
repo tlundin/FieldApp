@@ -8,6 +8,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Static_List;
 import com.teraim.fieldapp.log.LogRepository;
 
 public class AddVariableToEveryListEntryBlock extends Block {
+	private static final String TAG = "AddVariableToEveryListEntryBlock";
+
 
 
 	private final String target;
@@ -48,7 +50,7 @@ public class AddVariableToEveryListEntryBlock extends Block {
 			o.addText("");
 			o.addCriticalText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
         } else {
-			Log.d("nils","Calling AddVariableToEveryListEntry for list "+l.getId()+"and suffix "+variableSuffix);
+			Log.d(TAG,"Calling AddVariableToEveryListEntry for list "+l.getId()+"and suffix "+variableSuffix);
             l.addVariableToEveryListEntry(variableSuffix, displayOut, format, isVisible, showHistorical, initialValue);
         }
 

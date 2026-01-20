@@ -87,42 +87,42 @@
 //                frontPageLog.addRow("Load aborted (no bundle)");
 //                return;
 //            } else {
-//                Log.d("amazon","Loading bundle"+bundleName+" to get version");
+//                Log.d(TAG,"Loading bundle"+bundleName+" to get version");
 //            }
 //        } else {
 //            module = myModules.next();
-//            Log.d("perl","module now "+(module==null?"null":module.getLabel()));
+//            Log.d(TAG,"module now "+(module==null?"null":module.getLabel()));
 //        }
 //        if (module != null) {
 //            debug.addRow("");
 //            debug.addCriticalText(module.getLabel()+" - ");
 //            frontPageLog.addRow("Loading " + module.getLabel());
 //            frontPageLog.draw();
-//            Log.d("amazon", module.getLabel() + " :");
+//            Log.d(TAG, module.getLabel() + " :");
 //            //force load if major version is unknown and version handler set to major
 //            boolean detailed = module.versionControl.startsWith("Det");
 //            boolean forced = module.versionControl.equals("Forced") || (!majorVersionIsKnown && !detailed);
 //
 //            //All already loaded and no major update?
-//            Log.d("beboop","method: "+module.versionControl+" allfrozen: "+allFrozen+" majorupdated: "+majorVersionUpdated+" module: "+module.getLabel());
+//            Log.d(TAG,"method: "+module.versionControl+" allfrozen: "+allFrozen+" majorupdated: "+majorVersionUpdated+" module: "+module.getLabel());
 //            if (allFrozen) {
-//                Log.d("Terje", "Calling onFileloaded for " + module.getLabel());
+//                Log.d(TAG, "Calling onFileloaded for " + module.getLabel());
 //                onFileLoaded(new LoadResult(module, ErrorCode.sameold));
 //            }
 ////            if (!forced && !detailed && allFrozen && !majorVersionUpdated) {
-////                Log.d("beboop","allfrozen and major not updated and not forced and not detailed");
+////                Log.d(TAG,"allfrozen and major not updated and not forced and not detailed");
 ////                onFileLoaded(new LoadResult(module, ErrorCode.sameold));
 ////            }
 //            //Supposed to load from web, but no connection?
 //            else if (socketBroken || !Connectivity.isConnected(ctx)) {
 //                majorVersionUpdated=false;
 //                if(allFrozen) {
-//                    Log.d("vortex", "no network");
+//                    Log.d(TAG, "no network");
 //                    if (module.thaw(this)) {
 //                        thawed(module, new LoadResult(module, thawed));
 //                        _loadModules();
 //                    } else {
-//                        Log.d("nonet", "thawing started " + module.getLabel());
+//                        Log.d(TAG, "thawing started " + module.getLabel());
 //
 //                    }
 //                } else {
@@ -187,7 +187,7 @@
 //        final ConfigurationModule module = res.module;
 //        if (module != null) {
 //            debug.addRow("Module " + res.module.fileName + " loaded. Returns code " + res.errCode.name() + (res.errorMessage != null ? " and errorMessage: " + res.errorMessage : ""));
-//            Log.d("vortex", "Module " + res.module.fileName + " loaded. Returns code " + res.errCode.name() + (res.errorMessage != null ? " and errorMessage: " + res.errorMessage : ""));
+//            Log.d(TAG, "Module " + res.module.fileName + " loaded. Returns code " + res.errCode.name() + (res.errorMessage != null ? " and errorMessage: " + res.errorMessage : ""));
 //            switch (res.errCode) {
 //                case existingVersionIsMoreCurrent:
 //                    debug.addCriticalText("*****");
@@ -206,7 +206,7 @@
 //                        break;
 //                    }
 //                    else {
-//                        Log.d("babush","thawing started "+module.getLabel());
+//                        Log.d(TAG,"thawing started "+module.getLabel());
 //                        //wait for result
 //                        allDone = false;
 //                    }
@@ -225,7 +225,7 @@
 //                case frozen:
 //                    //if bundle was frozen, we know the major version has been updated.
 //                    if (module.isBundle) {
-//                        Log.d("amazon","new bundle version");
+//                        Log.d(TAG,"new bundle version");
 //                        majorVersionUpdated=true;
 //                    }
 //                    module.setLoaded(true);
@@ -243,7 +243,7 @@
 //                    }
 //                    //if thaw failed, remove file and try again except if it has already tried.
 //                    if (module.tryingThawAfterFail) {
-//                        Log.d("vortex", "Failing finally.");
+//                        Log.d(TAG, "Failing finally.");
 //                        debug.addRedText("Thawing failed. for "+module.getLabel()+"..giving up");
 //                        if (module.isRequired()) {
 //                            failAndExitLoad(module, res);
@@ -252,7 +252,7 @@
 //                            module.setNotFound();
 //
 //                    } else {
-//                        Log.d("vortex", "Thaw failed..Retrying...reload from network");
+//                        Log.d(TAG, "Thaw failed..Retrying...reload from network");
 //                        debug.addYellowText("thaw failed...trying to reload from network");
 //                        module.tryingWebAfterFail=true;
 //                        module.deleteFrozen();
@@ -296,7 +296,7 @@
 //                                                    //continue to next module.
 //                                                    _loadModules();
 //                                                } else {
-//                                                    Log.d("vortex", "Thawing restarted (unsupported) for " + module.getLabel());
+//                                                    Log.d(TAG, "Thawing restarted (unsupported) for " + module.getLabel());
 //                                                }
 //                                            }
 //                                        }
@@ -329,30 +329,30 @@
 //                        //try use frozen if exists.
 //                    } else if (module.frozenFileExists()) {
 //                        //continue immediately on true = already thawed.
-//                        Log.d("vortex","frozen exists. ");
+//                        Log.d(TAG,"frozen exists. ");
 //                        debug.addRow("");
 //                        debug.addCriticalText("Using current: " );
 //                        if (module.thaw(this)) {
 //                            thawed(module,new LoadResult(module, thawed));
 //                        }
 //                        else {
-//                            Log.d("vortex","Thawing after fail for "+module.getLabel());
+//                            Log.d(TAG,"Thawing after fail for "+module.getLabel());
 //                            module.tryingThawAfterFail=true;
 //                            allDone=false;
 //                        }
 //
 //                    } else {
-//                        Log.d("vortex","not found. ");
+//                        Log.d(TAG,"not found. ");
 //                        module.setNotFound();
 //                    }
 //
 //                    break;
 //                case reloadDependant:
-//                    Log.d("vortex", "Dependant [" + res.errorMessage + "] needs to be reloaded.");
+//                    Log.d(TAG, "Dependant [" + res.errorMessage + "] needs to be reloaded.");
 //                    ConfigurationModule reloadModule = myModules.getModule(res.errorMessage);
 //                    if (reloadModule != null) {
 //                        if (reloadModule.isMissing() && !reloadModule.isRequired()) {
-//                            Log.d("vortex", "Dependant is not required and is not defined");
+//                            Log.d(TAG, "Dependant is not required and is not defined");
 //
 //                        } else {
 //                            reloadModule.setLoaded(false);
@@ -360,7 +360,7 @@
 //
 //                            //module.setFrozenVersion(-1);
 //                            //module.setLoaded(false);
-//                            Log.d("vortex", "Now retry load of modules");
+//                            Log.d(TAG, "Now retry load of modules");
 //                            //debug.addRow("");
 //                            //debug.addGreenText("Reload required for dependant "+res.errorMessage);
 //                            //majorVersionChange=true;
@@ -379,7 +379,7 @@
 //                _loadModules();
 //            }
 //        }
-//        Log.d("vortex","Falling out of onFileLoaded");
+//        Log.d(TAG,"Falling out of onFileLoaded");
 //    }
 //
 //    private void failAndExitLoad(ConfigurationModule module, LoadResult res) {
@@ -416,10 +416,10 @@
 //        debug.addCriticalText("*********");
 //
 //        if (errCode==ErrorCode.IOError) {
-//            Log.d("vortex","Io-error");
+//            Log.d(TAG,"Io-error");
 //            if (ctx!=null && !Connectivity.isConnected(ctx)) {
 //                debug.addRow("No network");
-//                Log.d("vortex", "No network");
+//                Log.d(TAG, "No network");
 //            }
 //            else {
 //                if (res.errorMessage !=null)

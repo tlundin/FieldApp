@@ -9,6 +9,8 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Table;
 import com.teraim.fieldapp.log.LogRepository;
 
 public class BlockAddVariableToTable extends Block {
+	private static final String TAG = "BlockAddVariableToTable";
+
 
 
 	private String target=null;
@@ -42,7 +44,7 @@ public class BlockAddVariableToTable extends Block {
 		if (table==null) {
 			o.addCriticalText("Couldn't find list with ID "+target+" in AddVariableToEveryListEntryBlock");
 		} else {
-			Log.d("nils","Calling AddVariableToTable for "+variableSuffix);
+			Log.d(TAG,"Calling AddVariableToTable for "+variableSuffix);
 			table.addVariableToEveryCell(variableSuffix, displayOut,format,isVisible,showHistorical,initialValue);
 		}
     }

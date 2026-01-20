@@ -15,6 +15,8 @@ import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 
 public class LogRepository {
+    private static final String TAG = "LogRepository";
+
 
     // Enum to define the different levels of logging sensitivity.
     public enum LogLevel {
@@ -64,10 +66,10 @@ public class LogRepository {
         String persistedLogLevel = sharedPrefs.getString(PersistenceHelper.LOG_LEVEL, "NORMAL"); // Default to NORMAL if not found
         if ("CRITICAL".equalsIgnoreCase(persistedLogLevel)) {
             setLogLevel(LogLevel.CRITICAL);
-            Log.d("LogRepository", "Initialized with persisted log level: CRITICAL");
+            Log.d(TAG, "Initialized with persisted log level: CRITICAL");
         } else {
             setLogLevel(LogLevel.NORMAL);
-            Log.d("LogRepository", "Initialized with persisted log level: NORMAL");
+            Log.d(TAG, "Initialized with persisted log level: NORMAL");
         }
     }
     /**
@@ -76,9 +78,9 @@ public class LogRepository {
      * @param newLevel The new LogLevel to use.
      */
     public synchronized void setLogLevel(LogLevel newLevel) {
-        Log.d("blarpa", "Setting log level to " + newLevel.toString());
+        Log.d(TAG, "Setting log level to " + newLevel.toString());
         if (this.currentLogLevel != newLevel) {
-            Log.d("blarpa", "updates to " + newLevel);
+            Log.d(TAG, "updates to " + newLevel);
             this.currentLogLevel = newLevel;
             updateLiveData();
         }
@@ -102,7 +104,7 @@ public class LogRepository {
      * @param text The text to append.
      */
     public synchronized void addCriticalText(String text) {
-        Log.d("CRIT", text);
+        Log.d(TAG, text);
         hasNewCriticalEvent.postValue(true);
         // Append to both logs
         appendTextWithColor(text, Color.RED, true);

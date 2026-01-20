@@ -12,6 +12,8 @@ import java.io.Serializable;
 import java.util.List;
 
 public class Rule implements Serializable {
+    private static final String TAG = "Rule";
+
 
     /**
      *
@@ -38,9 +40,9 @@ public class Rule implements Serializable {
         List<Expressor.EvalExpr> tmp = Expressor.preCompileExpression(condition);
         if (tmp!=null) {
             this.condition = tmp.get(0);
-            //Log.d("vortex", "Bananas rule " + condition);
+            //Log.d(TAG, "Bananas rule " + condition);
         } else
-            Log.d("vortex", "Condition precompiles to null: "+condition);
+            Log.d(TAG, "Condition precompiles to null: "+condition);
         this.errorMsg=errorMsg;
         myType = Type.WARNING;
         if (action!=null && action.equalsIgnoreCase("Error_severity"))
@@ -76,15 +78,15 @@ public class Rule implements Serializable {
        if (condition!=null) {
     	   System.err.println("BANANA: CALING BOOL ANALYSIS WITH "+condition.toString());
        
-        //Log.d("NILS", "Result of rule eval was: " + Expressor.analyzeBooleanExpression(condition));
-           Log.d("vortex","rule context: "+(ruleContext==null?"null":ruleContext)+" myBlock: "+(myBlock==null?"null":myBlock));
+        //Log.d(TAG, "Result of rule eval was: " + Expressor.analyzeBooleanExpression(condition));
+           Log.d(TAG,"rule context: "+(ruleContext==null?"null":ruleContext)+" myBlock: "+(myBlock==null?"null":myBlock));
            if (ruleContext!=null && myBlock!=null) {
                WF_Static_List list = ruleContext.getList(myBlock.getListId());
 
                //target list for rule.
                List<List<String>> l = list.getRows();
                if (l!=null)
-                   Log.d("bepal","jaa "+myBlock.getBlockId());
+                   Log.d(TAG,"jaa "+myBlock.getBlockId());
                return Expressor.analyzeBooleanExpression(condition,l);
 
            }

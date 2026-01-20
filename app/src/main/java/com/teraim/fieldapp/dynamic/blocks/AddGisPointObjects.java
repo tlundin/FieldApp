@@ -52,6 +52,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public class AddGisPointObjects extends Block implements FullGisObjectConfiguration {
+	private static final String TAG = "AddGisPointObjects";
+
 
 
 
@@ -161,7 +163,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	//Refresh: only add new objects created after last check.
 
 	public void create(WF_Context myContext, boolean refresh) {
-		Log.d("maga","Creating GisPointObjects - myContext is "+myContext.toString()+" refresh is "+refresh+ "myGis is "+myContext.getCurrentGis().toString());
+		Log.d(TAG,"Creating GisPointObjects - myContext is "+myContext.toString()+" refresh is "+refresh+ "myGis is "+myContext.getCurrentGis().toString());
 		setDefaultBitmaps(myContext);
 		o = LogRepository.getInstance();
 		GlobalState gs = GlobalState.getInstance();
@@ -171,21 +173,21 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			return;
 		} else {
 			if (createAllowed) {
-				Log.d("vortex","Adding type to create menu for "+nName);
+				Log.d(TAG,"Adding type to create menu for "+nName);
 				if (palette==null ||palette.isEmpty())
 					palette = GisObjectsMenu.Default;
 				gisB.addGisObjectType(this,palette);
 			}
 			if (gisB.isZoomLevel() && !refresh) {
-				Log.d("vortex","Zoom level!..use existing gis objects!");
+				Log.d(TAG,"Zoom level!..use existing gis objects!");
 				return;
 			}
 			if (refresh) {
-				Log.d("vortex","This is a refreshcall!");
+				Log.d(TAG,"This is a refreshcall!");
 				if (dynamic || this.onClick==null) {
 					//Dynamic objects are refreshed by themselves.
 					//Objects with no workflow cannot be changed by sync. Thus, no need to refresh.
-					Log.d("vortex","No need to refresh "+this.getName());
+					Log.d(TAG,"No need to refresh "+this.getName());
 					return;
 				}
 
@@ -195,9 +197,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		if (imgSource!=null&&imgSource.length()>0 ) {
 			File cached = gs.getCachedFileFromUrl(imgSource);
 			if (cached==null) {
-				Log.d("vortex","no cached image...trying live.");
+				Log.d(TAG,"no cached image...trying live.");
 				String fullPicURL = GlobalState.getInstance().getContext().getFilesDir()+"/"+GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)+"/extras/"+imgSource;
-				Log.d("vortex","IMGURL: "+imgSource);
+				Log.d(TAG,"IMGURL: "+imgSource);
 				new DownloadImageTask()
 						.execute(fullPicURL);
 			} else {
@@ -215,12 +217,12 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		//Generate the context for these objects.
 		objectKeyHash = DB_Context.evaluate(objContextE);
 		//Use current year for statusvar.
-		//Log.d("vortex","Curryear HASH "+currYearH.toString());
+		//Log.d(TAG,"Curryear HASH "+currYearH.toString());
 		if (objectKeyHash==null || !objectKeyHash.isOk()) {
 			Log.e("vortex","keychain  null or faulty: "+objectKeyHash);
 			return;
 		}
-		//Log.d("vortex","OBJ CONTEXTS: "+objectContextS+" OBJ KEYHASH "+objectKeyHash.toString());
+		//Log.d(TAG,"OBJ CONTEXTS: "+objectContextS+" OBJ KEYHASH "+objectKeyHash.toString());
 		Map<String, String> currYearH = Tools.copyKeyHash(objectKeyHash.getContext());
 		//TODO: FIX THIS.
 		currYearH.put("år",Constants.getYear());
@@ -232,13 +234,13 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			return;
 		}
 
-		//Log.d("vortex","In onCreate for AddGisP for ["+nName+"], Obj_type: "+myType+" with keychain: "+objectKeyHash);
+		//Log.d(TAG,"In onCreate for AddGisP for ["+nName+"], Obj_type: "+myType+" with keychain: "+objectKeyHash);
 		//Call to the database to get the objects.
 
 		//Either one or two location variables.
 		//If One, separate X,Y by comma
 		//If two, One for X & one for Y.
-		//Log.d("vortex","Location variables: "+locationVariables);
+		//Log.d(TAG,"Location variables: "+locationVariables);
 		//Try split.
 		String[] locationVarArray = locationVariables.split(",");
 		if (locationVarArray.length>2){
@@ -252,7 +254,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		boolean twoVars = (locationVarArray.length==2);
 		if (twoVars)
 			locationVar2 = locationVarArray[1].trim();
-		//Log.d("vortex","Twovars is "+twoVars+" gisvars are: "+(twoVars?" ["+locationVarArray[0]+","+locationVarArray[1]:locationVarArray[0])+"]");
+		//Log.d(TAG,"Twovars is "+twoVars+" gisvars are: "+(twoVars?" ["+locationVarArray[0]+","+locationVarArray[1]:locationVarArray[0])+"]");
 		if(twoVars && myType.equals(GisObjectType.Multipoint)) {
 			Log.e("vortex","Multivar on multipoint!");
 			
@@ -279,8 +281,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 		}
 
 		coordVar1S = GlobalState.getInstance().getDb().createSelection(objectKeyHash.getContext(), locationVar1);
-		Log.d("vortex","selection: "+coordVar1S.selection);
-		Log.d("vortex","sel args: "+print(coordVar1S.selectionArgs));
+		Log.d(TAG,"selection: "+coordVar1S.selection);
+		Log.d(TAG,"sel args: "+print(coordVar1S.selectionArgs));
 		List<String> completeVariableDefinitionForL1 = al.getCompleteVariableDefinition(locationVar1);
 		List<String> completeVariableDefinitionForL2 = null;
 
@@ -308,8 +310,8 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			DataType t2 = al.getnumType(completeVariableDefinitionForL2);
 			coordVar2S = GlobalState.getInstance().getDb().createSelection(objectKeyHash.getContext(), locationVar2);
 
-			Log.d("vortex","selection: "+coordVar2S.selection);
-			Log.d("vortex","sel args: "+print(coordVar2S.selectionArgs));
+			Log.d(TAG,"selection: "+coordVar2S.selection);
+			Log.d(TAG,"sel args: "+print(coordVar2S.selectionArgs));
 			if (t2==DataType.array)
 				//pickerLocation2 = GlobalState.getInstance().getDb().getAllVariableInstances(coordVar2S);
 				pickerLocation2 = GlobalState.getInstance().getDb().getLastVariableInstance(coordVar2S);
@@ -317,10 +319,10 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				pickerLocation2 = GlobalState.getInstance().getDb().getAllVariableInstances(coordVar2S);
 		}
 		//Static..we can generate a static GIS Point Object.
-		Log.d("vortex","refreshrate is "+refreshRate);
+		Log.d(TAG,"refreshrate is "+refreshRate);
 		dynamic = false;
 		if (refreshRate!=null&&refreshRate.equalsIgnoreCase("dynamic")) {
-			Log.d("vortex","Setting type to dynamic for "+nName);
+			Log.d(TAG,"Setting type to dynamic for "+nName);
 			dynamic = true;
 		}
 		Map<String, String> map1,map2;
@@ -346,7 +348,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 					}
 				} else {
 					if (!hasV1Value && !dynamic) {
-						Log.d("vortex", "No values in database for static GisPObject with name " + nName);
+						Log.d(TAG, "No values in database for static GisPObject with name " + nName);
 						o.addText("No values in database for static GisPObject with name " + nName);
 					} else {
 						Map<String, Pair<String, String>> statusVarM = null;
@@ -356,32 +358,32 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 							while (pickerStatusVars.next()) {
 								String value = pickerStatusVars.getVariable().value;
 								String name = pickerStatusVars.getVariable().name;
-								//Log.d("fenris","STATUSVAR: "+name+" value: "+value+" uuid "+pickerStatusVars.getKeyColumnValues().get("uid"));
+								//Log.d(TAG,"STATUSVAR: "+name+" value: "+value+" uuid "+pickerStatusVars.getKeyColumnValues().get("uid"));
 								//Store status var name & value for per uuid.
 								if (statusVarM == null)
 									statusVarM = new HashMap<String, Pair<String, String>>();
 								Pair<String, String> oldValue = statusVarM.put(pickerStatusVars.getKeyColumnValues().get("uid"), new Pair<>(name, value));
 								if (oldValue != null) {
-									Log.d("fenris","found duplicate for "+name);
+									Log.d(TAG,"found duplicate for "+name);
 									duplicate=true;
 								}
 
 							}
 							pickerStatusVars.close();
 							if (!duplicate) {
-								Log.d("fenris", "no duplicates found");
-								//Log.d("fenris","myvar has value "+statusVarM.get("745EF86F-2F89-4055-BCA2-3436E7E89CC9").second);
+								Log.d(TAG, "no duplicates found");
+								//Log.d(TAG,"myvar has value "+statusVarM.get("745EF86F-2F89-4055-BCA2-3436E7E89CC9").second);
 							}
 						} else
-							Log.d("fenris", "PICKERSTATUSVARS NULL FOR " + statusVariable);
+							Log.d(TAG, "PICKERSTATUSVARS NULL FOR " + statusVariable);
 
 						Pair<String, String> statusVarP = null;
 						do {
 							storedVar1 = pickerLocation1.getVariable();
-							//Log.d("vortex","Found "+storedVar1.value+" for "+storedVar1.name);
+							//Log.d(TAG,"Found "+storedVar1.value+" for "+storedVar1.name);
 							map1 = pickerLocation1.getKeyColumnValues();
-							//Log.d("vortex","Found columns "+map1.toString()+" for "+storedVar1.name);
-							//Log.d("vortex","bitmap null? "+(icon==null));
+							//Log.d(TAG,"Found columns "+map1.toString()+" for "+storedVar1.name);
+							//Log.d(TAG,"bitmap null? "+(icon==null));
 
 							//If status variable has a value in database, use it.
 							if (statusVarM != null)
@@ -400,9 +402,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 							}
 							if (twoVars) {
 								storedVar2 = Objects.requireNonNull(pickerLocation2).getVariable();
-								Log.d("Glapp", "Found " + storedVar2.value + " for " + storedVar2.name);
+								Log.d(TAG, "Found " + storedVar2.value + " for " + storedVar2.name);
 								map2 = pickerLocation1.getKeyColumnValues();
-								Log.d("Glapp", "Found columns " + map2.toString() + " for " + storedVar2.name);
+								Log.d(TAG, "Found columns " + map2.toString() + " for " + storedVar2.name);
 								if (Tools.sameKeys(map1, map2)) {
 									Log.e("Glapp", "key mismatch in db fetch: X key:" + map1.toString() + "\nY key: " + map2.toString());
 								} else {
@@ -430,7 +432,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 										StaticGisPoint gisPoint = new StaticGisPoint(this, map1, new SweLocation(storedVar1.value), statusVarP.first, statusVarP.second);
 										myGisObjects.add(gisPoint);
 											//if (map1.get("trakt").equals("3303"))
-											//Log.d("maga","AddGisP "+gisPoint.hashCode()+" statusvar is 1. "+statusVarP.first+" 2. "+statusVarP.second+"");
+											//Log.d(TAG,"AddGisP "+gisPoint.hashCode()+" statusvar is 1. "+statusVarP.first+" 2. "+statusVarP.second+"");
 									} else {
 										myGisObjects.add(new DynamicGisPoint(this, map1, v1, statusVarP.first, statusVarP.second));
 									}
@@ -438,7 +440,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 									myGisObjects.add(new GisMultiPointObject(this, map1, GisObject.createListOfLocations(storedVar1.value, coordType), statusVarP.first, statusVarP.second));
 
 								else if (myTypeS.equalsIgnoreCase(GisObjectType.Polygon.toString())) {
-									//Log.d("vortex","Adding polygon");
+									//Log.d(TAG,"Adding polygon");
 									myGisObjects.add(new GisPolygonObject(this, map1, storedVar1.value, coordType, statusVarP.first, statusVarP.second));
 								}
 							}
@@ -446,7 +448,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 						} while (pickerLocation1.next());
 						//Store timestamp for refresh calls.
 						lastCheckTimeStamp = thisCheck;
-						Log.d("fenris", "Final Count " + myGisObjects.size() + " objects of type " + this.getName());
+						Log.d(TAG, "Final Count " + myGisObjects.size() + " objects of type " + this.getName());
 					}
 
 				}
@@ -456,7 +458,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 				if (pickerLocation2 != null)
 					pickerLocation2.close();
 			} finally {
-				Log.d("fenris","finally!");
+				Log.d(TAG,"finally!");
 				if (pickerLocation1 != null)
 					pickerLocation1.close();
 				if (pickerLocation2 != null)
@@ -469,9 +471,9 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			//Add bag to layer.
 			GisLayer myLayer = myContext.getCurrentGis().getLayerFromId(target);
 			if (myLayer !=null) {
-				//Log.d("maga","adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
+				//Log.d(TAG,"adding bag "+nName+" to layer "+myLayer.hashCode()+" gis "+myContext.getCurrentGis().hashCode());
 				myLayer.addObjectBag(nName,myGisObjects,dynamic);
-				//Log.d("maga","layer has "+myLayer.getGisBags().keySet());
+				//Log.d(TAG,"layer has "+myLayer.getGisBags().keySet());
 			} else {
 				Log.e("vortex","Could not find layer ["+target+"] for type "+nName);
 				o.addCriticalText("Could not find layer ["+target+"]. This means that type "+nName+" was not added");
@@ -506,7 +508,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			String urldisplay = urls[0];
 			Bitmap mIcon11 = null;
 			try {
-				Log.d("vortex","Trying to load bitmap");
+				Log.d(TAG,"Trying to load bitmap");
 				try (InputStream in = new java.net.URL(urldisplay).openStream()) {
 					mIcon11 = BitmapFactory.decodeStream(in);
 				}

@@ -16,6 +16,8 @@ import java.util.WeakHashMap;
 
 
 public class BlockCreateTableEntriesFromFieldList extends Block {
+	private static final String TAG = "BlockCreateTableEntriesFromFieldList";
+
 
     private String target=null;
     private String selectionField=null;
@@ -54,7 +56,7 @@ public class BlockCreateTableEntriesFromFieldList extends Block {
 				o.addCriticalText("Selectionfield: "+selectionField+" selectionPattern: "+selectionPattern+" returns zero rows! List cannot be created");
 			} else {		
 				cacheMap.put(blockId, rows);
-				Log.d("vortex","Number of rows in CreateEntrieFromList "+rows.size());
+				Log.d(TAG,"Number of rows in CreateEntrieFromList "+rows.size());
 				//prefetch values from db.
 
 				myTable.addRows(rows,variatorColumn,selectionPattern);

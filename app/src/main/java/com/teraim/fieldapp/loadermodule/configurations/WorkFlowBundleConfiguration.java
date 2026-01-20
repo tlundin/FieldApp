@@ -76,6 +76,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
+	private static final String TAG = "WorkFlowBundleConfiguration";
+
 
 	private String myApplication;
 	private final LogRepository o;
@@ -96,7 +98,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	@Override
 	public float getFrozenVersion() {
-		Log.d("abba","getfrozen called on workbundle");
+		Log.d(TAG,"getfrozen called on workbundle");
 		//return -1 if first time loaded during a day.
 		return (ph.getF(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE));
 
@@ -132,8 +134,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String minVersion = parser.getAttributeValue(null, "minVortexVersion");
 		//this determines if the image meta data is in file or xml format.
 		imageMetaFormat = parser.getAttributeValue(null,"img_meta_format");
-		Log.d("franzon","imagemetaformat "+(imageMetaFormat==null?"null":imageMetaFormat));
-		Log.d("franzon","minvortexversion "+(minVersion==null?"null":minVersion));
+		Log.d(TAG,"imagemetaformat "+(imageMetaFormat==null?"null":imageMetaFormat));
+		Log.d(TAG,"minvortexversion "+(minVersion==null?"null":minVersion));
 
 
 
@@ -148,7 +150,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	protected LoadResult parse(XmlPullParser parser) throws XmlPullParserException, IOException {
 		while (parser.next() != XmlPullParser.END_TAG && parser.getEventType() != XmlPullParser.END_DOCUMENT) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
-				Log.d("NILS","Skipping "+parser.getEventType());
+				Log.d(TAG,"Skipping "+parser.getEventType());
 				continue;
 			}
 			String name = parser.getName();
@@ -360,9 +362,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				}
 			}
 		} catch (XmlPullParserException e) {
-			Log.d("vortex","Got parse error when reading "+name+" on line "+e.getLineNumber());
-			Log.d("vortex","Cause: "+e.getCause());
-			Log.d("vortex","Message: "+e.getMessage());
+			Log.d(TAG,"Got parse error when reading "+name+" on line "+e.getLineNumber());
+			Log.d(TAG,"Cause: "+e.getCause());
+			Log.d(TAG,"Message: "+e.getMessage());
 			o.addCriticalText("Got parse error when reading "+name+" on line "+e.getLineNumber());
 			o.addText("Message from parser:");
 			o.addText(e.getMessage());
@@ -409,7 +411,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_define_coupled_variable_group");
-		Log.d("vortex","In block_define_coupled_variable_group");
+		Log.d(TAG,"In block_define_coupled_variable_group");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -450,7 +452,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_go_sub");
-		Log.d("vortex","Parsing block_go_sub!!");
+		Log.d(TAG,"Parsing block_go_sub!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -479,7 +481,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_no_op");
-		Log.d("vortex","In block_no_op");
+		Log.d(TAG,"In block_no_op");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -506,7 +508,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_delete_matching_variables");
-		Log.d("vortex","In block_delete_matching_variables");
+		Log.d(TAG,"In block_delete_matching_variables");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -544,7 +546,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_filter");
-		Log.d("vortex","In block_add_filter!!");
+		Log.d(TAG,"In block_add_filter!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -585,7 +587,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean hasWidget = true;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_filter");
-		Log.d("vortex","In block_add_gis_filter!!");
+		Log.d(TAG,"In block_add_gis_filter!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -649,7 +651,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean isVisible=true,isUser=true,createAllowed=false,use_image_icon_on_map=false;
 
 		//parser.require(XmlPullParser.START_TAG, null,"block_add_gis_point_objects")
-		Log.d("vortex","In block_add_gis_point_objects!!");
+		Log.d(TAG,"In block_add_gis_point_objects!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -720,7 +722,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
-		//Log.d("vortex","In block block_add_gis_layer!!");
+		//Log.d(TAG,"In block block_add_gis_layer!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -757,7 +759,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private Block readBlockAddGoogleGis(XmlPullParser parser) throws IOException,XmlPullParserException {
 		o.addText("Parsing block: block_add_google_gis...");
 		parser.require(XmlPullParser.START_TAG, null,"block_add_google_gis");
-		Log.d("vortex","In block block_add_gis_view!!");
+		Log.d(TAG,"In block block_add_gis_view!!");
 		String name;
 		return null;
 	}
@@ -768,7 +770,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean isVisible=true,hasSatNav=false,showTeam=false;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_image_view");
-		Log.d("vortex","In block block_add_gis_view!!");
+		Log.d(TAG,"In block block_add_gis_view!!");
 		String name;
 
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -798,7 +800,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				hasSatNav = readText("car_navigation_on",parser).equals("true");
 			} else if (name.equals("team")) {
 				showTeam = readText("team",parser).equals("true");
-				Log.d("bortex","showteam is now "+showTeam);
+				Log.d(TAG,"showteam is now "+showTeam);
 			}
 			else {
 				Log.e("vortex","Skipped "+name);
@@ -818,7 +820,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean isVisible=true;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_create_picture");
-		Log.d("vortex","In block create picture!!");
+		Log.d(TAG,"In block create picture!!");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
@@ -1388,7 +1390,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
-		Log.d("mozarella","bck_color set to "+backgroundColor);
+		Log.d(TAG,"bck_color set to "+backgroundColor);
 		return new BlockAddAggregateColumnToTable(id,label, target,expression,aggregationFunction,format,width,backgroundColor, textColor,isDisplayed);
 
 	}
@@ -1763,7 +1765,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private CreateSliderEntryFieldBlock readBlockCreateEntryFieldSlider(XmlPullParser parser)throws IOException, XmlPullParserException {
 		o.addText("Parsing block: block_create_slider_entry_field...");
-		Log.d("benoz","Parsing block: block_create_slider_entry_field...");
+		Log.d(TAG,"Parsing block: block_create_slider_entry_field...");
 		boolean isVisible = true,showHistorical = false,autoOpenSpinner=true;
 		String namn=null,containerId=null,postLabel="",id=null,initialValue=null,label=null,variableName=null,group=null;
 		String textColor = "Black";
@@ -2259,7 +2261,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					workflowName = readSymbol("workflowname", parser);
 					;
 					o.addGreenText("Reading workflow: [" + workflowName + "]");
-					Log.d("NILS", "Reading workflow: " + workflowName);
+					Log.d(TAG, "Reading workflow: " + workflowName);
 
 					break;
 				case "inputvar":
@@ -2525,12 +2527,12 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 //		String glob = Paths.get(frozenPath).getFileName().toString() + "*";
 //
 //		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, glob)) {
-//			Log.d("blaha","TFound "+stream.toString());
+//			Log.d(TAG,"TFound "+stream.toString());
 //			int i=1;
 //			for (Path entry : stream) {
-//				Log.d("blaha","Thawing "+entry.toString());
+//				Log.d(TAG,"Thawing "+entry.toString());
 //				if (i==9)
-//					Log.d("anchir","Found 9 files");
+//					Log.d(TAG,"Found 9 files");
 //				String rawJsonContent = getFileContentAsString(entry.toString());
 //				Workflow wf = Tools.readObjectFromFileAsJson(entry.toString(), Workflow.class);
 //				if (wf != null) {
@@ -2547,7 +2549,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 //			essence = workflows;
 //			return new LoadResult(this, ErrorCode.thawed);
 //		} else {
-//			Log.d("eep","no workflows");
+//			Log.d(TAG,"no workflows");
 //			return new LoadResult(this, ErrorCode.thawFailed);
 //		}
 //
@@ -2559,7 +2561,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 //		for(Workflow wf : bundle) {
 //			i++;
 //			Tools.writeObjectToFileAsJson(wf, frozenPath + i);
-//			Log.d("blah", "Wrote workflow " + frozenPath + i + " to disk " + wf.getName() + " blocks " + wfp(wf.getBlocks()));
+//			Log.d(TAG, "Wrote workflow " + frozenPath + i + " to disk " + wf.getName() + " blocks " + wfp(wf.getBlocks()));
 //		}
 //	}
 //

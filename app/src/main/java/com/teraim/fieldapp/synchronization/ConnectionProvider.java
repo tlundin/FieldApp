@@ -20,6 +20,8 @@ import java.util.List;
 
 
 public abstract class ConnectionProvider {
+	private static final String TAG = "ConnectionProvider";
+
 
 	private final List<ConnectionListener> listeners = new ArrayList<ConnectionListener>();
 	public abstract void write(Object o);
@@ -30,7 +32,7 @@ public abstract class ConnectionProvider {
 	
 	public void unRegisterConnectionListener(ConnectionListener listener) {
 		if(listeners.remove(listener))
-			Log.d("vortex","removed listener in unregister!");
+			Log.d(TAG,"removed listener in unregister!");
 		else
 			Log.e("vortex","failed to remove listener in unregister!");
 	}

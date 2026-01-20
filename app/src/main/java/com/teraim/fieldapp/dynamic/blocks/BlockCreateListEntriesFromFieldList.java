@@ -25,6 +25,8 @@ import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
 public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
+    private static final String TAG = "BlockCreateListEntriesFromFieldList";
+
 
 
     private static final Map <String,List<List<String>>> cacheMap=new HashMap <String,List<List<String>>>();
@@ -105,17 +107,17 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
             public void run() {
                 VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();
                 List<List<String>> rows = cacheMap.get(blockId);
-                Log.d("baza", "selectionField: "+selectionField+" selectionPattern: "+selectionPattern+" rows: " + (rows==null?"null":rows.size()));
+                Log.d(TAG, "selectionField: "+selectionField+" selectionPattern: "+selectionPattern+" rows: " + (rows==null?"null":rows.size()));
 
                 if (rows == null) {
 
                     rows = al.getTable().getRowsContaining(selectionField, selectionPattern);
-                    Log.d("baza", " rows: " + rows.size());
+                    Log.d(TAG, " rows: " + rows.size());
 
                     if (associatedFiltersList!=null) {
                         for (AddFilter f : associatedFiltersList) {
                             rows = getRowsContaining(al, rows, f.getSelectionField(), f.getSelectionPattern());
-                            Log.d("baza", "filtered rows size: " + rows.size());
+                            Log.d(TAG, "filtered rows size: " + rows.size());
                         }
                     }
                     cacheMap.put(blockId, rows);
@@ -128,7 +130,7 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
                     al.getTable().printTable();
                 } else {
                     myList.setRows(rows);
-                    Log.d("baza","try to reuse");
+                    Log.d(TAG,"try to reuse");
 
                 }
                 createVariables(myContext);

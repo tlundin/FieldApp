@@ -14,6 +14,8 @@ import java.util.List;
 
 //Workflow
 public class Workflow implements Serializable {
+	private static final String TAG = "Workflow";
+
 	private static final long serialVersionUID = -8806673639097744372L;
 	private List<Block> blocks;
 	private String name;
@@ -75,7 +77,7 @@ public class Workflow implements Serializable {
 			getMyPageDefineBlock();
 		if (myPDefBl!=null)
 			return myPDefBl.getPageType();
-		Log.d("vortex", "Could not find a PageDefineBlock for workflow " + this.getName());
+		Log.d(TAG, "Could not find a PageDefineBlock for workflow " + this.getName());
 		return null;
 	}
 
@@ -84,7 +86,7 @@ public class Workflow implements Serializable {
 	public PageDefineBlock getMyPageDefineBlock() {
 		if (called)
 			return myPDefBl;
-			Log.d("vortex","In getmypagedefine with "+blocks.size()+" blocks.");
+			Log.d(TAG,"In getmypagedefine with "+blocks.size()+" blocks.");
 			for (Block b : blocks) {
 				if (b instanceof PageDefineBlock) {
 					myPDefBl = (PageDefineBlock) b;

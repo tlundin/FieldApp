@@ -19,6 +19,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventListener,EventGenerator{
+	private static final String TAG = "WF_List_UpdateOnSaveEvent";
+
 
 
 	private final DisplayFieldBlock myEntryFieldFormat;
@@ -51,13 +53,13 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		//if (myRows==null && entryFields==null) {
 		myRows = rows;
 		String namePrefix = al.getFunctionalGroup(rows.get(0));
-		Log.d("baza","prefetch for "+gs.getVariableCache().getContext().getContext()+" , "+ namePrefix);
+		Log.d(TAG,"prefetch for "+gs.getVariableCache().getContext().getContext()+" , "+ namePrefix);
 		varValueMap = gs.getDb().preFetchValuesForAllMatchingKey(gs.getVariableCache().getContext().getContext(), namePrefix);
 
 		for (List<String> row : rows) {
 			addEntryField(row, myEntryFieldFormat);
 		}
-		Log.d("baza","entryFields has "+entryFields.size()+" elements");
+		Log.d(TAG,"entryFields has "+entryFields.size()+" elements");
 
 		//}
 	}
@@ -66,14 +68,14 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		EntryField ef;
 		String entryLabel = al.getEntryLabel(r);
 		if (entryLabel==null||entryLabel.length()==0) {
-			Log.d("nils","Skipping empty entrylabel");
+			Log.d(TAG,"Skipping empty entrylabel");
 			return;
 		}
-		//Log.d("nils","ADD EntryField with label "+entryLabel);
+		//Log.d(TAG,"ADD EntryField with label "+entryLabel);
 		ef = entryFields.get(entryLabel);
 		if (ef==null) 	{
 			cr++;
-			//Log.d("baza",entryLabel);
+			//Log.d(TAG,entryLabel);
 			WF_ClickableField entryF = new WF_ClickableField_Selection(entryLabel,al.getDescription(r),myContext,this.getId()+"_"+index++,true,format);
 			get().add(entryF);
 			ef = new EntryField();
@@ -81,7 +83,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 			ef.cfs = entryF;
 		}
 		ef.varIDs.add(al.getVarName(r));
-		//Log.d("vortex","added "+al.getVarName(r)+" to varIDs");
+		//Log.d(TAG,"added "+al.getVarName(r)+" to varIDs");
 	}
 
 
@@ -89,7 +91,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 	@Override
 	public boolean addVariableToEveryListEntry(String varSuffix,boolean displayOut,String format,boolean isVisible, boolean showHistorical,String initialValue) {
 
-		Log.d("nils","in AddVariableToEveryListEntry for "+varSuffix);
+		Log.d(TAG,"in AddVariableToEveryListEntry for "+varSuffix);
 		EntryField ef;
 		Map<String,EntryField> mapmap = new HashMap<String,EntryField>();
 		boolean success;
@@ -98,9 +100,9 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 
 			success=false;
 
-			//Log.d("vortex","varIDs contain: "+ef.varIDs);
+			//Log.d(TAG,"varIDs contain: "+ef.varIDs);
 			for (String varID:ef.varIDs) {
-				//Log.d("vortex",varID);
+				//Log.d(TAG,varID);
 				if (varID.endsWith(varSuffix)) {
 					mapmap.put(varID,ef);
 					success=true;
@@ -112,7 +114,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 
 			if (!success) {
 				//This variable is either wrong or global.
-				Log.d("nils","DID NOT FIND MATCH for suffix: "+varSuffix);
+				Log.d(TAG,"DID NOT FIND MATCH for suffix: "+varSuffix);
 				Variable v= varCache.getVariable(varSuffix,initialValue,-1);
 				//add global variable
 				if (v!=null)
@@ -173,7 +175,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
     */
 	private void createAsync(final Map<String, EntryField> mapmap,final  boolean displayOut,final  String format,final  boolean isVisible,final boolean showHistorical,final String initialValue) {
 
-		Log.d("beezo", myContext.getContext() + "");
+		Log.d(TAG, myContext.getContext() + "");
 		Variable v;
 		long t = System.currentTimeMillis(), t2 = 0;
 		int i = 0;
@@ -193,7 +195,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 			//Historical value will be set if the variable does not exist already. If it exists, the current value is used, even if it is null.
 			t2 += (System.currentTimeMillis() - t1);
 			if (v != null) {
-				//Log.d("vortex","CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
+				//Log.d(TAG,"CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
 				mapmap.get(vs).cfs.addStaticVariable(v, displayOut, format, isVisible, showHistorical);
 			} else {
 				o.addText("");
@@ -205,7 +207,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		}
 
 		//clear static opt-val variables.
-		Log.d("beezo", "Time: " + (System.currentTimeMillis() - t) + " t2: " + t2);
+		Log.d(TAG, "Time: " + (System.currentTimeMillis() - t) + " t2: " + t2);
 
 	}
 
@@ -239,7 +241,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
                     //Historical value will be set if the variable does not exist already. If it exists, the current value is used, even if it is null.
                     t2 += (System.currentTimeMillis() - t1);
                     if (v != null) {
-                        //Log.d("vortex","CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
+                        //Log.d(TAG,"CreateAsync. Adding variable "+v.getId()+" to "+mapmap.get(vs).cfs.label);
                         mapmap.get(vs).cfs.addVariable(v, displayOut, format, isVisible, showHistorical, true);
                     } else {
                         o.addText("");
@@ -252,7 +254,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
                 }
                 //clear static opt-val variables.
 
-                Log.d("beezo", "Time: " + (System.currentTimeMillis() - t) + " t2: " + t2);
+                Log.d(TAG, "Time: " + (System.currentTimeMillis() - t) + " t2: " + t2);
                // pDialog.dismiss();
                 return null;
             }
@@ -269,7 +271,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		get().add(entryF);
 		EntryField ef = new EntryField();
 		entryFields.put(this.getId()+listEntryID, ef);
-		Log.d("vortex","I am now adding listentry "+this.getId()+listEntryID);
+		Log.d(TAG,"I am now adding listentry "+this.getId()+listEntryID);
 		ef.cfs = entryF;
 	}
 
@@ -306,13 +308,13 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 	@Override
 	public void onEvent(Event e) {
 		if (e.getProvider().equals(this) )
-			Log.d("nils","Throwing event that originated from me");
+			Log.d(TAG,"Throwing event that originated from me");
 		else {
-			Log.d("nils","GOT EVENT!! Provider: "+e.getProvider());
+			Log.d(TAG,"GOT EVENT!! Provider: "+e.getProvider());
 			if (e.getType()==EventType.onSave) {
 				//force complete redraw if incremental fails.
 				if (!prepareIncrementalDraw(((WF_Event_OnSave)e).getListable())) {
-					Log.d("nils","REDRAW!!");
+					Log.d(TAG,"REDRAW!!");
 					resetOnEvent();
 				}
 				draw();

@@ -1,9 +1,9 @@
 package com.teraim.fieldapp.ui;
 
 import android.accounts.Account;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentResolver;
@@ -46,6 +46,7 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.NetworkResponse;
@@ -100,6 +101,8 @@ import org.json.JSONObject;
  *
  */
 public class MenuActivity extends AppCompatActivity implements TrackerListener,LogDialogFragment.LogDialogListener {
+    private static final String TAG = "MenuActivity";
+
 
     public final static String REDRAW = "com.teraim.fieldapp.menu_redraw";
     public static final String INITDONE = "com.teraim.fieldapp.init_done";
@@ -155,7 +158,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     // 2. Implement the required interface methods
     @Override
     public void onBackupDatabaseClicked() {
-        Log.d("CALLBACK", "Activity received backup DB click from dialog.");
+        Log.d(TAG, "Activity received backup DB click from dialog.");
         if (gs != null) {
             BackupManager.getInstance(gs).backupDatabase("dump");
         }
@@ -163,7 +166,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     @Override
     public void onCrashAppClicked() {
-        Log.d("CALLBACK", "Activity received crash app click from dialog.");
+        Log.d(TAG, "Activity received crash app click from dialog.");
         new AlertDialog.Builder(this)
                 .setTitle("Confirm Action")
                 .setMessage("Are you sure? This will crash the application.")
@@ -203,7 +206,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
         logViewModel.getHasNewCriticalEvent().observe(this, hasEvent -> {
             if (hasEvent != null && hasEvent) {
-                //Log.d("MenuActivity","got new critical event");
+                //Log.d(TAG,"got new critical event");
                 invalidateOptionsMenu();
             }
         });
@@ -216,7 +219,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
             @Override
             public void onReceive(Context ctx, Intent intent) {
-                Log.d("nils", "Broadcast: " + intent.getAction());
+                Log.d(TAG, "Broadcast: " + intent.getAction());
 
                 switch (intent.getAction()) {
                     case INITDONE:
@@ -234,7 +237,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             fetchTeamUpdatesRunnable = new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.d("MenuActivity", "Polling for team updates...");
+                                    Log.d(TAG, "Polling for team updates...");
                                     // Trigger the network calls in the ViewModel
                                     teamStatusViewModel.sendAndReceiveTeamPositions();
                                     // Schedule the next execution
@@ -251,7 +254,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                         me.refreshStatusRow();
                         break;
                     case INITFAILED:
-                        Log.d("initf", "got initFailed");
+                        Log.d(TAG, "got initFailed");
                         initFailed = true;
                         me.refreshStatusRow();
                         break;
@@ -271,13 +274,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                         long diff = currentTime - lastRedraw;
                         if (diff < MIN_REDRAW_DELAY) {
                             //delay or discard call.
-                            Log.d("vortex", "Calling redraw");
+                            Log.d(TAG, "Calling redraw");
                             if (handler == null) {
                                 handler = new Handler();
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        Log.d("vortex", "Calling redraw..delayed diff: " + diff);
+                                        Log.d(TAG, "Calling redraw..delayed diff: " + diff);
                                         handler = null;
                                         me.refreshStatusRow();
                                     }
@@ -289,7 +292,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                         lastRedraw = System.currentTimeMillis();
                         if (!Connectivity.isConnected(MenuActivity.this))
                             toggleSyncOnOff(false);
-                        Log.d("kakka", "connected: " + Connectivity.isConnected(MenuActivity.this));
+                        Log.d(TAG, "connected: " + Connectivity.isConnected(MenuActivity.this));
                         syncState = syncOn() ? R.drawable.syncon : R.drawable.syncoff;
                         break;
                 }
@@ -354,7 +357,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     @Override
     public void onDestroy() {
-        Log.d("NILS", "In the onDestroy() event");
+        Log.d(TAG, "In the onDestroy() event");
         latestSignal = null;
        // Unbind from the service
         if (mBound) {
@@ -450,11 +453,11 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             switch (msg.what) {
 
                 case MSG_SYNC_RUN_STARTED:
-                    Log.d("vortex", "MSG -->SYNC STARTED");
+                    Log.d(TAG, "MSG -->SYNC STARTED");
                     menuActivity.syncState = R.drawable.syncactive;
                     break;
                 case MSG_SYNC_RUN_ENDED:
-                    Log.d("vortex", "MSG -->SYNC ENDED");
+                    Log.d(TAG, "MSG -->SYNC ENDED");
                     GlobalState gs = GlobalState.getInstance();
                     if (gs!=null) {
                         gs.getDb().saveTimeStampOfLatestSuccesfulSync(gs.getMyTeam());
@@ -465,7 +468,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 case MSG_SYNC_ERROR_STATE:
                     menuActivity.syncState = R.drawable.syncerr;
                     String toastMsg;
-                    Log.d("sync", "MSG -->SYNC ERROR STATE");
+                    Log.d(TAG, "MSG -->SYNC ERROR STATE");
                     switch (msg.arg1) {
                         case SyncService.ERR_RECEIVE_FAILED:
                             toastMsg = "Sync Server --> Me. No route";
@@ -485,19 +488,19 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                     break;
 
                 case MSG_SYNC_DATA_READY_FOR_INSERT:
-                    Log.d("sync", "MSG -->SYNC_DATA_READY_FOR_INSERT");
+                    Log.d(TAG, "MSG -->SYNC_DATA_READY_FOR_INSERT");
                     if (syncConsumerThread == null || !syncConsumerThread.isAlive()) {
                         syncConsumerThread = new SyncConsumerThread(this);
                         syncConsumerThread.setPriority(Thread.MIN_PRIORITY);
                         syncConsumerThread.start();
                     } else {
 
-                        Log.d("sync","Busy inserting...delaying");
+                        Log.d(TAG,"Busy inserting...delaying");
 
                     }
                     break;
 
-                //   Log.d("sync", "MSG -->SYNC_DATA_CONSUMED");
+                //   Log.d(TAG, "MSG -->SYNC_DATA_CONSUMED");
                 //   syncConsumerThread = null;
                 //   break;
             }
@@ -626,7 +629,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     Handler GPShandler=null;
     private void monitorGPS(boolean on) {
-        //Log.d("gps","MONITOR CALLED "+on);
+        //Log.d(TAG,"MONITOR CALLED "+on);
         if (on && GPShandler == null) {
             GPShandler = new Handler();
             Runnable runnable = new Runnable(){
@@ -649,7 +652,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     }
 
     private void refreshSyncDisplay() {
-        //Log.d("Egon","In refresh syncdisplay");
+        //Log.d(TAG,"In refresh syncdisplay");
         int numOfUnsynchedEntries = gs.getDb().getNumberOfUnsyncedEntries();
         long numOfInsertSyncEntries = gs.getDb().getSyncRowsLeft();
         //List of people in team with data on server
@@ -798,8 +801,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
                 break;
             case MENU_ITEM_CONTEXT:
-                Log.d("vortex", "gs is " + GlobalState.getInstance() + " gs " + gs);
-                //Log.d("vortex","in click for context: gs "+(gs==null)+" varc "+(gs.getVariableCache()==null));
+                Log.d(TAG, "gs is " + GlobalState.getInstance() + " gs " + gs);
+                //Log.d(TAG,"in click for context: gs "+(gs==null)+" varc "+(gs.getVariableCache()==null));
                 if (gs != null && gs.getVariableCache() != null) {
                     //Object moo=null;
                     //moo.equals("moo");
@@ -844,7 +847,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     private void displaySyncDialog() {
         if (mPopupWindow.isShowing()) {
-            Log.d("pop", "already showing...return");
+            Log.d(TAG, "already showing...return");
             return;
         }
         mPopupWindow.showAtLocation(findViewById(R.id.content_frame), Gravity.CENTER, 0, 0);
@@ -941,7 +944,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             });
         } else {
             if (syncMethod.equals("Internet")) {
-                Log.d("vortex", "in togglesync internet");
+                Log.d(TAG, "in togglesync internet");
 
                 if (on) {
 
@@ -981,11 +984,11 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                                 e.printStackTrace();
                             }
                             ContentResolver.setSyncAutomatically(mAccount, Start.AUTHORITY, true);
-                            Log.d("vortex", "sync service is running...sending msg");
+                            Log.d(TAG, "sync service is running...sending msg");
 
 
                         } else {
-                            Log.d("vortex", "Synk server is not running");
+                            Log.d(TAG, "Synk server is not running");
                             LogRepository.getInstance().addCriticalText("Sync service is not up...");
                         }
                     }
@@ -1020,13 +1023,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 Start.AUTHORITY,
                 Bundle.EMPTY,
                 Start.SYNC_INTERVAL);
-        Log.d("vortex", "added periodic sync");
+        Log.d(TAG, "added periodic sync");
 
     }
 
 
     private void onCloseSync() {
-        Log.d("vortex", "IN on close SYNC!!");
+        Log.d(TAG, "IN on close SYNC!!");
         refreshStatusRow();
         DataSyncSessionManager.stop();
     }
@@ -1044,7 +1047,8 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         static final int LOCK = 1, UNLOCK = 2, ALERT = 3, UPDATE_SUB = 4, CONFIRM = 5, UPDATE = 6, PROGRESS = 7, SHOW_PROGRESS = 8, CLOSE_PROGRESS = 9;
         private String row1 = "", row2 = "";
         private AlertDialog uiBlockerWindow = null;
-        private ProgressDialog progress;
+        private AlertDialog progressDialog;
+        private ProgressBar progressBar;
         private final Context mContext;
 
         UIProvider(Context context) {
@@ -1055,19 +1059,40 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             boolean twoButton = false;
 
             private void showProgress(int max) {
-                progress = new ProgressDialog(mContext);
-                progress.setIndeterminate(false);
-                progress.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                progress.setMax(max);
-                progress.setTitle("Inserting");
-                progress.show();
+                if (mContext instanceof Activity) {
+                    Activity activity = (Activity) mContext;
+                    if (activity.isFinishing() || activity.isDestroyed()) {
+                        return;
+                    }
+                }
+                progressBar = new ProgressBar(mContext, null, android.R.attr.progressBarStyleHorizontal);
+                progressBar.setIndeterminate(false);
+                progressBar.setMax(max);
+                progressBar.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+
+                TextView title = new TextView(mContext);
+                title.setText("Inserting");
+                int padding = (int) (16 * mContext.getResources().getDisplayMetrics().density);
+                title.setPadding(0, 0, 0, padding / 2);
+
+                LinearLayout layout = new LinearLayout(mContext);
+                layout.setOrientation(LinearLayout.VERTICAL);
+                layout.setPadding(padding, padding, padding, padding);
+                layout.addView(title);
+                layout.addView(progressBar);
+
+                progressDialog = new AlertDialog.Builder(mContext)
+                        .setView(layout)
+                        .setCancelable(false)
+                        .create();
+                progressDialog.show();
 
             }
 
             private void progress(int curr) {
-                if (progress != null) {
-                    Log.d("vortex", "progress: " + curr);
-                    progress.setProgress(curr);
+                if (progressBar != null) {
+                    Log.d(TAG, "progress: " + curr);
+                    progressBar.setProgress(curr);
                 }
             }
 
@@ -1102,8 +1127,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
             private void dismiss() {
-                if (uiBlockerWindow != null)
+                if (uiBlockerWindow == null) {
+                    return;
+                }
+                if (uiBlockerWindow.isShowing()) {
                     uiBlockerWindow.dismiss();
+                }
+                uiBlockerWindow = null;
             }
 
             @Override
@@ -1117,34 +1147,45 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                         progress(msg.arg1);
                         break;
                     case CLOSE_PROGRESS:
-                        if (progress != null) {
-                            progress.dismiss();
-                            progress = null;
+                        if (progressDialog != null) {
+                            if (progressDialog.isShowing()) {
+                                progressDialog.dismiss();
+                            }
+                            progressDialog = null;
+                            progressBar = null;
                         }
                         break;
                     case LOCK:
                         oneButton();
-                        Log.d("vortex", "One button Lock interface");
+                        Log.d(TAG, "One button Lock interface");
                         break;
 
                     case UNLOCK:
-                        uiBlockerWindow.cancel();
+                        if (uiBlockerWindow != null) {
+                            uiBlockerWindow.cancel();
+                        }
                         break;
                     case ALERT:
                         if (twoButton)
                             oneButton();
                         row1 = (String) msg.obj;
                         row2 = "";
-                        uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        if (uiBlockerWindow != null) {
+                            uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        }
 
                         break;
                     case UPDATE:
                         row1 = (String) msg.obj;
-                        uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        if (uiBlockerWindow != null) {
+                            uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        }
                         break;
                     case UPDATE_SUB:
                         row2 = (String) msg.obj;
-                        uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        if (uiBlockerWindow != null) {
+                            uiBlockerWindow.setMessage(row1 + "\n" + row2);
+                        }
                         break;
 
                     case CONFIRM:
@@ -1163,7 +1204,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
         public void startProgress(int totalRows) {
-            if (progress == null) {
+            if (progressDialog == null) {
                 Message msg = mHandler.obtainMessage(SHOW_PROGRESS);
                 msg.arg1 = totalRows;
                 msg.sendToTarget();
@@ -1182,13 +1223,13 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         }
 
         public void lock() {
-            Log.d("vortex", "Lock called");
+            Log.d(TAG, "Lock called");
             mHandler.obtainMessage(LOCK).sendToTarget();
 
         }
 
         public void unlock() {
-            Log.d("vortex", "UnLock called");
+            Log.d(TAG, "UnLock called");
             mHandler.obtainMessage(UNLOCK).sendToTarget();
 
         }
@@ -1243,7 +1284,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     private boolean syncOn() {
         boolean syncOn = ContentResolver.getSyncAutomatically(mAccount, Start.AUTHORITY);
-        //Log.d("sync","in syncOn. Syncon is "+syncOn);
+        //Log.d(TAG,"in syncOn. Syncon is "+syncOn);
         return syncOn;
     }
 
@@ -1261,7 +1302,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             timeAcc = Math.round((System.currentTimeMillis() - previousSignal.time) / 1000);
 
         if (timeAcc >= 5) {
-            Log.d("GPS", "time acc: " + timeAcc);
+            Log.d(TAG, "time acc: " + timeAcc);
             return GPSQuality.old;
         }
         if (latestSignal.accuracy <= 6)
@@ -1275,7 +1316,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     private void startTeamUpdatesPolling(int locationUpdateInterval) {
         if (!isPollingActive) {
-            Log.d("MenuActivity", "Starting team updates polling with " + locationUpdateInterval + "s intervals.");
+            Log.d(TAG, "Starting team updates polling with " + locationUpdateInterval + "s intervals.");
             teamHandler.post(fetchTeamUpdatesRunnable); // Post immediately
             isPollingActive = true;
         }
@@ -1283,7 +1324,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
     private void stopTeamUpdatesPolling() {
         if (isPollingActive) {
-            Log.d("MenuActivity", "Stopping team updates polling.");
+            Log.d(TAG, "Stopping team updates polling.");
             teamHandler.removeCallbacks(fetchTeamUpdatesRunnable); // Remove any pending callbacks
             isPollingActive = false;
         }
@@ -1291,7 +1332,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private boolean callInProgress = false;
 
     private void getTeamSyncStatusFromServer() {
-        Log.d("fenris", "update team sync state called");
+        Log.d(TAG, "update team sync state called");
         //block multiple calls.
         if (!callInProgress && gs !=null) {
             callInProgress = true;
@@ -1300,7 +1341,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             String useruuid = globalPh.get(PersistenceHelper.USERUUID_KEY);
             long timestamp = gs.getDb().getReceiveTimestamp(team);
 
-            Log.d("fenris", "TIMESTAMP_LAST_SYNC_FROM_TEAM_TO_ME: " + timestamp);
+            Log.d(TAG, "TIMESTAMP_LAST_SYNC_FROM_TEAM_TO_ME: " + timestamp);
             if (Connectivity.isConnected(this)) {
                 //connected...lets call the sync server.
                 final String SyncServerStatusCall = Constants.SynkStatusURI;
@@ -1313,7 +1354,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             @Override
                             public void onResponse(String response) {
                                 // Display the first 500 characters of the response string.
-                                //Log.d("fenris", "Response is: " + response);
+                                //Log.d(TAG, "Response is: " + response);
                                 /*
                                 syncGroup = new SyncGroup(response);
 
@@ -1333,7 +1374,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("fenris", "Got an error when attempting to contact the sync server: " + error.getMessage());
+                        Log.d(TAG, "Got an error when attempting to contact the sync server: " + error.getMessage());
                         callInProgress = false;
                     }
                 });
@@ -1341,12 +1382,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
                 requestQueue.add(stringRequest);
             } else {
-                Log.d("fenris", "no connection");
+                Log.d(TAG, "no connection");
                 syncState=R.drawable.syncerr;
                 callInProgress = false;
             }
         } else
-            Log.d("fenris", "blocked call to getteamstatus");
+            Log.d(TAG, "blocked call to getteamstatus");
     }
 
 
@@ -1375,12 +1416,12 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                     jr.beginObject();
                     while (!jr.peek().equals(JsonToken.END_OBJECT)) {
                         String name = jr.nextName();
-                        Log.d("vortex", name);
+                        Log.d(TAG, name);
                         jr.beginArray();
                         String user = jr.nextString();
                         int unsynced = jr.nextInt();
                         Long date = jr.nextLong();
-                        Log.d("vortex", "user:" + user + " unsynced: " + unsynced + " time: " + date);
+                        Log.d(TAG, "user:" + user + " unsynced: " + unsynced + " time: " + date);
                         jr.endArray();
                         //name, number of unsynced entries, datetime last seen on sync server.
                         addEntry(new TeamMember(user, unsynced, date));

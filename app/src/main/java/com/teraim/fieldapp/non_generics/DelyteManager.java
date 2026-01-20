@@ -27,6 +27,8 @@ import java.util.TreeSet;
 
 
 public class DelyteManager {
+	private static final String TAG = "DelyteManager";
+
 
 	private static DelyteManager instance;
 	private boolean hasUnsaved = false;
@@ -69,7 +71,7 @@ public class DelyteManager {
 			//always positive values please;
 			if (rikt<0)
 				rikt +=360;
-			//Log.d("vortex","Avstånd: "+avst+" Rikt: "+rikt+" from X "+this.x+"Y "+this.y);
+			//Log.d(TAG,"Avstånd: "+avst+" Rikt: "+rikt+" from X "+this.x+"Y "+this.y);
 		}
 
 		public int getAvst() {
@@ -130,14 +132,14 @@ public class DelyteManager {
 			if ((d.getSmaProv())!=0) {
 				hasSmaS.add(d);
 				chkSum+=d.getSmaProv();
-				Log.d("nils","Checksum added "+d.getSmaProv()+" for delyta "+d.getId());
+				Log.d(TAG,"Checksum added "+d.getSmaProv()+" for delyta "+d.getId());
 			} else 
-				Log.d("nils","Delyta "+d.getId()+" did not have a småyta");
+				Log.d(TAG,"Delyta "+d.getId()+" did not have a småyta");
 		int allSum=0;
 		for (int i=0;i<b.length;i++)
 			allSum+=b[i];
 		if (chkSum!=allSum) {
-			Log.d("nils","UPS! CHECKSUM: "+chkSum+" ALLSUM: "+allSum);
+			Log.d(TAG,"UPS! CHECKSUM: "+chkSum+" ALLSUM: "+allSum);
 			return false;
 		}
 		//erase existing.
@@ -146,7 +148,7 @@ public class DelyteManager {
 		for (Delyta d:hasSmaS) {
 			for (int i=0;i<b.length;i++) 
 				if ((b[i]&d.getSmaProv())!=0) {
-					Log.d("nils","adding Delyta ID "+d.getId()+" to småprovyta "+(i+1));
+					Log.d(TAG,"adding Delyta ID "+d.getId()+" to småprovyta "+(i+1));
 					key = al.createProvytaKeyMap();
 					key.put("smaprovyta", (i+1)+"");
 					Variable tmp = varCache.getVariable(key, NamedVariables.BeraknadInomDelyta);
@@ -191,20 +193,20 @@ public class DelyteManager {
 				int dist;
 				int arcMid,nyR;
 				dist = Delyta.rDist(arc.start.rikt,arc.end.rikt);
-				Log.d("nils","Delyta: "+d.getId());
-				Log.d("nils","Start: "+arc.start.rikt+" End: "+arc.end.rikt+ "Dist: "+dist);
+				Log.d(TAG,"Delyta: "+d.getId());
+				Log.d(TAG,"Start: "+arc.start.rikt+" End: "+arc.end.rikt+ "Dist: "+dist);
 				arcMid =  (dist/2);
-				Log.d("nils"," Medeldistans "+arcMid);
+				Log.d(TAG," Medeldistans "+arcMid);
 				nyR = (int)(arc.start.rikt+arcMid);
-				Log.d("nils"," nyR "+nyR);
+				Log.d(TAG," nyR "+nyR);
 				if (nyR>360)
 					nyR=nyR-360;
 				if (arc.start.rikt>arc.end.rikt) 
-					Log.d("nils","Start more: "+nyR);
+					Log.d(TAG,"Start more: "+nyR);
 				else
-					Log.d("nils","Start less: "+nyR);
+					Log.d(TAG,"Start less: "+nyR);
 
-				Log.d("nils","DIST: "+dist);
+				Log.d(TAG,"DIST: "+dist);
 				Coord m;
 				m = new Coord(85,nyR);
 
@@ -212,7 +214,7 @@ public class DelyteManager {
 			} else {
 				Log.e("nils","NO ARC FOUND!");
 				for (Segment s:cTag)
-					Log.d("nils","Start: "+s.start.rikt+" End: "+s.end.rikt);
+					Log.d(TAG,"Start: "+s.start.rikt+" End: "+s.end.rikt);
 			}
 			/*} else if (arcs.size()==2) {
 
@@ -256,7 +258,7 @@ public class DelyteManager {
 
 	private boolean assignDelyteId() {
 		if (myDelytor.size()==1) {
-			Log.d("nils","Only one delyta...already has id. Exit asignDelyteId");
+			Log.d(TAG,"Only one delyta...already has id. Exit asignDelyteId");
 			return true;
 		}
 
@@ -269,32 +271,32 @@ public class DelyteManager {
 				return ((lhs.mySouth==rhs.mySouth?lhs.myWest-rhs.myWest:lhs.mySouth-rhs.mySouth)<0?-1:1);
 				/*
 				if (cmp == 0) {
-					Log.d("nils","COMP RET 0 for ls "+lhs.mySouth+" rs "+rhs.mySouth+" lw "+lhs.myWest+" rw "+rhs.myWest);
+					Log.d(TAG,"COMP RET 0 for ls "+lhs.mySouth+" rs "+rhs.mySouth+" lw "+lhs.myWest+" rw "+rhs.myWest);
 				}
 				return cmp;
 				 */
 			}});
 
-		Log.d("nils","IN SORTOS");
+		Log.d(TAG,"IN SORTOS");
 		printDelytor();
 		s.addAll(myDelytor);
 
 
-		Log.d("nils","Mydelytor has "+myDelytor.size()+" delytor");
-		Log.d("nils","Sorted ytor according to south/west has "+s.size()+" delytor");
+		Log.d(TAG,"Mydelytor has "+myDelytor.size()+" delytor");
+		Log.d(TAG,"Sorted ytor according to south/west has "+s.size()+" delytor");
 		if (myDelytor.size()!=s.size()) {
 			return false;
 		}
 		for (Delyta d:s) {
 			d.setId(delyteIdC);
 			if (d.isBackground()) {
-				Log.d("nils","found background piece...");
+				Log.d(TAG,"found background piece...");
 				if (backId!=-1)
 					d.setId(backId);
 				else
 					backId = delyteIdC;
 			}
-			Log.d("nils",
+			Log.d(TAG,
 					"Assigned ID "+d.getId()+" to delyta with first segment S:"+d.getSegments().get(0).start.rikt+" E:"+d.getSegments().get(0).end.rikt+" isArc: "+d.getSegments().get(0).isArc);
 
 			delyteIdC++;
@@ -318,19 +320,19 @@ public class DelyteManager {
 				if (!s.isArc)
 					continue;
 				else {
-					Log.d("nils","Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
+					Log.d(TAG,"Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
 					sortedArcs.add(s);
 				}
 			}
 		if (sortedArcs.isEmpty()) {
-			Log.d("nils","NO FREE ARC!");
+			Log.d(TAG,"NO FREE ARC!");
 		} else {
 			/*			//A free arc is an arc that stretches between the end of an existing arc, and the beginning of the next.
 			Segment x = sortedArcs.last();
-			Log.d("nils","number of arcs: "+sortedArcs.size());
+			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
 				freeArcs.add(new Segment(x.end,s.start,true));
-				Log.d("nils","Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+				Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
 				x=s;
 			}
 		}
@@ -340,18 +342,18 @@ public class DelyteManager {
 
 			Segment x = sortedArcs.last();
 
-			Log.d("nils","number of arcs: "+sortedArcs.size());
+			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
-				Log.d("nils","checking arc: "+x.end.rikt+","+s.start.rikt);
+				Log.d(TAG,"checking arc: "+x.end.rikt+","+s.start.rikt);
 				if (Delyta.rDist(x.end.rikt, s.start.rikt)<1) {
-					Log.d("nils","skipping "+x.end.rikt+","+s.start.rikt);
+					Log.d(TAG,"skipping "+x.end.rikt+","+s.start.rikt);
 
 				} else {
 					Segment potential = new Segment(x.end,s.start,true);
 					//check that this arc is not already covered.
 					if (!hasSegment(sortedArcs, potential)) {
 						freeArcs.add(new Segment(x.end,s.start,true));
-						Log.d("nils","Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+						Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
 					}
 				}
 				x=s;
@@ -365,12 +367,12 @@ public class DelyteManager {
 					continue;
 				else {//Add reverse of all sides.
 					freeArcs.add(new Segment(s.end,s.start,false));
-					Log.d("vortex","added side piece S:"+s.end.rikt+" E:"+s.start.rikt);
+					Log.d(TAG,"added side piece S:"+s.end.rikt+" E:"+s.start.rikt);
 				}
 			}
 		}
 
-		Log.d("vortex","Frearcs has "+freeArcs.size()+" elements");
+		Log.d(TAG,"Frearcs has "+freeArcs.size()+" elements");
 
 		Set<List<Segment>> bgPollies= new HashSet<List<Segment>>();
 
@@ -378,7 +380,7 @@ public class DelyteManager {
 		//loop needs at least 3 pieces & one arc.
 
 		while (findPoly(new ArrayList<Segment>(),freeArcs)) {
-			Log.d("Vortex","background poly:");
+			Log.d(TAG,"background poly:");
 			for(Segment s:answer) {
 				printSegment(s);
 				if (!freeArcs.remove(s))
@@ -397,7 +399,7 @@ public class DelyteManager {
 			}
 		}
 
-		Log.d("nils","myDelytor now contains "+myDelytor.size()+" delytor.");
+		Log.d(TAG,"myDelytor now contains "+myDelytor.size()+" delytor.");
 		printDelytor();
 
 
@@ -406,13 +408,13 @@ public class DelyteManager {
 	//Finds a closed polygon built from the segments in freeArcs. If not, returns false
 	private boolean findPoly(List<Segment> bgPoly, List<Segment> freeArcs) {
 
-		Log.d("vortex","freearcsize: "+freeArcs.size());
-		Log.d("vortex","bgpoly size: "+bgPoly.size());
+		Log.d(TAG,"freearcsize: "+freeArcs.size());
+		Log.d(TAG,"bgpoly size: "+bgPoly.size());
 
 		int polySize = bgPoly.size();
 		if (polySize == 0) {
 			if (freeArcs.isEmpty()) {
-				Log.d("vortex","freearcs empty and polysize 0, fail!");
+				Log.d(TAG,"freearcs empty and polysize 0, fail!");
 				return false;
 			}
 			bgPoly.add(freeArcs.remove(0));
@@ -423,10 +425,10 @@ public class DelyteManager {
 		//If first and last touches, and there is more than one segment, this is a poly!
 		if (polySize>1&&isConnected(bgPoly.get(0),bgPoly.get(polySize-1))) {
 			if (bgPoly.get(0).isArc || bgPoly.get(polySize-1).isArc) {
-				Log.d("vortex","found touch between "+printSegment(bgPoly.get(polySize-1))+" and "+ printSegment(bgPoly.get(0)));
+				Log.d(TAG,"found touch between "+printSegment(bgPoly.get(polySize-1))+" and "+ printSegment(bgPoly.get(0)));
 				answer = new ArrayList<Segment>();
 				answer.addAll(bgPoly);
-				Log.d("vortex","ansewr has "+answer.size()+" elements!");
+				Log.d(TAG,"ansewr has "+answer.size()+" elements!");
 				return true;
 			} else {
 				Log.e("vortex","a loop between two sides...not allowed");
@@ -439,7 +441,7 @@ public class DelyteManager {
 		while (it.hasNext()) {
 			Segment currentP = it.next();
 			if (isTouching(lastP,currentP)) {
-				Log.d("vortex","YES!");
+				Log.d(TAG,"YES!");
 				List<Segment> altPoly = new ArrayList<Segment>(bgPoly);
 				altPoly.add(currentP);
 				List<Segment> altFreeArcs = new ArrayList<Segment>(freeArcs);
@@ -449,11 +451,11 @@ public class DelyteManager {
 				if (findPoly(altPoly,altFreeArcs))
 					return true;
 				else {
-					Log.d("vortex","fail..."+printSegment(currentP)+" trying next..");
+					Log.d(TAG,"fail..."+printSegment(currentP)+" trying next..");
 				}
 			}
 		}
-		Log.d("vortex","no touch found...removing segment "+printSegment(lastP));
+		Log.d(TAG,"no touch found...removing segment "+printSegment(lastP));
 		bgPoly.remove(lastP);
 		return findPoly(bgPoly,freeArcs);
 
@@ -485,7 +487,7 @@ public class DelyteManager {
 	}
 
 	private boolean isTouching(Segment a, Segment b) {
-		Log.d("vortex","isTouching "+printSegment(a)+" and "+printSegment(b)+" ?");
+		Log.d(TAG,"isTouching "+printSegment(a)+" and "+printSegment(b)+" ?");
 		if (a.isArc&&b.isArc) {
 			Log.e("vortex","Touch between arcs, not allowed");
 			return false;
@@ -513,19 +515,19 @@ public class DelyteManager {
 				if (!s.isArc)
 					continue;
 				else {
-					Log.d("nils","Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
+					Log.d(TAG,"Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
 					sortedArcs.add(s);
 				}
 			}
 		if (sortedArcs.isEmpty()) {
-			Log.d("nils","NO FREE ARC!");
+			Log.d(TAG,"NO FREE ARC!");
 		} else {
 			/*			//A free arc is an arc that stretches between the end of an existing arc, and the beginning of the next.
 			Segment x = sortedArcs.last();
-			Log.d("nils","number of arcs: "+sortedArcs.size());
+			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
 				freeArcs.add(new Segment(x.end,s.start,true));
-				Log.d("nils","Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+				Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
 				x=s;
 			}
 		}
@@ -535,11 +537,11 @@ public class DelyteManager {
 
 			Segment x = sortedArcs.last();
 
-			Log.d("nils","number of arcs: "+sortedArcs.size());
+			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
-				Log.d("nils","checking arc: "+x.end.rikt+","+s.start.rikt);
+				Log.d(TAG,"checking arc: "+x.end.rikt+","+s.start.rikt);
 				if (Delyta.rDist(x.end.rikt, s.start.rikt)<1) {
-					Log.d("nils","skipping "+x.end.rikt+","+s.start.rikt);
+					Log.d(TAG,"skipping "+x.end.rikt+","+s.start.rikt);
 					x=s;
 					continue;
 				}
@@ -547,7 +549,7 @@ public class DelyteManager {
 				//check that this arc is not already covered.
 				if (!hasSegment(sortedArcs, potential)) {
 					freeArcs.add(new Segment(x.end,s.start,true));
-					Log.d("nils","Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+					Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
 				}
 				x=s;
 			}
@@ -563,7 +565,7 @@ public class DelyteManager {
 					freeArcs.add(new Segment(s.end,s.start,false));
 			}
 		}
-		Log.d("vortex","Freacrs has "+freeArcs.size()+" elements");
+		Log.d(TAG,"Freacrs has "+freeArcs.size()+" elements");
 		//starting piece should not be an arc. Use first other. If no other, there are no free pieces.
 		Set<List<Segment>> bgPollies= new HashSet<List<Segment>>();
 		int previousSize=0;
@@ -579,7 +581,7 @@ public class DelyteManager {
 			while (freeArcs.size() > 0 && found) {
 				found = false;
 				for (Segment n:freeArcs) {
-					Log.d("nils","Comparing segment (("+c.start.rikt+","+c.start.avst+"),("+c.end.rikt+","+c.end.avst+")) to (("+n.start.rikt+","+n.start.avst+"),("+n.end.rikt+","+n.end.avst+"))");	
+					Log.d(TAG,"Comparing segment (("+c.start.rikt+","+c.start.avst+"),("+c.end.rikt+","+c.end.avst+")) to (("+n.start.rikt+","+n.start.avst+"),("+n.end.rikt+","+n.end.avst+"))");	
 					if (n.start.rikt==c.end.rikt && n.start.avst == c.end.avst) {
 						bgPoly.add(n);
 						freeArcs.remove(c);
@@ -591,9 +593,9 @@ public class DelyteManager {
 				}
 
 			}
-			Log.d("nils","bgpoly found of size "+bgPoly.size());
+			Log.d(TAG,"bgpoly found of size "+bgPoly.size());
 			for(Segment s:bgPoly) 
-				Log.d("nils","start: "+s.start.rikt+"end: "+s.end.rikt+" isarc: "+s.isArc);
+				Log.d(TAG,"start: "+s.start.rikt+"end: "+s.end.rikt+" isarc: "+s.isArc);
 			bgPollies.add(bgPoly);
 		}
 		/*
@@ -606,10 +608,10 @@ public class DelyteManager {
 			}
 		}
 
-		Log.d("nils","Free arcs: ");
+		Log.d(TAG,"Free arcs: ");
 
 		for(Segment s:freeArcs) {
-			Log.d("nils","S: "+s.start.rikt+" E:"+s.end.rikt);
+			Log.d(TAG,"S: "+s.start.rikt+" E:"+s.end.rikt);
 			bgPoly = new ArrayList<Segment>();
 			//Add the free arc but reversed! 
 			bgPoly.add(new Segment(s.start,s.end,true));
@@ -622,11 +624,11 @@ public class DelyteManager {
 			while (notDone) {
 				//Find corresponding "real" Segment.
 				boolean noLuck = true;
-				Log.d("nils","noArcs has "+noArcs.size()+" elements");
+				Log.d(TAG,"noArcs has "+noArcs.size()+" elements");
 				for (Segment se:noArcs) {
-					Log.d("nils","Comparing current: "+currentCoord.rikt+" with "+se.end.rikt);
+					Log.d(TAG,"Comparing current: "+currentCoord.rikt+" with "+se.end.rikt);
 					if (currentCoord.rikt == se.end.rikt) {
-						Log.d("nils","Found END MATCH!");
+						Log.d(TAG,"Found END MATCH!");
 						//Add the reversed segment.
 						bgPoly.add(new Segment(se.end,se.start,se.isArc));
 
@@ -634,17 +636,17 @@ public class DelyteManager {
 							Log.e("nils","In DelyteManager,calcRemYta..segment seems to be arc...should not happen");
 							Toast.makeText(gs.getContext(), "Tåget är feldefinierat. Kontrollera punkterna", Toast.LENGTH_LONG).show();;
 						}
-						Log.d("nils","SE SEGMENT has start rikt: "+se.start.rikt+" and end rikt: "+se.end.rikt);
+						Log.d(TAG,"SE SEGMENT has start rikt: "+se.start.rikt+" and end rikt: "+se.end.rikt);
 						currentCoord = se.start;
 						if (currentCoord.rikt==end.rikt) {
-							Log.d("nils","Done, found end.");
-							Log.d("nils","CurrentCoord.rikt: "+currentCoord.rikt+" DOES match end.rikt: "+end.rikt);
+							Log.d(TAG,"Done, found end.");
+							Log.d(TAG,"CurrentCoord.rikt: "+currentCoord.rikt+" DOES match end.rikt: "+end.rikt);
 							missingPieces.add(bgPoly);
 							notDone = false;
 							noLuck = false;
 							break;
 						} else {	
-							Log.d("nils","CurrentCoord.rikt: "+currentCoord.rikt+" does not match end.rikt: "+end.rikt);
+							Log.d(TAG,"CurrentCoord.rikt: "+currentCoord.rikt+" does not match end.rikt: "+end.rikt);
 							noLuck=(emergencyC--<0);						
 
 						}
@@ -663,7 +665,7 @@ public class DelyteManager {
 		}
 
 		//Here we should have all missing polygons.
-		Log.d("nils","found "+missingPieces.size()+" polygons");
+		Log.d(TAG,"found "+missingPieces.size()+" polygons");
 		//Build delytor.
 
 		for (List<Segment> ls:missingPieces) {
@@ -682,7 +684,7 @@ public class DelyteManager {
 			}
 		}
 
-		Log.d("nils","myDelytor now contains "+myDelytor.size()+" delytor.");
+		Log.d(TAG,"myDelytor now contains "+myDelytor.size()+" delytor.");
 		printDelytor();
 
 
@@ -704,9 +706,9 @@ public class DelyteManager {
 
 	private void printDelytor() {
 		for (Delyta d:myDelytor) {
-			Log.d("nils","DELYTA ID: "+d.getId()+" isbg: "+d.isBackground()+" WEST: "+d.myWest+" SOUTH: "+d.mySouth);
+			Log.d(TAG,"DELYTA ID: "+d.getId()+" isbg: "+d.isBackground()+" WEST: "+d.myWest+" SOUTH: "+d.mySouth);
 			for(Segment s:d.getSegments()) {
-				Log.d("nils","S: "+s.start.rikt+" E:"+s.end.rikt+" isArc: "+s.isArc);
+				Log.d(TAG,"S: "+s.start.rikt+" E:"+s.end.rikt+" isArc: "+s.isArc);
 			}
 		}
 	}
@@ -718,7 +720,7 @@ public class DelyteManager {
 		al = gs.getVariableConfiguration();
 		varCache = gs.getVariableCache();
 		init();
-		Log.d("vortex","dymtime: "+(System.currentTimeMillis()-t0));
+		Log.d(TAG,"dymtime: "+(System.currentTimeMillis()-t0));
 	}
 
 	public static DelyteManager getInstance() {
@@ -753,20 +755,20 @@ public class DelyteManager {
 		for (int delyteID=1;delyteID<=MAX_DELYTEID;delyteID++) {
 			baseKey.put("delyta", delyteID+"");
 			v = varCache.getVariable(baseKey,NamedVariables.DELNINGSTAG);
-			Log.d("nils","Found tåg under delyteID "+delyteID+" :"+v.getValue());
+			Log.d(TAG,"Found tåg under delyteID "+delyteID+" :"+v.getValue());
 			if (v.getValue()!=null&&v.getValue().length()>0)
 				rawTags.add(v.getValue());			
 		}
 
 		if (rawTags.size()==0 && !isNyUtlagg()) {
 			hasUnsaved = true;
-			Log.d("nils","No current values for tag. Trying historical");
+			Log.d(TAG,"No current values for tag. Trying historical");
 			for (int delyteID=1;delyteID<=MAX_DELYTEID;delyteID++) {
 				baseKey.put("delyta", delyteID+"");
 				v = varCache.getVariable(baseKey,NamedVariables.DELNINGSTAG);
 				String rawTag = v.getHistoricalValue();
 				if (rawTag!=null && rawTag.length()>0) {
-					Log.d("nils","Found historical tåg under delyteID "+delyteID+" :"+rawTag);
+					Log.d(TAG,"Found historical tåg under delyteID "+delyteID+" :"+rawTag);
 					//Save under this year.
 					v.setValueNoSync(rawTag);
 					rawTags.add(rawTag);
@@ -776,7 +778,7 @@ public class DelyteManager {
 
 		}
 		if (rawTags.size()==0) {
-			Log.d("nils","Nyutlägg eller tom historia");
+			Log.d(TAG,"Nyutlägg eller tom historia");
 			addDefault();	
 		}
 		else {			
@@ -792,7 +794,7 @@ public class DelyteManager {
 		}
 
 
-		Log.d("nils","found "+myDelytor.size()+" delytor");
+		Log.d(TAG,"found "+myDelytor.size()+" delytor");
 
 
 
@@ -817,7 +819,7 @@ public class DelyteManager {
 	private Delyta createDelyta(String[] tagElems) {
 		if (tagElems!=null) {
 			for (String s:tagElems) {
-				Log.d("nils","tagElem: "+s);
+				Log.d(TAG,"tagElem: "+s);
 			}
 			float avstf=-1,riktf=-1;
 			List<Coord> tagCoordinateList = new ArrayList<Coord>();
@@ -860,7 +862,7 @@ public class DelyteManager {
 		for (Delyta d:myDelytor) {
 			if (d!=null) {
 				int id = d.getId();
-				Log.d("nils","added delyta = "+id+" to base key");				
+				Log.d(TAG,"added delyta = "+id+" to base key");				
 				baseKey.put("delyta", id+"");
 				if (id!=0) {					
 					String tag = d.getTag();
@@ -877,7 +879,7 @@ public class DelyteManager {
 	}
 
 	public void addDefault() {
-		Log.d("nils","No delytor found. Creating default delyta 0");
+		Log.d(TAG,"No delytor found. Creating default delyta 0");
 		Delyta delyta = createDelyta(new String[] {"100","359","100","0"});
 		delyta.setId(0);
 		myDelytor.add(delyta);
@@ -920,12 +922,12 @@ public class DelyteManager {
 		for (Delyta d:myDelytor) {
 			if (d!=null) {
 				int id = d.getId();
-				Log.d("nils","added delyta = "+id+" to base key");				
+				Log.d(TAG,"added delyta = "+id+" to base key");				
 				baseKey.put("delyta", id+"");
 				if (id!=0) {					
 					tempVar = varCache.getVariable(baseKey, "Delningstag");
 					if (tempVar.isInvalidated()) {
-						Log.d("nils","I think my DYM IS OBSOLETE!!!!");
+						Log.d(TAG,"I think my DYM IS OBSOLETE!!!!");
 						return true;
 					}
 					//Contains smaprovyta? In that case, set delytaId in variable

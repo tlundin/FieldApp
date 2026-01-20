@@ -23,6 +23,8 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class WF_Not_ClickableField extends WF_ListEntry {
+	private static final String TAG = "WF_Not_ClickableField";
+
 
 	private final int textColorC;
 	final LinearLayout outputContainer;
@@ -87,7 +89,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
         TextView myHeader = getWidget().findViewById(R.id.editfieldtext);
 		outputContainer = getWidget().findViewById(R.id.outputContainer);
 		//outputContainer.setLayoutParams(params);
-		//Log.d("taxx","variable label: "+label+" variable ID: "+id);
+		//Log.d(TAG,"variable label: "+label+" variable ID: "+id);
 		textColorC = Tools.getColorResource(myContext.getContext(),format.getTextColor());
 		//myheader can be null in case this is a Cell in a table.
 		if (myHeader !=null) {
@@ -108,7 +110,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 		displayFieldFormat = format;
 
-		//Log.d("vortex","setting background to "+this.backgroundColor);
+		//Log.d(TAG,"setting background to "+this.backgroundColor);
 
 		LinearLayout topElem = getWidget().findViewById(R.id.entryRoot);
 
@@ -151,7 +153,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 			myOutputFields.put(var,new OutC(ll,format));
 			outputContainer.addView(ll);
 
-			//Log.d("franco","Added view "+var.getLabel()+" with width: "+ll.getWidth());
+			//Log.d(TAG,"Added view "+var.getLabel()+" with width: "+ll.getWidth());
 			myVar = var;
 		}
 
@@ -166,7 +168,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 		TextView u = ll.findViewById(R.id.outputUnitField);
 		String value = variable.getValue();
 
-		//Log.d("nils","In refreshoutputfield for variable "+variable.getId()+" with value "+variable.getValue());
+		//Log.d(TAG,"In refreshoutputfield for variable "+variable.getId()+" with value "+variable.getValue());
 
 		if (value!=null&&!value.isEmpty()) {
 			ll.setVisibility(View.VISIBLE);
@@ -175,12 +177,12 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 			//	filter.testRun();
 
 			if (variable.hasBrokenRules()||variable.hasValueOutOfRange()) {
-				Log.d("nils","VARID: "+variable.getId()+" hasBroken: "+variable.hasBrokenRules()+" hasoutofRange: "+variable.hasValueOutOfRange());
+				Log.d(TAG,"VARID: "+variable.getId()+" hasBroken: "+variable.hasBrokenRules()+" hasoutofRange: "+variable.hasValueOutOfRange());
 				o.setTextColor(Color.RED);
 				u.setTextColor(Color.RED);
 			} else {
 				if (variable.isUsingDefault()) {
-					Log.d("nils","Variable "+variable.getId()+" is purple");
+					Log.d(TAG,"Variable "+variable.getId()+" is purple");
 					int purple = myContext.getContext().getResources().getColor(R.color.purple,myContext.getContext().getTheme());
 					o.setTextColor(purple);
 					u.setTextColor(purple);
@@ -196,7 +198,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 			if (variable.getType() != Variable.DataType.bool) {
 
 				if (outC instanceof OutSpin) {
-					Log.d("bort","gets here. "+ Arrays.toString(((OutSpin) outC).opt));
+					Log.d(TAG,"gets here. "+ Arrays.toString(((OutSpin) outC).opt));
 					outS = value;
 					OutSpin os = ((OutSpin)outC);
 					if (os.opt!=null && os.val!=null)						
@@ -243,7 +245,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 		String author = var.getWhoGaveThisValue();
 		Role role = Role.None;			
-		//Log.d("vortex","author var: "+author+" entryfield owner: "+entryFieldAuthor);
+		//Log.d(TAG,"author var: "+author+" entryfield owner: "+entryFieldAuthor);
 
 		if (author!=null) {
 			boolean IdidIt = author.equals(gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
@@ -287,11 +289,11 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 	@Override
 	public void refresh() {
-		//Log.d("nils","refreshoutput called on "+myHeader);
+		//Log.d(TAG,"refreshoutput called on "+myHeader);
 		Iterator<Map.Entry<Variable,OutC>> it = myOutputFields.entrySet().iterator();
 		while (it.hasNext()) {
 			Map.Entry<Variable,OutC> pairs = it.next();
-			//Log.d("nils","Iterator has found "+pairs.getKey()+" "+pairs.getValue());
+			//Log.d(TAG,"Iterator has found "+pairs.getKey()+" "+pairs.getValue());
 			refreshOutputField(pairs.getKey(),pairs.getValue());
 		}	
 	}

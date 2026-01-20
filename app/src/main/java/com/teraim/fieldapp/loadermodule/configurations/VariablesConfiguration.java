@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 
 public class VariablesConfiguration extends CSVConfigurationModule {
+	private static final String TAG = "VariablesConfiguration";
+
 
 	
 	private final SpinnerDefinition sd=new SpinnerDefinition();
@@ -87,7 +89,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 			nameIndex = gc.getNameIndex();
 			groupIndex = gc.getGroupIndex();
 		} else {
-			Log.d("vortex","No groups configuration found.");
+			Log.d(TAG,"No groups configuration found.");
 			throw new Dependant_Configuration_Missing("Groups");
 		}
 		return null;
@@ -101,7 +103,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 
         int pNameIndex = 2;
         if (scanHeader && row!=null) {
-			Log.d("vortex","header is: "+row);			
+			Log.d(TAG,"header is: "+row);			
 			String[] varPatternHeaderS = row.split(",");
 			if (varPatternHeaderS==null||varPatternHeaderS.length<Constants.VAR_PATTERN_ROW_LENGTH) {
 				o.addCriticalText("Header corrupt in Variables.csv: "+ Arrays.toString(varPatternHeaderS));
@@ -112,19 +114,19 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 			if (gc!=null) {
 				boolean foundFunctionalGroupHeader=false,foundVarNameHeader=false;
 				Collections.addAll(cheaderL,groupsFileHeaderS);
-				Log.d("vortex","header now "+cheaderL.toString());
+				Log.d(TAG,"header now "+cheaderL.toString());
 				
 				Iterator<String> it = cheaderL.iterator();
 				while(it.hasNext()) {
 					String header = it.next();
 					if (header.equals(VariableConfiguration.Col_Functional_Group)) {
-						Log.d("vortex","found column Functional Group "); 
+						Log.d(TAG,"found column Functional Group "); 
 						foundFunctionalGroupHeader=true;
 						it.remove();
 						}
 					else
 						if (header.equals(VariableConfiguration.Col_Variable_Name)) {
-							Log.d("vortex","found column VariableName");
+							Log.d(TAG,"found column VariableName");
 							foundVarNameHeader=true;
 							it.remove();
 						}
@@ -159,17 +161,17 @@ public class VariablesConfiguration extends CSVConfigurationModule {
                 String pGroup = r[pGroupIndex];
 				List<String> trr=trimmed(r);
 				if (pGroup==null || pGroup.trim().length()==0) {
-					//Log.d("nils","found variable "+r[pNameIndex]+" in varpattern");							
+					//Log.d(TAG,"found variable "+r[pNameIndex]+" in varpattern");							
 					myTable.addRow(trr);
 					//o.addText("Generated variable(1): ["+r[pNameIndex]+"]");
-					//Log.d("vortex","Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
+					//Log.d(TAG,"Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
 				} else {
-					//Log.d("nils","found group name: "+pGroup);
+					//Log.d(TAG,"found group name: "+pGroup);
 					elems = groups.get(pGroup);
 					String varPatternName = r[pNameIndex];
 					if (elems==null) {
 						//If the variable has a group,add it 
-						//Log.d("nils","Group "+pGroup+" in line#"+rowC+" does not exist in config file. Will use name: "+varPatternName);								
+						//Log.d(TAG,"Group "+pGroup+" in line#"+rowC+" does not exist in config file. Will use name: "+varPatternName);								
 						String name = pGroup.trim()+Constants.VariableSeparator+varPatternName.trim();
 						//o.addText("Generated variable(2): ["+name+"]");
 						trr.set(pNameIndex, name);

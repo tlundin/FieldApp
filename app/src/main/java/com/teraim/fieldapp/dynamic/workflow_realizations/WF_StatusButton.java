@@ -22,6 +22,8 @@ import java.util.List;
 
 
 public class WF_StatusButton extends WF_Button {
+    private static final String TAG = "WF_StatusButton";
+
 
 
     private final String statusVariableName;
@@ -76,7 +78,7 @@ public class WF_StatusButton extends WF_Button {
     public boolean refreshStatus() {
         DB_Context statusContext;
         if (hash==null) {
-            Log.d("vortex","hash null in statusrefresh...will try currenthash");
+            Log.d(TAG,"hash null in statusrefresh...will try currenthash");
             statusContext=myContext.getHash();
         } else
             statusContext = DB_Context.evaluate(hash);
@@ -92,7 +94,7 @@ public class WF_StatusButton extends WF_Button {
                    statusVariable.setValueNoSync("0");
                }
                statusI = (v == null) ? 0 : Integer.parseInt(v);
-               Log.d("gomorra", "statusvariable " + statusVariable.getId() + " has value " + statusI + " with hash " + statusVariable.getKeyChain());
+               Log.d(TAG, "statusvariable " + statusVariable.getId() + " has value " + statusI + " with hash " + statusVariable.getKeyChain());
            } catch (NumberFormatException e) {
                Log.e("vortex", "Parseerror in refresh status. This is not an integer: " + statusVariable.getValue());
            }
@@ -133,10 +135,10 @@ public class WF_StatusButton extends WF_Button {
 
     public void changeStatus(Status status) {
         if (statusVariable!=null) {
-            Log.d("vortex", "Button status changes to " + status);
+            Log.d(TAG, "Button status changes to " + status);
             //Variable statusVariable = GlobalState.getInstance().getVariableCache().getVariable(statusVariableHash,statusVariableName);
             statusVariable.setValue(status.ordinal() + "");
-            Log.d("maga",status.ordinal()+"");
+            Log.d(TAG,status.ordinal()+"");
             int id = getIdFromStatus(status);
             refreshButton(id);
         } else

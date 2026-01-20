@@ -21,6 +21,8 @@ import org.achartengine.renderer.XYSeriesRenderer;
  * Created by Terje on 2016-07-19.
  */
 public class BarChartBlock extends ChartBlock {
+    private static final String TAG = "BarChartBlock";
+
 
 
     public BarChartBlock(String blockId, String name, String label, String container,
@@ -31,12 +33,12 @@ public class BarChartBlock extends ChartBlock {
         try {
             textSizeF = Float.parseFloat(textSize);
         } catch (NumberFormatException e) {
-            Log.d("vortex","error in format...default to 10");
+            Log.d(TAG,"error in format...default to 10");
         }
         this.blockId = blockId;
         float textSize1 = textSizeF;
 
-        Log.d("vortex","height"+height);
+        Log.d(TAG,"height"+height);
     }
 
     private final String[] mMonth = new String[] {
@@ -166,7 +168,7 @@ public class BarChartBlock extends ChartBlock {
 
         chart = ChartFactory.getBarChartView(ctx, dataset, multiRenderer, BarChart.Type.DEFAULT);
         //adding the view to the linearlayout
-        Log.d("vortex","Barchart was gneerated;");
+        Log.d(TAG,"Barchart was gneerated;");
     }
 
     @Override

@@ -10,6 +10,8 @@ import com.teraim.fieldapp.log.LogRepository;
 import java.util.List;
 
 public class RuleBlock extends Block {
+	private static final String TAG = "RuleBlock";
+
 
 
 	private final String ruleName, target, condition, action, errorMsg;
@@ -50,7 +52,7 @@ public class RuleBlock extends Block {
 	// completely outside the serialization/deserialization process.
 	private Rule getRule() {
 		if (r == null) {
-			Log.d("RuleBlock", "Lazily creating Rule object for block " + blockId);
+			Log.d(TAG, "Lazily creating Rule object for block " + blockId);
 			r = new Rule(blockId, ruleName, target, condition, action, errorMsg);
 		}
 		return r;
@@ -60,7 +62,7 @@ public class RuleBlock extends Block {
 		// Use the getter to ensure the rule object is instantiated.
 		Rule currentRule = getRule();
 
-		Log.d("nils", "Create called in addRuleBlock, id " + blockId + " Target name: " + currentRule.getTargetString() + " my scope: " + myScope + " Target Block: " + currentRule.getMyTargetBlockId());
+		Log.d(TAG, "Create called in addRuleBlock, id " + blockId + " Target name: " + currentRule.getTargetString() + " my scope: " + myScope + " Target Block: " + currentRule.getMyTargetBlockId());
 		o = LogRepository.getInstance();
 
 		if (myScope == Scope.flow || myScope == Scope.both) {
@@ -76,7 +78,7 @@ public class RuleBlock extends Block {
 			}
 			Block b = blocks.get(index);
 			if (b instanceof CreateEntryFieldBlock) {
-				Log.d("vortex", "target ok");
+				Log.d(TAG, "target ok");
 				((CreateEntryFieldBlock) b).attachRule(currentRule);
 			} else if (b instanceof BlockCreateListEntriesFromFieldList) {
 				BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;

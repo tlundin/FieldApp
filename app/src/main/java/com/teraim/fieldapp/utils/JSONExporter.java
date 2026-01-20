@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class JSONExporter extends Exporter {
+	private static final String TAG = "JSONExporter";
+
 
 	private JsonWriter writer;
     private int varC=0;
@@ -37,7 +39,7 @@ public class JSONExporter extends Exporter {
 				writer.beginObject();
 				writeHeader();								
 				Map<String,String> currentKeys = cp.getKeyColumnValues();
-				Log.d("nils","Current keys: "+currentKeys.toString());
+				Log.d(TAG,"Current keys: "+currentKeys.toString());
 				writer.name("Elements");
 				writer.beginArray();
 				boolean more = true;
@@ -77,8 +79,8 @@ public class JSONExporter extends Exporter {
 				//Close header
 				writer.endObject();
 				writer.close();
-				Log.d("nils","finished writing JSON");
-				Log.d("nils", sw.toString());
+				Log.d(TAG,"finished writing JSON");
+				Log.d(TAG, sw.toString());
 				return new Report(sw.toString(),varC);
 
 			} else {
@@ -135,7 +137,7 @@ public class JSONExporter extends Exporter {
 		write("timestamp",variable.timeStamp);
 		writer.endObject();
 		} else 
-			Log.d("nils","Didn't export "+variable.name);
+			Log.d(TAG,"Didn't export "+variable.name);
 		
 			
 	}
@@ -153,7 +155,7 @@ public class JSONExporter extends Exporter {
 	private void writeHeader() throws IOException {
 		Date now = new Date();
 		//File header.
-		Log.d("nils","Exporting database");
+		Log.d(TAG,"Exporting database");
 		write("date",DateFormat.getInstance().format(now));
 		write("time",DateFormat.getTimeInstance().format(now));
 		write("programversion",globalPh.get(PersistenceHelper.CURRENT_VERSION_OF_PROGRAM));
@@ -162,7 +164,7 @@ public class JSONExporter extends Exporter {
 		write("Variable Definition version",""+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_VARPATTERN_FILE));
 		write("Author",globalPh.get(PersistenceHelper.USER_ID_KEY));
 		write("Team",globalPh.get(PersistenceHelper.LAG_ID_KEY));
-		Log.d("nils",writer.toString());
+		Log.d(TAG,writer.toString());
 		
 	}
 

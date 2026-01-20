@@ -19,6 +19,8 @@ import com.teraim.fieldapp.utils.Tools.Unit;
 import java.util.List;
 
 public class WF_DisplayValueField extends WF_Widget implements EventListener {
+	private static final String TAG = "WF_DisplayValueField";
+
 
 
 	private final DisplayFieldBlock displayFieldFormat;
@@ -38,7 +40,7 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
         GlobalState gs = GlobalState.getInstance();
 		o = gs.getLogger();
 		this.formula = formula;
-		Log.d("nils","In WF_DisplayValueField Create");
+		Log.d(TAG,"In WF_DisplayValueField Create");
 		ctx.registerEventListener(this, EventType.onSave);
 		this.unit=unit;
 		formulaE = Expressor.preCompileExpression(formula);
@@ -58,7 +60,7 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 	@Override
 	public void onEvent(Event e) {
 		String strRes;
-		Log.d("vortex","In onEvent for create_display_value_field. Caller: "+e.getProvider());
+		Log.d(TAG,"In onEvent for create_display_value_field. Caller: "+e.getProvider());
 		if (myContext.myEndIsNear()) {
 			Log.e("vortex","Aborting since redraw in progress");
 			return;
@@ -114,8 +116,8 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 		//lp.topMargin = displayFieldFormat.getVerticalMargin();
 		//lp.bottomMargin = 50;//displayFieldFormat.getVerticalMargin();
 
-		Log.d("bolo","applying vertical marging of "+displayFieldFormat.getVerticalMargin()+" to "+this.getName());
-		Log.d("bolo","unit: "+unit);
+		Log.d(TAG,"applying vertical marging of "+displayFieldFormat.getVerticalMargin()+" to "+this.getName());
+		Log.d(TAG,"unit: "+unit);
 		if (displayFieldFormat.getBackgroundColor()!=null)
 			topElem.setBackgroundColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getBackgroundColor()));
 		if (displayFieldFormat.getTextColor()!=null)

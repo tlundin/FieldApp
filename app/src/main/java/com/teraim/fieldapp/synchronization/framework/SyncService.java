@@ -18,6 +18,8 @@ import com.teraim.fieldapp.non_generics.Constants;
  * onPerformSync().
  */
 public class SyncService extends Service {
+	private static final String TAG = "SyncService";
+
 
 
 
@@ -51,7 +53,7 @@ public class SyncService extends Service {
 
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
-                	Log.d("vortex","received MSG_REGISTER_CLIENT in SyncService");
+                	Log.d(TAG,"received MSG_REGISTER_CLIENT in SyncService");
                     mClient=msg.replyTo;
 					Bundle appData =((Bundle)msg.obj);
 					long last_known_receiveTimestamp = 	appData.getLong(Constants.TIMESTAMP_SYNC_RECEIVE);
@@ -67,7 +69,7 @@ public class SyncService extends Service {
 
 				case MSG_USER_STOPPED_SYNC:
 				    sSyncAdapter.userAbortedSync();
-					Log.d("vortex","received MSG_USER_STOPPED_SYNC in SyncService");
+					Log.d(TAG,"received MSG_USER_STOPPED_SYNC in SyncService");
 					break;
 
                 default:
@@ -105,7 +107,7 @@ public class SyncService extends Service {
 	@Override
 	public void onDestroy() {
 		super.onDestroy();
-		Log.d("tortex","sync service destroyed");
+		Log.d(TAG,"sync service destroyed");
 	}
 
 	/**
@@ -123,11 +125,11 @@ public class SyncService extends Service {
          */
 
     	if (intent.getAction().equals(Start.MESSAGE_ACTION)) {
-    		Log.d("vortex","OnBind returning mMessgenger_Binder");
+    		Log.d(TAG,"OnBind returning mMessgenger_Binder");
     		return mMessenger.getBinder();
     		}
     	else {
-    		Log.d("vortex","In OnBindm returning syncAdapter_Binder");
+    		Log.d(TAG,"In OnBindm returning syncAdapter_Binder");
     		if (mClient!=null)
     			Log.e("vortex","myClient exists already.");
     		return sSyncAdapter.getSyncAdapterBinder();

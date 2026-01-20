@@ -7,6 +7,8 @@ import java.util.List;
 
 //Specialized filter. Will remove elements with a value.
 public class WF_OnlyWithoutValue_Filter extends WF_Filter {
+	private static final String TAG = "WF_OnlyWithoutValue_Filter";
+
 	
 	
 	
@@ -22,7 +24,7 @@ public class WF_OnlyWithoutValue_Filter extends WF_Filter {
 			Listable l = it.next();
 		if (l.hasValue())
 			it.remove();
-				//Log.d("nils","filter removes element "+l.getKey()+" because its value is null");
+				//Log.d(TAG,"filter removes element "+l.getKey()+" because its value is null");
 			
 		}
     }

@@ -63,6 +63,8 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import com.google.android.flexbox.FlexboxLayout;
 public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager,OnFilterSelectedListener {
+    private static final String TAG = "PageWithTable";
+
 
     private HorizontalScrollView stickyHeaderScrollView;
     private LinearLayout stickyHeaderLinearLayout;
@@ -166,13 +168,13 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 for (String filter : filtersArray) {
                     topButtonLabels.add(filter.trim());
                 }
-                Log.d("PageWithTable", "Loaded filters: " + savedFiltersString);
+                Log.d(TAG, "Loaded filters: " + savedFiltersString);
             } else {
                 // If no saved filters, explicitly add "Växter", "Lavar", and "Mossor"
                 topButtonLabels.add("Växter");
                 topButtonLabels.add("P_Lavar");
                 topButtonLabels.add("P_Mossor");
-                Log.d("PageWithTable", "No saved filters, using default dynamic filters: Växter, Lavar, Mossor");
+                Log.d(TAG, "No saved filters, using default dynamic filters: Växter, Lavar, Mossor");
             }
         } else {
             topButtonLabels.add("Växter");
@@ -222,7 +224,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 }
             }
         }
-        Log.d("PageWithTable", "Collected Column Filters (onCreateView): " + availableColumnFilterLabels.toString());
+        Log.d(TAG, "Collected Column Filters (onCreateView): " + availableColumnFilterLabels.toString());
 
 
         setupFilterButtons(); // This will now use the class-level availableColumnFilterLabels
@@ -271,7 +273,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         // The collection of availableColumnFilterLabels is now done in onCreateView,
         // so we just use the class-level field here.
         // Log the collected column filters for now
-        Log.d("PageWithTable", "Collected Column Filters: " + availableColumnFilterLabels.toString());
+        Log.d(TAG, "Collected Column Filters: " + availableColumnFilterLabels.toString());
 
         FilterSelectionDialogFragment dialog = FilterSelectionDialogFragment.newInstance(
                 new ArrayList<>(topButtonLabels), // Pass a copy of current top filters
@@ -322,7 +324,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (globalPh != null) {
             String filtersString = String.join(",", this.topButtonLabels);
             globalPh.put(PersistenceHelper.FILTER_BUTTON_LIST, filtersString);
-            Log.d("PageWithTable", "Saved filters: " + filtersString);
+            Log.d(TAG, "Saved filters: " + filtersString);
         } else {
             Log.e("PageWithTable", "globalPh is null, cannot save filters.");
         }
@@ -613,7 +615,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void applyRowFilters() {
-        //Log.d("PageWithTable", "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
+        //Log.d(TAG, "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
         // Create a Set for efficient lookup of column filters
@@ -710,7 +712,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
 
         Collections.sort(displayedTableRowsDataList, Comparator.comparing(o -> ((o != null && o.getLabel() != null) ? o.getLabel() : ""), String.CASE_INSENSITIVE_ORDER));
         if (tableBodyAdapter != null) {
-            //Log.d("PageWithTable", "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
+            //Log.d(TAG, "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
             tableBodyAdapter.notifyDataSetChanged();
         }
         refreshColumnVisibilitiesInUI();
@@ -725,9 +727,9 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (al == null && gs != null) al = gs.getVariableConfiguration();
         if (gs == null) Log.e("PageWithTable", "GlobalState is null in onViewCreated!");
         if (al == null) Log.e("PageWithTable", "VariableConfiguration (al) is null in onViewCreated!");
-        if (wf != null) { Log.d("PageWithTable","Executing workflow!!"); run(); }
+        if (wf != null) { Log.d(TAG,"Executing workflow!!"); run(); }
         else {
-            Log.d("PageWithTable","No workflow found in onViewCreated. Loading dummy data.");
+            Log.d(TAG,"No workflow found in onViewCreated. Loading dummy data.");
             addDummyData();
         }
     }
@@ -763,7 +765,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void onColumnHeaderClicked(int columnIndex) {
-        Log.d("PageWithTable", "Column header clicked: " + columnIndex + ". Current focused: " + currentlyFocusedColumn);
+        Log.d(TAG, "Column header clicked: " + columnIndex + ". Current focused: " + currentlyFocusedColumn);
         if (columnIndex < 0 || columnIndex >= columnDefinitions.size()) {
             Log.e("PageWithTable", "Invalid columnIndex: " + columnIndex + " for " + columnDefinitions.size() + " columns.");
             return;
@@ -776,25 +778,25 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 def.isVisible = true;
             }
             currentlyFocusedColumn = -1;
-            Log.d("PageWithTable", "Showing all columns.");
+            Log.d(TAG, "Showing all columns.");
         } else {
-            Log.d("PageWithTable", "Processing click on column: " + clickedColDef.label + " (Index: " + columnIndex + ", IsAggregate: " + clickedColDef.isAggregate + ")");
+            Log.d(TAG, "Processing click on column: " + clickedColDef.label + " (Index: " + columnIndex + ", IsAggregate: " + clickedColDef.isAggregate + ")");
             if (clickedColDef.isAggregate) {
                 for (int i = 0; i < columnDefinitions.size(); i++) {
                     ColumnDefinition def = columnDefinitions.get(i);
                     def.isVisible = def.isAggregate || (i == columnIndex);
-                    Log.d("PageWithTable", "  Loop Agg Click - Col " + i + " ("+def.label+"): isAgg=" + def.isAggregate + ", isClicked=" + (i == columnIndex) + " => isVisible=" + def.isVisible);
+                    Log.d(TAG, "  Loop Agg Click - Col " + i + " ("+def.label+"): isAgg=" + def.isAggregate + ", isClicked=" + (i == columnIndex) + " => isVisible=" + def.isVisible);
                 }
                 currentlyFocusedColumn = columnIndex;
-                Log.d("PageWithTable", "Focusing aggregate column: " + columnIndex + ", other aggregates also visible.");
+                Log.d(TAG, "Focusing aggregate column: " + columnIndex + ", other aggregates also visible.");
             } else { // Clicked a non-aggregate column to focus
                 for (int i = 0; i < columnDefinitions.size(); i++) {
                     ColumnDefinition def = columnDefinitions.get(i);
                     def.isVisible = def.isAggregate || (i == columnIndex);
-                    Log.d("PageWithTable", "  Loop Non-Agg Click - Col " + i + " ("+def.label+"): isAgg=" + def.isAggregate + ", isClicked=" + (i == columnIndex) + " => isVisible=" + def.isVisible);
+                    Log.d(TAG, "  Loop Non-Agg Click - Col " + i + " ("+def.label+"): isAgg=" + def.isAggregate + ", isClicked=" + (i == columnIndex) + " => isVisible=" + def.isVisible);
                 }
                 currentlyFocusedColumn = columnIndex;
-                Log.d("PageWithTable", "Focusing non-aggregate column: " + columnIndex + ", aggregates also visible.");
+                Log.d(TAG, "Focusing non-aggregate column: " + columnIndex + ", aggregates also visible.");
             }
         }
 
@@ -834,7 +836,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public void addColumns(List<String> labels,
                            List<String> columnKeyL, String type, String widthS,
                            String backgroundColor, String textColor) {
-        Log.d("PageWithTable", "addColumns called. Type: " + type);
+        Log.d(TAG, "addColumns called. Type: " + type);
         columnDefinitions.clear();
         if (headerRow != null) headerRow.clearCells();
         for (Listable item : masterTableRowsDataList) if (item instanceof WF_Table_Row_Recycle) ((WF_Table_Row_Recycle)item).clearCells();
@@ -944,7 +946,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         @Override
         public void onEvent(Event e) {
             if (e.getType()==Event.EventType.onSave) {
-                Log.d("vortex","caught onSave in aggregate_column!");
+                Log.d(TAG,"caught onSave in aggregate_column!");
                 if (myCells!=null) {
                     //loop over mycells (or over rows...doesnt matter. Equal number)
                     TextView tv=null; CheckBox cb = null;
@@ -966,15 +968,15 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                         //Aggregate over all cells in a row.
                         for (WF_Cell cell:row.getCells()) {
                             vars=cell.getAssociatedVariables();
-                            //Log.d("vortex","cell class: "+cell.getClass().getName()+" cell type "+cell.getType());
+                            //Log.d(TAG,"cell class: "+cell.getClass().getName()+" cell type "+cell.getType());
                             if (cell.getType().equals(WF_Cell.CellType.Aggregate)) {
-                                //Log.d("vortex", "skipping aggregate");
+                                //Log.d(TAG, "skipping aggregate");
                                 continue;
                             }
                             //Evaluate expression with given variables as context.
-                            //Log.d("vortex","Cell has these variables: ");
+                            //Log.d(TAG,"Cell has these variables: ");
                             //for (Variable v:vars)
-                            //Log.d("vortex",v.getId());
+                            //Log.d(TAG,v.getId());
                             if (isLogical) {
                                 Boolean result = Expressor.analyzeBooleanExpression(expressionE, vars);
 
@@ -1023,7 +1025,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                                 }
                             }
                             if (done) {
-                                //Log.d("vortex","I am done..exiting");
+                                //Log.d(TAG,"I am done..exiting");
                                 break;
                             }
                         }
@@ -1057,7 +1059,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public void addAggregateColumn(String label, Expressor.EvalExpr expressionE,
                                    String aggregationFunction, String format, String widthStr,
                                    boolean isDisplayed, String backgroundColor, String textColor) {
-        Log.d("PageWithTable", "addAggregateColumn - Label: " + label);
+        Log.d(TAG, "addAggregateColumn - Label: " + label);
         if (label == null) label = "";
         String colKey = "agg_" + label.replaceAll("\\s+", "_").toLowerCase();
         String type = "aggregate";

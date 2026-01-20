@@ -24,6 +24,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class ImportDataConfiguration extends JSONConfigurationModule {
+	private static final String TAG = "ImportDataConfiguration";
+
 
 	private final LogRepository o;
 	private final DbHelper myDb;
@@ -86,7 +88,7 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 				}
 			}
 			state = State.readingKeys;
-			Log.d("vortex","found date time version "+ meta.get("date")+","+ meta.get("time")+","+ meta.get("version"));
+			Log.d(TAG,"found date time version "+ meta.get("date")+","+ meta.get("time")+","+ meta.get("version"));
 			o.addText("Import file date time version: ["+ meta.get("date")+"],["+ meta.get("time")+"],["+ meta.get("version")+"]");
 			//jArray = jObject.getJSONArray("source");
 			//Erase old history
@@ -111,7 +113,7 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 	public LoadResult parse(JsonReader reader) throws IOException {
 		LoadResult lr=null;
 		if (state == State.readingKeys) {
-			//Log.d("vortex","In parse ImportData");
+			//Log.d(TAG,"In parse ImportData");
 			reader.beginObject(); 
 			if (reader.nextName().equals("contentType"))
 				lr = readKeys(reader);
@@ -122,7 +124,7 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 			state = State.readingVariables;
 			return null;
 		} else {
-			//Log.d("vortex","reading variables");
+			//Log.d(TAG,"reading variables");
 			lr = readVariables(reader);
 			if (lr!=null)
 				return lr;
@@ -157,13 +159,13 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 			String name = reader.nextName();
 			if (name.equals("name")) {
 				varName = getAttribute(reader);
-				//Log.d("vortex","name: "+varName);
+				//Log.d(TAG,"name: "+varName);
 			} else
 				return new LoadResult(this,ErrorCode.ParseError);
 			name = reader.nextName();
 			if (name.equals("value")) {
 				value = getAttribute(reader);
-				//Log.d("vortex","value: "+value);
+				//Log.d(TAG,"value: "+value);
 
 				vars.add(new ValuePair(varName,value));
 
@@ -214,12 +216,12 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 
 	private LoadResult readKeys(JsonReader reader) throws IOException {
 
-		//Log.d("vortex","Reading content type "+);
+		//Log.d(TAG,"Reading content type "+);
 		getAttribute(reader);
 		keyz = new HashMap<String,String>();
 		while (reader.hasNext()) {
 			String name = reader.nextName();
-			//			Log.d("vortex","Name: "+name);
+			//			Log.d(TAG,"Name: "+name);
 			if (name.equals("ar")) {
                 String ar = getAttribute(reader);
 			} else if (name.equals("ruta")) {
@@ -278,11 +280,11 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 
 		if (firstCall) {
 			myDb.beginTransaction();
-			Log.d("vortex","Transaction begins");
+			Log.d(TAG,"Transaction begins");
 			firstCall = false;
 		}
 		if (this.freezeSteps==(counter+1)) {
-			Log.d("vortex","Transaction ends");
+			Log.d(TAG,"Transaction ends");
 			myDb.endTransactionSuccess();
 			if (missingVariables !=null && !missingVariables.isEmpty()) {
 				o.addText("");

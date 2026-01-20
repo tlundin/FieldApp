@@ -3,6 +3,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SyncEntry extends SyncMessage {
+    private static final String TAG = "SyncEntry";
+
 
     public static Type action(String type) {
         Type mType;
@@ -75,14 +77,14 @@ public class SyncEntry extends SyncMessage {
         if (isDeleteMany()) {
             keys = collectPairs(changes.split(","));
             values = null;
- //           Log.d("bascar","deletemany generate returns: "+keys);
+ //           Log.d(TAG,"deletemany generate returns: "+keys);
             return;
         }
         if (isDelete() ) {
 
             keys = collectPairs(changes.split("\\|"));
             values = null;
- //           Log.d("bascar","delete generate returns: "+keys);
+ //           Log.d(TAG,"delete generate returns: "+keys);
             return;
         }
         String[] tmp = changes.split("_\\$_");
@@ -94,7 +96,7 @@ public class SyncEntry extends SyncMessage {
         else {
             keys = collectPairs(tmp[0].split("\\|"));
             values = collectPairs(tmp[1].split("§"));
-            //Log.d("bush","keys: "+keys+" values: "+values);
+            //Log.d(TAG,"keys: "+keys+" values: "+values);
         }
     }
 

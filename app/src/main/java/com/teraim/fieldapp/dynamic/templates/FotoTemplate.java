@@ -50,6 +50,8 @@ import java.util.List;
 
 
 public class FotoTemplate extends Executor {
+	private static final String TAG = "FotoTemplate";
+
 
     private GestureLibrary gestureLib;
 	//private ToggleButton gpsB;
@@ -104,7 +106,7 @@ public class FotoTemplate extends Executor {
 				result = imgHandler.deleteImage(selectedPictureName);
 				
 				if (result) {
-					Log.d("vortex","delete success!");
+					Log.d(TAG,"delete success!");
 					selectedPicture.setImageResource(R.drawable.case_no_pic);
 					}
 				else
@@ -153,7 +155,7 @@ public class FotoTemplate extends Executor {
 		}
 		gs.setDBContext(new DB_Context(null,al.createProvytaKeyMap()));
 		//myContext.resetState();
-		Log.d("nils","in onCreateView of foto template");
+		Log.d(TAG,"in onCreateView of foto template");
 		
 		v = inflater.inflate(R.layout.template_foto, container, false);	
 		
@@ -278,7 +280,7 @@ public class FotoTemplate extends Executor {
 	
 
 	private void toggleAvstand(boolean avstand) {
-		Log.d("nils","Avstånd is "+avstand);
+		Log.d(TAG,"Avstånd is "+avstand);
 
 		int status = avstand?View.INVISIBLE:View.VISIBLE;
 		boolean luck = false;
@@ -356,29 +358,29 @@ public class FotoTemplate extends Executor {
 		super.onStart();
 		if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER))
 			startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0);
-		Log.d("nils","in onStart foto");
+		Log.d(TAG,"in onStart foto");
 
 	}
 
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent myI){
-		Log.d("nils","Gets to onActivityResult");
+		Log.d(TAG,"Gets to onActivityResult");
 
 		if (requestCode == Constants.TAKE_PICTURE){
 			if (resultCode == Activity.RESULT_OK) 
 			{
-				Log.d("Strand","picture was taken, result ok");
+				Log.d(TAG,"picture was taken, result ok");
 				//				String name = myI.getStringExtra(Strand.KEY_PIC_NAME);
 				String currSaving = imgHandler.getCurrentlySaving();
 				if (currSaving!=null) {
 					ImageButton b = buttonM.get(currSaving);
 					imgHandler.drawButton(b,currSaving,2,false);
-					Log.d("Strand","Drew button!");
+					Log.d(TAG,"Drew button!");
 					
 				} else
 					Log.e("Strand","Did not find pic with name "+currSaving+" in onActRes in TakePic Activity");
 			} else {
-				Log.d("Strand","picture was NOT taken, result NOT ok");
+				Log.d(TAG,"picture was NOT taken, result NOT ok");
 			}
 
 		}
@@ -405,7 +407,7 @@ public class FotoTemplate extends Executor {
 		ArrayList<Prediction> predictions = gestureLib.recognize(gesture);
 		for (Prediction prediction : predictions) {
 			if (prediction.score > .5) {
-				Log.d("nils","MATCH!!");
+				Log.d(TAG,"MATCH!!");
 				if (prediction.name.equals("left")) {
 					turnPage();
 				} 
@@ -434,7 +436,7 @@ public class FotoTemplate extends Executor {
 				ContextCompat.getExternalFilesDirs(GlobalState.getInstance().getContext(), null);
 		File primaryExternalStorage = externalStorageVolumes[0];
 		String PIC_ROOT_DIR = primaryExternalStorage.getAbsolutePath() + "/pics/";
-		Log.d("vortex","In foto stop");
+		Log.d(TAG,"In foto stop");
 		boolean hasN = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.NORR,false));
 		boolean hasS = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.SYD,false));
 		boolean hasE = Tools.doesFileExist(PIC_ROOT_DIR,imgHandler.createFileName(Constants.OST,false));
@@ -452,7 +454,7 @@ public class FotoTemplate extends Executor {
 			myStatusVariable.setValue(Constants.STATUS_INITIAL);
 		else if (hasOne || hasFjarr)
 			myStatusVariable.setValue(Constants.STATUS_STARTAD_MEN_INTE_KLAR);
-		Log.d("vortex","mystatus: "+myStatusVariable.getValue()+" hasAll: "+hasAll+" hasFjarr: "+hasFjarr+" hasone: "+hasOne);
+		Log.d(TAG,"mystatus: "+myStatusVariable.getValue()+" hasAll: "+hasAll+" hasFjarr: "+hasFjarr+" hasone: "+hasOne);
 		super.onStop();
 	}
 

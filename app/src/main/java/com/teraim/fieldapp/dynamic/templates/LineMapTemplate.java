@@ -67,6 +67,8 @@ import java.util.Set;
 
 
 public class LineMapTemplate extends Executor implements LocationListener, EventListener {
+	private static final String TAG = "LineMapTemplate";
+
     private List<WF_Container> myLayouts;
     private VariableCache varCache;
     private DbHelper db;
@@ -96,9 +98,9 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        Log.d("nils", "in onCreateView of LineMapTemplate");
+        Log.d(TAG, "in onCreateView of LineMapTemplate");
         if (myContext == null) {
-            Log.d("vortex", "hasnt survived create...exiting.");
+            Log.d(TAG, "hasnt survived create...exiting.");
             return null;
         }
         run();
@@ -147,7 +149,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
         currentLineV.setValue(currentLinje);
 
 
-        Log.d("nils", "Current Linje is " + currentLinje);
+        Log.d(TAG, "Current Linje is " + currentLinje);
 
 
         Map<String, String> linjeKey = Tools.createKeyMap(VariableConfiguration.KEY_YEAR, currentYear, "trakt", currentRuta, "linje", currentLinje);
@@ -249,7 +251,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
 
             @Override
             public void onClick(View v) {
-                Log.d("vortex", "gets click. Linjestatus: " + linjeStatus.getValue());
+                Log.d(TAG, "gets click. Linjestatus: " + linjeStatus.getValue());
                 if (!linjeStatus.getValue().equals(Constants.STATUS_STARTAD_MEN_INTE_KLAR)) {
                     if (linjeStatus.getValue().equals(Constants.STATUS_AVSLUTAD_EXPORT_MISSLYCKAD)) {
                         new AlertDialog.Builder(v.getContext()).setTitle("Linjen markerad avslutad!")
@@ -295,7 +297,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
             }
         });
 
-        Log.d("nils", "year: " + currentYear + " Ruta: " + varCache.getVariableValue(null, "Current_Ruta") + " Linje: " + currentLinje);
+        Log.d(TAG, "year: " + currentYear + " Ruta: " + varCache.getVariableValue(null, "Current_Ruta") + " Linje: " + currentLinje);
 
         Map<String, String> keySet = Tools.createKeyMap(VariableConfiguration.KEY_YEAR, currentYear, "trakt", varCache.getVariableValue(null, "Current_Ruta"), "linje", currentLinje);
 
@@ -317,7 +319,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
         List<String> lobjT = al.getCompleteVariableDefinition(NamedVariables.LINJEOBJEKT);
         List<String> objTypes = al.getListElements(lobjT);
         if (objTypes != null)
-            Log.d("nils", "Found objTypes! " + objTypes.toString());
+            Log.d(TAG, "Found objTypes! " + objTypes.toString());
 
         //Generate buttons.
         TextView spc = new TextView(this.getActivity());
@@ -426,7 +428,7 @@ public class LineMapTemplate extends Executor implements LocationListener, Event
 
 	@Override
 	public void onDestroy() {
-		Log.d("Vortex","On destroy called");
+		Log.d(TAG,"On destroy called");
 		lm.removeUpdates(this);
 		super.onDestroy();
 	}
@@ -556,7 +558,7 @@ enum Linjetyp {
 		if (typ== Linjetyp.PUNKT && myView==null) {
 			Set<Map<String, String>> existingLinjeObjects = getExistingObjects(linjeObjLabel);
 			if (existingLinjeObjects!=null) {
-				Log.d("vortex","Got this back: "+existingLinjeObjects.toString());
+				Log.d(TAG,"Got this back: "+existingLinjeObjects.toString());
 				Iterator<Map<String,String>> it = existingLinjeObjects.iterator();
 				//Create a button array with a button for each meter.
 				List<Button> buttonArray = new ArrayList<Button>();
@@ -599,7 +601,7 @@ enum Linjetyp {
 
 
 			} else {
-				Log.d("vortex","Did not find any existing objects of type "+linjeObjLabel);
+				Log.d(TAG,"Did not find any existing objects of type "+linjeObjLabel);
 				myView = numTmp;
 			}
 
@@ -655,13 +657,13 @@ enum Linjetyp {
 						}
 					}
 					if (metS!=null && metS.length()>0 && !error) {
-						Log.d("nils","Got meters: "+meterEd.getText());
+						Log.d(TAG,"Got meters: "+meterEd.getText());
 
 						//Create new !linjeobjekt with the meters.
 						String meter = (meterEd.getText().toString());
 						//peel away zeros from beginning.
 						meter = meter.replaceFirst("^0+(?!$)", "");
-						Log.d("nils","meter is now: "+meter);
+						Log.d(TAG,"meter is now: "+meter);
 						jumpToWorkFlow(meter, metA!=null?metA.toString():null,linjeObjLabel,typ);
 					}
 
@@ -693,11 +695,11 @@ enum Linjetyp {
 			Map<String,String> keyI = new HashMap<String,String>(key);
 			keyI.remove("value");
 			if (typ== Linjetyp.INTERVALL) {
-				Log.d("nils","Sätter intervall variabler");
+				Log.d(TAG,"Sätter intervall variabler");
 				Variable v = varCache.getVariable(keyI,NamedVariables.AVGRANSSLUT);
 				v.setValue(end);
 				v= varCache.getVariable(keyI,NamedVariables.AVGRTYP);
-				Log.d("nils","Setting avgrtyp to "+ avgrSp.getSelectedItem());
+				Log.d(TAG,"Setting avgrtyp to "+ avgrSp.getSelectedItem());
 				v.setValue(avgrValueA[avgrSp.getSelectedItemPosition()]);
 			}
 
@@ -706,7 +708,7 @@ enum Linjetyp {
 			//Variable v = al.getVariableInstance();
 
 			if (v.setValue(linjeObjLabel)) {
-				Log.d("nils","Stored "+linjeObjLabel+" under meter "+start);
+				Log.d(TAG,"Stored "+linjeObjLabel+" under meter "+start);
 				myContext.registerEvent(new WF_Event_OnSave("Template"));
 			} else
 				Log.e("nils","Variable "+v.getId()+" Obj:"+v+" already has value "+v.getValue()+" for keychain "+key.toString());
@@ -716,12 +718,12 @@ enum Linjetyp {
 					varCache.getVariable(keyI, NamedVariables.TransportledTyp).setValue("2");
 				} else {
 					//Start workflow here.
-					Log.d("nils","Trying to start workflow "+"wf_"+linjeObjLabel);
+					Log.d(TAG,"Trying to start workflow "+"wf_"+linjeObjLabel);
 					Workflow wf = gs.getWorkflow("wf_"+linjeObjLabel);
 
 					if (wf!=null) {
 						gs.changePage(wf, null);
-						Log.d("nils","Should have started "+"wf_"+linjeObjLabel);
+						Log.d(TAG,"Should have started "+"wf_"+linjeObjLabel);
 					}
 					else {
 						o.addText("");

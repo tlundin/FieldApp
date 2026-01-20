@@ -155,14 +155,14 @@
 //				case SUCCESS:
 //					// The entire plan is done and was successful!
 //					Toast.makeText(getContext(), "All modules loaded successfully!", Toast.LENGTH_SHORT).show();
-//					Log.d("LoginConsoleFragment","load successful");
+//					Log.d(TAG,"load successful");
 //					start();
 //					break;
 //
 //				case FAILURE:
 //					// The plan is done but at least one job failed.
 //					// Re-enable UI so the user can try again.
-//					Log.d("LoginConsoleFragment","load failed");
+//					Log.d(TAG,"load failed");
 //					Toast.makeText(getContext(), "An error occurred during loading. Please try again.", Toast.LENGTH_LONG).show();
 //					// e.g., showErrorDialog();
 //					break;
@@ -182,7 +182,7 @@
 //			intent.setAction(MenuActivity.INITSTARTS);
 //			LocalBroadcastManager.getInstance(this.getActivity()).sendBroadcast(intent);
 //			startLoadingProcess();
-//			Log.d("vortex", "Loading In Memory Modules");
+//			Log.d(TAG, "Loading In Memory Modules");
 //		}
 //	}
 //
@@ -203,16 +203,16 @@
 //	private boolean initIfFirstTime() {
 //		globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
 //		//If testFile doesnt exist it will be created and found next time.
-//		Log.d("vortex","Checking if this is first time use of Vortex...");
+//		Log.d(TAG,"Checking if this is first time use of Vortex...");
 //		boolean first = (globalPh.get(PersistenceHelper.FIRST_TIME_KEY).equals(PersistenceHelper.UNDEFINED));
 //		if (first) {
-//			Log.d("vortex","Yes..executing  first time init");
+//			Log.d(TAG,"Yes..executing  first time init");
 //			debugConsole.addRow("");
 //			debugConsole.addPurpleText("First time execution");
 //			return true;
 //		}
 //		else {
-//			Log.d("vortex","..Not first time");
+//			Log.d(TAG,"..Not first time");
 //			return false;
 //		}
 //
@@ -293,11 +293,11 @@
 //
 //	@Override
 //	public void loadSuccess(String loaderId, final boolean majorVersionChange, CharSequence logText,boolean socketBroken) {
-//		Log.d("vortex","Arrives to loadsucc with ID: "+loaderId);
+//		Log.d(TAG,"Arrives to loadsucc with ID: "+loaderId);
 //		ph.put(PersistenceHelper.ALL_MODULES_FROZEN+loaderId,true);
-//		Log.d("baza","logtxt incoming: "+logText.toString());
+//		Log.d(TAG,"logtxt incoming: "+logText.toString());
 //		this.logTxt = logText; // TextUtils.concat(this.logTxt,logText);
-//		Log.d("baza","logtxt now "+this.logTxt.toString());
+//		Log.d(TAG,"logtxt now "+this.logTxt.toString());
 //		//If load successful, create database and import data into it.
 //		if (loaderId.equals("moduleLoader")) {
 //			//Create or update database from Table object.
@@ -320,7 +320,7 @@
 //                boolean majorVersionControl = "Major".equals(globalPh.get(PersistenceHelper.VERSION_CONTROL));
 //				if (socketBroken && allFrozen || (majorVersionControl && allFrozen && !majorVersionChange)) {
 //					//no need to load.
-//					Log.d("baloo","no need to load...socket broken or no majorchange and allfrozen");
+//					Log.d(TAG,"no need to load...socket broken or no majorchange and allfrozen");
 //					loadSuccess(_loaderId, majorVersionChange, "\ndb modules unchanged",socketBroken);
 //				} else {
 //					//Load configuration files asynchronously.
@@ -375,7 +375,7 @@
 //					loginConsole.addRow(getString(R.string.done_loading));
 //					loginConsole.draw();
 //				}
-//				//Log.d("log",debugConsole.getLogText().toString());
+//				//Log.d(TAG,debugConsole.getLogText().toString());
 //				start();
 //
 //			} else {
@@ -416,14 +416,14 @@
 ////				loginConsole.addRow(getString(R.string.done_loading));
 ////				loginConsole.draw();
 ////			}
-//			//Log.d("log",debugConsole.getLogText().toString());
+//			//Log.d(TAG,debugConsole.getLogText().toString());
 //
 //		Start.alive = true;
 //		//Update app version if new
 //		//if (majorVersionChange) {
 //		float loadedAppVersion = ph.getF(PersistenceHelper.NEW_APP_VERSION);
-//		Log.d("antrax","GS VALUE AT START: "+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP));
-//		Log.d("vortex", "updating App version to " + loadedAppVersion);
+//		Log.d(TAG,"GS VALUE AT START: "+ph.getF(PersistenceHelper.CURRENT_VERSION_OF_APP));
+//		Log.d(TAG, "updating App version to " + loadedAppVersion);
 //		ph.put(PersistenceHelper.CURRENT_VERSION_OF_APP, loadedAppVersion);
 //		//				}
 //		//drawermenu
@@ -457,7 +457,7 @@
 //			GlobalState.getInstance().onStart();
 //		} else {
 //			if (isAdded()) {
-//				Log.d("vortex","Main workflow not found.");
+//				Log.d(TAG,"Main workflow not found.");
 //				//loginConsole.addRow("");
 //				//loginConsole.addRedText("Found no workflow 'Main'. Exiting..");
 //			}
@@ -470,7 +470,7 @@
 //
 //	@Override
 //	public void loadFail(String loaderId) {
-//		Log.d("vortex","loadFail!");
+//		Log.d(TAG,"loadFail!");
 //        ph.put(PersistenceHelper.ALL_MODULES_FROZEN+loaderId,false);
 //		LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(new Intent(MenuActivity.INITFAILED));
 //	}
