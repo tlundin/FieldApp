@@ -110,11 +110,13 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 		// Called when the user selects a contextual menu item
 		@Override
 		public boolean onActionItemClicked(final ActionMode mode, MenuItem item) {
-			List<String> row = null;
-			String msg = "";
-			row = myVariable.getBackingDataSet();
+        if (myVariable == null) {
+            return false;
+        }
+        List<String> row = myVariable.getBackingDataSet();
+        String msg = "";
 
-			switch (item.getItemId()) {
+        switch (item.getItemId()) {
 				case R.id.menu_goto:
 					if (row != null) {
 						String url = al.getUrl(row);
@@ -246,29 +248,31 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 	}
 
 	@Override
-		public Map<String, String> getKeyHash() {
-			return null;
-		}
+    public Map<String, String> getKeyHash() {
+        return myHash;
+    }
 
-		@Override
-		public Set<Variable> getAssociatedVariables() {
-			if (myVariable!=null) {
-				Set<Variable> ret = new HashSet<Variable>();
-				ret.add(myVariable);
-				return ret;
-			}
-			return null;
+    @Override
+    public Set<Variable> getAssociatedVariables() {
+        if (myVariable!=null) {
+            Set<Variable> ret = new HashSet<>();
+            ret.add(myVariable);
+            return ret;
+        }
+        return new HashSet<>();
 
-		}
+    }
 
 
-		@Override
-		public void onEvent(Event e) {
-			if (e.getProvider().equals(Constants.SYNC_ID)) {
-				String val = myVariable.getValue();
-				myCheckBox.setChecked(val!=null && val.equals("true"));
-			}
-		}
+    @Override
+    public void onEvent(Event e) {
+        if (e.getProvider().equals(Constants.SYNC_ID)) {
+            if (myVariable != null) {
+                String val = myVariable.getValue();
+                myCheckBox.setChecked(val!=null && val.equals("true"));
+            }
+        }
+    }
 
 		@Override
 		public String getName() {
