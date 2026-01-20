@@ -6,6 +6,7 @@ import android.view.View;
 import com.teraim.fieldapp.dynamic.types.Variable;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
 
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +93,9 @@ public abstract class WF_ListEntry extends WF_Widget implements Listable,Compara
 	}
 
 	public Map<String,String> getKeyChain() {
+		if (myVar == null) {
+			return Collections.emptyMap();
+		}
 		return myVar.getKeyChain();
 	}
 	

@@ -21,6 +21,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -333,7 +334,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 	@Override public long getTimeStamp() { return 0; }
 	@Override public boolean hasValue() { if (myColumns==null || myColumns.isEmpty()) return false; for (WF_Cell w:myColumns) if (w.hasValue()) return true; return false; }
 	@Override public void refresh() { if (myColumns==null) return ; for (WF_Cell w:myColumns) w.refresh(); }
-	@Override public Set<Variable> getAssociatedVariables() { if (myColumns!=null && !myColumns.isEmpty()) { return myColumns.get(0).getAssociatedVariables(); } return null; }
+	@Override public Set<Variable> getAssociatedVariables() { if (myColumns!=null && !myColumns.isEmpty()) { return myColumns.get(0).getAssociatedVariables(); } return Collections.emptySet(); }
 	@Override public int compareTo(Listable other) { return this.getLabel().compareTo(other.getLabel()); }
 
 	public View addNoClickHeaderCell(String label, String backgroundColor, String textColor) {
@@ -370,7 +371,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 	@Override
 	public String getLabel() { if (al == null) { return "*ConfigErr*"; } return al.getEntryLabel(myRow); }
 	@Override public String getKey() { return getLabel(); }
-	@Override public Map<String, String> getKeyChain() { return null; }
+	@Override public Map<String, String> getKeyChain() { return Collections.emptyMap(); }
 
 	public boolean hasAnyCheckedNonAggregateSimpleCell(List<PageWithTable.ColumnDefinition> globalColumnDefinitions) {
 		if (myColumns == null || myColumns.isEmpty() || globalColumnDefinitions == null) return false;

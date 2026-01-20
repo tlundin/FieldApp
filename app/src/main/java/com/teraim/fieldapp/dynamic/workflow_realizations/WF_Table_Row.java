@@ -15,6 +15,7 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
 import com.teraim.fieldapp.utils.Tools;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +110,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		if (myColumns!=null && !myColumns.isEmpty()) {
 			return myColumns.get(0).getAssociatedVariables();
 		}
-		return null;
+		return Collections.emptySet();
 	}
 
 
@@ -231,8 +232,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 	}
 	@Override
 	public Map<String, String> getKeyChain() {
-		// TODO Auto-generated method stub
-		return null;
+		return Collections.emptyMap();
 	}
 
 
