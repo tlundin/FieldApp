@@ -47,7 +47,13 @@ public class ConnectionManager {
 	}
 
 	public ConnectionProvider requestConnection(Context ctx, ConnectionType cType) {
+		// Check if we already have an active connection of this type
+		ConnectionProvider existingProvider = activeConnections.get(cType);
+		if (existingProvider != null) {
+			return existingProvider;
+		}
 		
+		// Create a new provider for the requested type
 		ConnectionProvider provider = null;
 		switch (cType) {
 		case bluetooth:
@@ -57,22 +63,27 @@ public class ConnectionManager {
 			provider = new MobileRadioConnectionProvider(ctx); 
 			break;
 		case wlan:
+			// WLAN not yet implemented
 			break;
-			
+		default:
+			// Unknown connection type
+			break;
 		}
-		if (activeConnections.isEmpty() && provider !=null) {
-			activeConnections.put(cType,provider);
-			
-		} 
+		
+		// Store the provider if it was created successfully
+		if (provider != null) {
+			activeConnections.put(cType, provider);
+		}
+		
 		return provider;
 	}
 	
 	
 
 	public void releaseConnection(ConnectionProvider mConnection) {
-		if (activeConnections!=null) {
-			activeConnections.remove(mConnection);
-			
+		if (activeConnections != null && mConnection != null) {
+			// Find and remove the connection by iterating through entries
+			activeConnections.entrySet().removeIf(entry -> entry.getValue() == mConnection);
 		}
 	}
 }
