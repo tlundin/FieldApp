@@ -42,42 +42,6 @@ public class BackupManager {
 		return singleton;
 	}
 
-
-	/*
-	public File getBackupStorageDir() {
-		gs = GlobalState.getInstance();
-		// Get the directory for the user's public pictures directory.
-		PersistenceHelper globalPh = gs.getGlobalPreferences();
-		String path = null;
-		if (globalPh !=null)
-			path = globalPh.get(PersistenceHelper.BACKUP_LOCATION);
-
-		if (path==null||path.length()==0) {
-			Log.d(TAG,"Path was null for backupdir. will try default path");
-			path = Constants.DEFAULT_EXT_BACKUP_DIR;
-		}
-
-		File backupFolder = new File(path);
-		if (!backupFolder.exists()) {
-			System.out.println("creating directory: " + Constants.DEFAULT_EXT_BACKUP_DIR);
-			boolean result = false;
-
-			try{
-				backupFolder.mkdir();
-				result = true;
-			} catch(SecurityException se){
-				//handle it
-			}        
-			if(result) {    
-				System.out.println("DIR created");  
-				return backupFolder;
-			}
-		}
-
-
-		return null;
-	}
-	 */
 	public boolean backupDatabase() {
 		return backupDatabase(Constants.BACKUP_FILE_NAME+"_"+Constants.getSweDate());
 	}
@@ -199,9 +163,7 @@ public class BackupManager {
 			}
 		}catch(Exception e){
 			ret = e.getMessage();
-			System.out.println("Could not write backup file! Filename: "+exportFileName);
-
-			e.printStackTrace();
+			Log.e(TAG, "Could not write backup file! Filename: " + exportFileName, e);
 			return ret;
 		}
 		Log.d(TAG,"file successfully written to backup: "+exportFileName);
@@ -236,9 +198,7 @@ public class BackupManager {
 			outWriter.write(data);
 		}catch(Exception e){
 			ret = e.getMessage();
-			System.out.println("Could not write backup file! Filename: "+exportFileName);
-
-			e.printStackTrace();
+			Log.e(TAG, "Could not write backup file! Filename: " + exportFileName, e);
 			return ret;
 		}
 		Log.d(TAG,"file successfully written to backup: "+exportFileName);
