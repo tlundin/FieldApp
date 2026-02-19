@@ -14,7 +14,11 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
+import android.os.Build;
 import android.os.AsyncTask;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -746,14 +750,35 @@ public class Tools {
 		File f = new File(folder,fileName);
 		return (f.exists() && !f.isDirectory());
 	}
-/*
-	public static boolean isNetworkAvailable(Context ctx) {
-		ConnectivityManager connectivityManager 
-		= (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
-		NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-		return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+	/**
+	 * Returns true if the device has a working network connection (Wi‑Fi, cellular, or ethernet).
+	 * Use this when deciding whether to rely on online features (e.g. map tiles).
+	 */
+	public static boolean hasNetworkConnection(Context context) {
+		if (context == null) {
+			return false;
+		}
+		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+		if (cm == null) {
+			return false;
+		}
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			Network network = cm.getActiveNetwork();
+			if (network == null) {
+				return false;
+			}
+			NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
+			return capabilities != null && (
+					capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+					capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
+					capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+			);
+		} else {
+			@SuppressWarnings("deprecation")
+			android.net.NetworkInfo activeNetworkInfo = cm.getActiveNetworkInfo();
+			return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+		}
 	}
-*/
 
 	public static boolean isNumeric(Object num)
 	{

@@ -44,6 +44,7 @@ import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisFilter;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisMultiPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPathObject;
+import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPolygonObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
@@ -1248,6 +1249,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 		getInstance().setDBContext(new DB_Context(null,gop.getKeyHash()));
 		Log.d(TAG,"Setting current keyhash to "+gop.getKeyHash());
+		// If the target workflow uses MapTemplate, pass WGS84 coordinates so the map can focus on this object.
+		Location sweref = gop.getLocation();
+		if (sweref == null && gop.getCoordinates() != null && !gop.getCoordinates().isEmpty()) {
+			sweref = gop.getCoordinates().get(0);
+		}
+		if (sweref != null) {
+			Location wgs84 = Geomatte.convertToLatLong(sweref.getX(), sweref.getY());
+			GlobalState.getInstance().setPendingMapCenter(wgs84.getX(), wgs84.getY());
+		}
 		String target = gop.getWorkflow();
 		Workflow wf = getInstance().getWorkflow(target);
 		if (wf ==null) {

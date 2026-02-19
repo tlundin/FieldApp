@@ -139,6 +139,10 @@
     <string name="cleaning_up_please_wait">Städar...</string>
     <string name="select_log_level">Välj loggnivå</string>
 	<string name="map_settings">Kartans inställningar</string>
+	<string name="use_maps">Använd kartor</string>
+	<string name="use_maps_summary">Aktivera kartfunktionalitet</string>
 	<string name="map_needle_title">Kartnålar</string>
 	<string name="map_needle_summary">Välj kartnål</string>
+	<string name="select_layers_title">Kartlager</string>
+	<string name="no_layers_loaded">Inga lager laddade än.</string>
 </resources>

@@ -48,6 +48,11 @@
             android:summary="@string/scan_QR_code" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/map_settings">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="map_enabled"
+            android:summary="@string/use_maps_summary"
+            android:title="@string/use_maps" />
         <com.teraim.fieldapp.ui.MapNeedlePreference
             android:key="map_needle_set"
             android:title="@string/map_needle_title"

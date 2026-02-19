@@ -51,6 +51,8 @@ import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.viewmodels.GisViewModel;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
+import com.mapbox.common.MapboxOptions;
+import com.teraim.fieldapp.BuildConfig;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -113,6 +115,15 @@ public class Start extends MenuActivity implements StartProvider {
 
         Log.d(TAG,"in START onCreate");
         startInstance = this;
+        
+        // Initialize Mapbox token early, before any layouts with MapView are inflated
+        try {
+            MapboxOptions.setAccessToken(BuildConfig.MAPBOX_ACCESS_TOKEN);
+            Log.d(TAG, "Mapbox access token initialized");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set Mapbox access token", e);
+        }
+        
         shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);

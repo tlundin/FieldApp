@@ -32,3 +32,10 @@ dependencyResolutionManagement {
 
 rootProject.name = "FieldApp" // Replace with your app's name
 include ':app'
+
+// Configure Java toolchain
+gradle.beforeProject { project ->
+    project.tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.addAll(['-source', '17', '-target', '17'])
+    }
+}

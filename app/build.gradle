@@ -17,7 +17,7 @@ android {
         config {
             keyAlias 'vortexkey'
             keyPassword 'TerjePavek_2'
-            storeFile file('C:/Users/terje/dev/keys/TerjePavek_2')
+            storeFile file("${System.getProperty('user.home')}/keys/TerjePavek_2")
             storePassword 'TerjePavek_2'
         }
     }
@@ -34,9 +34,13 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
             signingConfig signingConfigs.config
+            ndk {
+                debugSymbolLevel 'FULL'
+            }
         }
     }
     packaging {

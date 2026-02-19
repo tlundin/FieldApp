@@ -106,6 +106,10 @@ public class GlobalState {
     private ModuleRegistry moduleRegistry;
     private RequestQueue requestQueue;
 
+    /** Pending map center (WGS84 lat, lng) for MapTemplate when opened from a GIS object. Cleared after use. */
+    private Double pendingMapCenterLat;
+    private Double pendingMapCenterLng;
+
     public static GlobalState getInstance() {
 
         return singleton;
@@ -270,6 +274,23 @@ public class GlobalState {
 
     public void changePage(Workflow wf, String statusVar) {
         startActivity.changePage(wf,statusVar);
+    }
+
+    /** Set pending map center (WGS84) so MapTemplate can focus there when opened from a GIS object. */
+    public void setPendingMapCenter(double lat, double lng) {
+        this.pendingMapCenterLat = lat;
+        this.pendingMapCenterLng = lng;
+    }
+
+    /** Get and clear pending map center. Returns {lat, lng} or null if none set. */
+    public double[] getAndClearPendingMapCenter() {
+        if (pendingMapCenterLat == null || pendingMapCenterLng == null) {
+            return null;
+        }
+        double[] result = new double[] { pendingMapCenterLat, pendingMapCenterLng };
+        pendingMapCenterLat = null;
+        pendingMapCenterLng = null;
+        return result;
     }
 
     public Set<String> getProvYtaTypes() {

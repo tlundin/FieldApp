@@ -6,6 +6,7 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.dynamic.types.GisLayer;
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Context;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.MapboxMapHolder;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.WF_Gis_Map;
 import com.teraim.fieldapp.log.LogRepository;
 
@@ -39,7 +40,11 @@ public class AddGisLayerBlock extends Block {
 
 		Drawable gisMap = myContext.getDrawable(target);
 		
-		if (gisMap instanceof WF_Gis_Map) {
+		if (gisMap instanceof MapboxMapHolder) {
+			MapboxMapHolder holder = (MapboxMapHolder) gisMap;
+			holder.addLayer(name, label, isVisible, hasWidget, showLabels, isBold);
+			Log.d(TAG, "Added Mapbox layer: " + name);
+		} else if (gisMap instanceof WF_Gis_Map) {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
 			if (!myGis.isZoomLevel()) {
 			final GisLayer gisLayer = new GisLayer(name,label,isVisible,isBold,hasWidget,showLabels);

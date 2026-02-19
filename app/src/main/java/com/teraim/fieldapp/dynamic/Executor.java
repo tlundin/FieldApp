@@ -971,6 +971,18 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 				} else if (b instanceof CreateGisBlock) {
 					CreateGisBlock bl = ((CreateGisBlock) b);
+					// With MapTemplate, network, and use_maps enabled, use map background instead of loading image layers.
+					String template = myContext.getWorkflow() != null ? myContext.getWorkflow().getTemplate() : null;
+					boolean hasNetwork = Tools.hasNetworkConnection(gs.getContext());
+					boolean useMaps = gs.getGlobalPreferences().getPreferences().getBoolean(PersistenceHelper.MAP_ENABLED, true);
+					if ("MapTemplate".equals(template) && hasNetwork && useMaps) {
+						Log.d(TAG, "CreateGisBlock skipped: MapTemplate with network and use_maps (using map background)");
+						if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
+							((com.teraim.fieldapp.dynamic.templates.MapTemplate) this).registerMapboxMapAsDrawable(bl.getName());
+						}
+						blockP++;
+						continue;
+					}
 					bl.reset();
 					List<String> picNames = bl.getPicNames();
 					// It's safer to check if the list is empty

@@ -140,7 +140,11 @@
     <string name="cleaning_up_please_wait">Cleaning up...</string>
     <string name="select_log_level">Select a log level</string>
     <string name="map_settings">Map Settings</string>
+    <string name="use_maps">Use maps</string>
+    <string name="use_maps_summary">Enable map functionality</string>
     <string name="map_needle_title">Map needles</string>
     <string name="map_needle_summary">Choose a map needle</string>
+    <string name="select_layers_title">Layers</string>
+    <string name="no_layers_loaded">No layers loaded yet.</string>
 
 </resources>
