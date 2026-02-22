@@ -64,8 +64,6 @@ class MapboxMapHolder(
 
     companion object {
         private const val TAG = "MapboxMapHolder"
-        /** Debug tag for map needle flow: adb logcat MapNeedle:D *:S */
-        private const val MAP_NEEDLE_DEBUG = "MapNeedle"
         private const val CONTENT_FILE = "content.txt"
         /** Zoom level at which object labels become visible (e.g. ~1/3 of Sweden visible at zoom 6). */
         private const val LABEL_VISIBLE_ZOOM_LEVEL = 6.0
@@ -106,6 +104,8 @@ class MapboxMapHolder(
         }
 
     private val layerState = mutableMapOf<String, LayerState>()
+    /** Stored layer specs for refresh (re-fetch GeoJSON from server). */
+    private val layerSpecs = mutableMapOf<String, PendingLayer>()
     private val pendingLayers = mutableListOf<PendingLayer>()
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var visible = true
@@ -307,6 +307,38 @@ class MapboxMapHolder(
         )
     }
 
+    /** TRAKTSTATUS color mapping for trakter layer: -1 purple, 0 white, 1-30 orange, 31-70 lime, 71-99 green, 100 cyan. */
+    private val TRAKTSTATUS_COLORS = mapOf(
+        -1 to Color.parseColor("#9900ff"),
+        0 to Color.parseColor("#ffffff"),
+        1 to Color.parseColor("#ff9600"),
+        31 to Color.parseColor("#a6fc00"),
+        71 to Color.parseColor("#008500"),
+        100 to Color.parseColor("#00FFFF")
+    )
+
+    /**
+     * Expression: color by TRAKTSTATUS for trakter layer.
+     * -1: #9900ff, 0: #ffffff, 1-30: #ff9600, 31-70: #a6fc00, 71-99: #008500, 100: #00FFFF
+     */
+    private fun trakterStatusColorExpression(): Expression {
+        return step(
+            get("TRAKTSTATUS"),
+            color(TRAKTSTATUS_COLORS[0]!!),
+            literal(-1.0) to color(TRAKTSTATUS_COLORS[-1]!!),
+            literal(0.0) to color(TRAKTSTATUS_COLORS[0]!!),
+            literal(1.0) to color(TRAKTSTATUS_COLORS[1]!!),
+            literal(31.0) to color(TRAKTSTATUS_COLORS[31]!!),
+            literal(71.0) to color(TRAKTSTATUS_COLORS[71]!!),
+            literal(100.0) to color(TRAKTSTATUS_COLORS[100]!!)
+        )
+    }
+
+    /** Returns status color expression for the layer; trakter uses TRAKTSTATUS, others use PYSTATUS. */
+    private fun statusColorExpression(layerType: String, defaultColorInt: Int): Expression =
+        if (layerType == "trakter") trakterStatusColorExpression()
+        else pystatusColorExpression(defaultColorInt)
+
     /**
      * Normalize poly_type from XML to a point shape. Returns icon id for symbol layer, or null for circle layer.
      */
@@ -376,6 +408,8 @@ class MapboxMapHolder(
         fun addLayerOrBelowTeam(layer: com.mapbox.maps.extension.style.layers.Layer) {
             if (style.styleLayerExists(TEAM_LAYER_ID)) style.addLayerBelow(layer, TEAM_LAYER_ID) else style.addLayer(layer)
         }
+        val layerType = layerNameToType(name)
+        val statusColorExpr = statusColorExpression(layerType, fillColorInt)
         addLayerOrBelowTeam(
             fillLayer(fillLayerId, sourceId) {
                 filter(
@@ -384,7 +418,7 @@ class MapboxMapHolder(
                         eq(geometryType(), literal("MultiPolygon"))
                     )
                 )
-                fillColor(pystatusColorExpression(fillColorInt))
+                fillColor(statusColorExpr)
                 fillOpacity(fillOpacityVal.toDouble())
                 visibility(visibility)
             }
@@ -414,7 +448,7 @@ class MapboxMapHolder(
                         )
                     )
                     circleRadius(circleRadiusVal.toDouble())
-                    circleColor(pystatusColorExpression(fillColorInt))
+                    circleColor(statusColorExpr)
                     circleStrokeColor(lineColorInt)
                     circleStrokeWidth(lineWidthVal.toDouble())
                     visibility(visibility)
@@ -434,7 +468,7 @@ class MapboxMapHolder(
                     )
                     iconImage(pointShapeIconId)
                     iconSize(iconSize)
-                    iconColor(pystatusColorExpression(fillColorInt))
+                    iconColor(statusColorExpr)
                     iconOpacity(fillOpacityVal.toDouble())
                     if (useOutline) {
                         iconHaloColor(lineColorInt)
@@ -499,7 +533,49 @@ class MapboxMapHolder(
         }
 
         layerState[name] = LayerState(sourceId, fillLayerId, outlineLayerId, pointLayerId, labelLayerId, spec.isVisible)
+        layerSpecs[name] = spec
         Log.d(TAG, "Added Mapbox layer: $name (polyType=${spec.polyType}, fillColor=${spec.fillColor}, showLabels=${spec.showLabels})")
+    }
+
+    /**
+     * Re-fetches all GeoJSON layers from the server and updates the map.
+     * Call when server has updated GeoJSON files (e.g. after serverPendingUpdate is true).
+     */
+    fun refreshLayers(onComplete: (() -> Unit)? = null) {
+        val map = mapboxMap ?: run {
+            Log.w(TAG, "refreshLayers: map not ready")
+            onComplete?.invoke()
+            return
+        }
+        if (layerSpecs.isEmpty()) {
+            Log.d(TAG, "refreshLayers: no layers to refresh")
+            onComplete?.invoke()
+            return
+        }
+        scope.launch {
+            val toRemove = layerState.toMap()
+            map.getStyle { style ->
+                for ((_, state) in toRemove) {
+                    if (style.styleSourceExists(state.sourceId)) style.removeStyleSource(state.sourceId)
+                    if (style.styleLayerExists(state.fillLayerId)) style.removeStyleLayer(state.fillLayerId)
+                    if (style.styleLayerExists(state.outlineLayerId)) style.removeStyleLayer(state.outlineLayerId)
+                    if (style.styleLayerExists(state.pointLayerId)) style.removeStyleLayer(state.pointLayerId)
+                    state.labelLayerId?.let { if (style.styleLayerExists(it)) style.removeStyleLayer(it) }
+                }
+                layerState.clear()
+                allowedLayerTypes = null
+                val specs = layerSpecs.values.toList()
+                scope.launch {
+                    for (spec in specs) {
+                        addLayerInternal(map, spec)
+                    }
+                    withContext(Dispatchers.Main) {
+                        Log.d(TAG, "refreshLayers: re-added ${specs.size} layers")
+                        onComplete?.invoke()
+                    }
+                }
+            }
+        }
     }
 
     fun setLayerVisibility(layerName: String, visible: Boolean) {
@@ -587,11 +663,9 @@ class MapboxMapHolder(
         // Skip re-apply when called with cached list (batchId=null) and we already have this exact list:
         // otherwise the queued getStyle callback can run after a fresher update and overwrite correct icons (e.g. me with index 11 → index 0).
         if (batchId == null && lastTeamMembers === members) {
-            Log.d(MAP_NEEDLE_DEBUG, "[MapboxMapHolder.updateTeamLayer] SKIP batchId=null same list reference (avoid overwriting fresh draw)")
             return
         }
         lastTeamMembers = members
-        Log.d(MAP_NEEDLE_DEBUG, "[MapboxMapHolder.updateTeamLayer] ENTRY list size=${members.size} batchId=$batchId (same list from MapTemplate: member.iconBitmap = gop.getIcon() from that run)")
         val map = mapboxMap
         if (map == null) {
             Log.w(TAG, "updateTeamLayer: mapboxMap is null, cannot add team layer (will retry when style loads)")
@@ -601,31 +675,22 @@ class MapboxMapHolder(
             if (style.styleLayerExists(TEAM_LAYER_ID)) style.removeStyleLayer(TEAM_LAYER_ID)
             if (style.styleSourceExists(TEAM_SOURCE_ID)) style.removeStyleSource(TEAM_SOURCE_ID)
             if (members.isEmpty()) {
-                Log.d(TAG, "Team layer cleared (no members)")
                 return@getStyle
             }
             // Draw "me" (current user) last so their icon is always on top when multiple markers overlap (e.g. duplicate or same location)
             val sortedMembers = members.sortedBy { if (it.name?.contains("(me)") == true) 1 else 0 }
-            val meLastIndex = sortedMembers.indexOfFirst { it.name?.contains("(me)") == true }.takeIf { it >= 0 }
-            Log.d(MAP_NEEDLE_DEBUG, "[MapboxMapHolder.updateTeamLayer] sorted so (me) is last: (me) at sortedIndex=$meLastIndex of ${sortedMembers.size}")
             val features = mutableListOf<Feature>()
             // Use stable icon id per member (team_<id>) so list order changes (e.g. Set iteration) don't overwrite one member's needle with another's
             for ((index, member) in sortedMembers.withIndex()) {
                 val safeId = member.id.replace(Regex("[^a-zA-Z0-9_-]"), "_")
                 val iconId = "team_$safeId"
                 val bitmap = member.iconBitmap
-                // Remove existing image so updated needle (e.g. after user change in settings) is shown
                 if (style.hasStyleImage(iconId)) style.removeStyleImage(iconId)
-                val drawableSource: String
                 if (bitmap != null) {
                     style.addImage(iconId, bitmap, false)
-                    drawableSource = "member.iconBitmap (= gop.getIcon() from MapTemplate)"
                 } else {
-                    // Use default needle icon so the map always shows a needle shape (not person_active)
-                    var fallbackResName = "ic_needle_symbol"
                     val drawable = ContextCompat.getDrawable(mapView.context, R.drawable.ic_needle_symbol)
-                        ?: ContextCompat.getDrawable(mapView.context, R.drawable.person_away).also { fallbackResName = "person_away" }
-                    drawableSource = "fallback $fallbackResName"
+                        ?: ContextCompat.getDrawable(mapView.context, R.drawable.person_away)
                     val fallback = drawable?.let { Tools.drawableToBitmap(it) }
                     if (fallback != null) {
                         style.addImage(iconId, fallback, false)
@@ -633,11 +698,7 @@ class MapboxMapHolder(
                         Log.w(TAG, "Could not create fallback bitmap for team member $index (${member.name})")
                     }
                 }
-                Log.d(MAP_NEEDLE_DEBUG, "[MapboxMapHolder.updateTeamLayer] index=$index name=${member.name} iconBitmap=${if (bitmap != null) "non-null" else "null"} drawableSource=$drawableSource (same bitmap as MapTemplate put in from gop.getIcon())")
                 val point = Point.fromLngLat(member.lng, member.lat)
-                if (index < 3) {
-                    Log.d(TAG, "Team feature $index: ${member.name} at lat=${member.lat}, lng=${member.lng}")
-                }
                 val props = JsonObject().apply {
                     addProperty("icon", iconId)
                     addProperty("name", member.name ?: "")
@@ -657,7 +718,6 @@ class MapboxMapHolder(
                 }
             )
             style.getLayer(TEAM_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
-            Log.d(TAG, "Team layer updated with ${members.size} members (layer $TEAM_LAYER_ID visible=$teamLayerVisible)")
         }
     }
 }

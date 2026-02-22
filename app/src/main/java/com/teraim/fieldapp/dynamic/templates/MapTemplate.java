@@ -7,7 +7,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
@@ -40,6 +43,8 @@ import com.teraim.fieldapp.utils.Tools;
 import com.teraim.fieldapp.viewmodels.TeamStatusViewModel;
 
 import androidx.core.content.ContextCompat;
+
+import kotlin.Unit;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
@@ -108,6 +113,7 @@ public class MapTemplate extends Executor {
 			my_root = view.findViewById(R.id.myRoot);
 			fabLayerToggle = view.findViewById(R.id.fab_layer_toggle);
 			fabLayerToggle.setVisibility(View.GONE);
+			setupRefreshButton(view);
 
 			String gisObjectsBaseUrl = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.SERVER_URL)
 					+ GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)
@@ -189,8 +195,6 @@ public class MapTemplate extends Executor {
 
 	private static boolean geomatteSelfTestRun;
 
-	private static final String MAP_NEEDLE_DEBUG = "MapNeedle";
-
 	/** Converts team member GisPointObjects to map points and updates the team layer. Called from observer and onViewCreated. */
 	private void applyTeamMembersToMap(Set<GisPointObject> teamMembers) {
 		if (teamMembers == null || mapboxMapHolder == null) return;
@@ -199,7 +203,6 @@ public class MapTemplate extends Executor {
 		for (GisPointObject gop : teamMembers) {
 			com.teraim.fieldapp.dynamic.types.Location loc = gop.getLocation();
 			if (loc == null) {
-				Log.d(TAG, "Team member " + index + " skipped: loc null");
 				continue;
 			}
 			LatLong latLong;
@@ -209,41 +212,30 @@ public class MapTemplate extends Executor {
 				SweLocation swe = (SweLocation) loc;
 				latLong = Geomatte.convertToLatLong(swe.getY(), swe.getX());
 			} else {
-				Log.d(TAG, "Team member " + index + " skipped: loc type " + loc.getClass().getSimpleName());
 				continue;
 			}
 			// Use name as unique key for map point id (one latest position per user name)
 			String id = gop.getKeyHash() != null && gop.getKeyHash().containsKey("author")
 					? gop.getKeyHash().get("author") : (gop.getKeyHash() != null && gop.getKeyHash().containsKey("uuid") ? gop.getKeyHash().get("uuid") : "team_" + index);
 			android.graphics.Bitmap iconBitmap = gop.getIcon();
-			String iconSource = "gop.getIcon()";
-			// Always resolve a non-null bitmap so the team layer shows the correct needle
 			if (iconBitmap == null) {
 				android.content.Context ctx = (view != null) ? view.getContext() : mapboxMapHolder.getWidget().getContext();
 				android.graphics.drawable.Drawable d = ContextCompat.getDrawable(ctx, R.drawable.ic_needle_symbol);
 				if (d != null) iconBitmap = Tools.drawableToBitmap(d);
-				iconSource = "fallback ic_needle_symbol";
 			}
-			Log.d(MAP_NEEDLE_DEBUG, "[MapTemplate.applyTeamMembersToMap] index=" + index + " name=" + gop.getLabel() + " iconBitmap=" + (iconBitmap != null ? "non-null" : "null") + " iconSource=" + iconSource + " (this bitmap is stored in TeamMemberMapPoint and passed to updateTeamLayer)");
 			points.add(new TeamMemberMapPoint(id, latLong.getX(), latLong.getY(),
 					gop.getLabel(), iconBitmap));
-			if (index < 3) {
-				Log.d(TAG, "Team point " + index + " " + gop.getLabel() + " WGS84(" + latLong.getX() + "," + latLong.getY() + ")");
-			}
 			index++;
 		}
-		Log.d(TAG, "Team observer: " + teamMembers.size() + " members -> " + points.size() + " points");
 		int meCount = 0;
 		for (TeamMemberMapPoint p : points) {
 			if (p.name != null && p.name.contains("(me)")) meCount++;
 		}
 		if (meCount != 1) {
-			Log.w(MAP_NEEDLE_DEBUG, "[MapTemplate] DUPLICATE_ME? points with (me) in name: " + meCount + " (expected 1)");
+			Log.w(TAG, "DUPLICATE_ME? points with (me) in name: " + meCount + " (expected 1)");
 		}
 		lastTeamMemberPoints = points;
-		// Same list (points) is passed below; MapboxMapHolder will use member.iconBitmap which we just set from gop.getIcon()
 		String batchId = points.size() + "_" + (points.isEmpty() ? "empty" : points.get(0).name);
-		Log.d(MAP_NEEDLE_DEBUG, "[MapTemplate] calling updateTeamLayer with list size=" + points.size() + " batchId=" + batchId);
 		mapboxMapHolder.updateTeamLayer(points, batchId);
 	}
 
@@ -382,6 +374,46 @@ public class MapTemplate extends Executor {
 		fabLayerToggle.setOnClickListener(v -> showLayerSelectionDialog());
 	}
 
+	private void setupRefreshButton(View rootView) {
+		ImageButton refreshB = rootView.findViewById(R.id.menuR);
+		if (refreshB == null) return;
+		if (teamStatusViewModel == null) {
+			teamStatusViewModel = new ViewModelProvider(requireActivity()).get(TeamStatusViewModel.class);
+		}
+		Animation wiggleAnimation = AnimationUtils.loadAnimation(requireContext(), R.anim.refresh_wiggle);
+		// Trigger server status check when map is shown (so refresh button reflects current state)
+		teamStatusViewModel.sendAndReceiveTeamPositions();
+		teamStatusViewModel.serverPendingUpdate.observe(getViewLifecycleOwner(), hasNewVersion -> {
+			if (hasNewVersion != null && hasNewVersion) {
+				refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
+				refreshB.startAnimation(wiggleAnimation);
+			} else {
+				refreshB.setImageResource(R.drawable.gis_refresh_button);
+				refreshB.clearAnimation();
+			}
+		});
+		refreshB.setOnClickListener(v -> {
+			Log.d(TAG, "Refresh map layers clicked");
+			refreshB.clearAnimation();
+			refreshB.setImageResource(R.drawable.refresh_selector);
+			refreshB.setClickable(false);
+			if (mapboxMapHolder != null) {
+				mapboxMapHolder.refreshLayers(() -> {
+					if (getActivity() != null) {
+						refreshB.setClickable(true);
+						if (teamStatusViewModel != null) {
+							teamStatusViewModel.acknowledgeConfigUpdate();
+						}
+						Log.d(TAG, "Map layers refreshed");
+					}
+					return Unit.INSTANCE;
+				});
+			} else {
+				refreshB.setClickable(true);
+			}
+		});
+	}
+
 	private void showLayerSelectionDialog() {
 		if (mapboxMapHolder == null || getContext() == null) return;
 		List<String> layerNames = mapboxMapHolder.getLayerNames();
@@ -465,6 +497,10 @@ public class MapTemplate extends Executor {
 		if (teamUpdateRunnable != null) {
 			teamUpdateHandler.removeCallbacks(teamUpdateRunnable);
 			teamUpdateRunnable = null;
+		}
+		if (view != null) {
+			View refreshB = view.findViewById(R.id.menuR);
+			if (refreshB != null) refreshB.clearAnimation();
 		}
 		super.onDestroyView();
 		if (mapView != null) {

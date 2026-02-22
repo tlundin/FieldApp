@@ -212,8 +212,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         });
         teamHandler = new Handler(Looper.getMainLooper());
 
-
-
         brr = new BroadcastReceiver() {
             private static final long MIN_REDRAW_DELAY = 5000;
 
@@ -237,7 +235,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             fetchTeamUpdatesRunnable = new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.d(TAG, "Polling for team updates...");
                                     // Trigger the network calls in the ViewModel
                                     teamStatusViewModel.sendAndReceiveTeamPositions();
                                     // Schedule the next execution

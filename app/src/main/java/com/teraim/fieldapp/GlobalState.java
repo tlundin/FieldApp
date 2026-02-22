@@ -699,6 +699,20 @@ public class GlobalState {
                 break;
         }
     }
+
+    public void unregisterListener(TrackerListener.Type type) {
+        switch (type) {
+            case MAP:
+                map = null;
+                break;
+            case MENU:
+                menu = null;
+                break;
+            case USER:
+                user = null;
+                break;
+        }
+    }
     int oHash = -1;
     public void updateCurrentPosition(TrackerListener.GPS_State newState, int hash) {
         //if a disable arrives from a previous old object, discard it.

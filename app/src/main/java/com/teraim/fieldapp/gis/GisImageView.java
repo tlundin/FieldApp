@@ -273,8 +273,6 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			teamMembersObserver = new Observer<Set<GisPointObject>>() {
 				@Override
 				public void onChanged(Set<GisPointObject> teamMembers) {
-					Log.d(TAG, "Team member GisObjects updated. Count: " + teamMembers.size());
-
 					if (myMap != null) {
 						GisLayer teamLayer = null;
 						for (GisLayer layer : myMap.getLayers()) {
