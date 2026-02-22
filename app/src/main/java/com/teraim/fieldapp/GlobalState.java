@@ -17,6 +17,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
+import com.teraim.fieldapp.dynamic.types.LatLong;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
@@ -224,27 +225,16 @@ public class GlobalState {
                 // 5. Get the nested "position" JSONObject
                 JSONObject positionObject = userObject.getJSONObject("position");
 
-                // 6. Extract elements from the "position" object
-                double easting = positionObject.getDouble("easting");
-                double northing = positionObject.getDouble("northing");
+                // 6. Extract elements from the "position" object (WGS84 lat/long)
+                double lat = positionObject.getDouble("lat");
+                double lng = positionObject.getDouble("long");
 
-                // --- Now you have all the variables ---
-/*
-                Log.d(TAG,"--- User " + (i + 1) + " ---");
-                Log.d(TAG,"UUID: " + uuid);
-                Log.d(TAG,"Name: " + name);
-                Log.d(TAG,"Timestamp (ms): " + timestampMillis);
-                Log.d(TAG,"Position:");
-                Log.d(TAG,"  Easting: " + easting);
-                Log.d(TAG,"  Northing: " + northing);
-                Log.d(TAG,"--------------------");
-*/
                 if (name.equals(globalPh.get(PersistenceHelper.USER_ID_KEY))) {
                     //Log.d(TAG,"skip own position");
                     continue;
                 }
 
-                teamPositions.put(name,new TeamPosition(name, uuid, timestampMillis, easting, northing));
+                teamPositions.put(name, new TeamPosition(name, uuid, timestampMillis, lat, lng));
 
             } // End of loop
         } catch (JSONException e) {
@@ -313,15 +303,15 @@ public class GlobalState {
         private String name;
         private String uuid;
         private long timestampMillis;
-        private double easting;
-        private double northing;
+        private double lat;
+        private double lng;
 
-        public TeamPosition(String name, String uuid, long timestampMillis, double easting, double northing) {
+        public TeamPosition(String name, String uuid, long timestampMillis, double lat, double lng) {
             this.name = name;
             this.uuid = uuid;
             this.timestampMillis = timestampMillis;
-            this.easting = easting;
-            this.northing = northing;
+            this.lat = lat;
+            this.lng = lng;
         }
 
         public long timestamp() {
@@ -329,7 +319,7 @@ public class GlobalState {
         }
 
         public Location getPosition() {
-            return new SweLocation(easting,northing);
+            return new LatLong(lat, lng);
         }
 
         public String getUuid() {

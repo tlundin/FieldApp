@@ -361,22 +361,28 @@ public class StartupFragment extends Executor {
 
     private void initialize() {
         loadAllModules = true;
-        File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
-        File primaryExternalStorage = externalStorageVolumes[0];
 
-        // Create required application folders
-        new File(primaryExternalStorage.getAbsolutePath() + "/pics/").mkdirs();
-        new File(primaryExternalStorage.getAbsolutePath() + "/old_pics/").mkdirs();
-        new File(primaryExternalStorage.getAbsolutePath() + "/export/").mkdirs();
-        new File(requireContext().getFilesDir() + "/" + globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT) + "/cache/").mkdirs();
-
-        // Set default global preferences
+        // Set default global preferences first so cache path uses correct bundle name
         globalPh.put(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
         globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
         globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
         globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
         globalPh.put(PersistenceHelper.SERVER_URL, Constants.DEFAULT_SERVER_URI);
         globalPh.put(PersistenceHelper.EXPORT_SERVER_URL, Constants.DEFAULT_EXPORT_SERVER);
+
+        // Create required application folders (use getFilesDir() if external storage unavailable, e.g. some emulators)
+        File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
+        File primaryStorage = (externalStorageVolumes != null && externalStorageVolumes.length > 0 && externalStorageVolumes[0] != null)
+                ? externalStorageVolumes[0]
+                : requireContext().getFilesDir();
+        if (primaryStorage != null) {
+            new File(primaryStorage.getAbsolutePath() + "/pics/").mkdirs();
+            new File(primaryStorage.getAbsolutePath() + "/old_pics/").mkdirs();
+            new File(primaryStorage.getAbsolutePath() + "/export/").mkdirs();
+        }
+        String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
+        File cacheDir = new File(requireContext().getFilesDir(), bundleName.toLowerCase(Locale.ROOT) + "/cache/");
+        cacheDir.mkdirs();
 
         // Mark initialization as complete
         globalPh.put(PersistenceHelper.FIRST_TIME_KEY, "Initialized");

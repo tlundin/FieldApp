@@ -34,6 +34,7 @@ import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.dynamic.blocks.AddEntryToFieldListBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisFilter;
+import com.teraim.fieldapp.dynamic.blocks.AddGisMapViewBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddGisLayerBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddGisPointObjects;
 import com.teraim.fieldapp.dynamic.blocks.AddSumOrCountBlock;
@@ -474,6 +475,15 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			if (!wfStack.isEmpty())
 				wf = wfStack.get(0);
 			wfStack=null;
+		}
+		// If wf not set (e.g. StartupFragment before workflows loaded), resolve via getFlow()
+		if (wf == null) {
+			wf = getFlow();
+		}
+		if (wf == null) {
+			Log.e(TAG, "run(): workflow is null, cannot execute. Check that workflows are loaded (e.g. 'Main').");
+			o.addCriticalText("Workflow not found. Cannot start.");
+			return;
 		}
 		String wfLabel = wf.getLabel();
 		
@@ -1003,7 +1013,12 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					// This is still needed to prevent the loop from continuing immediately.
 					savedBlockPointer = blockP + 1;
 					return;
-				}else if (b instanceof AddGisLayerBlock) {
+				} else if (b instanceof AddGisMapViewBlock) {
+					AddGisMapViewBlock bl = (AddGisMapViewBlock) b;
+					if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
+						((com.teraim.fieldapp.dynamic.templates.MapTemplate) this).registerMapboxMapFromGisMapView(bl.getGisMapView());
+					}
+				} else if (b instanceof AddGisLayerBlock) {
 					((AddGisLayerBlock) b).create(myContext);
 
 				} else if (b instanceof AddGisPointObjects) {
@@ -1267,6 +1282,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			signal.accuracy=location.getAccuracy();
 			signal.x=myL.getX();
 			signal.y=myL.getY();
+			signal.lat=location.getLatitude();
+			signal.lng=location.getLongitude();
 			gs.updateCurrentPosition(signal,this.hashCode());
 
 		}

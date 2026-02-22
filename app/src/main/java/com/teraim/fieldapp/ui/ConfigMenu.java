@@ -175,6 +175,13 @@ public class ConfigMenu extends AppCompatActivity {
 			exp_serverPref.setSummary(exp_serverPref.getText());
 
 			appPref = findPreference(PersistenceHelper.BUNDLE_NAME);
+			// Normalize stored bundle name to lowercase (e.g. Rlogis -> rlogis) for cache/server consistency
+			String currentBundle = appPref.getText();
+			if (currentBundle != null && !currentBundle.isEmpty() && !currentBundle.equals(currentBundle.toLowerCase(Locale.ROOT))) {
+				String normalized = currentBundle.trim().toLowerCase(Locale.ROOT);
+				getPreferenceScreen().getSharedPreferences().edit().putString(PersistenceHelper.BUNDLE_NAME, normalized).apply();
+				appPref.setText(normalized);
+			}
 			appPref.setSummary(appPref.getText());
 			appPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[]{filter}));
 
@@ -329,12 +336,8 @@ public class ConfigMenu extends AppCompatActivity {
 				EditTextPreference etp = (EditTextPreference) pref;
 				if (!isEmpty(etp.getText())) {
 					if (key.equals(PersistenceHelper.BUNDLE_NAME)) {
-						Log.d(TAG, "changing bundle");
-						char[] strA = etp.getText().toCharArray();
-						if (strA.length > 0) {
-							strA[0] = Character.toUpperCase(strA[0]);
-						}
-						String bundleName = new String(strA);
+						Log.d(TAG, "changing bundle (normalizing to lowercase)");
+						String bundleName = etp.getText() != null ? etp.getText().trim().toLowerCase(Locale.ROOT) : "";
 						etp.setText(bundleName);
 						String syncGroup = bundleName + "synk" + Calendar.getInstance().get(Calendar.YEAR);
 						teamPref.setText(syncGroup);

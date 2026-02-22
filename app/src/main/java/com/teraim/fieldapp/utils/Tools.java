@@ -438,7 +438,6 @@ public class Tools {
 	public static <T> T readObjectFromFileAsJson(String fileName, Type typeOfT) {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
 			System.out.println("Reading object from file " + fileName+ " class type "+typeOfT+"");
-			String rawJsonContent = getFileContentAsString(fileName);
 			Long startTime = System.currentTimeMillis();
 			Object result = gson.fromJson(reader, typeOfT);
 //			System.out.println("DEBUG: JSON being read from file:"+rawJsonContent);

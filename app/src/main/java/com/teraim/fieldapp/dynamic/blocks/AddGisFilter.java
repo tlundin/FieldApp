@@ -68,14 +68,17 @@ public class AddGisFilter extends Block implements GisFilter {
 		this.radius=10;
 		if (polyType!=null) {
 			try {
-			this.polyType=PolyType.valueOf(polyType);
+				this.polyType=PolyType.valueOf(polyType);
 			} catch (IllegalArgumentException e) {
-				if (polyType.toUpperCase().equals("SQUARE")||polyType.toUpperCase().equals("RECT")||polyType.toUpperCase().equals("RECTANGLE"))
+				String u = polyType.toUpperCase();
+				if (u.equals("SQUARE") || u.equals("RECT") || u.equals("RECTANGLE"))
 					this.polyType=PolyType.rect;
-				else if (polyType.toUpperCase().equals("TRIANGLE"))
+				else if (u.equals("TRIANGLE"))
 					this.polyType=PolyType.triangle;
+				else if (u.equals("NEEDLE"))
+					this.polyType=PolyType.needle;
 				else {
-				o.addCriticalText("Unknown polytype: ["+polyType+"]. Will default to circle");
+					o.addCriticalText("Unknown polytype: ["+polyType+"]. Will default to circle");
 				}
 			}
 		}

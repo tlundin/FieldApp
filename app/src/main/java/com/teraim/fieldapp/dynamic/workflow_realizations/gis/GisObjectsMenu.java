@@ -510,6 +510,12 @@ public class GisObjectsMenu extends View {
 					} else if (fop.getShape()==PolyType.triangle) {
 
 						myGis.drawTriangle(canvas,r.width()/2-iconPadding*2,(int) (r.left+r.width()/2), (int)(r.top+r.height()/2), myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
+					} else if (fop.getShape()==PolyType.needle) {
+						android.graphics.Bitmap needleBmp = android.graphics.BitmapFactory.decodeResource(getContext().getResources(), R.drawable.person_active);
+						if (needleBmp != null)
+							canvas.drawBitmap(needleBmp, null, rect, null);
+						else
+							canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2, myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
 					}
 				} else {
 					//Paint tst = new Paint();

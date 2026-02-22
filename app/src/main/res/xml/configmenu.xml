@@ -21,7 +21,7 @@
         <EditTextPreference
             android:dialogMessage="@string/appDialMsg"
             android:dialogTitle="App"
-            android:inputType="textCapSentences"
+            android:inputType="text"
             android:key="bundle_name"
             android:title="@string/app_name_t" />
         <EditTextPreference

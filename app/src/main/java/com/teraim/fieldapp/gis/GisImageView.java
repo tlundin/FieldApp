@@ -19,6 +19,7 @@ import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -221,13 +222,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		teamStatusViewModel = new ViewModelProvider(getInstance().getActivity()).get(TeamStatusViewModel.class);
 	}
 
-	// New method to load the user's selected map needle
+	// New method to load the user's selected map needle (read from same SharedPreferences as settings screen).
 	private void loadUserMapNeedle() {
 		try {
-			int selectedNeedleIndex = GlobalState.getInstance().getGlobalPreferences().getI("map_needle_set");
+			int selectedNeedleIndex = 0;
+			if (getContext() != null) {
+				selectedNeedleIndex = getContext().getSharedPreferences(com.teraim.fieldapp.non_generics.Constants.GLOBAL_PREFS, android.content.Context.MODE_PRIVATE)
+						.getInt(com.teraim.fieldapp.utils.PersistenceHelper.MAP_NEEDLE_INDEX, 0);
+			}
 			Log.d(TAG, "Selected map needle index: " + selectedNeedleIndex);
-			if (selectedNeedleIndex == -1)
-				selectedNeedleIndex = 0;
 			// Retrieve the saved idex
 			// Assume `MapNeedlePreference.cropAllNeedlesFromSet` requires the original full image set resource IDs
 			// You'll need to retrieve these from R.array.map_needle_image_sets
@@ -254,6 +257,15 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		}
 	}
 
+	@Override
+	protected void onWindowVisibilityChanged(int visibility) {
+		super.onWindowVisibilityChanged(visibility);
+		if (visibility == View.VISIBLE) {
+			// Reload user needle when map becomes visible (e.g. after returning from settings)
+			loadUserMapNeedle();
+			postInvalidate();
+		}
+	}
 
 	public void setViewModelStoreOwner(@NonNull LifecycleOwner owner) {
 		// Initialize observers if not already (or ensure single registration)
@@ -1080,7 +1092,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			int top = xy[1] - drawPxHeight; // Shift up by the full height of the bitmap
 			r.set(left, top, right, bottom);
 			canvas.drawBitmap(bitmap, null, r, null);
-		} else { // Fallback to drawing a shape (circle, rect, triangle)
+		} else { // Fallback to drawing a shape (circle, rect, triangle, needle)
 			boolean hasBorder = (border_color!=null);
 			int translBw=0;
 			Paint borderPaint=null;
@@ -1102,11 +1114,28 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 				canvas.drawRect(left, top, right, bottom, createPaint(color, style, linew, isBold));
 				if (hasBorder)
 					canvas.drawRect(left-translBw, top-translBw, right+translBw, bottom+translBw, borderPaint);
-
 			} else if (type == PolyType.triangle) {
 				drawTriangle(canvas, radius, xy[0], xy[1], createPaint(color, style, linew, isBold));
 				if (hasBorder)
 					drawTriangle(canvas,radius+translBw,xy[0], xy[1], borderPaint);
+			} else if (type == PolyType.needle) {
+				Bitmap needleBmp = selectedUserNeedle != null ? selectedUserNeedle : BitmapFactory.decodeResource(getResources(), R.drawable.person_active);
+				if (needleBmp != null) {
+					final int DRAW_WIDTH_DP = 16;
+					final int DRAW_HEIGHT_DP = 24;
+					float density = getResources().getDisplayMetrics().density;
+					int drawPxWidth = (int)(DRAW_WIDTH_DP * density);
+					int drawPxHeight = (int)(DRAW_HEIGHT_DP * density);
+					int left = xy[0] - drawPxWidth / 2;
+					int right = xy[0] + drawPxWidth / 2;
+					int bottom = xy[1];
+					int top = xy[1] - drawPxHeight;
+					r = new Rect();
+					r.set(left, top, right, bottom);
+					canvas.drawBitmap(needleBmp, null, r, null);
+				} else {
+					canvas.drawCircle(xy[0], xy[1], radius, createPaint(color, style, linew, isBold));
+				}
 			}
 		}
 	}
@@ -1255,7 +1284,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			sweref = gop.getCoordinates().get(0);
 		}
 		if (sweref != null) {
-			Location wgs84 = Geomatte.convertToLatLong(sweref.getX(), sweref.getY());
+			Location wgs84 = Geomatte.convertToLatLong(sweref.getY(), sweref.getX()); // (northing, easting)
 			GlobalState.getInstance().setPendingMapCenter(wgs84.getX(), wgs84.getY());
 		}
 		String target = gop.getWorkflow();

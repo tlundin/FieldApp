@@ -14,6 +14,8 @@ public interface TrackerListener {
 		private GPS_State() {
 			x=-1;
 			y=-1;
+			lat=-1;
+			lng=-1;
 		}
 
 		public enum State {
@@ -27,8 +29,14 @@ public interface TrackerListener {
 
 
 		public float accuracy;
+		/** SWEREF99 easting (or -1 if not set). */
 		public double x;
+		/** SWEREF99 northing (or -1 if not set). */
 		public double y;
+		/** WGS84 latitude (or -1 if not set). */
+		public double lat;
+		/** WGS84 longitude (or -1 if not set). */
+		public double lng;
 		public State state;
 		public long time;
 	}

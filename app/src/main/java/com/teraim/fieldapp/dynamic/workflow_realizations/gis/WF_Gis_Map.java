@@ -478,7 +478,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 if (gop!=null) {
                     Location sweref = gop.getLocation();
                     if (sweref != null) {
-                        Location latlong = Geomatte.convertToLatLong(sweref.getX(), sweref.getY());
+                        Location latlong = Geomatte.convertToLatLong(sweref.getY(), sweref.getX()); // (northing, easting)
                         Log.d(TAG, "Nav to: " + sweref.getX() + "," + sweref.getY() + " LAT: " + latlong.getX() + " LONG: " + latlong.getY());
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + latlong.getX() + "," + latlong.getY()));
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -133,12 +133,14 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			try {
 				this.polyType=PolyType.valueOf(polyType);
 			} catch (IllegalArgumentException e) {
-				if (polyType.toUpperCase().equals("SQUARE")||polyType.toUpperCase().equals("RECT")||polyType.toUpperCase().equals("RECTANGLE"))
+				String u = polyType.toUpperCase();
+				if (u.equals("SQUARE") || u.equals("RECT") || u.equals("RECTANGLE"))
 					this.polyType=PolyType.rect;
-				else if (polyType.toUpperCase().equals("TRIANGLE"))
+				else if (u.equals("TRIANGLE"))
 					this.polyType=PolyType.triangle;
+				else if (u.equals("NEEDLE"))
+					this.polyType=PolyType.needle;
 				else {
-					
 					o.addCriticalText("Unknown polytype: ["+polyType+"]. Will default to circle");
 				}
 			}
@@ -163,11 +165,15 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	//Refresh: only add new objects created after last check.
 
 	public void create(WF_Context myContext, boolean refresh) {
-		Log.d(TAG,"Creating GisPointObjects - myContext is "+myContext.toString()+" refresh is "+refresh+ "myGis is "+myContext.getCurrentGis().toString());
+		if (myContext == null) {
+			Log.e(TAG, "create: myContext is null, skipping");
+			return;
+		}
+		WF_Gis_Map gisB = myContext.getCurrentGis();
+		Log.d(TAG,"Creating GisPointObjects - myContext is "+String.valueOf(myContext)+" refresh is "+refresh+ " myGis is "+String.valueOf(gisB));
 		setDefaultBitmaps(myContext);
 		o = LogRepository.getInstance();
 		GlobalState gs = GlobalState.getInstance();
-		WF_Gis_Map gisB = myContext.getCurrentGis();
 		if (gisB==null) {
 			Log.e("vortex","gisB null!!");
 			return;

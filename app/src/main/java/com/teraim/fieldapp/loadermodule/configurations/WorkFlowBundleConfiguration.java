@@ -10,6 +10,7 @@ import com.teraim.fieldapp.dynamic.blocks.AddEntryToFieldListBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisLayerBlock;
+import com.teraim.fieldapp.dynamic.blocks.AddGisMapViewBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddGisPointObjects;
 import com.teraim.fieldapp.dynamic.blocks.AddSumOrCountBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddVariableToEntryFieldBlock;
@@ -48,6 +49,7 @@ import com.teraim.fieldapp.dynamic.blocks.RuleBlock;
 import com.teraim.fieldapp.dynamic.blocks.SetValueBlock;
 import com.teraim.fieldapp.dynamic.blocks.StartBlock;
 import com.teraim.fieldapp.dynamic.blocks.StartCameraBlock;
+import com.teraim.fieldapp.dynamic.types.GisMapView;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Not_ClickableField_SumAndCountOfVariables;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
@@ -325,6 +327,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 						break;
 					case "block_add_gis_layer":
 						blocks.add(readBlockAddGisLayer(parser));
+						break;
+					case "block_add_gis_map_view":
+						blocks.add(readBlockAddGisMapView(parser));
 						break;
 					case "block_add_gis_point_objects":
 						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Point));
@@ -720,6 +725,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//o.addText("Parsing block: block_add_gis_layer...");
 		String id=null,nName=null,target=null,label=null;
 		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
+		String fillColor=null,lineColor=null,polyType=null;
+		Float fillOpacity=null,lineWidth=null,circleRadius=null;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d(TAG,"In block block_add_gis_layer!!");
@@ -744,6 +751,18 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				hasWidget = "true".equals(readText("has_widget", parser));
 			} else if (name.equalsIgnoreCase("is_bold")) {
 				isBold = "true".equals(readText("is_bold", parser));
+			} else if (name.equals("fill_color")) {
+				fillColor = readText("fill_color", parser);
+			} else if (name.equals("fill_opacity")) {
+				fillOpacity = parseFloatOrNull(readText("fill_opacity", parser));
+			} else if (name.equals("line_color")) {
+				lineColor = readText("line_color", parser);
+			} else if (name.equals("line_width")) {
+				lineWidth = parseFloatOrNull(readText("line_width", parser));
+			} else if (name.equals("circle_radius")) {
+				circleRadius = parseFloatOrNull(readText("circle_radius", parser));
+			} else if (name.equals("poly_type")) {
+				polyType = readText("poly_type", parser);
 			}
 			else {
 				Log.e("vortex","Skipped "+name);
@@ -752,8 +771,61 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
-		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold);
+		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold,
+				fillColor,fillOpacity,lineColor,lineWidth,circleRadius,polyType);
 
+	}
+
+	private Block readBlockAddGisMapView(XmlPullParser parser) throws IOException, XmlPullParserException {
+		String id = null, nName = null, containerName = null, mapType = null, centerStr = null;
+		Double zoom = null, pitch = null, bearing = null;
+		boolean teamVisible = false;
+
+		parser.require(XmlPullParser.START_TAG, null, "block_add_gis_map_view");
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG) {
+				continue;
+			}
+			String name = parser.getName();
+			if (name.equals("block_ID")) {
+				id = readText("block_ID", parser);
+			} else if (name.equals("name")) {
+				nName = readText("name", parser);
+			} else if (name.equals("container_name")) {
+				containerName = readText("container_name", parser);
+			} else if (name.equals("map_type")) {
+				mapType = readText("map_type", parser);
+			} else if (name.equals("center")) {
+				centerStr = readText("center", parser);
+			} else if (name.equals("zoom")) {
+				zoom = parseDoubleOrNull(readText("zoom", parser));
+			} else if (name.equals("pitch")) {
+				pitch = parseDoubleOrNull(readText("pitch", parser));
+			} else if (name.equals("bearing")) {
+				bearing = parseDoubleOrNull(readText("bearing", parser));
+			} else if (name.equals("team_visible")) {
+				String raw = readText("team_visible", parser);
+				teamVisible = raw != null && "true".equalsIgnoreCase(raw.trim());
+			} else {
+				Log.e("vortex", "Skipped " + name);
+				skip(name, parser);
+			}
+		}
+
+		checkForNull("block_ID", id, "name", nName, "container_name", containerName, "map_type", mapType, "center", centerStr);
+		double centerLng, centerLat;
+		String[] parts = centerStr.trim().split("\\s*,\\s*");
+		if (parts.length != 2) {
+			throw new XmlPullParserException("center must be [lng, lat], e.g. 15.0,62.0");
+		}
+		centerLng = Double.parseDouble(parts[0].trim());
+		centerLat = Double.parseDouble(parts[1].trim());
+		double zoomVal = zoom != null ? zoom : 4.0;
+		double pitchVal = pitch != null ? pitch : 0.0;
+		double bearingVal = bearing != null ? bearing : 0.0;
+
+		GisMapView gisMapView = new GisMapView(id, nName, containerName, mapType, centerLng, centerLat, zoomVal, pitchVal, bearingVal, teamVisible);
+		return new AddGisMapViewBlock(id, gisMapView);
 	}
 
 	private Block readBlockAddGoogleGis(XmlPullParser parser) throws IOException,XmlPullParserException {
@@ -2479,6 +2551,26 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				o.addYellowText("Parameter "+lab+" was NULL");
 
 			}
+		}
+	}
+
+	/** Returns null if s is null/empty or not a valid float. */
+	private static Float parseFloatOrNull(String s) {
+		if (s == null || s.trim().isEmpty()) return null;
+		try {
+			return Float.parseFloat(s.trim());
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/** Returns null if s is null/empty or not a valid double. */
+	private static Double parseDoubleOrNull(String s) {
+		if (s == null || s.trim().isEmpty()) return null;
+		try {
+			return Double.parseDouble(s.trim());
+		} catch (NumberFormatException e) {
+			return null;
 		}
 	}
 

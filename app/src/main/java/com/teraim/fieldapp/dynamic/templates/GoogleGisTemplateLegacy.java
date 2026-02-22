@@ -189,7 +189,7 @@ public class GoogleGisTemplateLegacy extends Executor implements OnMapReadyCallb
             try {
                 double sweX = Double.parseDouble(myX.getValue());
                 double sweY = Double.parseDouble(myY.getValue());
-                LatLng userLocation = Geomatte.convertToLatLong(sweX,sweY).from();
+                LatLng userLocation = Geomatte.convertToLatLong(sweY, sweX).from(); // (northing, easting)
                 float zoomLevel = 8.0f; // Approx. 50km each direction (100km diameter)
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation, zoomLevel));
                 Log.d(TAG, "Initial camera move to user location: " + userLocation.latitude + ", " + userLocation.longitude + " with zoom: " + zoomLevel);
