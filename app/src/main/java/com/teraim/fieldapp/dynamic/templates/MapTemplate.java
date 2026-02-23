@@ -4,13 +4,14 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.appcompat.app.AlertDialog;
@@ -64,6 +65,10 @@ public class MapTemplate extends Executor {
 	private MapboxMap mapboxMap;
 	private MapboxMapHolder mapboxMapHolder;
 	private FloatingActionButton fabLayerToggle;
+	private FloatingActionButton fabTools;
+	private FloatingActionButton fabRefresh;
+	private View fabMenuContainer;
+	private boolean fabMenuExpanded = false;
 	private boolean mapReady = false;
 	/** When set by AddGisMapViewBlock, used for initial camera and style when the map loads. */
 	private GisMapView pendingGisMapViewConfig;
@@ -73,6 +78,8 @@ public class MapTemplate extends Executor {
 	private TeamStatusViewModel teamStatusViewModel;
 	/** Latest team member points for re-apply when map style loads (observer may run before style is ready). */
 	private List<TeamMemberMapPoint> lastTeamMemberPoints;
+	/** True = satellite, false = standard streets. */
+	private boolean mapTypeSatellite = true;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -113,13 +120,24 @@ public class MapTemplate extends Executor {
 			mapView = view.findViewById(R.id.mapView);
 			my_root = view.findViewById(R.id.myRoot);
 			fabLayerToggle = view.findViewById(R.id.fab_layer_toggle);
+			fabTools = view.findViewById(R.id.fab_tools);
+			fabRefresh = view.findViewById(R.id.fab_refresh);
+			fabMenuContainer = view.findViewById(R.id.fab_menu_container);
 			fabLayerToggle.setVisibility(View.GONE);
+			setupFabMenu(view);
 			setupRefreshButton(view);
+			setupZoomButtons(view);
+			setupCenterOnUserButton(view);
+			setupMapTypeToggleButton(view);
 
 			String gisObjectsBaseUrl = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.SERVER_URL)
 					+ GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)
 					+ "/gis_objects/";
 			mapboxMapHolder = new MapboxMapHolder(mapView, gisObjectsBaseUrl);
+			ViewGroup trakterContainer = view.findViewById(R.id.trakter_card_container);
+			if (trakterContainer != null) {
+				mapboxMapHolder.setTrakterCardContainer(trakterContainer);
+			}
 			if (wf != null && wf.getMyPageDefineBlock() != null) {
 				String gisMode = wf.getMyPageDefineBlock().getGisMode();
 				mapboxMapHolder.setGisMode(gisMode);
@@ -296,6 +314,9 @@ public class MapTemplate extends Executor {
 			String styleUri = Style.SATELLITE_STREETS;
 			if (pendingGisMapViewConfig != null && "standard".equalsIgnoreCase(pendingGisMapViewConfig.getMapType())) {
 				styleUri = Style.MAPBOX_STREETS;
+				mapTypeSatellite = false;
+			} else {
+				mapTypeSatellite = true;
 			}
 			Log.d(TAG, "Loading Mapbox style: " + styleUri);
 			mapboxMap.loadStyleUri(styleUri, new com.mapbox.maps.Style.OnStyleLoaded() {
@@ -396,14 +417,159 @@ public class MapTemplate extends Executor {
 		return mapboxMapHolder;
 	}
 
+	private void setupFabMenu(View rootView) {
+		if (fabTools == null || fabMenuContainer == null) return;
+		View[] subFabs = {
+			rootView.findViewById(R.id.fab_zoom_plus),
+			rootView.findViewById(R.id.fab_zoom_minus),
+			rootView.findViewById(R.id.fab_refresh),
+			rootView.findViewById(R.id.fab_layer_toggle),
+			rootView.findViewById(R.id.fab_center_on_user),
+			rootView.findViewById(R.id.fab_map_type_toggle)
+		};
+		fabTools.setOnClickListener(v -> {
+			fabMenuExpanded = !fabMenuExpanded;
+			animateFabMenu(subFabs, fabMenuExpanded);
+		});
+	}
+
+	private void animateFabMenu(View[] subFabs, boolean expand) {
+		int duration = 200;
+		for (int i = 0; i < subFabs.length; i++) {
+			View f = subFabs[i];
+			if (f == null) continue;
+			if (expand) {
+				f.setVisibility(View.VISIBLE);
+				f.setAlpha(0f);
+				f.setTranslationY(16f);
+				AnimatorSet set = new AnimatorSet();
+				set.playTogether(
+					ObjectAnimator.ofFloat(f, View.ALPHA, 1f),
+					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 0f)
+				);
+				set.setDuration(duration);
+				set.setStartDelay(i * 40);
+				set.start();
+			} else {
+				AnimatorSet set = new AnimatorSet();
+				set.playTogether(
+					ObjectAnimator.ofFloat(f, View.ALPHA, 0f),
+					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 16f)
+				);
+				set.setDuration(duration);
+				set.setStartDelay((subFabs.length - 1 - i) * 40);
+				set.addListener(new android.animation.AnimatorListenerAdapter() {
+					@Override
+					public void onAnimationEnd(android.animation.Animator animation) {
+						f.setVisibility(View.GONE);
+						f.setAlpha(1f);
+						f.setTranslationY(0f);
+					}
+				});
+				set.start();
+			}
+		}
+	}
+
+	private void setupCenterOnUserButton(View rootView) {
+		FloatingActionButton centerBtn = rootView.findViewById(R.id.fab_center_on_user);
+		if (centerBtn == null) return;
+		centerBtn.setOnClickListener(v -> centerMapOnUser());
+	}
+
+	private void setupMapTypeToggleButton(View rootView) {
+		FloatingActionButton toggleBtn = rootView.findViewById(R.id.fab_map_type_toggle);
+		if (toggleBtn == null) return;
+		toggleBtn.setOnClickListener(v -> toggleMapType());
+	}
+
+	private void toggleMapType() {
+		if (mapboxMap == null || !mapReady) return;
+		mapTypeSatellite = !mapTypeSatellite;
+		String styleUri = mapTypeSatellite ? Style.SATELLITE_STREETS : Style.MAPBOX_STREETS;
+		Log.d(TAG, "Toggling map type to: " + (mapTypeSatellite ? "satellite" : "standard"));
+		// Preserve current camera before style change
+		com.mapbox.maps.CameraState state = mapboxMap.getCameraState();
+		Point center = state.getCenter();
+		double zoom = state.getZoom();
+		mapboxMap.loadStyleUri(styleUri, new com.mapbox.maps.Style.OnStyleLoaded() {
+			@Override
+			public void onStyleLoaded(com.mapbox.maps.Style style) {
+				if (mapboxMapHolder != null) {
+					mapboxMapHolder.setMapboxMap(mapboxMap);
+					if (pendingGisMapViewConfig != null) {
+						mapboxMapHolder.setOnCenterClickWorkflow(pendingGisMapViewConfig.getOnCenterClick());
+					}
+					if (lastTeamMemberPoints != null && !lastTeamMemberPoints.isEmpty()) {
+						mapboxMapHolder.updateTeamLayer(lastTeamMemberPoints, null);
+					}
+					mapboxMapHolder.refreshLayers(null);
+				}
+				mapboxMap.setCamera(new CameraOptions.Builder().center(center).zoom(zoom).build());
+				Log.d(TAG, "Map type toggled, camera restored");
+			}
+		});
+	}
+
+	private void centerMapOnUser() {
+		if (mapboxMap == null) return;
+		double lat = Double.NaN, lng = Double.NaN;
+		// Try lastTeamMemberPoints first (contains "me" with "(me)" in name)
+		if (lastTeamMemberPoints != null) {
+			for (TeamMemberMapPoint p : lastTeamMemberPoints) {
+				if (p.name != null && p.name.contains("(me)")) {
+					lat = p.lat;
+					lng = p.lng;
+					break;
+				}
+			}
+		}
+		// Fallback: get from teamStatusViewModel
+		if (Double.isNaN(lat) && teamStatusViewModel != null) {
+			Set<GisPointObject> team = teamStatusViewModel.teamMemberGisObjects.getValue();
+			if (team != null) {
+				for (GisPointObject g : team) {
+					if (g.isUser()) {
+						com.teraim.fieldapp.dynamic.types.Location loc = g.getLocation();
+						if (loc instanceof LatLong) {
+							LatLong ll = (LatLong) loc;
+							lat = ll.getX();
+							lng = ll.getY();
+							break;
+						} else if (loc instanceof SweLocation) {
+							LatLong ll = Geomatte.convertToLatLong(((SweLocation) loc).getY(), ((SweLocation) loc).getX());
+							lat = ll.getX();
+							lng = ll.getY();
+							break;
+						}
+					}
+				}
+			}
+		}
+		if (Double.isNaN(lat) || Double.isNaN(lng)) {
+			Log.w(TAG, "Center on user: no user position available");
+			if (getContext() != null) {
+				new AlertDialog.Builder(requireContext())
+						.setMessage(R.string.no_user_position_available)
+						.setPositiveButton(android.R.string.ok, null)
+						.show();
+			}
+			return;
+		}
+		com.mapbox.maps.CameraState state = mapboxMap.getCameraState();
+		double zoom = state.getZoom();
+		Point center = Point.fromLngLat(lng, lat);
+		mapboxMap.setCamera(new CameraOptions.Builder().center(center).zoom(zoom).build());
+		Log.d(TAG, "Centered map on user: lat=" + lat + ", lng=" + lng);
+	}
+
 	private void setupLayerToggleFab() {
 		if (fabLayerToggle == null || mapboxMapHolder == null) return;
-		fabLayerToggle.setVisibility(View.VISIBLE);
 		fabLayerToggle.setOnClickListener(v -> showLayerSelectionDialog());
 	}
 
 	private void setupRefreshButton(View rootView) {
-		ImageButton refreshB = rootView.findViewById(R.id.menuR);
+		FloatingActionButton refreshB = rootView.findViewById(R.id.fab_refresh);
 		if (refreshB == null) return;
 		if (teamStatusViewModel == null) {
 			teamStatusViewModel = new ViewModelProvider(requireActivity()).get(TeamStatusViewModel.class);
@@ -413,17 +579,17 @@ public class MapTemplate extends Executor {
 		teamStatusViewModel.sendAndReceiveTeamPositions();
 		teamStatusViewModel.serverPendingUpdate.observe(getViewLifecycleOwner(), hasNewVersion -> {
 			if (hasNewVersion != null && hasNewVersion) {
-				refreshB.setImageResource(R.drawable.gis_refresh_button_alert);
+				refreshB.setImageResource(R.drawable.ic_refresh_alert);
 				refreshB.startAnimation(wiggleAnimation);
 			} else {
-				refreshB.setImageResource(R.drawable.gis_refresh_button);
+				refreshB.setImageResource(R.drawable.ic_refresh_black);
 				refreshB.clearAnimation();
 			}
 		});
 		refreshB.setOnClickListener(v -> {
 			Log.d(TAG, "Refresh map layers clicked");
 			refreshB.clearAnimation();
-			refreshB.setImageResource(R.drawable.refresh_selector);
+			refreshB.setImageResource(R.drawable.ic_refresh_black);
 			refreshB.setClickable(false);
 			if (mapboxMapHolder != null) {
 				mapboxMapHolder.refreshLayers(() -> {
@@ -440,6 +606,27 @@ public class MapTemplate extends Executor {
 				refreshB.setClickable(true);
 			}
 		});
+	}
+
+	private void setupZoomButtons(View rootView) {
+		FloatingActionButton zoomPlus = rootView.findViewById(R.id.fab_zoom_plus);
+		FloatingActionButton zoomMinus = rootView.findViewById(R.id.fab_zoom_minus);
+		if (zoomPlus == null || zoomMinus == null) return;
+		zoomPlus.setOnClickListener(v -> adjustZoom(1));
+		zoomMinus.setOnClickListener(v -> adjustZoom(-1));
+	}
+
+	private void adjustZoom(int delta) {
+		if (mapboxMap == null) return;
+		com.mapbox.maps.CameraState state = mapboxMap.getCameraState();
+		double currentZoom = state.getZoom();
+		double newZoom = Math.max(1.0, Math.min(22.0, currentZoom + delta));
+		Point center = state.getCenter();
+		CameraOptions options = new CameraOptions.Builder()
+				.center(center)
+				.zoom(newZoom)
+				.build();
+		mapboxMap.setCamera(options);
 	}
 
 	private void showLayerSelectionDialog() {
@@ -531,7 +718,7 @@ public class MapTemplate extends Executor {
 			meUpdateRunnable = null;
 		}
 		if (view != null) {
-			View refreshB = view.findViewById(R.id.menuR);
+			View refreshB = view.findViewById(R.id.fab_refresh);
 			if (refreshB != null) refreshB.clearAnimation();
 		}
 		super.onDestroyView();

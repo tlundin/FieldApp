@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:mapbox="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -18,32 +18,119 @@
         android:orientation="vertical"
         android:background="@android:color/transparent" />
 
+    <!-- FAB menu: main tools FAB + expandable sub-buttons -->
     <LinearLayout
+        android:id="@+id/fab_menu_container"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
         android:orientation="vertical"
-        android:layout_margin="16dp">
+        android:gravity="end"
+        android:paddingEnd="16dp"
+        android:paddingBottom="16dp"
+        android:paddingStart="16dp">
 
-        <ImageButton
-            android:id="@+id/menuR"
+        <!-- Sub-buttons (order: top to bottom = zoom+, zoom-, refresh, layers) -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_zoom_plus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:contentDescription="Zoom in"
+            app:fabCustomSize="40dp"
+            app:fabSize="mini"
+            app:srcCompat="@drawable/ic_plus_black"
+            app:backgroundTint="@color/white"
+            app:tint="@color/black" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_zoom_minus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:contentDescription="Zoom out"
+            app:fabCustomSize="40dp"
+            app:fabSize="mini"
+            app:srcCompat="@drawable/ic_minus_black"
+            app:backgroundTint="@color/white"
+            app:tint="@color/black" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_refresh"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginBottom="8dp"
-            android:background="@android:color/transparent"
+            android:visibility="gone"
             android:contentDescription="Refresh map layers"
-            android:scaleType="centerInside"
-            android:src="@drawable/refresh_selector" />
+            app:fabCustomSize="48dp"
+            app:srcCompat="@drawable/ic_refresh_black"
+            app:backgroundTint="@color/white"
+            app:tint="@color/black" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_layer_toggle"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            app:fabCustomSize="48dp"
-            android:src="@drawable/ic_layers"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
             android:contentDescription="Toggle layers"
+            app:fabCustomSize="48dp"
+            app:srcCompat="@drawable/ic_layers"
             app:backgroundTint="@color/white"
             app:tint="@color/black" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_center_on_user"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:contentDescription="Center on user"
+            app:fabCustomSize="48dp"
+            app:srcCompat="@drawable/ic_center_on_user"
+            app:backgroundTint="@color/white"
+            app:tint="@color/black" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_map_type_toggle"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone"
+            android:contentDescription="Toggle satellite/standard map"
+            app:fabCustomSize="48dp"
+            app:srcCompat="@drawable/ic_map_layers"
+            app:backgroundTint="@color/white"
+            app:tint="@color/black" />
+
+        <!-- Main tools FAB: circle, primary fill, soft elevation shadow -->
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab_tools"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:contentDescription="Map tools"
+            app:fabCustomSize="56dp"
+            app:srcCompat="@drawable/ic_widgets"
+            app:backgroundTint="@color/primary"
+            app:tint="@color/white"
+            app:elevation="8dp"
+            app:maxImageSize="28dp" />
     </LinearLayout>
 
-</FrameLayout>
+    <!-- Trakter info bottom sheet (slides up from bottom, drag down to dismiss) -->
+    <LinearLayout
+        android:id="@+id/trakter_card_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="80dp"
+        android:paddingBottom="16dp"
+        android:background="@android:color/transparent"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
+        app:behavior_hideable="true" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

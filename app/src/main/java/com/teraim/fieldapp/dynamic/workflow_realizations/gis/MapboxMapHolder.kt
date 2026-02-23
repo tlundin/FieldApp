@@ -11,6 +11,7 @@ import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import androidx.core.content.ContextCompat
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
 import com.google.gson.JsonObject
@@ -56,6 +57,7 @@ import com.mapbox.maps.extension.style.sources.updateGeoJSONSourceFeatures
 import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.bindgen.Value
+import android.view.ViewGroup
 import android.widget.ImageButton
 import com.teraim.fieldapp.GlobalState
 import com.teraim.fieldapp.R
@@ -152,6 +154,19 @@ class MapboxMapHolder(
 
     /** Workflow to run when "center on" is pressed (e.g. wf_Karta_Provytor). Null if not configured. */
     var onCenterClickWorkflow: String? = null
+
+    /** Container for the Trakter info card. Set by MapTemplate so we use the correct view. */
+    var trakterCardContainer: android.view.ViewGroup? = null
+        set(value) {
+            field = value
+            value?.let { container ->
+                container.post {
+                    BottomSheetBehavior.from(container).state = BottomSheetBehavior.STATE_HIDDEN
+                }
+            }
+        }
+
+    private var trakterBottomSheetCallback: BottomSheetBehavior.BottomSheetCallback? = null
 
     private val layerState = mutableMapOf<String, LayerState>()
     /** Stored layer specs for refresh (re-fetch GeoJSON from server). */
@@ -718,15 +733,27 @@ class MapboxMapHolder(
                     state.labelLayerId
                 )
             }
-            val queryOptions = RenderedQueryOptions(allLayerIds, null)
-            
+            val queryOptions = RenderedQueryOptions(
+                if (allLayerIds.isEmpty()) null else allLayerIds,
+                null
+            )
+            Log.d(TAG, "Map tap: querying layers (count=${allLayerIds.size})")
             map.queryRenderedFeatures(queryGeometry, queryOptions) { result ->
-                result.value?.firstOrNull()?.let { queriedFeature ->
-                    val mapFeature = queriedFeature.queriedFeature.feature
-                    val properties = mapFeature.properties()
-                    val layerName = queriedFeature.layers.firstOrNull()?.let { layerIdToLayerName(it) }
-                    if (properties != null) {
-                        showFeaturePropertiesDialog(mapFeature, properties, layerName)
+                val features = result.value
+                if (features.isNullOrEmpty()) {
+                    Log.d(TAG, "queryRenderedFeatures: no features at tap (layerIds=${allLayerIds.size})")
+                } else {
+                    val queriedFeature = features.firstOrNull()
+                    if (queriedFeature != null) {
+                        val mapFeature = queriedFeature.queriedFeature.feature
+                        val properties = mapFeature.properties()
+                        val layerName = queriedFeature.layers.firstOrNull()?.let { layerIdToLayerName(it) }
+                        Log.d(TAG, "queryRenderedFeatures: hit layer=$layerName gistyp=${properties?.get("GISTYP")?.asString}")
+                        if (properties != null) {
+                            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                                showFeaturePropertiesDialog(mapFeature, properties, layerName)
+                            }
+                        }
                     }
                 }
             }
@@ -830,7 +857,7 @@ class MapboxMapHolder(
         }
     }
 
-    /** Dialog with Start button for non-TRAKT GIS objects. Sets DB_Context from obj_context and changes page to on_click. */
+    /** Card with Start button for non-TRAKT GIS objects. Sets DB_Context from obj_context and changes page to on_click. */
     private fun showGisObjectStartDialog(
         context: android.content.Context,
         feature: Feature,
@@ -838,7 +865,20 @@ class MapboxMapHolder(
         objContext: String,
         onClick: String
     ) {
-        val view = LayoutInflater.from(context).inflate(R.layout.dialog_gis_object_start, null)
+        var container = trakterCardContainer
+        if (container == null) {
+            container = (mapView.parent as? ViewGroup)?.findViewById(R.id.trakter_card_container)
+        }
+        if (container == null) {
+            container = mapView.rootView.findViewById(R.id.trakter_card_container)
+        }
+        if (container == null) {
+            Log.w(TAG, "trakter_card_container not found, falling back to AlertDialog")
+            showGisObjectStartAlertDialog(context, feature, properties, objContext, onClick)
+            return
+        }
+        container.removeAllViews()
+        val card = LayoutInflater.from(context).inflate(R.layout.card_gis_object_start, container, false)
         val label = buildString {
             val typkod = safePropString(properties, "TYPKOD")
             val objectId = safePropString(properties, "OBJECTID")
@@ -851,9 +891,9 @@ class MapboxMapHolder(
             }
         } catch (_: Exception) { null }
         val (_, pystatusColor) = pystatusToLabelAndColor(pystatusVal)
-        val titleView = view.findViewById<android.widget.TextView>(R.id.gis_object_title)
-        val infoView = view.findViewById<android.widget.TextView>(R.id.gis_object_info)
-        val statusIndicator = view.findViewById<View>(R.id.gis_object_status_indicator)
+        val titleView = card.findViewById<android.widget.TextView>(R.id.gis_object_title)
+        val infoView = card.findViewById<android.widget.TextView>(R.id.gis_object_info)
+        val statusIndicator = card.findViewById<View>(R.id.gis_object_status_indicator)
         titleView.text = label
         val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
             setColor(pystatusColor)
@@ -862,13 +902,70 @@ class MapboxMapHolder(
         }
         statusIndicator.background = indicatorDrawable
         infoView.text = propertiesToInfoString(properties)
-        AlertDialog.Builder(context)
-            .setView(view)
-            .setPositiveButton(context.getString(R.string.start)) { _, _ ->
-                runStartWorkflow(feature, properties, objContext, onClick)
+        fun dismissCard() {
+            val behavior = BottomSheetBehavior.from(container)
+            behavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+        card.findViewById<View>(R.id.btn_close).setOnClickListener { dismissCard() }
+        card.findViewById<View>(R.id.btn_start).setOnClickListener {
+            runStartWorkflow(feature, properties, objContext, onClick)
+            dismissCard()
+        }
+        container.addView(card)
+        val behavior = BottomSheetBehavior.from(container)
+        behavior.isHideable = true
+        trakterBottomSheetCallback?.let { behavior.removeBottomSheetCallback(it) }
+        trakterBottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    container.removeAllViews()
+                }
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        }
+        behavior.addBottomSheetCallback(trakterBottomSheetCallback!!)
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+    }
+
+    /** Fallback when trakter_card_container is not in the view hierarchy. */
+    private fun showGisObjectStartAlertDialog(
+        context: android.content.Context,
+        feature: Feature,
+        properties: JsonObject,
+        objContext: String,
+        onClick: String
+    ) {
+        val card = LayoutInflater.from(context).inflate(R.layout.card_gis_object_start, null)
+        val label = buildString {
+            val typkod = safePropString(properties, "TYPKOD")
+            val objectId = safePropString(properties, "OBJECTID")
+            if (typkod != "—" || objectId != "—") append("$typkod $objectId".trim())
+            else append(context.getString(R.string.gis_object))
+        }
+        val pystatusVal = try {
+            properties.get("PYSTATUS")?.takeIf { !it.isJsonNull }?.let { el ->
+                if (el.isJsonPrimitive && el.asJsonPrimitive.isNumber) el.asInt else null
+            }
+        } catch (_: Exception) { null }
+        val (_, pystatusColor) = pystatusToLabelAndColor(pystatusVal)
+        val titleView = card.findViewById<android.widget.TextView>(R.id.gis_object_title)
+        val infoView = card.findViewById<android.widget.TextView>(R.id.gis_object_info)
+        val statusIndicator = card.findViewById<View>(R.id.gis_object_status_indicator)
+        titleView.text = label
+        val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
+            setColor(pystatusColor)
+            setStroke(1, Color.GRAY)
+            cornerRadius = 2 * context.resources.displayMetrics.density
+        }
+        statusIndicator.background = indicatorDrawable
+        infoView.text = propertiesToInfoString(properties)
+        val dialog = AlertDialog.Builder(context).setView(card).create()
+        card.findViewById<View>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+        card.findViewById<View>(R.id.btn_start).setOnClickListener {
+            runStartWorkflow(feature, properties, objContext, onClick)
+            dialog.dismiss()
+        }
+        dialog.show()
     }
 
     private fun runStartWorkflow(feature: Feature, properties: JsonObject, objContext: String, onClick: String) {
@@ -947,7 +1044,20 @@ class MapboxMapHolder(
     }
 
     private fun showTrakterInfoDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
-        val view = LayoutInflater.from(context).inflate(R.layout.dialog_trakter_info, null)
+        var container = trakterCardContainer
+        if (container == null) {
+            container = (mapView.parent as? ViewGroup)?.findViewById(R.id.trakter_card_container)
+        }
+        if (container == null) {
+            container = mapView.rootView.findViewById(R.id.trakter_card_container)
+        }
+        if (container == null) {
+            Log.w(TAG, "trakter_card_container not found, falling back to AlertDialog with card layout")
+            showTrakterInfoAlertDialog(context, feature, properties)
+            return
+        }
+        container.removeAllViews()
+        val card = LayoutInflater.from(context).inflate(R.layout.card_trakter_info, container, false)
         val trakt = safePropString(properties, "TRAKT")
         val traktStatusVal = try {
             properties.get("TRAKTSTATUS")?.takeIf { !it.isJsonNull }?.let { el ->
@@ -958,9 +1068,9 @@ class MapboxMapHolder(
         val objectId = safePropString(properties, "OBJECTID")
         val typkod = safePropString(properties, "TYPKOD")
         val column1 = safePropString(properties, "COLUMN1")
-        val titleView = view.findViewById<android.widget.TextView>(R.id.trakter_title)
-        val infoView = view.findViewById<android.widget.TextView>(R.id.trakter_info)
-        val statusIndicator = view.findViewById<View>(R.id.trakter_status_indicator)
+        val titleView = card.findViewById<android.widget.TextView>(R.id.trakter_title)
+        val infoView = card.findViewById<android.widget.TextView>(R.id.trakter_info)
+        val statusIndicator = card.findViewById<View>(R.id.trakter_status_indicator)
         titleView.text = context.getString(R.string.trakter_info_title, trakt)
         val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
             setColor(traktStatusColor)
@@ -975,80 +1085,34 @@ class MapboxMapHolder(
             append("OBJECTID: "); appendLine(objectId)
             append("COLUMN1: "); append(column1)
         }
-        val dialog = AlertDialog.Builder(context)
-            .setView(view)
-            .setPositiveButton(android.R.string.ok, null)
-            .create()
-        view.findViewById<ImageButton>(R.id.btn_center_on).setOnClickListener {
-            android.util.Log.i(TAG, "Center-on button clicked")
+        fun dismissCard() {
+            val behavior = BottomSheetBehavior.from(container)
+            behavior.state = BottomSheetBehavior.STATE_HIDDEN
+        }
+        card.findViewById<View>(R.id.btn_close).setOnClickListener { dismissCard() }
+        card.findViewById<View>(R.id.btn_center_on).setOnClickListener {
+            Log.i(TAG, "Center-on button clicked")
             try {
-            val center = featureCenter(feature)
-            android.util.Log.i(TAG, "Center-on: featureCenter=$center")
-            if (center != null) {
-                val (lat, lng) = center
-                val point = Point.fromLngLat(lng, lat)
-                val cameraOptions = CameraOptions.Builder()
-                    .center(point)
-                    .zoom(CENTER_ON_ZOOM_LEVEL)
-                    .build()
-                (mapView as? MapView)?.camera?.easeTo(cameraOptions)
-                dialog.dismiss()
-                // 1) Get layer's obj_context and on_click (trakter layer)
-                val (objContext, onClick) = layerClickConfig["trakter"] ?: (null to null)
-                // 2) Set DB context: inject feature's TRAKT so obj_context can evaluate, then evaluate obj_context
-                val keyHash = HashMap<String, String>()
-                keyHash["trakt"] = trakt
-                GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
-                val dbContext = if (objContext != null && objContext.isNotBlank()) {
-                    val objContextE = Expressor.preCompileExpression(objContext)
-                    val evaluated = DB_Context.evaluate(objContextE)
-                    if (evaluated.isOk) {
-                        val ctx = evaluated.getContext()
-                        val merged = if (ctx != null) HashMap(ctx) else HashMap<String, String>()
-                        merged["gistyp"] = "Trakter"  // trakter layer always adds gistyp
-                        merged["år"] = Constants.getYear()
-                        safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { merged["uid"] = it }
-                        DB_Context(null, merged)
-                    } else evaluated
+                val center = featureCenter(feature)
+                Log.i(TAG, "Center-on: featureCenter=$center")
+                if (center != null) {
+                    val (lat, lng) = center
+                    val point = Point.fromLngLat(lng, lat)
+                    val cameraOptions = CameraOptions.Builder()
+                        .center(point)
+                        .zoom(CENTER_ON_ZOOM_LEVEL)
+                        .build()
+                    (mapView as? MapView)?.camera?.easeTo(cameraOptions)
+                    dismissCard()
+                    performCenterOnTrakterWorkflow(trakt, properties, lat, lng)
                 } else {
-                    // Fallback: use trakt and gistyp when layer has no obj_context
-                    keyHash["gistyp"] = "Trakter"
-                    keyHash["år"] = Constants.getYear()
-                    safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { keyHash["uid"] = it }
-                    DB_Context(null, HashMap(keyHash))
+                    Log.w(TAG, "Center-on: featureCenter was null")
                 }
-                if (dbContext.isOk) {
-                    GlobalState.getInstance().setDBContext(dbContext)
-                } else {
-                    Log.w(TAG, "Center-on: obj_context evaluation failed: " + dbContext.toString())
-                }
-                // 3) Transfer center to target map
-                GlobalState.getInstance().setPendingMapCenter(lat, lng)
-                // 4) Execute workflow from layer's on_click (fallback to map view's on_click for backward compat)
-                val wfName = onClick ?: onCenterClickWorkflow
-                android.util.Log.i(TAG, "Center-on: workflow=$wfName (layer onClick=$onClick, map onCenterClick=$onCenterClickWorkflow)")
-                if (!wfName.isNullOrBlank()) {
-                    val wf = GlobalState.getInstance().getWorkflow(wfName)
-                    android.util.Log.i(TAG, "Center-on: workflow lookup result=${if (wf != null) "found" else "null"}")
-                    if (wf != null) {
-                        Handler(Looper.getMainLooper()).postDelayed({
-                            android.util.Log.i(TAG, "Center-on: calling changePage to $wfName")
-                            GlobalState.getInstance().changePage(wf, "STATUS:status_trakt")
-                        }, 350)
-                    } else {
-                        Log.w(TAG, "Center-on workflow not found: $wfName")
-                    }
-                } else {
-                    Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_layer and block_add_gis_map_view)")
-                }
-            } else {
-                Log.w(TAG, "Center-on: featureCenter was null")
-            }
             } catch (e: Exception) {
                 Log.e(TAG, "Center-on error", e)
             }
         }
-        view.findViewById<ImageButton>(R.id.btn_navigate).setOnClickListener {
+        card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
                 val (lat, lng) = center
@@ -1061,6 +1125,123 @@ class MapboxMapHolder(
                     context.startActivity(Intent(Intent.ACTION_VIEW, geoUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                 }
             }
+            dismissCard()
+        }
+        container.addView(card)
+        val behavior = BottomSheetBehavior.from(container)
+        behavior.isHideable = true
+        trakterBottomSheetCallback?.let { behavior.removeBottomSheetCallback(it) }
+        trakterBottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    container.removeAllViews()
+                }
+            }
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        }
+        behavior.addBottomSheetCallback(trakterBottomSheetCallback!!)
+        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+    }
+
+    private fun performCenterOnTrakterWorkflow(trakt: String, properties: JsonObject, lat: Double, lng: Double) {
+        val (objContext, onClick) = layerClickConfig["trakter"] ?: (null to null)
+        val keyHash = HashMap<String, String>()
+        keyHash["trakt"] = trakt
+        GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
+        val dbContext = if (objContext != null && objContext.isNotBlank()) {
+            val objContextE = Expressor.preCompileExpression(objContext)
+            val evaluated = DB_Context.evaluate(objContextE)
+            if (evaluated.isOk) {
+                val ctx = evaluated.getContext()
+                val merged = if (ctx != null) HashMap(ctx) else HashMap<String, String>()
+                merged["gistyp"] = "Trakter"
+                merged["år"] = Constants.getYear()
+                safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { merged["uid"] = it }
+                DB_Context(null, merged)
+            } else evaluated
+        } else {
+            keyHash["gistyp"] = "Trakter"
+            keyHash["år"] = Constants.getYear()
+            safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { keyHash["uid"] = it }
+            DB_Context(null, HashMap(keyHash))
+        }
+        if (dbContext.isOk) {
+            GlobalState.getInstance().setDBContext(dbContext)
+        } else {
+            Log.w(TAG, "Center-on: obj_context evaluation failed: " + dbContext.toString())
+        }
+        GlobalState.getInstance().setPendingMapCenter(lat, lng)
+        val wfName = onClick ?: onCenterClickWorkflow
+        Log.i(TAG, "Center-on: workflow=$wfName (layer onClick=$onClick, map onCenterClick=$onCenterClickWorkflow)")
+        if (!wfName.isNullOrBlank()) {
+            val wf = GlobalState.getInstance().getWorkflow(wfName)
+            Log.i(TAG, "Center-on: workflow lookup result=${if (wf != null) "found" else "null"}")
+            if (wf != null) {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    Log.i(TAG, "Center-on: calling changePage to $wfName")
+                    GlobalState.getInstance().changePage(wf, "STATUS:status_trakt")
+                }, 350)
+            } else {
+                Log.w(TAG, "Center-on workflow not found: $wfName")
+            }
+        } else {
+            Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_layer and block_add_gis_map_view)")
+        }
+    }
+
+    /** Fallback when trakter_card_container is not in the view hierarchy: show Material card in AlertDialog. */
+    private fun showTrakterInfoAlertDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
+        val card = LayoutInflater.from(context).inflate(R.layout.card_trakter_info, null)
+        val trakt = safePropString(properties, "TRAKT")
+        val traktStatusVal = try {
+            properties.get("TRAKTSTATUS")?.takeIf { !it.isJsonNull }?.let { el ->
+                if (el.isJsonPrimitive && el.asJsonPrimitive.isNumber) el.asInt else null
+            }
+        } catch (_: Exception) { null }
+        val (traktStatusLabel, traktStatusColor) = traktStatusToLabelAndColor(traktStatusVal)
+        val objectId = safePropString(properties, "OBJECTID")
+        val typkod = safePropString(properties, "TYPKOD")
+        val column1 = safePropString(properties, "COLUMN1")
+        val titleView = card.findViewById<android.widget.TextView>(R.id.trakter_title)
+        val infoView = card.findViewById<android.widget.TextView>(R.id.trakter_info)
+        val statusIndicator = card.findViewById<View>(R.id.trakter_status_indicator)
+        titleView.text = context.getString(R.string.trakter_info_title, trakt)
+        val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
+            setColor(traktStatusColor)
+            setStroke(1, Color.GRAY)
+            cornerRadius = 2 * context.resources.displayMetrics.density
+        }
+        statusIndicator.background = indicatorDrawable
+        infoView.text = buildString {
+            append("TRAKT: "); appendLine(trakt)
+            append("TRAKTSTATUS: "); appendLine(traktStatusLabel)
+            append("TYPKOD: "); appendLine(typkod)
+            append("OBJECTID: "); appendLine(objectId)
+            append("COLUMN1: "); append(column1)
+        }
+        val dialog = AlertDialog.Builder(context).setView(card).create()
+        card.findViewById<View>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+        card.findViewById<View>(R.id.btn_center_on).setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                val (lat, lng) = center
+                val point = Point.fromLngLat(lng, lat)
+                (mapView as? MapView)?.camera?.easeTo(CameraOptions.Builder().center(point).zoom(CENTER_ON_ZOOM_LEVEL).build())
+                dialog.dismiss()
+                performCenterOnTrakterWorkflow(trakt, properties, lat, lng)
+            }
+        }
+        card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                val (lat, lng) = center
+                try {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=$lat,$lng")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                } catch (_: android.content.ActivityNotFoundException) {
+                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:$lat,$lng")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
+            }
+            dialog.dismiss()
         }
         dialog.show()
     }

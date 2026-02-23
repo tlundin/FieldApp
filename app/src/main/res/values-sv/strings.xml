@@ -146,6 +146,7 @@
 	<string name="map_needle_summary">Välj kartnål</string>
 	<string name="select_layers_title">Kartlager</string>
 	<string name="no_layers_loaded">Inga lager laddade än.</string>
+	<string name="no_user_position_available">Ingen användarposition tillgänglig. Aktivera plats och säkerställ att GPS har fix.</string>
 	<string name="trakter_center_on">Centrera på</string>
 	<string name="trakter_navigate">Navigera</string>
 	<string name="trakter_info_title">Trakt %1$s</string>

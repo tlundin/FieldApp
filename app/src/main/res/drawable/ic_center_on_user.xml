@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Central ring: circle, transparent fill, solid stroke -->
+    <path
+        android:pathData="M12,4 A8,8 0 0 1 20,12 A8,8 0 0 1 12,20 A8,8 0 0 1 4,12 A8,8 0 0 1 12,4"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FF000000"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round" />
+    <!-- Crosshair tick at 12 o'clock (top) - outside ring, pointing up -->
+    <path
+        android:pathData="M12,3.5 L12,1"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+    <!-- Crosshair tick at 3 o'clock (right) - outside ring, pointing right -->
+    <path
+        android:pathData="M20.5,12 L23,12"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+    <!-- Crosshair tick at 6 o'clock (bottom) - outside ring, pointing down -->
+    <path
+        android:pathData="M12,20.5 L12,23"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+    <!-- Crosshair tick at 9 o'clock (left) - outside ring, pointing left -->
+    <path
+        android:pathData="M3.5,12 L1,12"
+        android:strokeWidth="1.5"
+        android:strokeColor="#FF000000"
+        android:strokeLineCap="round" />
+    <!-- GPS lock dot: small solid circle in center -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,10.5 A1.5,1.5 0 0 1 13.5,12 A1.5,1.5 0 0 1 12,13.5 A1.5,1.5 0 0 1 10.5,12 A1.5,1.5 0 0 1 12,10.5" />
+</vector>
