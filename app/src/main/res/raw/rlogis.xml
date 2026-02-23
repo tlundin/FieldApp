@@ -81,7 +81,6 @@
       <zoom>4</zoom>
       <pitch>0</pitch>
       <bearing>0</bearing>
-      <on_click>wf_Karta_Provytor</on_click>
     </block_add_gis_map_view>
     <block_add_gis_layer>
       <block_ID>1014</block_ID>
@@ -93,11 +92,13 @@
       <has_widget>true</has_widget>
       <poly_type>circle</poly_type>
       <fill_color>#F5F5DC</fill_color>
-      <fill_opacity>0.5</fill_opacity>
+      <fill_opacity>1</fill_opacity>
       <line_color>#000000</line_color>
       <line_width>1</line_width>
       <circle_radius>5</circle_radius>
       <circle_stroke_width>1</circle_stroke_width>
+      <obj_context>trakt=[getColumnValue(trakt)]</obj_context>
+      <on_click>wf_Karta_Provytor</on_click>
     </block_add_gis_layer>
     <block_no_op>
       <block_ID>1015</block_ID>
@@ -119,6 +120,7 @@
       <is_visible>true</is_visible>
       <gps_on>true</gps_on> 
       <gps_priority>high</gps_priority> 
+      <gis_mode>detailed</gis_mode>
       <allow_OS_page_back>false</allow_OS_page_back>
     </block_define_page>
     <block_add_gis_map_view>
@@ -134,36 +136,24 @@
     </block_add_gis_map_view>
 
 
-<block_add_gis_layer>
-<block_ID>1038</block_ID>
-<target>traktkarta</target>
-<name>me_layer</name>
-<label>Egen position</label>
-<show_labels>false</show_labels>
-<is_visible>true</is_visible>
-<has_widget>true</has_widget>
-<fill_color>#4169E1</fill_color>
-<fill_opacity>0.6</fill_opacity>
-<line_color>#1E90FF</line_color>
-<line_width>2</line_width>
-<circle_radius>10</circle_radius>
-<poly_type>needle</poly_type>
-</block_add_gis_layer>
+
 
 <block_add_gis_layer>
 <block_ID>1039</block_ID>
 <target>traktkarta</target>
 <name>akerkant_layer</name>
-<label>Ã…kerkanter</label>
+<label>Åkerkanter</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#90EE90</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#228B22</line_color>
 <line_width>1.5</line_width>
 <circle_radius>6</circle_radius>
 <poly_type>square</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Akerkant]</obj_context>
+<on_click>wf_Ã¥kerkant</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -175,27 +165,31 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#87CEEB</fill_color>
-<fill_opacity>0.55</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#4682B4</line_color>
 <line_width>1</line_width>
 <circle_radius>5</circle_radius>
 <poly_type>triangle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Fukthed]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
 <block_ID>1041</block_ID>
 <target>traktkarta</target>
-<name>grÃ¤smarks_layer</name>
-<label>GrÃ¤smark</label>
+<name>gräsmarks_layer</name>
+<label>Gräsmark</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#98FB98</fill_color>
-<fill_opacity>0.45</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#2E8B57</line_color>
 <line_width>2</line_width>
 <circle_radius>7</circle_radius>
 <poly_type>circle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Lansgras]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -207,11 +201,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#D2B48C</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#8B4513</line_color>
 <line_width>1.5</line_width>
 <circle_radius>8</circle_radius>
 <poly_type>square</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Basiskberghall]</obj_context>
+<on_click>wf_hÃ¤llmarkstorrÃ¤ng</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -223,11 +219,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#DEB887</fill_color>
-<fill_opacity>0.4</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#A0522D</line_color>
 <line_width>2</line_width>
 <circle_radius>5</circle_radius>
 <poly_type>triangle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Hallmarkspolygon]</obj_context>
+<on_click>wf_hallmarkspolygon</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -239,11 +237,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#F0E68C</fill_color>
-<fill_opacity>0.6</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#B8860B</line_color>
 <line_width>1</line_width>
 <circle_radius>6</circle_radius>
 <poly_type>circle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Kalkmark]</obj_context>
+<on_click>wf_Kalkmark</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -255,10 +255,12 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#FFF8DC</fill_color>
-<fill_opacity>0.35</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#DAA520</line_color>
 <line_width>1.5</line_width>
 <circle_radius>5</circle_radius>
+<obj_context></obj_context>
+<on_click></on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -270,11 +272,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#FFD700</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#B22222</line_color>
 <line_width>1</line_width>
 <circle_radius>8</circle_radius>
 <poly_type>square</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Kraftledning]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -286,11 +290,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#FFA500</fill_color>
-<fill_opacity>0.55</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#FF4500</line_color>
 <line_width>2</line_width>
 <circle_radius>7</circle_radius>
 <poly_type>triangle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Kraftledningsvkbio]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -302,11 +308,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#3CB371</fill_color>
-<fill_opacity>0.45</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#006400</line_color>
 <line_width>1.5</line_width>
 <circle_radius>6</circle_radius>
 <poly_type>circle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Lovang]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -318,10 +326,12 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#2E8B57</fill_color>
-<fill_opacity>0.4</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#228B22</line_color>
 <line_width>1</line_width>
 <circle_radius>5</circle_radius>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Lovangspolygon]</obj_context>
+<on_click></on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -333,10 +343,12 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#8B4513</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#654321</line_color>
 <line_width>1.5</line_width>
 <circle_radius>6</circle_radius>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Fukthedspolygon]</obj_context>
+<on_click>wf_grÃ¤smarker</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -348,10 +360,12 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#D2691E</fill_color>
-<fill_opacity>0.45</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#8B4513</line_color>
 <line_width>2</line_width>
 <circle_radius>5</circle_radius>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Naturtypspolygon]</obj_context>
+<on_click></on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -363,11 +377,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#9ACD32</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#6B8E23</line_color>
 <line_width>1.5</line_width>
 <circle_radius>7</circle_radius>
 <poly_type>square</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Slatterang]</obj_context>
+<on_click>wf_slÃ¥tterÃ¤ng</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -379,11 +395,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#20B2AA</fill_color>
-<fill_opacity>0.55</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#008B8B</line_color>
 <line_width>1</line_width>
 <circle_radius>6</circle_radius>
 <poly_type>triangle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Svamang]</obj_context>
+<on_click>wf_svÃ¤mÃ¤ng</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -395,11 +413,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#CD853F</fill_color>
-<fill_opacity>0.5</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#A0522D</line_color>
 <line_width>2</line_width>
 <circle_radius>8</circle_radius>
 <poly_type>needle</poly_type>
+<obj_context>trakt=[getColumnValue(trakt)], gistyp=[Inlandsandmark]</obj_context>
+<on_click>wf_inlandsandmark</on_click>
 </block_add_gis_layer>
 
 <block_add_gis_layer>
@@ -411,11 +431,13 @@
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#DDA0DD</fill_color>
-<fill_opacity>0.4</fill_opacity>
+<fill_opacity>1</fill_opacity>
 <line_color>#9932CC</line_color>
 <line_width>1</line_width>
 <circle_radius>5</circle_radius>
 <poly_type>circle</poly_type>
+<obj_context></obj_context>
+<on_click></on_click>
 </block_add_gis_layer>
    <block_add_gis_point_objects>
       <block_ID>1056</block_ID>

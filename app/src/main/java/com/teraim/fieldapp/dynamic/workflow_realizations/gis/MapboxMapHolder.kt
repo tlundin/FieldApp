@@ -12,7 +12,9 @@ import android.view.LayoutInflater
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonElement
 import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.mapbox.geojson.Feature
 import com.mapbox.geojson.MultiPolygon
 import com.mapbox.geojson.Point
@@ -49,7 +51,11 @@ import com.mapbox.maps.extension.style.layers.generated.lineLayer
 import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.Visibility
 import com.mapbox.maps.extension.style.sources.addSource
+import com.mapbox.maps.extension.style.sources.getSource
+import com.mapbox.maps.extension.style.sources.updateGeoJSONSourceFeatures
+import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import com.mapbox.bindgen.Value
 import android.widget.ImageButton
 import com.teraim.fieldapp.GlobalState
 import com.teraim.fieldapp.R
@@ -57,6 +63,7 @@ import com.teraim.fieldapp.dynamic.types.DB_Context
 import com.teraim.fieldapp.dynamic.types.Workflow
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable
 import com.teraim.fieldapp.non_generics.Constants
+import com.teraim.fieldapp.utils.Expressor
 import com.teraim.fieldapp.utils.Tools
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +77,7 @@ import kotlin.math.abs
 
 /**
  * Mapbox-backed map drawable. Registered as the "map" when using MapTemplate with network.
- * Layers are loaded from server: gis_objects/wgs/<type>.json
+ * Layers are loaded from server: gis_objects/<type>.json (must be WGS84)
  * Only layer types listed in gis_objects/content.txt are loaded.
  */
 class MapboxMapHolder(
@@ -87,6 +94,20 @@ class MapboxMapHolder(
         private const val CENTER_ON_ZOOM_LEVEL = 10.5
         private const val TEAM_SOURCE_ID = "source-team"
         private const val TEAM_LAYER_ID = "layer-team"
+        private const val TEAM_HALO_LAYER_ID = "layer-team-halo"
+        private const val TEAM_INNER_LAYER_ID = "layer-team-inner"
+        private const val TEAM_ME_SOURCE_ID = "source-team-me"
+        private const val TEAM_ME_HALO_LAYER_ID = "layer-team-me-halo"
+        private const val TEAM_ME_INNER_LAYER_ID = "layer-team-me-inner"
+        private const val TEAM_OTHERS_SOURCE_ID = "source-team-others"
+        private const val TEAM_OTHERS_HALO_LAYER_ID = "layer-team-others-halo"
+        private const val TEAM_OTHERS_INNER_LAYER_ID = "layer-team-others-inner"
+        private const val ME_PULSE_INTERVAL_MS = 5_000L
+        private const val ME_PULSE_AURA_START = 10.0
+        private const val ME_PULSE_AURA_EXPANDED = 28.0
+        private const val ME_PULSE_AURA_OPACITY = 0.65
+        private const val ME_PULSE_EXPAND_DELAY_MS = 80L
+        private const val ME_PULSE_FADE_DELAY_MS = 350L
         /** Display name for layer list (FAB layer dialog). */
         const val TEAM_LAYER_DISPLAY_NAME = "Team"
         /** Point shape: use circle layer. Other shapes use symbol layer with icon. */
@@ -119,6 +140,14 @@ class MapboxMapHolder(
                 processPendingLayers()
                 setupMapClickListener()
             }
+        }
+
+    /** "detailed" = two-circle glow for team; "normal" = needle icons. */
+    var gisMode: String = "normal"
+        set(value) {
+            val newVal = if (value != null && value.equals("detailed", ignoreCase = true)) "detailed" else "normal"
+            field = newVal
+            Log.d(TAG, "MapboxMapHolder: gisMode set to $newVal (input was: $value)")
         }
 
     /** Workflow to run when "center on" is pressed (e.g. wf_Karta_Provytor). Null if not configured. */
@@ -155,8 +184,13 @@ class MapboxMapHolder(
         val lineColor: String?,
         val lineWidth: Float?,
         val circleRadius: Float?,
-        val polyType: String?
+        val polyType: String?,
+        val objContext: String? = null,
+        val onClick: String? = null
     )
+
+    /** Per-layer obj_context and on_click for feature click handling (e.g. TRAKTER dialog). */
+    private val layerClickConfig = mutableMapOf<String, Pair<String?, String?>>()
 
     override fun getWidget(): View = mapView
     override fun show() { visible = true; mapView.visibility = View.VISIBLE }
@@ -175,15 +209,21 @@ class MapboxMapHolder(
         lineColor: String? = null,
         lineWidth: Float? = null,
         circleRadius: Float? = null,
-        polyType: String? = null
+        polyType: String? = null,
+        objContext: String? = null,
+        onClick: String? = null
     ) {
         if (layerState.containsKey(name)) {
             Log.d(TAG, "Layer $name already added")
             return
         }
+        if (objContext != null || onClick != null) {
+            layerClickConfig[name] = objContext to onClick
+        }
         val pending = PendingLayer(
             name, label, isVisible, hasWidget, showLabels, isBold,
-            fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType
+            fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType,
+            objContext, onClick
         )
         val map = mapboxMap
         if (map == null) {
@@ -231,7 +271,7 @@ class MapboxMapHolder(
 
     /** Fetch gis_objects/content.txt and return set of type names (one per line). */
     private suspend fun fetchContentList(): Set<String>? = withContext(Dispatchers.IO) {
-        val contentUrl = gisObjectsBaseUrl.removeSuffix("wgs/") + CONTENT_FILE
+        val contentUrl = gisObjectsBaseUrl + CONTENT_FILE
         try {
             val url = URL(contentUrl)
             val conn = url.openConnection() as HttpURLConnection
@@ -259,8 +299,8 @@ class MapboxMapHolder(
         }
     }
 
-    private suspend fun addLayerInternal(map: MapboxMap, spec: PendingLayer) {
-        val geoJson = fetchGeoJson(spec.name)
+    private suspend fun addLayerInternal(map: MapboxMap, spec: PendingLayer, cacheBust: Boolean = false) {
+        val geoJson = fetchGeoJson(spec.name, cacheBust)
         if (geoJson == null) {
             Log.e(TAG, "Failed to load GeoJSON for layer ${spec.name}")
             return
@@ -275,19 +315,26 @@ class MapboxMapHolder(
     /**
      * Fetch GeoJSON for a layer. Server files are always <type>.json; workflow layer names
      * may have a "_layer" suffix (e.g. akerkant_layer → akerkant.json).
+     * @param cacheBust if true, appends ?t=timestamp to bypass HTTP cache (use for refresh).
      */
-    private suspend fun fetchGeoJson(layerName: String): String? = withContext(Dispatchers.IO) {
+    private suspend fun fetchGeoJson(layerName: String, cacheBust: Boolean = false): String? = withContext(Dispatchers.IO) {
         val type = if (layerName.endsWith("_layer")) layerName.removeSuffix("_layer") else layerName
-        fetchGeoJsonFromUrl("$gisObjectsBaseUrl$type.json")
+        val url = if (cacheBust) "$gisObjectsBaseUrl$type.json?t=${System.currentTimeMillis()}" else "$gisObjectsBaseUrl$type.json"
+        fetchGeoJsonFromUrl(url, cacheBust)
     }
 
-    private suspend fun fetchGeoJsonFromUrl(urlString: String): String? = withContext(Dispatchers.IO) {
+    private suspend fun fetchGeoJsonFromUrl(urlString: String, noCache: Boolean = false): String? = withContext(Dispatchers.IO) {
         try {
             val url = URL(urlString)
             val conn = url.openConnection() as HttpURLConnection
             conn.requestMethod = "GET"
             conn.connectTimeout = 15000
             conn.readTimeout = 20000
+            if (noCache) {
+                conn.setUseCaches(false)
+                conn.setRequestProperty("Cache-Control", "no-cache, no-store, must-revalidate")
+                conn.setRequestProperty("Pragma", "no-cache")
+            }
             try {
                 if (conn.responseCode == HttpURLConnection.HTTP_OK) {
                     conn.inputStream.bufferedReader().readText()
@@ -314,18 +361,31 @@ class MapboxMapHolder(
         }
     }
 
+    /** PYSTATUS color mapping: 0 = default, 2 = Error #ff0000, 3 = Ready #fca005, 4 = Ready+exported #008500, 100 = Ready+inserted #00FFFF */
+    private val PYSTATUS_COLORS = mapOf(
+        2 to Color.parseColor("#ff0000"),
+        3 to Color.parseColor("#fca005"),
+        4 to Color.parseColor("#008500"),
+        100 to Color.parseColor("#00FFFF")
+    )
+
     /**
-     * Expression: color by PYSTATUS (0 or missing = default, 2 = red, 3 = yellow, 4 = green, 100 = cyan).
+     * Expression: color by PYSTATUS (0 or missing = default, 2 = Error, 3 = Ready, 4 = Ready+exported, 100 = Ready+inserted).
+     * PYSTATUS is treated as string (status indicator). Uses to-string to normalize number/string from GeoJSON,
+     * then match on string literals. Works for both circle layers and symbol layers (squares, triangles).
      */
     private fun pystatusColorExpression(defaultColorInt: Int): Expression {
-        return match(
-            get("PYSTATUS"),
-            literal(2), color(Color.RED),
-            literal(3), color(Color.YELLOW),
-            literal(4), color(Color.GREEN),
-            literal(100), color(Color.CYAN),
-            color(defaultColorInt)
-        )
+        val defaultHex = "#%06X".format(0xFFFFFF and defaultColorInt)
+        // match: input, label1, output1, label2, output2, ..., fallback (fallback must be last)
+        val raw = """
+            ["match", ["to-string", ["coalesce", ["get", "PYSTATUS"], ""]],
+             "2", "#ff0000",
+             "3", "#fca005",
+             "4", "#008500",
+             "100", "#00FFFF",
+             "$defaultHex"]
+        """.trimIndent().replace("\n", " ")
+        return Expression.fromRaw(raw)
     }
 
     /** TRAKTSTATUS color mapping for trakter layer: -1 purple, 0 white, 1-30 orange, 31-70 lime, 71-99 green, 100 cyan. */
@@ -390,8 +450,9 @@ class MapboxMapHolder(
         }
         val bitmap: Bitmap? = if (drawable != null) Tools.drawableToBitmap(drawable) else null
         if (bitmap != null) {
-            style.addImage(iconId, bitmap, false)
-            Log.d(TAG, "Added style image: $iconId")
+            // SDF=true required for iconColor to work (data-driven symbol coloring)
+            style.addImage(iconId, bitmap, true)
+            Log.d(TAG, "Added style image: $iconId (SDF)")
         } else {
             Log.w(TAG, "Could not add style image for $iconId")
         }
@@ -565,6 +626,7 @@ class MapboxMapHolder(
 
     /**
      * Re-fetches all GeoJSON layers from the server and updates the map.
+     * Updates source data in place (keeps layers) so Mapbox re-renders with new data.
      * Call when server has updated GeoJSON files (e.g. after serverPendingUpdate is true).
      */
     fun refreshLayers(onComplete: (() -> Unit)? = null) {
@@ -579,27 +641,40 @@ class MapboxMapHolder(
             return
         }
         scope.launch {
-            val toRemove = layerState.toMap()
-            map.getStyle { style ->
-                for ((_, state) in toRemove) {
-                    if (style.styleSourceExists(state.sourceId)) style.removeStyleSource(state.sourceId)
-                    if (style.styleLayerExists(state.fillLayerId)) style.removeStyleLayer(state.fillLayerId)
-                    if (style.styleLayerExists(state.outlineLayerId)) style.removeStyleLayer(state.outlineLayerId)
-                    if (style.styleLayerExists(state.pointLayerId)) style.removeStyleLayer(state.pointLayerId)
-                    state.labelLayerId?.let { if (style.styleLayerExists(it)) style.removeStyleLayer(it) }
+            val specs = layerSpecs.values.toList()
+            for (spec in specs) {
+                val geoJson = fetchGeoJson(spec.name, cacheBust = true)
+                if (geoJson == null) {
+                    Log.e(TAG, "refreshLayers: failed to fetch ${spec.name}")
+                    continue
                 }
-                layerState.clear()
-                allowedLayerTypes = null
-                val specs = layerSpecs.values.toList()
-                scope.launch {
-                    for (spec in specs) {
-                        addLayerInternal(map, spec)
-                    }
-                    withContext(Dispatchers.Main) {
-                        Log.d(TAG, "refreshLayers: re-added ${specs.size} layers")
-                        onComplete?.invoke()
+                val featureCollection = try {
+                    FeatureCollection.fromJson(geoJson)
+                } catch (e: Exception) {
+                    Log.e(TAG, "refreshLayers: failed to parse GeoJSON for ${spec.name}", e)
+                    continue
+                }
+                if (featureCollection.features().isNullOrEmpty()) {
+                    Log.w(TAG, "refreshLayers: ${spec.name} has no features")
+                    continue
+                }
+                val sourceId = "source-${spec.name}"
+                withContext(Dispatchers.Main) {
+                    map.getStyle { style ->
+                        val source = style.getSource(sourceId) as? GeoJsonSource
+                        if (source != null) {
+                            source.featureCollection(featureCollection, "refresh-${System.currentTimeMillis()}")
+                            Log.d(TAG, "refreshLayers: updated source $sourceId with ${featureCollection.features()!!.size} features")
+                        } else {
+                            Log.w(TAG, "refreshLayers: source $sourceId not found, adding layer")
+                            addLayerToStyle(style, spec, geoJson)
+                        }
                     }
                 }
+            }
+            withContext(Dispatchers.Main) {
+                Log.d(TAG, "refreshLayers: updated ${specs.size} layers")
+                onComplete?.invoke()
             }
         }
     }
@@ -610,6 +685,12 @@ class MapboxMapHolder(
             val visibility = if (visible) Visibility.VISIBLE else Visibility.NONE
             mapboxMap?.getStyle { style ->
                 style.getLayer(TEAM_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_HALO_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_INNER_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_ME_HALO_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_ME_INNER_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_OTHERS_HALO_LAYER_ID)?.visibility(visibility)
+                style.getLayer(TEAM_OTHERS_INNER_LAYER_ID)?.visibility(visibility)
             }
             return
         }
@@ -640,11 +721,12 @@ class MapboxMapHolder(
             val queryOptions = RenderedQueryOptions(allLayerIds, null)
             
             map.queryRenderedFeatures(queryGeometry, queryOptions) { result ->
-                result.value?.firstOrNull()?.let { feature ->
-                    val mapFeature = feature.queriedFeature.feature
+                result.value?.firstOrNull()?.let { queriedFeature ->
+                    val mapFeature = queriedFeature.queriedFeature.feature
                     val properties = mapFeature.properties()
+                    val layerName = queriedFeature.layers.firstOrNull()?.let { layerIdToLayerName(it) }
                     if (properties != null) {
-                        showFeaturePropertiesDialog(mapFeature, properties)
+                        showFeaturePropertiesDialog(mapFeature, properties, layerName)
                     }
                 }
             }
@@ -676,27 +758,147 @@ class MapboxMapHolder(
         }
     }
 
-    private fun safePropString(properties: JsonObject, key: String): String {
-        val el = properties.get(key) ?: return "—"
+    /** Extract layer name from Mapbox layer ID (e.g. "fill-akerkant_layer" -> "akerkant_layer"). */
+    private fun layerIdToLayerName(layerId: String): String {
+        for (prefix in listOf("fill-", "outline-", "point-", "label-")) {
+            if (layerId.startsWith(prefix)) return layerId.removePrefix(prefix)
+        }
+        return layerId
+    }
+
+    /** Extract string from JsonElement. Numbers are converted without decimals (123.0 -> "123") for TRAKT/OBJECTID. */
+    private fun jsonElementToString(el: JsonElement): String {
         if (el.isJsonNull) return "—"
         return try {
-            el.toString().trim('"').ifEmpty { "—" }
+            when {
+                el.isJsonPrimitive -> {
+                    val p = el.asJsonPrimitive
+                    when {
+                        p.isNumber -> {
+                            val n = p.asNumber
+                            if (n.toLong().toDouble() == n.toDouble()) n.toLong().toString()
+                            else n.toString()
+                        }
+                        p.isString -> p.asString
+                        else -> p.toString()
+                    }
+                }
+                else -> el.toString()
+            }.ifEmpty { "—" }
         } catch (_: Exception) { "—" }
     }
 
-    private fun showFeaturePropertiesDialog(feature: Feature, properties: JsonObject) {
+    private fun safePropString(properties: JsonObject, key: String): String {
+        val el = properties.get(key) ?: return "—"
+        return jsonElementToString(el)
+    }
+
+    /** Build keyHash from feature properties for obj_context evaluation (lowercase keys for Expressor). */
+    private fun propertiesToKeyHash(properties: JsonObject): HashMap<String, String> {
+        val map = HashMap<String, String>()
+        properties.keySet().forEach { key ->
+            val el = properties.get(key) ?: return@forEach
+            if (!el.isJsonNull) {
+                val value = jsonElementToString(el)
+                if (value != "—" && value.isNotEmpty()) {
+                    map[key.lowercase()] = value
+                    map[key] = value  // also keep original case for compatibility
+                }
+            }
+        }
+        return map
+    }
+
+    private fun showFeaturePropertiesDialog(feature: Feature, properties: JsonObject, layerName: String?) {
         val context = mapView.context ?: return
         val gistyp = properties.get("GISTYP")?.asString
         if (gistyp == "trakter") {
             showTrakterInfoDialog(context, feature, properties)
         } else {
-            val gson = GsonBuilder().setPrettyPrinting().create()
-            val formattedJson = gson.toJson(properties)
-            AlertDialog.Builder(context)
-                .setTitle("Feature Properties")
-                .setMessage(formattedJson)
-                .setPositiveButton("OK", null)
-                .show()
+            val (objContext, onClick) = layerName?.let { layerClickConfig[it] } ?: (null to null)
+            if (objContext != null && !objContext.isBlank() && onClick != null && onClick.isNotBlank()) {
+                showGisObjectStartDialog(context, feature, properties, objContext, onClick)
+            } else {
+                val gson = GsonBuilder().setPrettyPrinting().create()
+                val formattedJson = gson.toJson(properties)
+                AlertDialog.Builder(context)
+                    .setTitle("Feature Properties")
+                    .setMessage(formattedJson)
+                    .setPositiveButton("OK", null)
+                    .show()
+            }
+        }
+    }
+
+    /** Dialog with Start button for non-TRAKT GIS objects. Sets DB_Context from obj_context and changes page to on_click. */
+    private fun showGisObjectStartDialog(
+        context: android.content.Context,
+        feature: Feature,
+        properties: JsonObject,
+        objContext: String,
+        onClick: String
+    ) {
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_gis_object_start, null)
+        val label = buildString {
+            val typkod = safePropString(properties, "TYPKOD")
+            val objectId = safePropString(properties, "OBJECTID")
+            if (typkod != "—" || objectId != "—") append("$typkod $objectId".trim())
+            else append(context.getString(R.string.gis_object))
+        }
+        val pystatusVal = try {
+            properties.get("PYSTATUS")?.takeIf { !it.isJsonNull }?.let { el ->
+                if (el.isJsonPrimitive && el.asJsonPrimitive.isNumber) el.asInt else null
+            }
+        } catch (_: Exception) { null }
+        val (_, pystatusColor) = pystatusToLabelAndColor(pystatusVal)
+        val titleView = view.findViewById<android.widget.TextView>(R.id.gis_object_title)
+        val infoView = view.findViewById<android.widget.TextView>(R.id.gis_object_info)
+        val statusIndicator = view.findViewById<View>(R.id.gis_object_status_indicator)
+        titleView.text = label
+        val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
+            setColor(pystatusColor)
+            setStroke(1, Color.GRAY)
+            cornerRadius = 2 * context.resources.displayMetrics.density
+        }
+        statusIndicator.background = indicatorDrawable
+        infoView.text = propertiesToInfoString(properties)
+        AlertDialog.Builder(context)
+            .setView(view)
+            .setPositiveButton(context.getString(R.string.start)) { _, _ ->
+                runStartWorkflow(feature, properties, objContext, onClick)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun runStartWorkflow(feature: Feature, properties: JsonObject, objContext: String, onClick: String) {
+        try {
+            val keyHash = propertiesToKeyHash(properties)
+            GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
+            val objContextE = Expressor.preCompileExpression(objContext)
+            val dbContext = DB_Context.evaluate(objContextE)
+            if (dbContext.isOk) {
+                val ctx = dbContext.getContext() ?: HashMap()
+                val merged = HashMap(ctx)
+                merged["år"] = Constants.getYear()
+                safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { merged["uid"] = it }
+                GlobalState.getInstance().setDBContext(DB_Context(null, merged))
+            } else {
+                Log.w(TAG, "obj_context evaluation failed: " + dbContext.toString())
+                return
+            }
+            val wf = GlobalState.getInstance().getWorkflow(onClick)
+            if (wf != null) {
+                val center = featureCenter(feature)
+                if (center != null) {
+                    GlobalState.getInstance().setPendingMapCenter(center.first, center.second)
+                }
+                GlobalState.getInstance().changePage(wf, null)
+            } else {
+                Log.w(TAG, "Workflow not found: $onClick")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "runStartWorkflow error", e)
         }
     }
 
@@ -714,6 +916,36 @@ class MapboxMapHolder(
         return mapView.context.getString(labelRes) to color
     }
 
+    private fun pystatusToLabelAndColor(value: Int?): Pair<String, Int> {
+        val defaultColor = Color.parseColor("#cccccc")
+        val (labelRes, color) = when {
+            value == null || value == 0 -> R.string.pystatus_default to defaultColor
+            value == 2 -> R.string.pystatus_error to PYSTATUS_COLORS[2]!!
+            value == 3 -> R.string.pystatus_ready to PYSTATUS_COLORS[3]!!
+            value == 4 -> R.string.pystatus_exported to PYSTATUS_COLORS[4]!!
+            value == 100 -> R.string.pystatus_inserted to PYSTATUS_COLORS[100]!!
+            else -> R.string.pystatus_default to defaultColor
+        }
+        return mapView.context.getString(labelRes) to color
+    }
+
+    private fun propertiesToInfoString(properties: JsonObject): String = buildString {
+        for ((key, value) in properties.entrySet()) {
+            if (key == "geometry" || key == "geometry_name") continue
+            val strVal = value?.takeIf { !it.isJsonNull }?.let { jsonElementToString(it) } ?: "—"
+            val displayVal = if (key == "PYSTATUS") {
+                val pystatusVal = try {
+                    value?.takeIf { !it.isJsonNull }?.let { el ->
+                        if (el.isJsonPrimitive && el.asJsonPrimitive.isNumber) el.asInt else null
+                    }
+                } catch (_: Exception) { null }
+                val (label, _) = pystatusToLabelAndColor(pystatusVal)
+                "$strVal ($label)"
+            } else strVal
+            append("$key: "); appendLine(displayVal)
+        }
+    }
+
     private fun showTrakterInfoDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_trakter_info, null)
         val trakt = safePropString(properties, "TRAKT")
@@ -724,7 +956,7 @@ class MapboxMapHolder(
         } catch (_: Exception) { null }
         val (traktStatusLabel, traktStatusColor) = traktStatusToLabelAndColor(traktStatusVal)
         val objectId = safePropString(properties, "OBJECTID")
-        val typkod = properties.get("TYPKOD")?.asString ?: "—"
+        val typkod = safePropString(properties, "TYPKOD")
         val column1 = safePropString(properties, "COLUMN1")
         val titleView = view.findViewById<android.widget.TextView>(R.id.trakter_title)
         val infoView = view.findViewById<android.widget.TextView>(R.id.trakter_info)
@@ -761,17 +993,40 @@ class MapboxMapHolder(
                     .build()
                 (mapView as? MapView)?.camera?.easeTo(cameraOptions)
                 dialog.dismiss()
-                // 2) Set DB context with gistyp=Trakter, trakt=<TRAKT>
+                // 1) Get layer's obj_context and on_click (trakter layer)
+                val (objContext, onClick) = layerClickConfig["trakter"] ?: (null to null)
+                // 2) Set DB context: inject feature's TRAKT so obj_context can evaluate, then evaluate obj_context
                 val keyHash = HashMap<String, String>()
-                keyHash["gistyp"] = "Trakter"
                 keyHash["trakt"] = trakt
-                keyHash["år"] = Constants.getYear()
                 GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
-                // 4) Transfer center to target map
+                val dbContext = if (objContext != null && objContext.isNotBlank()) {
+                    val objContextE = Expressor.preCompileExpression(objContext)
+                    val evaluated = DB_Context.evaluate(objContextE)
+                    if (evaluated.isOk) {
+                        val ctx = evaluated.getContext()
+                        val merged = if (ctx != null) HashMap(ctx) else HashMap<String, String>()
+                        merged["gistyp"] = "Trakter"  // trakter layer always adds gistyp
+                        merged["år"] = Constants.getYear()
+                        safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { merged["uid"] = it }
+                        DB_Context(null, merged)
+                    } else evaluated
+                } else {
+                    // Fallback: use trakt and gistyp when layer has no obj_context
+                    keyHash["gistyp"] = "Trakter"
+                    keyHash["år"] = Constants.getYear()
+                    safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { keyHash["uid"] = it }
+                    DB_Context(null, HashMap(keyHash))
+                }
+                if (dbContext.isOk) {
+                    GlobalState.getInstance().setDBContext(dbContext)
+                } else {
+                    Log.w(TAG, "Center-on: obj_context evaluation failed: " + dbContext.toString())
+                }
+                // 3) Transfer center to target map
                 GlobalState.getInstance().setPendingMapCenter(lat, lng)
-                // 3) Execute workflow from on_click - post to next frame so dialog dismiss completes
-                val wfName = onCenterClickWorkflow
-                android.util.Log.i(TAG, "Center-on: onCenterClickWorkflow=$wfName")
+                // 4) Execute workflow from layer's on_click (fallback to map view's on_click for backward compat)
+                val wfName = onClick ?: onCenterClickWorkflow
+                android.util.Log.i(TAG, "Center-on: workflow=$wfName (layer onClick=$onClick, map onCenterClick=$onCenterClickWorkflow)")
                 if (!wfName.isNullOrBlank()) {
                     val wf = GlobalState.getInstance().getWorkflow(wfName)
                     android.util.Log.i(TAG, "Center-on: workflow lookup result=${if (wf != null) "found" else "null"}")
@@ -784,7 +1039,7 @@ class MapboxMapHolder(
                         Log.w(TAG, "Center-on workflow not found: $wfName")
                     }
                 } else {
-                    Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_map_view)")
+                    Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_layer and block_add_gis_map_view)")
                 }
             } else {
                 Log.w(TAG, "Center-on: featureCenter was null")
@@ -826,6 +1081,59 @@ class MapboxMapHolder(
     private var lastTeamMembers: List<TeamMemberMapPoint>? = null
     /** Team layer visibility (for layer list toggle). */
     private var teamLayerVisible: Boolean = true
+    private val mePulseHandler = Handler(Looper.getMainLooper())
+    private var mePulseRunnable: Runnable? = null
+    private var mePulseExpandRunnable: Runnable? = null
+    private var mePulseHideRunnable: Runnable? = null
+
+    private fun startMePulse() {
+        stopMePulse()
+        mePulseRunnable = object : Runnable {
+            override fun run() {
+                val map = mapboxMap ?: return
+                map.getStyle { style ->
+                    if (style.styleLayerExists(TEAM_ME_HALO_LAYER_ID)) {
+                        style.setStyleLayerProperty(TEAM_ME_HALO_LAYER_ID, "circle-opacity", Value(ME_PULSE_AURA_OPACITY))
+                        style.setStyleLayerProperty(TEAM_ME_HALO_LAYER_ID, "circle-radius", Value(ME_PULSE_AURA_START))
+                    }
+                }
+                mePulseExpandRunnable = Runnable {
+                    mapboxMap?.getStyle { s ->
+                        if (s.styleLayerExists(TEAM_ME_HALO_LAYER_ID)) {
+                            s.setStyleLayerProperty(TEAM_ME_HALO_LAYER_ID, "circle-radius", Value(ME_PULSE_AURA_EXPANDED))
+                        }
+                    }
+                    mePulseExpandRunnable = null
+                }
+                mePulseHideRunnable = Runnable {
+                    mapboxMap?.getStyle { s ->
+                        if (s.styleLayerExists(TEAM_ME_HALO_LAYER_ID)) {
+                            s.setStyleLayerProperty(TEAM_ME_HALO_LAYER_ID, "circle-opacity", Value(0.0))
+                        }
+                    }
+                    mePulseHideRunnable = null
+                }
+                mePulseHandler.postDelayed(mePulseExpandRunnable!!, ME_PULSE_EXPAND_DELAY_MS)
+                mePulseHandler.postDelayed(mePulseHideRunnable!!, ME_PULSE_FADE_DELAY_MS)
+                mePulseHandler.postDelayed(this, ME_PULSE_INTERVAL_MS)
+            }
+        }
+        mePulseHandler.postDelayed(mePulseRunnable!!, ME_PULSE_INTERVAL_MS)
+    }
+
+    private fun stopMePulse() {
+        mePulseRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        mePulseRunnable = null
+        mePulseExpandRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        mePulseExpandRunnable = null
+        mePulseHideRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        mePulseHideRunnable = null
+    }
+
+    /** Call when holder is no longer needed (e.g. MapTemplate.onDestroyView) to stop pulse animation. */
+    fun release() {
+        stopMePulse()
+    }
 
     /**
      * Updates the team member layer with the given list of positions.
@@ -845,52 +1153,144 @@ class MapboxMapHolder(
             return
         }
         map.getStyle { style ->
+            val layersExist = gisMode == "detailed" && style.styleLayerExists(TEAM_ME_HALO_LAYER_ID)
+            if (layersExist && members.isNotEmpty()) {
+                val sortedMembers = members.sortedBy { if (it.name?.contains("(me)") == true) 1 else 0 }
+                val meFeatures = mutableListOf<Feature>()
+                val othersFeatures = mutableListOf<Feature>()
+                for ((idx, member) in sortedMembers.withIndex()) {
+                    val isMe = member.name?.contains("(me)") == true
+                    val point = Point.fromLngLat(member.lng, member.lat)
+                    val props = JsonObject().apply {
+                        addProperty("name", member.name ?: "")
+                        addProperty("isMe", if (isMe) 1 else 0)
+                    }
+                    val f = Feature.fromGeometry(point, props, if (isMe) "me" else "others-$idx")
+                    if (isMe) meFeatures.add(f) else othersFeatures.add(f)
+                }
+                // Update source data in place to avoid "Source already exists" (remove/add is racy)
+                (style.getSource(TEAM_ME_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(meFeatures)
+                (style.getSource(TEAM_OTHERS_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(othersFeatures)
+                return@getStyle
+            }
+            stopMePulse()
             if (style.styleLayerExists(TEAM_LAYER_ID)) style.removeStyleLayer(TEAM_LAYER_ID)
+            if (style.styleLayerExists(TEAM_HALO_LAYER_ID)) style.removeStyleLayer(TEAM_HALO_LAYER_ID)
+            if (style.styleLayerExists(TEAM_INNER_LAYER_ID)) style.removeStyleLayer(TEAM_INNER_LAYER_ID)
+            if (style.styleLayerExists(TEAM_ME_HALO_LAYER_ID)) style.removeStyleLayer(TEAM_ME_HALO_LAYER_ID)
+            if (style.styleLayerExists(TEAM_ME_INNER_LAYER_ID)) style.removeStyleLayer(TEAM_ME_INNER_LAYER_ID)
+            if (style.styleLayerExists(TEAM_OTHERS_HALO_LAYER_ID)) style.removeStyleLayer(TEAM_OTHERS_HALO_LAYER_ID)
+            if (style.styleLayerExists(TEAM_OTHERS_INNER_LAYER_ID)) style.removeStyleLayer(TEAM_OTHERS_INNER_LAYER_ID)
             if (style.styleSourceExists(TEAM_SOURCE_ID)) style.removeStyleSource(TEAM_SOURCE_ID)
+            if (style.styleSourceExists(TEAM_ME_SOURCE_ID)) style.removeStyleSource(TEAM_ME_SOURCE_ID)
+            if (style.styleSourceExists(TEAM_OTHERS_SOURCE_ID)) style.removeStyleSource(TEAM_OTHERS_SOURCE_ID)
             if (members.isEmpty()) {
                 return@getStyle
             }
             // Draw "me" (current user) last so their icon is always on top when multiple markers overlap (e.g. duplicate or same location)
             val sortedMembers = members.sortedBy { if (it.name?.contains("(me)") == true) 1 else 0 }
             val features = mutableListOf<Feature>()
-            // Use stable icon id per member (team_<id>) so list order changes (e.g. Set iteration) don't overwrite one member's needle with another's
+            val meFeatures = mutableListOf<Feature>()
+            val othersFeatures = mutableListOf<Feature>()
+            val useDetailed = gisMode == "detailed"
             for ((index, member) in sortedMembers.withIndex()) {
-                val safeId = member.id.replace(Regex("[^a-zA-Z0-9_-]"), "_")
-                val iconId = "team_$safeId"
-                val bitmap = member.iconBitmap
-                if (style.hasStyleImage(iconId)) style.removeStyleImage(iconId)
-                if (bitmap != null) {
-                    style.addImage(iconId, bitmap, false)
-                } else {
-                    val drawable = ContextCompat.getDrawable(mapView.context, R.drawable.ic_needle_symbol)
-                        ?: ContextCompat.getDrawable(mapView.context, R.drawable.person_away)
-                    val fallback = drawable?.let { Tools.drawableToBitmap(it) }
-                    if (fallback != null) {
-                        style.addImage(iconId, fallback, false)
-                    } else {
-                        Log.w(TAG, "Could not create fallback bitmap for team member $index (${member.name})")
-                    }
-                }
+                val isMe = member.name?.contains("(me)") == true
                 val point = Point.fromLngLat(member.lng, member.lat)
                 val props = JsonObject().apply {
-                    addProperty("icon", iconId)
                     addProperty("name", member.name ?: "")
+                    addProperty("isMe", if (isMe) 1 else 0)
                 }
-                features.add(Feature.fromGeometry(point, props))
+                if (useDetailed) {
+                    val f = Feature.fromGeometry(point, props, if (isMe) "me" else "others-$index")
+                    features.add(f)
+                    if (isMe) meFeatures.add(f) else othersFeatures.add(f)
+                } else {
+                    // Normal mode: symbol layer with needle icons
+                    val safeId = member.id.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+                    val iconId = "team_$safeId"
+                    val bitmap = member.iconBitmap
+                    if (style.hasStyleImage(iconId)) style.removeStyleImage(iconId)
+                    if (bitmap != null) {
+                        style.addImage(iconId, bitmap, false)
+                    } else {
+                        val drawable = ContextCompat.getDrawable(mapView.context, R.drawable.ic_needle_symbol)
+                            ?: ContextCompat.getDrawable(mapView.context, R.drawable.person_away)
+                        val fallback = drawable?.let { Tools.drawableToBitmap(it) }
+                        if (fallback != null) {
+                            style.addImage(iconId, fallback, false)
+                        } else {
+                            Log.w(TAG, "Could not create fallback bitmap for team member $index (${member.name})")
+                        }
+                    }
+                    props.addProperty("icon", iconId)
+                    features.add(Feature.fromGeometry(point, props))
+                }
             }
-            val collection = FeatureCollection.fromFeatures(features)
-            style.addSource(geoJsonSource(TEAM_SOURCE_ID) { featureCollection(collection) })
-            style.addLayer(
-                symbolLayer(TEAM_LAYER_ID, TEAM_SOURCE_ID) {
-                    iconImage(get("icon"))
-                    // Scale icon with zoom so it stays small when zoomed out (e.g. all Sweden) and correct when zoomed in
-                    iconSize(step(zoom(), literal(0.2), literal(4.0) to literal(0.2), literal(8.0) to literal(0.5), literal(12.0) to literal(1.0), literal(14.0) to literal(1.2)))
-                    iconAnchor(IconAnchor.BOTTOM)
-                    iconAllowOverlap(true)
-                    iconIgnorePlacement(true)
+            if (useDetailed) {
+                Log.d(TAG, "updateTeamLayer: adding circle layers (detailed mode)")
+                val othersColor = color(Color.parseColor("#4285F4"))
+                val meColor = color(Color.WHITE)
+                val baseRadius = step(zoom(), literal(6.0), literal(8.0) to literal(10.0), literal(12.0) to literal(16.0), literal(14.0) to literal(24.0))
+                val innerRadius = step(zoom(), literal(3.0), literal(8.0) to literal(5.0), literal(12.0) to literal(8.0), literal(14.0) to literal(10.0))
+                if (othersFeatures.isNotEmpty()) {
+                    val othersCollection = FeatureCollection.fromFeatures(othersFeatures)
+                    style.addSource(geoJsonSource(TEAM_OTHERS_SOURCE_ID) { featureCollection(othersCollection) })
+                    style.addLayer(
+                        circleLayer(TEAM_OTHERS_HALO_LAYER_ID, TEAM_OTHERS_SOURCE_ID) {
+                            circleRadius(baseRadius)
+                            circleColor(othersColor)
+                            circleOpacity(0.25)
+                            circleStrokeWidth(0.0)
+                        }
+                    )
+                    style.addLayer(
+                        circleLayer(TEAM_OTHERS_INNER_LAYER_ID, TEAM_OTHERS_SOURCE_ID) {
+                            circleRadius(innerRadius)
+                            circleColor(othersColor)
+                            circleOpacity(1.0)
+                            circleStrokeWidth(0.0)
+                        }
+                    )
+                    style.getLayer(TEAM_OTHERS_HALO_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+                    style.getLayer(TEAM_OTHERS_INNER_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
                 }
-            )
-            style.getLayer(TEAM_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+                if (meFeatures.isNotEmpty()) {
+                    val meCollection = FeatureCollection.fromFeatures(meFeatures)
+                    style.addSource(geoJsonSource(TEAM_ME_SOURCE_ID) { featureCollection(meCollection) })
+                    style.addLayer(
+                        circleLayer(TEAM_ME_HALO_LAYER_ID, TEAM_ME_SOURCE_ID) {
+                            circleRadius(literal(ME_PULSE_AURA_START))
+                            circleColor(meColor)
+                            circleOpacity(0.0)
+                            circleStrokeWidth(0.0)
+                        }
+                    )
+                    style.addLayer(
+                        circleLayer(TEAM_ME_INNER_LAYER_ID, TEAM_ME_SOURCE_ID) {
+                            circleRadius(innerRadius)
+                            circleColor(meColor)
+                            circleOpacity(1.0)
+                            circleStrokeWidth(0.0)
+                        }
+                    )
+                    style.getLayer(TEAM_ME_HALO_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+                    style.getLayer(TEAM_ME_INNER_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+                    startMePulse()
+                }
+            } else {
+                val collection = FeatureCollection.fromFeatures(features)
+                style.addSource(geoJsonSource(TEAM_SOURCE_ID) { featureCollection(collection) })
+                style.addLayer(
+                    symbolLayer(TEAM_LAYER_ID, TEAM_SOURCE_ID) {
+                        iconImage(get("icon"))
+                        iconSize(step(zoom(), literal(0.2), literal(4.0) to literal(0.2), literal(8.0) to literal(0.5), literal(12.0) to literal(1.0), literal(14.0) to literal(1.2)))
+                        iconAnchor(IconAnchor.BOTTOM)
+                        iconAllowOverlap(true)
+                        iconIgnorePlacement(true)
+                    }
+                )
+                style.getLayer(TEAM_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+            }
         }
     }
 }

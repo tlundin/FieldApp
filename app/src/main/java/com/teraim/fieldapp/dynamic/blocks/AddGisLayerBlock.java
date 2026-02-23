@@ -27,11 +27,21 @@ public class AddGisLayerBlock extends Block {
 	private final Float lineWidth;
 	private final Float circleRadius;
 	private final String polyType;
+	private final String objContext;
+	private final String onClick;
 
 	public AddGisLayerBlock(String id, String name, String label,
 			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold,
 			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
 			Float circleRadius, String polyType) {
+		this(id, name, label, target, isVisible, hasWidget, showLabels, isBold,
+				fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType, null, null);
+	}
+
+	public AddGisLayerBlock(String id, String name, String label,
+			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold,
+			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
+			Float circleRadius, String polyType, String objContext, String onClick) {
 		super();
 		this.blockId = id;
 		this.name = name;
@@ -47,6 +57,8 @@ public class AddGisLayerBlock extends Block {
 		this.lineWidth = lineWidth;
 		this.circleRadius = circleRadius;
 		this.polyType = polyType;
+		this.objContext = objContext;
+		this.onClick = onClick;
 	}
 
 	public void create(WF_Context myContext) {
@@ -57,7 +69,8 @@ public class AddGisLayerBlock extends Block {
 			MapboxMapHolder holder = (MapboxMapHolder) gisMap;
 			Log.d(TAG, "Adding Mapbox layer: " + name + ", polyType=" + polyType);
 			holder.addLayer(name, label, isVisible, hasWidget, showLabels, isBold,
-					fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType);
+					fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType,
+					objContext, onClick);
 			Log.d(TAG, "Added Mapbox layer: " + name);
 		} else if (gisMap instanceof WF_Gis_Map) {
             WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);

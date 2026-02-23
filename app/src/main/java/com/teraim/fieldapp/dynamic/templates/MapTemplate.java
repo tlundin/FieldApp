@@ -69,6 +69,7 @@ public class MapTemplate extends Executor {
 	private GisMapView pendingGisMapViewConfig;
 	private final Handler teamUpdateHandler = new Handler(Looper.getMainLooper());
 	private Runnable teamUpdateRunnable;
+	private Runnable meUpdateRunnable;
 	private TeamStatusViewModel teamStatusViewModel;
 	/** Latest team member points for re-apply when map style loads (observer may run before style is ready). */
 	private List<TeamMemberMapPoint> lastTeamMemberPoints;
@@ -117,8 +118,15 @@ public class MapTemplate extends Executor {
 
 			String gisObjectsBaseUrl = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.SERVER_URL)
 					+ GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)
-					+ "/gis_objects/wgs/";
+					+ "/gis_objects/";
 			mapboxMapHolder = new MapboxMapHolder(mapView, gisObjectsBaseUrl);
+			if (wf != null && wf.getMyPageDefineBlock() != null) {
+				String gisMode = wf.getMyPageDefineBlock().getGisMode();
+				mapboxMapHolder.setGisMode(gisMode);
+				Log.d(TAG, "MapTemplate: set gisMode=" + gisMode + " from PageDefineBlock");
+			} else {
+				Log.d(TAG, "MapTemplate: no PageDefineBlock or wf null, gisMode stays default");
+			}
 
 			if (myContext != null) {
 				myContext.addContainers(getContainers());
@@ -160,7 +168,7 @@ public class MapTemplate extends Executor {
 			// Apply current value immediately (LiveData may already have 4 members from MenuActivity polling)
 			applyTeamMembersToMap(teamStatusViewModel.teamMemberGisObjects.getValue());
 			teamStatusViewModel.teamMemberGisObjects.observe(getViewLifecycleOwner(), this::applyTeamMembersToMap);
-			// Periodic refresh so positions update when team members move
+			// Periodic refresh: full sync every 10s, "me" position every 1s
 			teamUpdateRunnable = new Runnable() {
 				@Override
 				public void run() {
@@ -171,6 +179,16 @@ public class MapTemplate extends Executor {
 				}
 			};
 			teamUpdateHandler.postDelayed(teamUpdateRunnable, TimeUnit.SECONDS.toMillis(Constants.LOCATION_UPDATE_INTERVAL));
+			meUpdateRunnable = new Runnable() {
+				@Override
+				public void run() {
+					if (teamStatusViewModel != null) {
+						teamStatusViewModel.sendMyPositionOnly();
+						teamUpdateHandler.postDelayed(this, TimeUnit.SECONDS.toMillis(1));
+					}
+				}
+			};
+			teamUpdateHandler.postDelayed(meUpdateRunnable, TimeUnit.SECONDS.toMillis(1));
 		}
 		
 		// Wait for view to be attached to window before initializing map
@@ -508,11 +526,18 @@ public class MapTemplate extends Executor {
 			teamUpdateHandler.removeCallbacks(teamUpdateRunnable);
 			teamUpdateRunnable = null;
 		}
+		if (meUpdateRunnable != null) {
+			teamUpdateHandler.removeCallbacks(meUpdateRunnable);
+			meUpdateRunnable = null;
+		}
 		if (view != null) {
 			View refreshB = view.findViewById(R.id.menuR);
 			if (refreshB != null) refreshB.clearAnimation();
 		}
 		super.onDestroyView();
+		if (mapboxMapHolder != null) {
+			mapboxMapHolder.release();
+		}
 		if (mapView != null) {
 			mapView.onDestroy();
 			mapView = null;

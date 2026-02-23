@@ -79,7 +79,8 @@ import java.util.Set;
 
 public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private static final String TAG = "WorkFlowBundleConfiguration";
-
+	/** Bump when workflow structure changes (e.g. gis_mode in PageDefineBlock). Invalidates old cache. */
+	private static final int WF_CACHE_SCHEMA_VERSION = 2;
 
 	private String myApplication;
 	private final LogRepository o;
@@ -113,6 +114,51 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	public boolean isRequired() {
 		return true;
+	}
+
+	@Override
+	public LoadResult thawSynchronously() {
+		// Invalidate cache if schema version is old (e.g. pre-gis_mode in PageDefineBlock).
+		try {
+			String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+			if (bundleName == null || bundleName.isEmpty()) bundleName = "vortex";
+			java.io.File cacheDir = new java.io.File(getContext().getFilesDir(), bundleName.toLowerCase(java.util.Locale.ROOT) + "/cache");
+			java.io.File schemaF = new java.io.File(cacheDir, getFileName().toLowerCase(java.util.Locale.ROOT) + ".schema");
+			if (!schemaF.exists()) {
+				Log.d(TAG, "Workflow cache schema file missing, invalidating cache (need reload for gis_mode)");
+				setFrozenVersion(-1);
+				return new LoadResult(this, ErrorCode.thawFailed);
+			}
+			String schemaContent = Tools.getFileContentAsString(schemaF.getAbsolutePath());
+			int cachedSchema = (schemaContent != null && !schemaContent.isEmpty()) ? Integer.parseInt(schemaContent.trim()) : 0;
+			if (cachedSchema < WF_CACHE_SCHEMA_VERSION) {
+				Log.d(TAG, "Workflow cache schema " + cachedSchema + " < " + WF_CACHE_SCHEMA_VERSION + ", invalidating (need reload for gis_mode)");
+				setFrozenVersion(-1);
+				return new LoadResult(this, ErrorCode.thawFailed);
+			}
+		} catch (Exception e) {
+			Log.w(TAG, "Could not check workflow cache schema, invalidating", e);
+			setFrozenVersion(-1);
+			return new LoadResult(this, ErrorCode.thawFailed);
+		}
+		return super.thawSynchronously();
+	}
+
+	@Override
+	public void freeze(int counter) {
+		super.freeze(counter);
+		if (counter == -1 && essence != null) {
+			try {
+				String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+				if (bundleName == null || bundleName.isEmpty()) bundleName = "vortex";
+				java.io.File cacheDir = new java.io.File(getContext().getFilesDir(), bundleName.toLowerCase(java.util.Locale.ROOT) + "/cache");
+				cacheDir.mkdirs();
+				java.io.File schemaF = new java.io.File(cacheDir, getFileName().toLowerCase(java.util.Locale.ROOT) + ".schema");
+				java.nio.file.Files.write(schemaF.toPath(), String.valueOf(WF_CACHE_SCHEMA_VERSION).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			} catch (Exception e) {
+				Log.w(TAG, "Could not write workflow cache schema", e);
+			}
+		}
 	}
 
 	//workflows will be added to this one.
@@ -727,6 +773,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
 		String fillColor=null,lineColor=null,polyType=null;
 		Float fillOpacity=null,lineWidth=null,circleRadius=null;
+		String objContext=null,onClick=null;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d(TAG,"In block block_add_gis_layer!!");
@@ -763,6 +810,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				circleRadius = parseFloatOrNull(readText("circle_radius", parser));
 			} else if (name.equals("poly_type")) {
 				polyType = readText("poly_type", parser);
+			} else if (name.equalsIgnoreCase("obj_context")) {
+				objContext = readText("obj_context", parser);
+			} else if (name.equals("on_click")) {
+				onClick = readText("on_click", parser);
 			}
 			else {
 				Log.e("vortex","Skipped "+name);
@@ -771,8 +822,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
+		String objContextTrimmed = (objContext != null && !objContext.trim().isEmpty()) ? objContext.trim() : null;
+		String onClickTrimmed = (onClick != null && !onClick.trim().isEmpty()) ? onClick.trim() : null;
 		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold,
-				fillColor,fillOpacity,lineColor,lineWidth,circleRadius,polyType);
+				fillColor,fillOpacity,lineColor,lineWidth,circleRadius,polyType,objContextTrimmed,onClickTrimmed);
 
 	}
 
@@ -808,7 +861,8 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				String raw = readText("team_visible", parser);
 				teamVisible = raw != null && "true".equalsIgnoreCase(raw.trim());
 			} else if (name.equals("on_click")) {
-				onCenterClick = readText("on_click", parser);
+				// Deprecated: on_click is now on block_add_gis_layer (per-layer). Ignore on map view.
+				skip(name, parser);
 			} else {
 				Log.e("vortex", "Skipped " + name);
 				skip(name, parser);
@@ -2424,7 +2478,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	 */
 	private PageDefineBlock readPageDefineBlock(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addText("Parsing block: block_define_page...");
-		String pageType=null,label="",id=null,gpsPriority="low";
+		String pageType=null,label="",id=null,gpsPriority="low",gisMode="normal";
 		boolean hasGPS=false,goBackAllowed=true,hasSatNav = false;
 		parser.require(XmlPullParser.START_TAG, null,"block_define_page");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -2447,6 +2501,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "gps_priority":
 					gpsPriority = readText("gps_priority", parser);
 					break;
+				case "gis_mode":
+					gisMode = readText("gis_mode", parser);
+					break;
 				case "allow_OS_page_back":
 					goBackAllowed = readText("allow_OS_page_back", parser).equals("true");
 					break;
@@ -2460,7 +2517,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 		}
 		checkForNull("block_ID",id,"type",pageType,"label",label);
-		return new PageDefineBlock(id,"root", pageType,label,hasGPS,gpsPriority,goBackAllowed);
+		return new PageDefineBlock(id,"root", pageType,label,hasGPS,gpsPriority,goBackAllowed,gisMode);
 	}
 
 

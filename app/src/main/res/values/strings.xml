@@ -90,6 +90,7 @@
     <string name="details">Details</string>
     <string name="contact_us_button_text">Contact us</string>
     <string name="start">Start</string>
+    <string name="gis_object">Object</string>
     <string name="continue_">Continue</string>
     <string name="reset_cache_d">Erase all cached files to force reload</string>
     <string name="resetCache">Clear Cache</string>
@@ -155,5 +156,10 @@
     <string name="trakter_status_partial">Partially done</string>
     <string name="trakter_status_much">Much done</string>
     <string name="trakter_status_complete">All done, and imported</string>
+    <string name="pystatus_default">Default</string>
+    <string name="pystatus_error">Error</string>
+    <string name="pystatus_ready">Ready</string>
+    <string name="pystatus_exported">Ready and exported</string>
+    <string name="pystatus_inserted">Ready and inserted in DB</string>
 
 </resources>

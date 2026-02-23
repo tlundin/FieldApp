@@ -89,6 +89,7 @@
 	<string name="details">Detaljer</string>
 	<string name="contact_us_button_text">Kontakta oss</string>
     <string name="start">Starta</string>
+    <string name="gis_object">Objekt</string>
 	<string name="continue_">Fortsätt</string>
     <string name="reset_cache_d">Ta bort alla cacheade filer</string>
 	<string name="resetCache">Töm cache</string>
@@ -154,4 +155,9 @@
 	<string name="trakter_status_partial">En del gjort</string>
 	<string name="trakter_status_much">Mycket gjort</string>
 	<string name="trakter_status_complete">Allt klart, och importerat</string>
+	<string name="pystatus_default">Standard</string>
+	<string name="pystatus_error">Fel</string>
+	<string name="pystatus_ready">Klar</string>
+	<string name="pystatus_exported">Klar och exporterad</string>
+	<string name="pystatus_inserted">Klar och införd i DB</string>
 </resources>

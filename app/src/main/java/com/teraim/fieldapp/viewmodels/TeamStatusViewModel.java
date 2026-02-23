@@ -141,12 +141,117 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         this.latestSignal = signal;
     }
 
+    /**
+     * POSTs only the current user's position and updates LiveData with local "me" position.
+     * Use for 1-second "me" updates. Does not fetch team positions.
+     */
+    public void sendMyPositionOnly() {
+        if (!Connectivity.isConnected(getApplication())) {
+            return;
+        }
+        if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
+            return;
+        }
+        double lat = -1, lng = -1;
+        if (latestSignal.lat != -1 && latestSignal.lng != -1) {
+            lat = latestSignal.lat;
+            lng = latestSignal.lng;
+        } else if (latestSignal.x != -1 && latestSignal.y != -1) {
+            LatLong wgs84 = Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+            lat = wgs84.getX();
+            lng = wgs84.getY();
+        }
+        if (lat == -1 || lng == -1) return;
+
+        try {
+            JSONObject positionObject = new JSONObject();
+            positionObject.put("lat", lat);
+            positionObject.put("long", lng);
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("uuid", gs.getUserUUID());
+            jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
+            jsonBody.put("timestamp", latestSignal.time);
+            jsonBody.put("icon", getCurrentUserNeedleIndex());
+            jsonBody.put("position", positionObject);
+
+            final String requestBody = jsonBody.toString();
+            StringRequest postRequest = new StringRequest(Request.Method.POST, Constants.SynkStatusURI + "/position",
+                    response -> { },
+                    error -> Log.e(TAG, "Error posting my position: " + getVolleyErrorString(error))) {
+                @Override
+                public String getBodyContentType() { return "application/json; charset=utf-8"; }
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    try {
+                        return requestBody.getBytes("utf-8");
+                    } catch (UnsupportedEncodingException e) {
+                        throw new AuthFailureError("Encoding error", e);
+                    }
+                }
+                @Override
+                protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                    return Response.success("", HttpHeaderParser.parseCacheHeaders(response));
+                }
+            };
+            requestQueue.add(postRequest);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error creating JSON for my position: " + e.getMessage());
+            return;
+        }
+
+        // Update LiveData with local "me" position so map refreshes immediately
+        String teamName = gs.getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
+        String currentUserUUID = globalPh.get(PersistenceHelper.USERUUID_KEY);
+        String nameFromPref = globalPh.get(PersistenceHelper.USER_ID_KEY);
+        final String myName = (nameFromPref != null && !nameFromPref.isEmpty()) ? nameFromPref : "me";
+        Location myLocation = new LatLong(lat, lng);
+        int needleIndex = getCurrentUserNeedleIndex();
+        if (allAvailableCustomNeedles == null || allAvailableCustomNeedles.isEmpty()) loadAllCustomNeedles();
+        boolean usingCustom = allAvailableCustomNeedles != null && !allAvailableCustomNeedles.isEmpty() && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size();
+        Bitmap myIcon = usingCustom ? allAvailableCustomNeedles.get(needleIndex) : getDefaultTeamMemberIcon(latestSignal.time);
+        final Map<String, String> myKeychain = new HashMap<>();
+        myKeychain.put(DbHelper.YEAR, Constants.getYear());
+        myKeychain.put("lag", teamName != null ? teamName : "");
+        myKeychain.put("author", myName);
+        myKeychain.put("uuid", currentUserUUID);
+        GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
+            @Override public float getLineWidth() { return 2.0f; }
+            @Override public float getRadius() { return 4.0f; }
+            @Override public String getColor() { return "black"; }
+            @Override public String getBorderColor() { return "red"; }
+            @Override public GisObjectType getGisPolyType() { return GisObjectType.Point; }
+            @Override public android.graphics.Bitmap getIcon() { return myIcon; }
+            @Override public Paint.Style getStyle() { return Paint.Style.FILL_AND_STROKE; }
+            @Override public PolyType getShape() { return PolyType.circle; }
+            @Override public String getClickFlow() { return "wf_teammember"; }
+            @Override public DB_Context getObjectKeyHash() { return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", myKeychain); }
+            @Override public String getStatusVariable() { return null; }
+            @Override public boolean isUser() { return true; }
+            @Override public String getName() { return myName; }
+            @Override public String getRawLabel() { return myName; }
+            @Override public String getCreator() { return ""; }
+            @Override public boolean useIconOnMap() { return true; }
+            @Override public boolean isVisible() { return true; }
+            @Override public List<Expressor.EvalExpr> getLabelExpression() { return Expressor.preCompileExpression(myName); }
+        }, myKeychain, myLocation, null, null);
+        myGisObject.setLabel(myName + " (me)");
+
+        Set<GisPointObject> current = _teamMemberGisObjects.getValue();
+        Set<GisPointObject> updated = new HashSet<>(current != null ? current : java.util.Collections.emptySet());
+        updated.removeIf(g -> {
+            Map<String, String> kh = g.getKeyHash();
+            return kh != null && currentUserUUID != null && currentUserUUID.equals(kh.get("uuid"));
+        });
+        updated.add(myGisObject);
+        _teamMemberGisObjects.postValue(updated);
+    }
+
     public void sendAndReceiveTeamPositions() {
         if (!Connectivity.isConnected(getApplication())) {
             Log.d(TAG, "No internet connection, skipping sync.");
             _errorMessage.postValue("No internet connection.");
             if (activeRequestCount.get() == 0) {
-                _isUpdating.postValue(false);
+                _isUpdating.setValue(false);
             }
             return;
         }
@@ -157,7 +262,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
 
        // Log.d(TAG, "Initiating network calls...");
-        _isUpdating.postValue(true);
+        _isUpdating.setValue(true);
         _errorMessage.postValue(null);
 
         boolean updateMyPosition = true;

@@ -58,6 +58,8 @@ public abstract class ConfigurationModule {
 	// Helpers and context
 	private final Context context;
 	protected final PersistenceHelper globalPh;
+	/** For subclasses that need cache dir (e.g. schema version file). */
+	protected Context getContext() { return context; }
 	protected final PersistenceHelper ph;
 
 

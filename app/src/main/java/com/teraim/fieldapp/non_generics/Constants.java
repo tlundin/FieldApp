@@ -38,7 +38,7 @@ public class Constants {
 
 
 
-    public static final String VORTEX_VERSION = "12.11";
+    public static final String VORTEX_VERSION = "12.12";
     public final static String DEFAULT_APP = "Vortex";
     public static final String DEFAULT_SERVER_URI = "https://www.teraim.com/";
 
