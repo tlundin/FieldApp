@@ -23,6 +23,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
@@ -32,6 +33,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
@@ -194,6 +196,9 @@ public class Start extends MenuActivity implements StartProvider {
         } catch (Exception ex) {
             // Ignore
         }
+        // Initial state: toolbar opaque, content below it
+        findViewById(R.id.content_frame_root).post(() -> setToolbarTransparent(false));
+
         View rootView = findViewById(R.id.content_frame_root);
         ViewCompat.setOnApplyWindowInsetsListener(rootView, new OnApplyWindowInsetsListener() {
             @Override
@@ -201,12 +206,12 @@ public class Start extends MenuActivity implements StartProvider {
                 // Get the insets for system bars (status bar, navigation bar)
                 Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 
-                // Apply padding to the view
+                // Apply padding for top/left/right only; bottom=0 so map extends behind transparent nav bar
                 view.setPadding(
                         systemBarsInsets.left,
                         systemBarsInsets.top,
                         systemBarsInsets.right,
-                        systemBarsInsets.bottom
+                        0
                 );
 
                 // Return CONSUMED to indicate that you've handled these insets
@@ -641,6 +646,25 @@ public class Start extends MenuActivity implements StartProvider {
             }
         } else {
             Log.w("StartActivity", "ActionBar not found, cannot set visibility.");
+        }
+    }
+
+    /**
+     * Makes the toolbar transparent and lets the map extend behind it (when true),
+     * or restores opaque toolbar with content below it (when false).
+     */
+    public void setToolbarTransparent(boolean transparent) {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        FrameLayout contentFrame = findViewById(R.id.content_frame);
+        if (toolbar == null || contentFrame == null) return;
+
+        if (transparent) {
+            toolbar.setBackgroundColor(Color.TRANSPARENT);
+            contentFrame.setPadding(0, 0, 0, 0);
+        } else {
+            toolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+            int toolbarHeight = toolbar.getHeight() > 0 ? toolbar.getHeight() : (int) (56 * getResources().getDisplayMetrics().density);
+            contentFrame.setPadding(0, toolbarHeight, 0, 0);
         }
     }
 

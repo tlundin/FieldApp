@@ -27,7 +27,7 @@
         android:orientation="vertical"
         android:gravity="end"
         android:paddingEnd="16dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="64dp"
         android:paddingStart="16dp">
 
         <!-- Sub-buttons (order: top to bottom = zoom+, zoom-, refresh, layers) -->
@@ -128,7 +128,7 @@
         android:orientation="vertical"
         android:paddingStart="16dp"
         android:paddingEnd="80dp"
-        android:paddingBottom="16dp"
+        android:paddingBottom="64dp"
         android:background="@android:color/transparent"
         app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
         app:behavior_hideable="true" />

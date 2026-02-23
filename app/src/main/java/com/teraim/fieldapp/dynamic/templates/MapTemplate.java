@@ -103,6 +103,10 @@ public class MapTemplate extends Executor {
 	@Override
 	public void onPause() {
 		super.onPause();
+		android.app.Activity activity = getActivity();
+		if (activity instanceof com.teraim.fieldapp.Start) {
+			((com.teraim.fieldapp.Start) activity).setToolbarTransparent(false);
+		}
 		Log.d(TAG, "MapTemplate - onPause");
 	}
 
@@ -689,6 +693,11 @@ public class MapTemplate extends Executor {
 	@Override
 	public void onResume() {
 		super.onResume();
+		android.app.Activity activity = getActivity();
+		if (activity instanceof com.teraim.fieldapp.Start) {
+			((com.teraim.fieldapp.Start) activity).setToolbarTransparent(true);
+			activity.setTitle("");
+		}
 		// When map is visible: apply latest team data (from ViewModel or cached). Team layer always enabled for Mapbox map.
 		if (pendingGisMapViewConfig != null && mapboxMapHolder != null) {
 			if (teamStatusViewModel == null) {

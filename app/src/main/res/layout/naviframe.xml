@@ -10,19 +10,21 @@
         android:layout_height="match_parent"
         android:background="@null">
 
+        <!-- content_frame first so it draws behind toolbar when overlapping -->
+        <FrameLayout
+            android:id="@+id/content_frame"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+            android:layout_above="@id/progress_indicator_container"
+            android:background="@null" />
+
         <include
             android:id="@+id/toolbar"
             layout="@layout/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentTop="true" />
-
-        <FrameLayout
-            android:id="@+id/content_frame"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/toolbar"
-            android:background="@null" />
 
         <FrameLayout
             android:id="@+id/progress_indicator_container"
