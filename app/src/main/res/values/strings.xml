@@ -146,5 +146,14 @@
     <string name="map_needle_summary">Choose a map needle</string>
     <string name="select_layers_title">Layers</string>
     <string name="no_layers_loaded">No layers loaded yet.</string>
+    <string name="trakter_center_on">Center on</string>
+    <string name="trakter_navigate">Navigate</string>
+    <string name="trakter_info_title">Trakt %1$s</string>
+    <string name="trakter_status_high">High priority</string>
+    <string name="trakter_status_none">Nothing done</string>
+    <string name="trakter_status_started">Work started</string>
+    <string name="trakter_status_partial">Partially done</string>
+    <string name="trakter_status_much">Much done</string>
+    <string name="trakter_status_complete">All done, and imported</string>
 
 </resources>

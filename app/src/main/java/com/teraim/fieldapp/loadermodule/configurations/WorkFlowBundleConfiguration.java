@@ -778,6 +778,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private Block readBlockAddGisMapView(XmlPullParser parser) throws IOException, XmlPullParserException {
 		String id = null, nName = null, containerName = null, mapType = null, centerStr = null;
+		String onCenterClick = null;
 		Double zoom = null, pitch = null, bearing = null;
 		boolean teamVisible = false;
 
@@ -806,25 +807,33 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			} else if (name.equals("team_visible")) {
 				String raw = readText("team_visible", parser);
 				teamVisible = raw != null && "true".equalsIgnoreCase(raw.trim());
+			} else if (name.equals("on_click")) {
+				onCenterClick = readText("on_click", parser);
 			} else {
 				Log.e("vortex", "Skipped " + name);
 				skip(name, parser);
 			}
 		}
 
-		checkForNull("block_ID", id, "name", nName, "container_name", containerName, "map_type", mapType, "center", centerStr);
+		checkForNull("block_ID", id, "name", nName, "container_name", containerName, "map_type", mapType);
 		double centerLng, centerLat;
-		String[] parts = centerStr.trim().split("\\s*,\\s*");
-		if (parts.length != 2) {
-			throw new XmlPullParserException("center must be [lng, lat], e.g. 15.0,62.0");
+		if (centerStr == null || centerStr.trim().isEmpty()) {
+			centerLng = 15.0;
+			centerLat = 62.0;
+		} else {
+			String[] parts = centerStr.trim().split("\\s*,\\s*");
+			if (parts.length != 2) {
+				throw new XmlPullParserException("center must be [lng, lat], e.g. 15.0,62.0");
+			}
+			centerLng = Double.parseDouble(parts[0].trim());
+			centerLat = Double.parseDouble(parts[1].trim());
 		}
-		centerLng = Double.parseDouble(parts[0].trim());
-		centerLat = Double.parseDouble(parts[1].trim());
 		double zoomVal = zoom != null ? zoom : 4.0;
 		double pitchVal = pitch != null ? pitch : 0.0;
 		double bearingVal = bearing != null ? bearing : 0.0;
 
-		GisMapView gisMapView = new GisMapView(id, nName, containerName, mapType, centerLng, centerLat, zoomVal, pitchVal, bearingVal, teamVisible);
+		String onCenterClickTrimmed = (onCenterClick != null && !onCenterClick.trim().isEmpty()) ? onCenterClick.trim() : null;
+		GisMapView gisMapView = new GisMapView(id, nName, containerName, mapType, centerLng, centerLat, zoomVal, pitchVal, bearingVal, teamVisible, onCenterClickTrimmed);
 		return new AddGisMapViewBlock(id, gisMapView);
 	}
 

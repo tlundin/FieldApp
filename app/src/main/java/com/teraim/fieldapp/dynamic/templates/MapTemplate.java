@@ -286,6 +286,11 @@ public class MapTemplate extends Executor {
 					mapReady = true;
 					if (mapboxMapHolder != null) {
 						mapboxMapHolder.setMapboxMap(mapboxMap);
+						if (pendingGisMapViewConfig != null) {
+							String onClick = pendingGisMapViewConfig.getOnCenterClick();
+							mapboxMapHolder.setOnCenterClickWorkflow(onClick);
+							Log.d(TAG, "Style loaded: set onCenterClickWorkflow=" + onClick);
+						}
 						// Re-apply team layer if we had data before the map was ready
 						if (pendingGisMapViewConfig != null
 								&& lastTeamMemberPoints != null && !lastTeamMemberPoints.isEmpty()) {
@@ -293,22 +298,22 @@ public class MapTemplate extends Executor {
 						}
 					}
 					Log.d(TAG, "Mapbox style loaded successfully");
-					// Prefer GisMapView (from block_add_gis_map_view), then pending GIS object center, else Stockholm
-					if (pendingGisMapViewConfig != null) {
+					// Pending map center (from trakt center-on) takes precedence; then GisMapView; else Stockholm
+					double[] pending = GlobalState.getInstance().getAndClearPendingMapCenter();
+					if (pending != null && pending.length >= 2) {
+						double lat = pending[0];
+						double lng = pending[1];
+						double zoom = 10.5;
+						Log.d(TAG, "Map centering on pending (WGS84): lat=" + lat + ", lng=" + lng);
+						Point initialPoint = Point.fromLngLat(lng, lat);
+						mapboxMap.setCamera(new CameraOptions.Builder().center(initialPoint).zoom(zoom).build());
+					} else if (pendingGisMapViewConfig != null) {
 						applyCameraFromGisMapViewConfig();
 					} else {
 						double lat = 59.3293;
 						double lng = 18.0686;
 						double zoom = 8.0;
-						double[] pending = GlobalState.getInstance().getAndClearPendingMapCenter();
-						if (pending != null && pending.length >= 2) {
-							lat = pending[0];
-							lng = pending[1];
-							zoom = 14.0;
-							Log.d(TAG, "Map centering on GIS object (WGS84): lat=" + lat + ", lng=" + lng);
-						} else {
-							Log.d(TAG, "Map using default camera: Stockholm");
-						}
+						Log.d(TAG, "Map using default camera: Stockholm");
 						Point initialPoint = Point.fromLngLat(lng, lat);
 						mapboxMap.setCamera(new CameraOptions.Builder().center(initialPoint).zoom(zoom).build());
 					}
@@ -341,6 +346,11 @@ public class MapTemplate extends Executor {
 		// Apply camera after next layout/draw so we use GisMapView even if map is already initialized
 		if (mapView != null) {
 			mapView.post(this::applyCameraFromGisMapViewConfig);
+		}
+		if (mapboxMapHolder != null && pendingGisMapViewConfig != null) {
+			String onClick = pendingGisMapViewConfig.getOnCenterClick();
+			mapboxMapHolder.setOnCenterClickWorkflow(onClick);
+			Log.d(TAG, "Set onCenterClickWorkflow=" + onClick + " for map " + config.getName());
 		}
 	}
 
@@ -509,6 +519,8 @@ public class MapTemplate extends Executor {
 			mapboxMap = null;
 			mapReady = false;
 		}
+		view = null;
+		mapboxMapHolder = null;
 	}
 
 }

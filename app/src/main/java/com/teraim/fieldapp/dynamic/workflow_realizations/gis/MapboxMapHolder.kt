@@ -1,18 +1,28 @@
 package com.teraim.fieldapp.dynamic.workflow_realizations.gis
 
 import android.app.AlertDialog
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.net.Uri
 import android.util.Log
+import android.os.Handler
+import android.os.Looper
+import android.view.LayoutInflater
 import android.view.View
 import androidx.core.content.ContextCompat
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.mapbox.geojson.Feature
+import com.mapbox.geojson.MultiPolygon
 import com.mapbox.geojson.Point
+import com.mapbox.geojson.Polygon
+import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.EdgeInsets
+import com.mapbox.maps.MapView
 import com.mapbox.maps.RenderedQueryGeometry
 import com.mapbox.maps.RenderedQueryOptions
+import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.MapboxMap
@@ -40,8 +50,13 @@ import com.mapbox.maps.extension.style.layers.generated.symbolLayer
 import com.mapbox.maps.extension.style.layers.properties.generated.Visibility
 import com.mapbox.maps.extension.style.sources.addSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
+import android.widget.ImageButton
+import com.teraim.fieldapp.GlobalState
 import com.teraim.fieldapp.R
+import com.teraim.fieldapp.dynamic.types.DB_Context
+import com.teraim.fieldapp.dynamic.types.Workflow
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable
+import com.teraim.fieldapp.non_generics.Constants
 import com.teraim.fieldapp.utils.Tools
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,6 +65,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.HashMap
 import kotlin.math.abs
 
 /**
@@ -67,6 +83,8 @@ class MapboxMapHolder(
         private const val CONTENT_FILE = "content.txt"
         /** Zoom level at which object labels become visible (e.g. ~1/3 of Sweden visible at zoom 6). */
         private const val LABEL_VISIBLE_ZOOM_LEVEL = 6.0
+        /** Zoom level for ~20 km visible horizontally/vertically (centering on trakt). */
+        private const val CENTER_ON_ZOOM_LEVEL = 10.5
         private const val TEAM_SOURCE_ID = "source-team"
         private const val TEAM_LAYER_ID = "layer-team"
         /** Display name for layer list (FAB layer dialog). */
@@ -102,6 +120,9 @@ class MapboxMapHolder(
                 setupMapClickListener()
             }
         }
+
+    /** Workflow to run when "center on" is pressed (e.g. wf_Karta_Provytor). Null if not configured. */
+    var onCenterClickWorkflow: String? = null
 
     private val layerState = mutableMapOf<String, LayerState>()
     /** Stored layer specs for refresh (re-fetch GeoJSON from server). */
@@ -339,6 +360,11 @@ class MapboxMapHolder(
         if (layerType == "trakter") trakterStatusColorExpression()
         else pystatusColorExpression(defaultColorInt)
 
+    /** Returns label field expression: TRAKT only for trakter, TYPKOD + OBJECTID for others. */
+    private fun labelFieldExpression(layerType: String): Expression =
+        if (layerType == "trakter") concat(get("TRAKT"), literal(""))
+        else concat(get("TYPKOD"), literal(" "), get("OBJECTID"))
+
     /**
      * Normalize poly_type from XML to a point shape. Returns icon id for symbol layer, or null for circle layer.
      */
@@ -478,7 +504,7 @@ class MapboxMapHolder(
                     visibility(visibility)
                     // Add text label directly to symbol layer if showLabels is true (visible when zoomed in)
                     if (spec.showLabels) {
-                        textField(concat(get("TYPKOD"), literal(" "), get("OBJECTID")))
+                        textField(labelFieldExpression(layerType))
                         textColor(Color.BLACK)
                         textHaloColor(Color.WHITE)
                         textHaloWidth(1.0)
@@ -514,7 +540,7 @@ class MapboxMapHolder(
             addLayerOrBelowTeam(
                 symbolLayer(labelLayerId, sourceId) {
                     filter(labelFilter)
-                    textField(concat(get("TYPKOD"), literal(" "), get("OBJECTID")))
+                    textField(labelFieldExpression(layerType))
                     textColor(Color.BLACK)
                     textHaloColor(Color.WHITE)
                     textHaloWidth(1.0)
@@ -615,9 +641,10 @@ class MapboxMapHolder(
             
             map.queryRenderedFeatures(queryGeometry, queryOptions) { result ->
                 result.value?.firstOrNull()?.let { feature ->
-                    val properties = feature.queriedFeature.feature.properties()
+                    val mapFeature = feature.queriedFeature.feature
+                    val properties = mapFeature.properties()
                     if (properties != null) {
-                        showFeaturePropertiesDialog(properties)
+                        showFeaturePropertiesDialog(mapFeature, properties)
                     }
                 }
             }
@@ -625,16 +652,162 @@ class MapboxMapHolder(
         }
     }
     
-    private fun showFeaturePropertiesDialog(properties: JsonObject) {
+    /** Returns the center point (lat, lng) of a feature's geometry, or null if not computable. */
+    private fun featureCenter(feature: Feature): Pair<Double, Double>? {
+        val geom = feature.geometry() ?: return null
+        return when (geom) {
+            is Point -> geom.latitude() to geom.longitude()
+            is Polygon -> {
+                val outer = geom.coordinates().firstOrNull() ?: return null
+                val n = outer.size
+                if (n == 0) return null
+                val lat = outer.map { it.latitude() }.average()
+                val lng = outer.map { it.longitude() }.average()
+                lat to lng
+            }
+            is MultiPolygon -> {
+                val polys = geom.coordinates()
+                val first = polys.firstOrNull()?.firstOrNull() ?: return null
+                val lat = first.map { it.latitude() }.average()
+                val lng = first.map { it.longitude() }.average()
+                lat to lng
+            }
+            else -> null
+        }
+    }
+
+    private fun safePropString(properties: JsonObject, key: String): String {
+        val el = properties.get(key) ?: return "—"
+        if (el.isJsonNull) return "—"
+        return try {
+            el.toString().trim('"').ifEmpty { "—" }
+        } catch (_: Exception) { "—" }
+    }
+
+    private fun showFeaturePropertiesDialog(feature: Feature, properties: JsonObject) {
         val context = mapView.context ?: return
-        val gson = GsonBuilder().setPrettyPrinting().create()
-        val formattedJson = gson.toJson(properties)
-        
-        AlertDialog.Builder(context)
-            .setTitle("Feature Properties")
-            .setMessage(formattedJson)
-            .setPositiveButton("OK", null)
-            .show()
+        val gistyp = properties.get("GISTYP")?.asString
+        if (gistyp == "trakter") {
+            showTrakterInfoDialog(context, feature, properties)
+        } else {
+            val gson = GsonBuilder().setPrettyPrinting().create()
+            val formattedJson = gson.toJson(properties)
+            AlertDialog.Builder(context)
+                .setTitle("Feature Properties")
+                .setMessage(formattedJson)
+                .setPositiveButton("OK", null)
+                .show()
+        }
+    }
+
+    private fun traktStatusToLabelAndColor(value: Int?): Pair<String, Int> {
+        val (labelRes, color) = when {
+            value == null || value < -1 -> R.string.trakter_status_none to TRAKTSTATUS_COLORS[0]!!
+            value == -1 -> R.string.trakter_status_high to TRAKTSTATUS_COLORS[-1]!!
+            value == 0 -> R.string.trakter_status_none to TRAKTSTATUS_COLORS[0]!!
+            value in 1..30 -> R.string.trakter_status_started to TRAKTSTATUS_COLORS[1]!!
+            value in 31..70 -> R.string.trakter_status_partial to TRAKTSTATUS_COLORS[31]!!
+            value in 71..99 -> R.string.trakter_status_much to TRAKTSTATUS_COLORS[71]!!
+            value >= 100 -> R.string.trakter_status_complete to TRAKTSTATUS_COLORS[100]!!
+            else -> R.string.trakter_status_none to TRAKTSTATUS_COLORS[0]!!
+        }
+        return mapView.context.getString(labelRes) to color
+    }
+
+    private fun showTrakterInfoDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
+        val view = LayoutInflater.from(context).inflate(R.layout.dialog_trakter_info, null)
+        val trakt = safePropString(properties, "TRAKT")
+        val traktStatusVal = try {
+            properties.get("TRAKTSTATUS")?.takeIf { !it.isJsonNull }?.let { el ->
+                if (el.isJsonPrimitive && el.asJsonPrimitive.isNumber) el.asInt else null
+            }
+        } catch (_: Exception) { null }
+        val (traktStatusLabel, traktStatusColor) = traktStatusToLabelAndColor(traktStatusVal)
+        val objectId = safePropString(properties, "OBJECTID")
+        val typkod = properties.get("TYPKOD")?.asString ?: "—"
+        val column1 = safePropString(properties, "COLUMN1")
+        val titleView = view.findViewById<android.widget.TextView>(R.id.trakter_title)
+        val infoView = view.findViewById<android.widget.TextView>(R.id.trakter_info)
+        val statusIndicator = view.findViewById<View>(R.id.trakter_status_indicator)
+        titleView.text = context.getString(R.string.trakter_info_title, trakt)
+        val indicatorDrawable = android.graphics.drawable.GradientDrawable().apply {
+            setColor(traktStatusColor)
+            setStroke(1, Color.GRAY)
+            cornerRadius = 2 * context.resources.displayMetrics.density
+        }
+        statusIndicator.background = indicatorDrawable
+        infoView.text = buildString {
+            append("TRAKT: "); appendLine(trakt)
+            append("TRAKTSTATUS: "); appendLine(traktStatusLabel)
+            append("TYPKOD: "); appendLine(typkod)
+            append("OBJECTID: "); appendLine(objectId)
+            append("COLUMN1: "); append(column1)
+        }
+        val dialog = AlertDialog.Builder(context)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok, null)
+            .create()
+        view.findViewById<ImageButton>(R.id.btn_center_on).setOnClickListener {
+            android.util.Log.i(TAG, "Center-on button clicked")
+            try {
+            val center = featureCenter(feature)
+            android.util.Log.i(TAG, "Center-on: featureCenter=$center")
+            if (center != null) {
+                val (lat, lng) = center
+                val point = Point.fromLngLat(lng, lat)
+                val cameraOptions = CameraOptions.Builder()
+                    .center(point)
+                    .zoom(CENTER_ON_ZOOM_LEVEL)
+                    .build()
+                (mapView as? MapView)?.camera?.easeTo(cameraOptions)
+                dialog.dismiss()
+                // 2) Set DB context with gistyp=Trakter, trakt=<TRAKT>
+                val keyHash = HashMap<String, String>()
+                keyHash["gistyp"] = "Trakter"
+                keyHash["trakt"] = trakt
+                keyHash["år"] = Constants.getYear()
+                GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
+                // 4) Transfer center to target map
+                GlobalState.getInstance().setPendingMapCenter(lat, lng)
+                // 3) Execute workflow from on_click - post to next frame so dialog dismiss completes
+                val wfName = onCenterClickWorkflow
+                android.util.Log.i(TAG, "Center-on: onCenterClickWorkflow=$wfName")
+                if (!wfName.isNullOrBlank()) {
+                    val wf = GlobalState.getInstance().getWorkflow(wfName)
+                    android.util.Log.i(TAG, "Center-on: workflow lookup result=${if (wf != null) "found" else "null"}")
+                    if (wf != null) {
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            android.util.Log.i(TAG, "Center-on: calling changePage to $wfName")
+                            GlobalState.getInstance().changePage(wf, "STATUS:status_trakt")
+                        }, 350)
+                    } else {
+                        Log.w(TAG, "Center-on workflow not found: $wfName")
+                    }
+                } else {
+                    Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_map_view)")
+                }
+            } else {
+                Log.w(TAG, "Center-on: featureCenter was null")
+            }
+            } catch (e: Exception) {
+                Log.e(TAG, "Center-on error", e)
+            }
+        }
+        view.findViewById<ImageButton>(R.id.btn_navigate).setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                val (lat, lng) = center
+                val uri = Uri.parse("google.navigation:q=$lat,$lng")
+                val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                try {
+                    context.startActivity(intent)
+                } catch (_: android.content.ActivityNotFoundException) {
+                    val geoUri = Uri.parse("geo:$lat,$lng")
+                    context.startActivity(Intent(Intent.ACTION_VIEW, geoUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                }
+            }
+        }
+        dialog.show()
     }
 
     fun getLayerNames(): List<String> {

@@ -20,10 +20,18 @@ public class GisMapView implements Serializable {
 	private final double bearing;
 	/** True to show team member needles. Null when deserialized from old cache (missing field) → treated as true. */
 	private final Boolean teamVisible;
+	/** Workflow to run when "center on" is pressed (e.g. wf_Karta_Provytor). Null if not configured. */
+	private final String onCenterClick;
 
 	public GisMapView(String blockId, String name, String containerName,
 			String mapType, double centerLng, double centerLat,
 			double zoom, double pitch, double bearing, boolean teamVisible) {
+		this(blockId, name, containerName, mapType, centerLng, centerLat, zoom, pitch, bearing, teamVisible, null);
+	}
+
+	public GisMapView(String blockId, String name, String containerName,
+			String mapType, double centerLng, double centerLat,
+			double zoom, double pitch, double bearing, boolean teamVisible, String onCenterClick) {
 		this.blockId = blockId;
 		this.name = name;
 		this.containerName = containerName;
@@ -34,6 +42,7 @@ public class GisMapView implements Serializable {
 		this.pitch = pitch;
 		this.bearing = bearing;
 		this.teamVisible = Boolean.valueOf(teamVisible);
+		this.onCenterClick = onCenterClick;
 	}
 
 	public String getBlockId() { return blockId; }
@@ -47,4 +56,6 @@ public class GisMapView implements Serializable {
 	public double getBearing() { return bearing; }
 	/** True when team needles should be shown. Defaults to true when missing in cached JSON (backward compat). */
 	public boolean isTeamVisible() { return teamVisible == null || teamVisible; }
+	/** Workflow to run when "center on" is pressed (e.g. wf_Karta_Provytor). Null if not configured. */
+	public String getOnCenterClick() { return onCenterClick; }
 }
