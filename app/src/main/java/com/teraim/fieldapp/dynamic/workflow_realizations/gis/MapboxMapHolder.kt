@@ -4,12 +4,15 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.util.Log
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.PopupWindow
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.GsonBuilder
@@ -29,6 +32,7 @@ import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.any
@@ -36,6 +40,7 @@ import com.mapbox.maps.extension.style.expressions.generated.Expression.Companio
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.concat
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.eq
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.geometryType
+import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.coalesce
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.get
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.literal
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.match
@@ -66,6 +71,7 @@ import com.teraim.fieldapp.dynamic.types.Workflow
 import com.teraim.fieldapp.dynamic.workflow_abstracts.Drawable
 import com.teraim.fieldapp.non_generics.Constants
 import com.teraim.fieldapp.utils.Expressor
+import com.teraim.fieldapp.utils.Geomatte
 import com.teraim.fieldapp.utils.Tools
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -80,7 +86,7 @@ import kotlin.math.abs
 /**
  * Mapbox-backed map drawable. Registered as the "map" when using MapTemplate with network.
  * Layers are loaded from server: gis_objects/<type>.json (must be WGS84)
- * Only layer types listed in gis_objects/content.txt are loaded.
+ * Layer types are determined by block_add_gis_layer blocks in the workflow XML (gistype attribute).
  */
 class MapboxMapHolder(
     private val mapView: View,
@@ -89,7 +95,6 @@ class MapboxMapHolder(
 
     companion object {
         private const val TAG = "MapboxMapHolder"
-        private const val CONTENT_FILE = "content.txt"
         /** Zoom level at which object labels become visible (e.g. ~1/3 of Sweden visible at zoom 6). */
         private const val LABEL_VISIBLE_ZOOM_LEVEL = 6.0
         /** Zoom level for ~20 km visible horizontally/vertically (centering on trakt). */
@@ -104,6 +109,13 @@ class MapboxMapHolder(
         private const val TEAM_OTHERS_SOURCE_ID = "source-team-others"
         private const val TEAM_OTHERS_HALO_LAYER_ID = "layer-team-others-halo"
         private const val TEAM_OTHERS_INNER_LAYER_ID = "layer-team-others-inner"
+        private const val NAVIGATE_LINE_SOURCE_ID = "source-navigate-line"
+        private const val NAVIGATE_LINE_LAYER_ID = "layer-navigate-line"
+        private const val WIGGLE_MIN_MS = 5_000L
+        private const val WIGGLE_MAX_MS = 15_000L
+        private const val FRESH_POSITION_MS = 5 * 60 * 1000L  // 5 minutes
+        private const val WIGGLE_DURATION_MS = 150L
+        private const val WIGGLE_ANGLE = 8.0
         private const val ME_PULSE_INTERVAL_MS = 5_000L
         private const val ME_PULSE_AURA_START = 10.0
         private const val ME_PULSE_AURA_EXPANDED = 28.0
@@ -174,9 +186,10 @@ class MapboxMapHolder(
     private val pendingLayers = mutableListOf<PendingLayer>()
     private val scope = CoroutineScope(Dispatchers.Main + Job())
     private var visible = true
-    /** Set of GeoJSON type names from gis_objects/content.txt; null if not yet loaded or fetch failed. */
+
+    /** When set, draw dotted line from user to target and show distance. Updated when team layer refreshes. */
     @Volatile
-    private var allowedLayerTypes: Set<String>? = null
+    private var navigateTarget: Pair<Double, Double>? = null
 
     data class LayerState(
         val sourceId: String,
@@ -198,10 +211,12 @@ class MapboxMapHolder(
         val fillOpacity: Float?,
         val lineColor: String?,
         val lineWidth: Float?,
+        val lineDasharray: String? = null,
         val circleRadius: Float?,
         val polyType: String?,
         val objContext: String? = null,
-        val onClick: String? = null
+        val onClick: String? = null,
+        val gistype: String? = null
     )
 
     /** Per-layer obj_context and on_click for feature click handling (e.g. TRAKTER dialog). */
@@ -223,10 +238,12 @@ class MapboxMapHolder(
         fillOpacity: Float? = null,
         lineColor: String? = null,
         lineWidth: Float? = null,
+        lineDasharray: String? = null,
         circleRadius: Float? = null,
         polyType: String? = null,
         objContext: String? = null,
-        onClick: String? = null
+        onClick: String? = null,
+        gistype: String? = null
     ) {
         if (layerState.containsKey(name)) {
             Log.d(TAG, "Layer $name already added")
@@ -237,8 +254,8 @@ class MapboxMapHolder(
         }
         val pending = PendingLayer(
             name, label, isVisible, hasWidget, showLabels, isBold,
-            fillColor, fillOpacity, lineColor, lineWidth, circleRadius, polyType,
-            objContext, onClick
+            fillColor, fillOpacity, lineColor, lineWidth, lineDasharray, circleRadius, polyType,
+            objContext, onClick, gistype
         )
         val map = mapboxMap
         if (map == null) {
@@ -247,12 +264,6 @@ class MapboxMapHolder(
             return
         }
         scope.launch {
-            if (allowedLayerTypes == null) allowedLayerTypes = fetchContentList()
-            val type = layerNameToType(name)
-            if (allowedLayerTypes != null && !allowedLayerTypes!!.contains(type)) {
-                Log.d(TAG, "Skipping layer $name (type $type not in content.txt)")
-                return@launch
-            }
             addLayerInternal(map, pending)
         }
     }
@@ -263,59 +274,18 @@ class MapboxMapHolder(
             pendingLayers.toList().also { pendingLayers.clear() }
         }
         scope.launch {
-            if (allowedLayerTypes == null) {
-                allowedLayerTypes = fetchContentList()
-                allowedLayerTypes?.let { Log.d(TAG, "Loaded ${it.size} layer types from content.txt: $it") }
-                    ?: Log.w(TAG, "Could not load content.txt; will attempt all workflow layers")
-            }
-            val allowed = allowedLayerTypes
             for (spec in toProcess) {
-                val type = layerNameToType(spec.name)
-                if (allowed != null && !allowed.contains(type)) {
-                    Log.d(TAG, "Skipping layer ${spec.name} (type $type not in content.txt)")
-                    continue
-                }
                 addLayerInternal(map, spec)
             }
         }
     }
 
-    /** Layer name to GeoJSON type: e.g. akerkant_layer -> akerkant */
+    /** Layer name to GeoJSON type: e.g. akerkant_layer -> akerkant (fallback when gistype not set) */
     private fun layerNameToType(layerName: String): String =
         if (layerName.endsWith("_layer")) layerName.removeSuffix("_layer") else layerName
 
-    /** Fetch gis_objects/content.txt and return set of type names (one per line). */
-    private suspend fun fetchContentList(): Set<String>? = withContext(Dispatchers.IO) {
-        val contentUrl = gisObjectsBaseUrl + CONTENT_FILE
-        try {
-            val url = URL(contentUrl)
-            val conn = url.openConnection() as HttpURLConnection
-            conn.requestMethod = "GET"
-            conn.connectTimeout = 10000
-            conn.readTimeout = 10000
-            try {
-                if (conn.responseCode == HttpURLConnection.HTTP_OK) {
-                    conn.inputStream.bufferedReader().use { reader ->
-                        reader.readLines()
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                            .toSet()
-                    }
-                } else {
-                    Log.w(TAG, "content.txt HTTP ${conn.responseCode} for $contentUrl")
-                    null
-                }
-            } finally {
-                conn.disconnect()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error fetching content.txt from $contentUrl", e)
-            null
-        }
-    }
-
     private suspend fun addLayerInternal(map: MapboxMap, spec: PendingLayer, cacheBust: Boolean = false) {
-        val geoJson = fetchGeoJson(spec.name, cacheBust)
+        val geoJson = fetchGeoJson(spec.name, spec.gistype, cacheBust)
         if (geoJson == null) {
             Log.e(TAG, "Failed to load GeoJSON for layer ${spec.name}")
             return
@@ -328,12 +298,12 @@ class MapboxMapHolder(
     }
 
     /**
-     * Fetch GeoJSON for a layer. Server files are always <type>.json; workflow layer names
-     * may have a "_layer" suffix (e.g. akerkant_layer → akerkant.json).
+     * Fetch GeoJSON for a layer. Uses gistype when provided (explicit mapping to GeoJSON file),
+     * otherwise falls back to layerNameToType(name) for backward compatibility.
      * @param cacheBust if true, appends ?t=timestamp to bypass HTTP cache (use for refresh).
      */
-    private suspend fun fetchGeoJson(layerName: String, cacheBust: Boolean = false): String? = withContext(Dispatchers.IO) {
-        val type = if (layerName.endsWith("_layer")) layerName.removeSuffix("_layer") else layerName
+    private suspend fun fetchGeoJson(layerName: String, gistype: String?, cacheBust: Boolean = false): String? = withContext(Dispatchers.IO) {
+        val type = gistype?.takeIf { it.isNotBlank() } ?: layerNameToType(layerName)
         val url = if (cacheBust) "$gisObjectsBaseUrl$type.json?t=${System.currentTimeMillis()}" else "$gisObjectsBaseUrl$type.json"
         fetchGeoJsonFromUrl(url, cacheBust)
     }
@@ -432,12 +402,12 @@ class MapboxMapHolder(
 
     /** Returns status color expression for the layer; trakter uses TRAKTSTATUS, others use PYSTATUS. */
     private fun statusColorExpression(layerType: String, defaultColorInt: Int): Expression =
-        if (layerType == "trakter") trakterStatusColorExpression()
+        if (layerType.equals("trakter", ignoreCase = true)) trakterStatusColorExpression()
         else pystatusColorExpression(defaultColorInt)
 
     /** Returns label field expression: TRAKT only for trakter, TYPKOD + OBJECTID for others. */
     private fun labelFieldExpression(layerType: String): Expression =
-        if (layerType == "trakter") concat(get("TRAKT"), literal(""))
+        if (layerType.equals("trakter", ignoreCase = true)) concat(get("TRAKT"), literal(""))
         else concat(get("TYPKOD"), literal(" "), get("OBJECTID"))
 
     /**
@@ -510,7 +480,7 @@ class MapboxMapHolder(
         fun addLayerOrBelowTeam(layer: com.mapbox.maps.extension.style.layers.Layer) {
             if (style.styleLayerExists(TEAM_LAYER_ID)) style.addLayerBelow(layer, TEAM_LAYER_ID) else style.addLayer(layer)
         }
-        val layerType = layerNameToType(name)
+        val layerType = spec.gistype?.takeIf { it.isNotBlank() } ?: layerNameToType(name)
         val statusColorExpr = statusColorExpression(layerType, fillColorInt)
         addLayerOrBelowTeam(
             fillLayer(fillLayerId, sourceId) {
@@ -525,6 +495,7 @@ class MapboxMapHolder(
                 visibility(visibility)
             }
         )
+        val dashArray = spec.lineDasharray?.trim()?.split(",")?.mapNotNull { it.trim().toDoubleOrNull() }
         addLayerOrBelowTeam(
             lineLayer(outlineLayerId, sourceId) {
                 filter(
@@ -535,6 +506,7 @@ class MapboxMapHolder(
                 )
                 lineColor(lineColorInt)
                 lineWidth(lineWidthVal.toDouble())
+                dashArray?.let { lineDasharray(it) }
                 visibility(visibility)
             }
         )
@@ -658,7 +630,7 @@ class MapboxMapHolder(
         scope.launch {
             val specs = layerSpecs.values.toList()
             for (spec in specs) {
-                val geoJson = fetchGeoJson(spec.name, cacheBust = true)
+                val geoJson = fetchGeoJson(spec.name, spec.gistype, cacheBust = true)
                 if (geoJson == null) {
                     Log.e(TAG, "refreshLayers: failed to fetch ${spec.name}")
                     continue
@@ -725,7 +697,7 @@ class MapboxMapHolder(
         map.addOnMapClickListener { point ->
             val screenCoordinate = map.pixelForCoordinate(point)
             val queryGeometry = RenderedQueryGeometry(screenCoordinate)
-            val allLayerIds = layerState.values.flatMap { state ->
+            val gisLayerIds = layerState.values.flatMap { state ->
                 listOfNotNull(
                     state.fillLayerId,
                     state.outlineLayerId,
@@ -733,6 +705,8 @@ class MapboxMapHolder(
                     state.labelLayerId
                 )
             }
+            val teamLayerIds = listOf(TEAM_LAYER_ID, TEAM_ME_INNER_LAYER_ID, TEAM_OTHERS_INNER_LAYER_ID)
+            val allLayerIds = gisLayerIds + teamLayerIds
             val queryOptions = RenderedQueryOptions(
                 if (allLayerIds.isEmpty()) null else allLayerIds,
                 null
@@ -747,11 +721,17 @@ class MapboxMapHolder(
                     if (queriedFeature != null) {
                         val mapFeature = queriedFeature.queriedFeature.feature
                         val properties = mapFeature.properties()
-                        val layerName = queriedFeature.layers.firstOrNull()?.let { layerIdToLayerName(it) }
-                        Log.d(TAG, "queryRenderedFeatures: hit layer=$layerName gistyp=${properties?.get("GISTYP")?.asString}")
+                        val layerId = queriedFeature.layers.firstOrNull()
+                        val layerName = layerId?.let { layerIdToLayerName(it) }
+                        val isTeamLayer = layerId == TEAM_LAYER_ID || layerId == TEAM_ME_INNER_LAYER_ID || layerId == TEAM_OTHERS_INNER_LAYER_ID
+                        Log.d(TAG, "queryRenderedFeatures: hit layer=$layerName isTeam=$isTeamLayer gistyp=${properties?.get("GISTYP")?.asString}")
                         if (properties != null) {
-                            android.os.Handler(android.os.Looper.getMainLooper()).post {
-                                showFeaturePropertiesDialog(mapFeature, properties, layerName)
+                            Handler(Looper.getMainLooper()).post {
+                                if (isTeamLayer) {
+                                    showTeamMemberBubble(properties, screenCoordinate)
+                                } else {
+                                    showFeaturePropertiesDialog(mapFeature, properties, layerName)
+                                }
                             }
                         }
                     }
@@ -759,6 +739,53 @@ class MapboxMapHolder(
             }
             true
         }
+    }
+
+    private fun formatLastSeen(timestampMs: Long): String {
+        if (timestampMs <= 0) return mapView.context.getString(R.string.team_member_active_now)
+        val age = System.currentTimeMillis() - timestampMs
+        return when {
+            age < 2 * 60 * 1000 -> mapView.context.getString(R.string.team_member_active_now)
+            else -> mapView.context.getString(R.string.team_member_seen_ago, Tools.getTimeStampDetails(timestampMs, true))
+        }
+    }
+
+    private fun showTeamMemberBubble(properties: JsonObject, screenPoint: ScreenCoordinate) {
+        val context = mapView.context ?: return
+        val name = safePropString(properties, "name") ?: "—"
+        val members = lastTeamMembers ?: emptyList()
+        val member = members.firstOrNull { it.name == name }
+        val timestampMs = member?.timestampMs ?: 0L
+        val lastSeenText = formatLastSeen(timestampMs)
+        val displayName = name.removeSuffix(" (me)").replace(Regex("\\[[^\\]]*\\]$"), "").trim().ifEmpty { name }
+        teamMemberBubbleDismissRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        teamMemberBubblePopup?.dismiss()
+        val bubbleView = LayoutInflater.from(context).inflate(R.layout.popup_team_member_bubble, null)
+        bubbleView.findViewById<android.widget.TextView>(R.id.team_member_bubble_name).text = displayName
+        bubbleView.findViewById<android.widget.TextView>(R.id.team_member_bubble_last_seen).text = lastSeenText
+        bubbleView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
+        val popup = PopupWindow(bubbleView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
+        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        val mapLoc = IntArray(2)
+        mapView.getLocationOnScreen(mapLoc)
+        val screenX = mapLoc[0] + screenPoint.x
+        val screenY = mapLoc[1] + screenPoint.y
+        val bubbleW = bubbleView.measuredWidth.coerceAtLeast(1)
+        val bubbleH = bubbleView.measuredHeight.coerceAtLeast(1)
+        val screenW = context.resources.displayMetrics.widthPixels
+        val screenH = context.resources.displayMetrics.heightPixels
+        val x = (screenX - bubbleW / 2).toInt().coerceIn(0, (screenW - bubbleW).coerceAtLeast(0))
+        // Position bubble so tail points to icon top center (needle anchor=bottom, icon ~28px tall)
+        val iconTopOffset = 28
+        val y = (screenY - iconTopOffset - bubbleH).toInt().coerceAtLeast(0).coerceAtMost((screenH - bubbleH).coerceAtLeast(0))
+        popup.showAtLocation(mapView.rootView, Gravity.NO_GRAVITY, x, y)
+        teamMemberBubblePopup = popup
+        teamMemberBubbleDismissRunnable = Runnable {
+            popup.dismiss()
+            teamMemberBubblePopup = null
+            teamMemberBubbleDismissRunnable = null
+        }
+        mePulseHandler.postDelayed(teamMemberBubbleDismissRunnable!!, TEAM_BUBBLE_DISMISS_MS)
     }
     
     /** Returns the center point (lat, lng) of a feature's geometry, or null if not computable. */
@@ -907,6 +934,13 @@ class MapboxMapHolder(
             behavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
         card.findViewById<View>(R.id.btn_close).setOnClickListener { dismissCard() }
+        card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startNavigateTo(center.first, center.second)
+                dismissCard()
+            }
+        }
         card.findViewById<View>(R.id.btn_start).setOnClickListener {
             runStartWorkflow(feature, properties, objContext, onClick)
             dismissCard()
@@ -961,6 +995,13 @@ class MapboxMapHolder(
         infoView.text = propertiesToInfoString(properties)
         val dialog = AlertDialog.Builder(context).setView(card).create()
         card.findViewById<View>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+        card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startNavigateTo(center.first, center.second)
+                dialog.dismiss()
+            }
+        }
         card.findViewById<View>(R.id.btn_start).setOnClickListener {
             runStartWorkflow(feature, properties, objContext, onClick)
             dialog.dismiss()
@@ -1260,12 +1301,25 @@ class MapboxMapHolder(
 
     /** Last team members passed to updateTeamLayer; used for layer list (getLayerNames). */
     private var lastTeamMembers: List<TeamMemberMapPoint>? = null
+
+    private fun isMe(member: TeamMemberMapPoint): Boolean {
+        val myUuid = GlobalState.getInstance().getUserUUID() ?: return false
+        val memberUuid = member.uuid ?: return false
+        return memberUuid.trim().equals(myUuid.trim(), ignoreCase = true)
+    }
     /** Team layer visibility (for layer list toggle). */
     private var teamLayerVisible: Boolean = true
     private val mePulseHandler = Handler(Looper.getMainLooper())
     private var mePulseRunnable: Runnable? = null
     private var mePulseExpandRunnable: Runnable? = null
     private var mePulseHideRunnable: Runnable? = null
+    private var wiggleRunnable: Runnable? = null
+    private var wiggleResetRunnable: Runnable? = null
+    /** True once we've scheduled a wiggle for the current team layer; reset when layer is torn down. */
+    private var wiggleScheduled = false
+    private var teamMemberBubblePopup: PopupWindow? = null
+    private var teamMemberBubbleDismissRunnable: Runnable? = null
+    private val TEAM_BUBBLE_DISMISS_MS = 10_000L
 
     private fun startMePulse() {
         stopMePulse()
@@ -1314,6 +1368,189 @@ class MapboxMapHolder(
     /** Call when holder is no longer needed (e.g. MapTemplate.onDestroyView) to stop pulse animation. */
     fun release() {
         stopMePulse()
+        stopWiggle()
+        stopNavigate()
+    }
+
+    private fun scheduleWiggle() {
+        if (wiggleScheduled) return
+        wiggleScheduled = true
+        wiggleRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        val delay = (WIGGLE_MIN_MS..WIGGLE_MAX_MS).random()
+        Log.d(TAG, "wiggle: scheduled in ${delay}ms")
+        wiggleRunnable = Runnable {
+            performWiggle()
+            wiggleRunnable = null
+            wiggleScheduled = false
+            scheduleWiggle()
+        }
+        mePulseHandler.postDelayed(wiggleRunnable!!, delay)
+    }
+
+    private fun stopWiggle() {
+        wiggleRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        wiggleRunnable = null
+        wiggleResetRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        wiggleResetRunnable = null
+        wiggleScheduled = false
+    }
+
+    private fun performWiggle() {
+        val members = lastTeamMembers ?: run {
+            Log.d(TAG, "wiggle: no members, skipping")
+            return
+        }
+        if (gisMode != "normal") {
+            Log.d(TAG, "wiggle: gisMode=$gisMode (need 'normal' for needles), skipping")
+            return
+        }
+        val now = System.currentTimeMillis()
+        val fresh = members.filter { it.timestampMs > 0 && (now - it.timestampMs) < FRESH_POSITION_MS }
+        val meMember = members.firstOrNull { isMe(it) }
+        val meAgeMs = meMember?.let { if (it.timestampMs > 0) now - it.timestampMs else -1L } ?: -1L
+        val meFresh = meMember != null && meMember.timestampMs > 0 && meAgeMs in 0 until FRESH_POSITION_MS
+        Log.d(TAG, "wiggle: members=${members.size} fresh=${fresh.size} gisMode=$gisMode | me: ts=${meMember?.timestampMs ?: 0} age=${if (meAgeMs >= 0) "${meAgeMs / 1000}s" else "n/a"} fresh=$meFresh (need ts>0 and age<5min)")
+        if (fresh.isEmpty()) {
+            Log.d(TAG, "wiggle: no fresh members (all >5min or ts=0), skipping")
+            return
+        }
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            if (!style.styleSourceExists(TEAM_SOURCE_ID)) return@getStyle
+            val source = style.getSource(TEAM_SOURCE_ID) as? GeoJsonSource ?: return@getStyle
+            val freshIds = fresh.map { it.id.replace(Regex("[^a-zA-Z0-9_-]"), "_") }.toSet()
+            val features = members.map { member ->
+                val safeId = member.id.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+                val iconId = "team_$safeId"
+                val point = Point.fromLngLat(member.lng, member.lat)
+                val isMe = isMe(member)
+                val wiggle = freshIds.contains(safeId)
+                val props = JsonObject().apply {
+                    addProperty("name", member.name ?: "")
+                    addProperty("isMe", if (isMe) 1 else 0)
+                    addProperty("icon", iconId)
+                    addProperty("iconRotate", if (wiggle) WIGGLE_ANGLE else 0.0)
+                }
+                Feature.fromGeometry(point, props, "team_$safeId")
+            }
+            source.updateGeoJSONSourceFeatures(features)
+            val wigglingIds = fresh.map { it.id }.joinToString()
+            Log.d(TAG, "wiggle: applied to $wigglingIds (me in list: ${fresh.any { isMe(it) }})")
+        }
+        wiggleResetRunnable?.let { mePulseHandler.removeCallbacks(it) }
+        wiggleResetRunnable = Runnable {
+            performWiggleReset()
+            wiggleResetRunnable = null
+        }
+        mePulseHandler.postDelayed(wiggleResetRunnable!!, WIGGLE_DURATION_MS)
+    }
+
+    private fun performWiggleReset() {
+        val members = lastTeamMembers ?: return
+        if (gisMode != "normal") return
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            if (!style.styleSourceExists(TEAM_SOURCE_ID)) return@getStyle
+            val source = style.getSource(TEAM_SOURCE_ID) as? GeoJsonSource ?: return@getStyle
+            val features = members.map { member ->
+                val safeId = member.id.replace(Regex("[^a-zA-Z0-9_-]"), "_")
+                val iconId = "team_$safeId"
+                val point = Point.fromLngLat(member.lng, member.lat)
+                val isMe = isMe(member)
+                val props = JsonObject().apply {
+                    addProperty("name", member.name ?: "")
+                    addProperty("isMe", if (isMe) 1 else 0)
+                    addProperty("icon", iconId)
+                    addProperty("iconRotate", 0.0)
+                }
+                Feature.fromGeometry(point, props, "team_$safeId")
+            }
+            source.updateGeoJSONSourceFeatures(features)
+        }
+    }
+
+    /**
+     * Start navigate mode: draw dotted line from user to target and show distance.
+     * Line and distance updates when updateTeamLayer is called with "me" position.
+     */
+    fun startNavigateTo(targetLat: Double, targetLng: Double) {
+        navigateTarget = targetLat to targetLng
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            val userLat = lastTeamMembers?.firstOrNull { isMe(it) }?.lat
+            val userLng = lastTeamMembers?.firstOrNull { isMe(it) }?.lng
+            if (userLat != null && userLng != null) {
+                updateNavigateLineInternal(style, userLat, userLng, targetLat, targetLng)
+            } else {
+                showNavigateDistance(-1.0)  // "—" until GPS available
+            }
+        }
+        showNavigateDistanceOverlay(true)
+    }
+
+    /** Stop navigate mode: remove line and hide distance overlay. */
+    fun stopNavigate() {
+        navigateTarget = null
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            if (style.styleLayerExists(NAVIGATE_LINE_LAYER_ID)) style.removeStyleLayer(NAVIGATE_LINE_LAYER_ID)
+            if (style.styleSourceExists(NAVIGATE_LINE_SOURCE_ID)) style.removeStyleSource(NAVIGATE_LINE_SOURCE_ID)
+        }
+        showNavigateDistanceOverlay(false)
+    }
+
+    private fun showNavigateDistanceOverlay(show: Boolean) {
+        Handler(Looper.getMainLooper()).post {
+            val root = mapView.rootView
+            val container = root.findViewById<View>(R.id.navigate_distance_container)
+            container?.visibility = if (show) View.VISIBLE else View.GONE
+            if (show) {
+                container?.findViewById<View>(R.id.navigate_distance_close)?.setOnClickListener {
+                    stopNavigate()
+                }
+            }
+        }
+    }
+
+    private fun showNavigateDistance(distanceM: Double) {
+        Handler(Looper.getMainLooper()).post {
+            val root = mapView.rootView
+            val textView = root.findViewById<android.widget.TextView>(R.id.navigate_distance_text)
+            if (textView != null) {
+                textView.text = when {
+                    distanceM < 0 -> "—"
+                    distanceM < 1000 -> "${distanceM.toInt()} m"
+                    else -> String.format("%.1f km", distanceM / 1000)
+                }
+            }
+        }
+    }
+
+    private fun updateNavigateLineInternal(
+        style: Style,
+        userLat: Double,
+        userLng: Double,
+        targetLat: Double,
+        targetLng: Double
+    ) {
+        val line = com.mapbox.geojson.LineString.fromLngLats(
+            listOf(Point.fromLngLat(userLng, userLat), Point.fromLngLat(targetLng, targetLat))
+        )
+        val feature = Feature.fromGeometry(line)
+        if (style.styleSourceExists(NAVIGATE_LINE_SOURCE_ID)) {
+            (style.getSource(NAVIGATE_LINE_SOURCE_ID) as? GeoJsonSource)?.feature(feature)
+        } else {
+            style.addSource(geoJsonSource(NAVIGATE_LINE_SOURCE_ID) { feature(feature) })
+            style.addLayer(
+                lineLayer(NAVIGATE_LINE_LAYER_ID, NAVIGATE_LINE_SOURCE_ID) {
+                    lineColor(Color.WHITE)
+                    lineWidth(4.0)
+                    lineDasharray(listOf(1.0, 2.0))
+                }
+            )
+        }
+        val distanceKm = Geomatte.dist(userLat, userLng, targetLat, targetLng)
+        showNavigateDistance(distanceKm * 1000)
     }
 
     /**
@@ -1336,11 +1573,11 @@ class MapboxMapHolder(
         map.getStyle { style ->
             val layersExist = gisMode == "detailed" && style.styleLayerExists(TEAM_ME_HALO_LAYER_ID)
             if (layersExist && members.isNotEmpty()) {
-                val sortedMembers = members.sortedBy { if (it.name?.contains("(me)") == true) 1 else 0 }
+                val sortedMembers = members.sortedBy { if (isMe(it)) 1 else 0 }
                 val meFeatures = mutableListOf<Feature>()
                 val othersFeatures = mutableListOf<Feature>()
                 for ((idx, member) in sortedMembers.withIndex()) {
-                    val isMe = member.name?.contains("(me)") == true
+                    val isMe = isMe(member)
                     val point = Point.fromLngLat(member.lng, member.lat)
                     val props = JsonObject().apply {
                         addProperty("name", member.name ?: "")
@@ -1352,6 +1589,13 @@ class MapboxMapHolder(
                 // Update source data in place to avoid "Source already exists" (remove/add is racy)
                 (style.getSource(TEAM_ME_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(meFeatures)
                 (style.getSource(TEAM_OTHERS_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(othersFeatures)
+                val target = navigateTarget
+                if (target != null) {
+                    val me = members.firstOrNull { isMe(it) }
+                    if (me != null) {
+                        updateNavigateLineInternal(style, me.lat, me.lng, target.first, target.second)
+                    }
+                }
                 return@getStyle
             }
             stopMePulse()
@@ -1369,13 +1613,13 @@ class MapboxMapHolder(
                 return@getStyle
             }
             // Draw "me" (current user) last so their icon is always on top when multiple markers overlap (e.g. duplicate or same location)
-            val sortedMembers = members.sortedBy { if (it.name?.contains("(me)") == true) 1 else 0 }
+            val sortedMembers = members.sortedBy { if (isMe(it)) 1 else 0 }
             val features = mutableListOf<Feature>()
             val meFeatures = mutableListOf<Feature>()
             val othersFeatures = mutableListOf<Feature>()
             val useDetailed = gisMode == "detailed"
             for ((index, member) in sortedMembers.withIndex()) {
-                val isMe = member.name?.contains("(me)") == true
+                val isMe = isMe(member)
                 val point = Point.fromLngLat(member.lng, member.lat)
                 val props = JsonObject().apply {
                     addProperty("name", member.name ?: "")
@@ -1404,7 +1648,8 @@ class MapboxMapHolder(
                         }
                     }
                     props.addProperty("icon", iconId)
-                    features.add(Feature.fromGeometry(point, props))
+                    props.addProperty("iconRotate", 0.0)
+                    features.add(Feature.fromGeometry(point, props, "team_$safeId"))
                 }
             }
             if (useDetailed) {
@@ -1464,6 +1709,7 @@ class MapboxMapHolder(
                 style.addLayer(
                     symbolLayer(TEAM_LAYER_ID, TEAM_SOURCE_ID) {
                         iconImage(get("icon"))
+                        iconRotate(coalesce(get("iconRotate"), literal(0.0)))
                         iconSize(step(zoom(), literal(0.2), literal(4.0) to literal(0.2), literal(8.0) to literal(0.5), literal(12.0) to literal(1.0), literal(14.0) to literal(1.2)))
                         iconAnchor(IconAnchor.BOTTOM)
                         iconAllowOverlap(true)
@@ -1471,6 +1717,14 @@ class MapboxMapHolder(
                     }
                 )
                 style.getLayer(TEAM_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
+                scheduleWiggle()
+            }
+            val target = navigateTarget
+            if (target != null) {
+                val me = members.firstOrNull { isMe(it) }
+                if (me != null) {
+                    updateNavigateLineInternal(style, me.lat, me.lng, target.first, target.second)
+                }
             }
         }
     }

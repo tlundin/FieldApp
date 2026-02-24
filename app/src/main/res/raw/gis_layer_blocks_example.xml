@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Example block_add_gis_layer blocks with style attributes for testing. -->
 <!-- Copy the blocks into your workflow XML where layer blocks are defined. -->
+<!-- gistype: maps to GeoJSON file name (without .json). Get from obj_context gistyp=[value]. -->
 <!-- See gis_layer_attributes.md for attribute reference. -->
 
 <block_add_gis_layer>
 <block_ID>1038</block_ID>
 <target>traktkarta</target>
 <name>me_layer</name>
+<gistype>me</gistype>
 <label>Egen position</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -23,6 +25,7 @@
 <block_ID>1039</block_ID>
 <target>traktkarta</target>
 <name>akerkant_layer</name>
+<gistype>akerkant</gistype>
 <label>Åkerkanter</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -39,6 +42,7 @@
 <block_ID>1040</block_ID>
 <target>traktkarta</target>
 <name>fukthed_layer</name>
+<gistype>fukthed</gistype>
 <label>Fukthed</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -55,6 +59,7 @@
 <block_ID>1041</block_ID>
 <target>traktkarta</target>
 <name>gräsmarks_layer</name>
+<gistype>lansgras</gistype>
 <label>Gräsmark</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -71,6 +76,7 @@
 <block_ID>1042</block_ID>
 <target>traktkarta</target>
 <name>hallmark_layer</name>
+<gistype>basiskberghall</gistype>
 <label>Hällmark</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -87,6 +93,7 @@
 <block_ID>1043</block_ID>
 <target>traktkarta</target>
 <name>hallmarkpolygon_layer</name>
+<gistype>hallmarkspolygon</gistype>
 <label>Hällmarkspolygon</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -103,6 +110,7 @@
 <block_ID>1044</block_ID>
 <target>traktkarta</target>
 <name>kalkhäll_layer</name>
+<gistype>kalkmark</gistype>
 <label>Kalkmark</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -119,6 +127,7 @@
 <block_ID>1045</block_ID>
 <target>traktkarta</target>
 <name>kalkmarkpolygon_layer</name>
+<gistype>kalkmarkpolygon</gistype>
 <label>Kalkmarkpolygon</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -134,6 +143,7 @@
 <block_ID>1046</block_ID>
 <target>traktkarta</target>
 <name>kraftledning_layer</name>
+<gistype>kraftledning</gistype>
 <label>Kraftledningsgator</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -150,6 +160,7 @@
 <block_ID>1047</block_ID>
 <target>traktkarta</target>
 <name>kraftledningsvk_layer</name>
+<gistype>kraftledningsvkbio</gistype>
 <label>Kraftledningsvk</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -166,6 +177,7 @@
 <block_ID>1048</block_ID>
 <target>traktkarta</target>
 <name>löväng_layer</name>
+<gistype>lovang</gistype>
 <label>Löväng</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -182,6 +194,7 @@
 <block_ID>1049</block_ID>
 <target>traktkarta</target>
 <name>lövängspolygon_layer</name>
+<gistype>lovangspolygon</gistype>
 <label>Lövängspolygon</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -197,6 +210,7 @@
 <block_ID>1050</block_ID>
 <target>traktkarta</target>
 <name>markslagspolygon_layer</name>
+<gistype>fukthedspolygon</gistype>
 <label>Markslagspolygon</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -212,6 +226,7 @@
 <block_ID>1051</block_ID>
 <target>traktkarta</target>
 <name>naturtypspolygon_layer</name>
+<gistype>naturtypspolygon</gistype>
 <label>Naturtypspolygon</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>
@@ -227,6 +242,7 @@
 <block_ID>1052</block_ID>
 <target>traktkarta</target>
 <name>slåtteräng_layer</name>
+<gistype>slatterang</gistype>
 <label>Slåtteräng</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -243,6 +259,7 @@
 <block_ID>1053</block_ID>
 <target>traktkarta</target>
 <name>svamang_layer</name>
+<gistype>svamang</gistype>
 <label>Svämäng</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -259,6 +276,7 @@
 <block_ID>1054</block_ID>
 <target>traktkarta</target>
 <name>inlandsandmark_layer</name>
+<gistype>inlandsandmark</gistype>
 <label>Inlandsandmark</label>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
@@ -275,6 +293,7 @@
 <block_ID>1055</block_ID>
 <target>traktkarta</target>
 <name>hjälpobjekt_layer</name>
+<gistype>hjalpobjekt</gistype>
 <label>Hjälpobjekt</label>
 <show_labels>false</show_labels>
 <is_visible>true</is_visible>

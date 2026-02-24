@@ -771,9 +771,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//o.addText("Parsing block: block_add_gis_layer...");
 		String id=null,nName=null,target=null,label=null;
 		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
-		String fillColor=null,lineColor=null,polyType=null;
+		String fillColor=null,lineColor=null,polyType=null,lineDasharray=null;
 		Float fillOpacity=null,lineWidth=null,circleRadius=null;
-		String objContext=null,onClick=null;
+		String objContext=null,onClick=null,gistype=null;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d(TAG,"In block block_add_gis_layer!!");
@@ -806,10 +806,14 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				lineColor = readText("line_color", parser);
 			} else if (name.equals("line_width")) {
 				lineWidth = parseFloatOrNull(readText("line_width", parser));
+			} else if (name.equals("line_dasharray")) {
+				lineDasharray = readText("line_dasharray", parser);
 			} else if (name.equals("circle_radius")) {
 				circleRadius = parseFloatOrNull(readText("circle_radius", parser));
 			} else if (name.equals("poly_type")) {
 				polyType = readText("poly_type", parser);
+			} else if (name.equalsIgnoreCase("gistype")) {
+				gistype = readText("gistype", parser);
 			} else if (name.equalsIgnoreCase("obj_context")) {
 				objContext = readText("obj_context", parser);
 			} else if (name.equals("on_click")) {
@@ -824,8 +828,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		checkForNull("block_ID",id,"target",target);
 		String objContextTrimmed = (objContext != null && !objContext.trim().isEmpty()) ? objContext.trim() : null;
 		String onClickTrimmed = (onClick != null && !onClick.trim().isEmpty()) ? onClick.trim() : null;
+		String gistypeTrimmed = (gistype != null && !gistype.trim().isEmpty()) ? gistype.trim() : null;
+		String lineDasharrayTrimmed = (lineDasharray != null && !lineDasharray.trim().isEmpty()) ? lineDasharray.trim() : null;
 		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold,
-				fillColor,fillOpacity,lineColor,lineWidth,circleRadius,polyType,objContextTrimmed,onClickTrimmed);
+				fillColor,fillOpacity,lineColor,lineWidth,lineDasharrayTrimmed,circleRadius,polyType,objContextTrimmed,onClickTrimmed,gistypeTrimmed);
 
 	}
 

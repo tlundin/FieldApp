@@ -214,6 +214,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         myKeychain.put("lag", teamName != null ? teamName : "");
         myKeychain.put("author", myName);
         myKeychain.put("uuid", currentUserUUID);
+        myKeychain.put("timestamp", String.valueOf(latestSignal.time));
         GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
             @Override public float getLineWidth() { return 2.0f; }
             @Override public float getRadius() { return 4.0f; }
@@ -472,6 +473,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 myKeychain.put("lag", teamName != null ? teamName : "");
                 myKeychain.put("author", name);
                 myKeychain.put("uuid", uuid);
+                myKeychain.put("timestamp", String.valueOf(timestamp));
                 Location myLocation = new LatLong(lat, lng);
                 final Bitmap iconForMe = myIcon;
                 GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
@@ -522,6 +524,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 keychain.put("author", name);
                 // Also add UUID to keychain for potential use by GisPointObject itself for identification
                 keychain.put("uuid", uuid);
+                keychain.put("timestamp", String.valueOf(timestamp));
 
                 Location memberLocation = new LatLong(lat, lng);
 
@@ -621,6 +624,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 myKeychain.put("lag", teamName != null ? teamName : "");
                 myKeychain.put("author", myName);
                 myKeychain.put("uuid", currentUserUUID);
+                myKeychain.put("timestamp", String.valueOf(latestSignal.time));
                 Location myLocation = (latestSignal.lat != -1 && latestSignal.lng != -1)
                         ? new LatLong(latestSignal.lat, latestSignal.lng)
                         : Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);

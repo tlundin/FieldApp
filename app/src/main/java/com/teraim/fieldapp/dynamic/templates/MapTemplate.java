@@ -254,25 +254,39 @@ public class MapTemplate extends Executor {
 			} else {
 				continue;
 			}
-			// Use name as unique key for map point id (one latest position per user name)
-			String id = gop.getKeyHash() != null && gop.getKeyHash().containsKey("author")
-					? gop.getKeyHash().get("author") : (gop.getKeyHash() != null && gop.getKeyHash().containsKey("uuid") ? gop.getKeyHash().get("uuid") : "team_" + index);
+			String uuid = gop.getKeyHash() != null && gop.getKeyHash().containsKey("uuid") ? gop.getKeyHash().get("uuid") : null;
+			String currentUserUuid = GlobalState.getInstance().getUserUUID();
+			// Use unique id: "me" for current user (by UUID) to avoid collision with another user with same name
+			String id;
+			if (uuid != null && currentUserUuid != null && uuid.trim().equalsIgnoreCase(currentUserUuid.trim())) {
+				id = "me";
+			} else {
+				id = gop.getKeyHash() != null && gop.getKeyHash().containsKey("author")
+						? gop.getKeyHash().get("author") : (uuid != null ? uuid : "team_" + index);
+			}
 			android.graphics.Bitmap iconBitmap = gop.getIcon();
 			if (iconBitmap == null) {
 				android.content.Context ctx = (view != null) ? view.getContext() : mapboxMapHolder.getWidget().getContext();
 				android.graphics.drawable.Drawable d = ContextCompat.getDrawable(ctx, R.drawable.ic_needle_symbol);
 				if (d != null) iconBitmap = Tools.drawableToBitmap(d);
 			}
+			long timestamp = 0;
+			if (gop.getKeyHash() != null && gop.getKeyHash().containsKey("timestamp")) {
+				try {
+					timestamp = Long.parseLong(gop.getKeyHash().get("timestamp"));
+				} catch (NumberFormatException ignored) { }
+			}
 			points.add(new TeamMemberMapPoint(id, latLong.getX(), latLong.getY(),
-					gop.getLabel(), iconBitmap));
+					gop.getLabel(), iconBitmap, timestamp, uuid));
 			index++;
 		}
+		String currentUserUuid = GlobalState.getInstance().getUserUUID();
 		int meCount = 0;
 		for (TeamMemberMapPoint p : points) {
-			if (p.name != null && p.name.contains("(me)")) meCount++;
+			if (p.uuid != null && currentUserUuid != null && p.uuid.trim().equalsIgnoreCase(currentUserUuid.trim())) meCount++;
 		}
 		if (meCount != 1) {
-			Log.w(TAG, "DUPLICATE_ME? points with (me) in name: " + meCount + " (expected 1)");
+			Log.w(TAG, "DUPLICATE_ME? points matching current user UUID: " + meCount + " (expected 1)");
 		}
 		lastTeamMemberPoints = points;
 		String batchId = points.size() + "_" + (points.isEmpty() ? "empty" : points.get(0).name);
@@ -517,11 +531,12 @@ public class MapTemplate extends Executor {
 
 	private void centerMapOnUser() {
 		if (mapboxMap == null) return;
+		String currentUserUuid = GlobalState.getInstance().getUserUUID();
 		double lat = Double.NaN, lng = Double.NaN;
-		// Try lastTeamMemberPoints first (contains "me" with "(me)" in name)
+		// Try lastTeamMemberPoints first (contains "me" identified by UUID)
 		if (lastTeamMemberPoints != null) {
 			for (TeamMemberMapPoint p : lastTeamMemberPoints) {
-				if (p.name != null && p.name.contains("(me)")) {
+				if (p.uuid != null && currentUserUuid != null && p.uuid.trim().equalsIgnoreCase(currentUserUuid.trim())) {
 					lat = p.lat;
 					lng = p.lng;
 					break;

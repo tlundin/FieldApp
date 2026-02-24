@@ -162,5 +162,7 @@
     <string name="pystatus_ready">Ready</string>
     <string name="pystatus_exported">Ready and exported</string>
     <string name="pystatus_inserted">Ready and inserted in DB</string>
+    <string name="team_member_active_now">active now</string>
+    <string name="team_member_seen_ago">seen %1$s ago</string>
 
 </resources>
