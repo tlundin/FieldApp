@@ -345,6 +345,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         new AlertDialog.Builder(v.getContext());
                 alert.setTitle(label);
                 //alert.setMessage(myDescription);
+
                 headerInputCointainer.setText(myDescription);
                 refreshInputFields();
                 iAmOpen = true;
@@ -486,7 +487,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             //If adding variables in a list, they will all share same opt and val. Can reuse.
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                     myContext.getContext(),
-                    android.R.layout.simple_spinner_dropdown_item,
+                    R.layout.spinner_dropdown_item,
                     new ArrayList<String>());
             vv.adapter = adapter;
 

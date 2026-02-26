@@ -1068,9 +1068,12 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		} catch (Exception e) {
 			removeLoadDialog();
 			if (blocks != null) {
-				Block errorBlock = blocks.get(blockP);
+				int safeIndex = (blockP >= 0 && blockP < blocks.size()) ? blockP : (blocks.size() - 1);
+				Block errorBlock = (safeIndex >= 0) ? blocks.get(safeIndex) : null;
 				if (errorBlock != null)
 					Tools.printErrorToLog(o, e, "id: " + errorBlock.getBlockId());
+				else
+					Tools.printErrorToLog(o, e, "index: " + Integer.toString(blockP) + " (after execution)");
 			} else
 				Tools.printErrorToLog(o, e, "index: " + Integer.toString(blockP));
 		}

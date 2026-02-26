@@ -1223,7 +1223,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 
 		}
-		checkForNull("block_ID",id,"label",label,"text_color",textColor,"bck_color",bgColor);
+		checkForNull("block_ID",id,"label",label);
 		return new MenuHeaderBlock(id,label,textColor,bgColor);
 
 	}

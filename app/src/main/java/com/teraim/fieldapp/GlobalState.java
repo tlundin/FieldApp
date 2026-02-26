@@ -417,12 +417,20 @@ public class GlobalState {
     public Workflow getWorkflow(String id) {
         if (id == null || id.isEmpty())
             return null;
+        if (myWfs == null) {
+            Log.e(TAG, "getWorkflow called with id '" + id + "' but workflow map is null");
+            return null;
+        }
         return myWfs.get(id);
     }
 
     public Workflow getWorkflowFromLabel(String label) {
         if (label == null)
             return null;
+        if (myWfs == null) {
+            Log.e(TAG, "getWorkflowFromLabel called with label '" + label + "' but workflow map is null");
+            return null;
+        }
         for (Workflow wf : myWfs.values())
             if (wf.getLabel() != null && wf.getLabel().equals(label))
                 return wf;

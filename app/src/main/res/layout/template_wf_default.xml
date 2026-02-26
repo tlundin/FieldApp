@@ -5,13 +5,10 @@
     android:requiresFadingEdge="vertical"
     android:fadingEdgeLength="20dp"
     android:overScrollMode="never">
-<LinearLayout 
-    android:id="@+id/myRoot"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-
-</LinearLayout>
-
+    <LinearLayout
+        android:id="@+id/myRoot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/spacing_md" />
 </ScrollView>

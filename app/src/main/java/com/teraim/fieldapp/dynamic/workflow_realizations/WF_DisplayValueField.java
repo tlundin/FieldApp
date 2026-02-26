@@ -107,18 +107,22 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 	public void postDraw() {
 		TextView header = getWidget().findViewById(R.id.header);
 		header.setText(label);
-		LinearLayout topElem = getWidget().findViewById(R.id.entryRoot);
-		LinearLayout lastElem = getWidget().findViewById(R.id.lastElement);
+		// entryRoot can be a LinearLayout or a MaterialCardView depending on layout,
+		// so treat it as a generic View to avoid class cast issues.
+		android.view.View topElem = getWidget().findViewById(R.id.entryRoot);
+		android.view.View lastElem = getWidget().findViewById(R.id.lastElement);
 		//ViewGroup.MarginLayoutParams lp = ((ViewGroup.MarginLayoutParams)bg.getLayoutParams());
-		topElem.setPadding(0,displayFieldFormat.getVerticalMargin(),0,0);
-		lastElem.setPadding(0,0,0,displayFieldFormat.getVerticalMargin());
+		if (topElem != null)
+			topElem.setPadding(0,displayFieldFormat.getVerticalMargin(),0,0);
+		if (lastElem != null)
+			lastElem.setPadding(0,0,0,displayFieldFormat.getVerticalMargin());
 
 		//lp.topMargin = displayFieldFormat.getVerticalMargin();
 		//lp.bottomMargin = 50;//displayFieldFormat.getVerticalMargin();
 
 		Log.d(TAG,"applying vertical marging of "+displayFieldFormat.getVerticalMargin()+" to "+this.getName());
 		Log.d(TAG,"unit: "+unit);
-		if (displayFieldFormat.getBackgroundColor()!=null)
+		if (displayFieldFormat.getBackgroundColor()!=null && topElem != null)
 			topElem.setBackgroundColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getBackgroundColor()));
 		if (displayFieldFormat.getTextColor()!=null)
 			header.setTextColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getTextColor()));

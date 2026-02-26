@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Spacing system (Material 8dp grid) -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+
+    <!-- Approximate vertical offset from needle center to icon top for team member markers -->
+    <dimen name="team_member_icon_top_offset">28dp</dimen>
+
+    <!-- Legacy (kept for compatibility) -->
     <dimen name="text_size_large">22sp</dimen>
     <dimen name="text_size_small">14sp</dimen>
     <dimen name="checkbox_width">5dp</dimen>

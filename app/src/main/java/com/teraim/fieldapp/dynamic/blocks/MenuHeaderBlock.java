@@ -33,7 +33,7 @@ public class MenuHeaderBlock extends Block {
 		GlobalState gs = GlobalState.getInstance();
 		Context ctx = wf_context.getContext();
 		try {
-			gs.getDrawerMenu().addHeader(label);
+			gs.getDrawerMenu().addHeader(label, textColor, bgColor);
 		} catch (IllegalArgumentException e) {
 		    Log.e("vortex","Couldn't deal with color: "+bgColor+" or "+textColor);
         }

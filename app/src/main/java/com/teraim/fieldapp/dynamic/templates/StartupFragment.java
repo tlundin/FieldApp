@@ -269,7 +269,14 @@ public class StartupFragment extends Executor {
         gs.setModuleRegistry(moduleRegistry);
         startInstance.getDrawerMenu().closeDrawer();
         startInstance.getDrawerMenu().clear();
+
         Workflow wf = gs.getWorkflow("Main");
+        if (wf == null) {
+            // No main workflow found for this configuration; avoid crashing and inform the user.
+            showErrorDialog("Could not find the main workflow (\"Main\") in the loaded configuration. Please verify the configuration for this project/app.");
+            return true;
+        }
+
         gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
         startInstance.changePage(wf, null);

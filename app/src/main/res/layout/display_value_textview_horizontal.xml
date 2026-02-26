@@ -1,60 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/entryRoot"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical" >
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/entryRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/spacing_xs"
+    app:cardElevation="2dp"
+    app:cardCornerRadius="8dp"
+    app:cardUseCompatPadding="true">
 
     <LinearLayout
-        android:id="@+id/lastElement"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
-        <TextView
-            android:id="@+id/header"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="left"
-            android:layout_marginLeft="5dp"
-            android:layout_weight="1"
-            android:ellipsize="marquee"
-            android:gravity="center|left"
-            android:singleLine="true"
-            android:textSize="25sp"
-            android:textStyle="bold"
-             />
+        android:orientation="vertical">
 
+        <!-- Single row: name on the left, value + unit on the right -->
         <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="right|center_vertical"
-            android:orientation="horizontal" >
+            android:id="@+id/lastElement"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
+            <!-- Name / label, left aligned -->
             <TextView
-                android:id="@+id/outputValueField"
-                android:layout_gravity="right"
-            	android:gravity="right"
+                android:id="@+id/header"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginStart="@dimen/spacing_sm"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:gravity="center_vertical|start"
+                android:maxLines="1"
+                 />
+
+            <!-- Value + unit, right aligned as a group -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
-                android:singleLine="true"
-                android:textSize="25sp" />
+                android:gravity="end|center_vertical"
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/outputUnitField"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:singleLine="true"
-                android:layout_marginRight="5dp"
-                android:gravity="center_vertical|left"
-                android:text="%"
-                android:textSize="20sp" />
+                <TextView
+                    android:id="@+id/outputValueField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="end|center_vertical"
+                    android:gravity="center_vertical|end"
+                    android:maxLines="1" />
+
+                <TextView
+                    android:id="@+id/outputUnitField"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="@dimen/spacing_sm"
+                    android:gravity="center_vertical|start"
+                    android:text="%"
+                    android:maxLines="1" />
+            </LinearLayout>
         </LinearLayout>
-        </LinearLayout>
-
-    <View
-        android:layout_height="1dip"
-        android:layout_width="match_parent"
-        android:background="#696969" />
-
-</LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

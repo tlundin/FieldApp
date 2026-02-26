@@ -83,19 +83,22 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
     WF_Not_ClickableField(String id, final String label, final String descriptionT, WF_Context myContext,
                           View view, boolean isVisible, DisplayFieldBlock format) {
 		super(id,view,myContext,isVisible);
-
-
 		this.myContext = myContext;
         TextView myHeader = getWidget().findViewById(R.id.editfieldtext);
 		outputContainer = getWidget().findViewById(R.id.outputContainer);
 		//outputContainer.setLayoutParams(params);
 		//Log.d(TAG,"variable label: "+label+" variable ID: "+id);
 		textColorC = Tools.getColorResource(myContext.getContext(),format.getTextColor());
+		Log.d("barf","Setting header to "+label+" with color "+format.getTextColor());
 		//myheader can be null in case this is a Cell in a table.
 		if (myHeader !=null) {
 			myHeader.setTextColor(textColorC);
-			myHeader.setText(label);
-		}
+			// Ensure header always has displayable text (avoid invisible header when label is null/empty)
+			String displayLabel = (label != null && !label.trim().isEmpty()) ? label.trim() : id;
+			myHeader.setText(displayLabel);
+		} else
+			Log.d("barf","header is null");
+
 		//change between horizontal and vertical
 
 

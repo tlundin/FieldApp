@@ -58,6 +58,10 @@ public class WF_Container extends WF_Thing implements Container {
 		for(WF_Widget d:myItems) {
 			Log.d(TAG,"Drawing "+d.getId());
 			v = d.getWidget();
+			if (v == null) {
+				Log.e(TAG,"Skipping widget with null view (id: "+d.getId()+") in container "+getId());
+				continue;
+			}
 			//If the widget is the container, don't draw. The same if the comp is already attached.
 			if (v.equals(me)||(v.getParent()!=null && v.getParent().equals(me))) {
 				Log.d(TAG,"Parent of this object is me. Skip draw!!!");

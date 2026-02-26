@@ -766,18 +766,24 @@ class MapboxMapHolder(
         bubbleView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
         val popup = PopupWindow(bubbleView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
         popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        // screenPoint is in pixels relative to the MapView's top-left.
+        // Compute position within the map view, then translate to absolute screen coordinates.
         val mapLoc = IntArray(2)
         mapView.getLocationOnScreen(mapLoc)
-        val screenX = mapLoc[0] + screenPoint.x
-        val screenY = mapLoc[1] + screenPoint.y
+        val mapWidth = mapView.width.coerceAtLeast(1)
+        val mapHeight = mapView.height.coerceAtLeast(1)
         val bubbleW = bubbleView.measuredWidth.coerceAtLeast(1)
         val bubbleH = bubbleView.measuredHeight.coerceAtLeast(1)
-        val screenW = context.resources.displayMetrics.widthPixels
-        val screenH = context.resources.displayMetrics.heightPixels
-        val x = (screenX - bubbleW / 2).toInt().coerceIn(0, (screenW - bubbleW).coerceAtLeast(0))
-        // Position bubble so tail points to icon top center (needle anchor=bottom, icon ~28px tall)
-        val iconTopOffset = 28
-        val y = (screenY - iconTopOffset - bubbleH).toInt().coerceAtLeast(0).coerceAtMost((screenH - bubbleH).coerceAtLeast(0))
+
+        // Position bubble so its "tail" points to the icon's top center.
+        // First compute coordinates within the map view bounds.
+        val iconTopOffsetPx = context.resources.getDimensionPixelSize(R.dimen.team_member_icon_top_offset)
+        val xInMap = (screenPoint.x - bubbleW / 2).toInt().coerceIn(0, (mapWidth - bubbleW).coerceAtLeast(0))
+        val yInMap = (screenPoint.y - iconTopOffsetPx - bubbleH).toInt().coerceIn(0, (mapHeight - bubbleH).coerceAtLeast(0))
+
+        // Translate to absolute screen coordinates for the popup.
+        val x = mapLoc[0] + xInMap
+        val y = mapLoc[1] + yInMap
         popup.showAtLocation(mapView.rootView, Gravity.NO_GRAVITY, x, y)
         teamMemberBubblePopup = popup
         teamMemberBubbleDismissRunnable = Runnable {
@@ -933,7 +939,7 @@ class MapboxMapHolder(
             val behavior = BottomSheetBehavior.from(container)
             behavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
-        card.findViewById<View>(R.id.btn_close).setOnClickListener { dismissCard() }
+        // Close button removed from card layout; bottom sheet can still be dismissed via drag.
         card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
@@ -994,7 +1000,7 @@ class MapboxMapHolder(
         statusIndicator.background = indicatorDrawable
         infoView.text = propertiesToInfoString(properties)
         val dialog = AlertDialog.Builder(context).setView(card).create()
-        card.findViewById<View>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+        // Close button removed from card layout; dialog can be dismissed via outside/back.
         card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
@@ -1130,7 +1136,7 @@ class MapboxMapHolder(
             val behavior = BottomSheetBehavior.from(container)
             behavior.state = BottomSheetBehavior.STATE_HIDDEN
         }
-        card.findViewById<View>(R.id.btn_close).setOnClickListener { dismissCard() }
+        // Close button removed from card layout; bottom sheet can still be dismissed via drag.
         card.findViewById<View>(R.id.btn_center_on).setOnClickListener {
             Log.i(TAG, "Center-on button clicked")
             try {
@@ -1261,7 +1267,7 @@ class MapboxMapHolder(
             append("COLUMN1: "); append(column1)
         }
         val dialog = AlertDialog.Builder(context).setView(card).create()
-        card.findViewById<View>(R.id.btn_close).setOnClickListener { dialog.dismiss() }
+        // Close button removed from card layout; dialog can be dismissed via outside/back.
         card.findViewById<View>(R.id.btn_center_on).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {

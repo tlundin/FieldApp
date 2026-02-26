@@ -51,8 +51,9 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
 
 		Container myContainer = myContext.getContainer(containerId);
 		if (myContainer!=null) {
+			String fieldId = (label != null && !label.isEmpty()) ? label : blockId;
 			WF_Not_ClickableField_SumAndCountOfVariables field = new WF_Not_ClickableField_SumAndCountOfVariables(
-					label,"", myContext, 
+					fieldId, label != null ? label : "", myContext, 
 					target, myPattern,
 					type,isVisible,
 					this);
