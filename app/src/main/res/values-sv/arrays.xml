@@ -47,5 +47,6 @@
         <item>@drawable/icon_set3</item>
         <item>@drawable/icon_set2</item>
         <item>@drawable/icon_set1</item>
+        <item>@drawable/icon_set4</item>
     </array>
 </resources>

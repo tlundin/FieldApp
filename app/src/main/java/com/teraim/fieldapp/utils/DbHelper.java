@@ -1974,6 +1974,141 @@ public class DbHelper extends SQLiteOpenHelper {
             Log.d(TAG, "insertGisObject: inserted new GIS object");
     }
 
+    /**
+     * Insert a map note point (e.g. from "Add object" on map). Writes two rows to variabler:
+     * gpscoord (value = lat,lng string) and geotype (value = "Point").
+     * keyHash must contain at least "uid" and "gistyp". Timestamp and author are set automatically.
+     */
+    /** Valid key column names in variabler (L1..L10). Used to validate that uid/gistyp are correctly mapped. */
+    private static final java.util.Set<String> VARIABLER_KEY_COLS = new java.util.HashSet<>(
+            java.util.Arrays.asList("L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10"));
+
+    /**
+     * Inserts a map note point into variabler. Two rows: one for variable GPSCOORD (value = lat,long),
+     * one for variable GISTYP (value = object type). Key parts (e.g. uid, gistyp) MUST go into L1..L10 via getDatabaseColumnName.
+     * If the app's variable config does not map "uid" or "gistyp" to an L1..L10 column, this is treated as a fatal configuration error.
+     * Special columns: var, value, lag, timestamp, author.
+     */
+    public void insertMapNotePoint(Map<String, String> keyHash, String gpsCoordValue) {
+        if (keyHash == null || !keyHash.containsKey("uid") || !keyHash.containsKey("gistyp")) {
+            Log.e(TAG, "insertMapNotePoint: keyHash must contain uid and gistyp");
+            return;
+        }
+        long timeStamp = System.currentTimeMillis();
+        String author = globalPh.get(PersistenceHelper.USER_ID_KEY);
+        ContentValues cv = new ContentValues();
+        // Resolve key columns via the mapper. If they are not mapped to L1..L10, treat as a severe configuration error.
+        String uidCol = getDatabaseColumnName("uid");
+        String gistypCol = getDatabaseColumnName("gistyp");
+        if (uidCol == null || !VARIABLER_KEY_COLS.contains(uidCol)
+                || gistypCol == null || !VARIABLER_KEY_COLS.contains(gistypCol)) {
+            String msg = "insertMapNotePoint: Database schema misconfigured. "
+                    + "Expected 'uid' and 'gistyp' to map to L1..L10, but got uidCol="
+                    + uidCol + ", gistypCol=" + gistypCol + ". Cannot insert map note.";
+            LogRepository.getInstance().addCriticalText(msg);
+            Log.e(TAG, msg);
+            throw new IllegalStateException(msg);
+        }
+        cv.put(uidCol, keyHash.get("uid"));
+        cv.put(gistypCol, keyHash.get("gistyp"));
+        cv.put("var", "GPSCOORD");
+        cv.put("value", gpsCoordValue);
+        cv.put("lag", globalPh.get(PersistenceHelper.LAG_ID_KEY));
+        cv.put("timestamp", timeStamp);
+        cv.put("author", author != null ? author : "");
+        db().insert(TABLE_VARIABLES, null, cv);
+        cv.put("var", "GISTYP");
+        cv.put("value", keyHash.get("gistyp"));
+        db().insert(TABLE_VARIABLES, null, cv);
+        Log.d(TAG, "insertMapNotePoint: inserted map note uid=" + keyHash.get("uid") + " gistyp=" + keyHash.get("gistyp"));
+    }
+
+    /**
+     * Returns a GeoJSON FeatureCollection of all map_* points from variabler.
+     * Queries rows where var='GISTYP' and value LIKE 'map_%', then for each key fetches var='GPSCOORD' (value = lat,long).
+     * Each feature is a Point with properties.uid set.
+     */
+    public String getMapNotePointsGeoJson() {
+        String uidCol = getDatabaseColumnName("uid");
+        if (uidCol == null || !VARIABLER_KEY_COLS.contains(uidCol)) {
+            String msg = "getMapNotePointsGeoJson: Database schema misconfigured. "
+                    + "Expected 'uid' to map to L1..L10, but got uidCol=" + uidCol + ". Cannot read map notes.";
+            LogRepository.getInstance().addCriticalText(msg);
+            Log.e(TAG, msg);
+            throw new IllegalStateException(msg);
+        }
+        final String[] keyCols = new String[]{"L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10"};
+        SelectionBuilder gistypSel = new SelectionBuilder();
+        gistypSel.addEquals(VARID, "GISTYP");
+        // Match any map-note-like object type: map_note, map_marker, map_waypoint, map_poi, etc.
+        gistypSel.addLike(VALUE, "map_%");
+        JSONArray features = new JSONArray();
+        // Project key columns (L1..L10) and the GISTYP value so we can pass it through to GeoJSON properties.
+        final String[] projection = new String[]{"L1", "L2", "L3", "L4", "L5", "L6", "L7", "L8", "L9", "L10", VALUE};
+        try (Cursor c = db().query(TABLE_VARIABLES, projection,
+                gistypSel.buildSelection(), gistypSel.buildArgs(), null, null, null)) {
+            while (c.moveToNext()) {
+                String gistypVal = null;
+                int gistypIdx = c.getColumnIndex(VALUE);
+                if (gistypIdx >= 0) {
+                    gistypVal = c.getString(gistypIdx);
+                }
+                SelectionBuilder keySel = new SelectionBuilder();
+                for (String col : keyCols) {
+                    int idx = c.getColumnIndex(col);
+                    if (idx >= 0) {
+                        String v = c.getString(idx);
+                        if (v != null && !v.isEmpty()) keySel.addEquals(col, v);
+                    }
+                }
+                keySel.addEquals(VARID, "GPSCOORD");
+                String gpsValue = null;
+                try (Cursor c2 = db().query(TABLE_VARIABLES, new String[]{VALUE},
+                        keySel.buildSelection(), keySel.buildArgs(), null, null, null, "1")) {
+                    if (c2.moveToNext()) gpsValue = c2.getString(0);
+                }
+                if (gpsValue == null || !gpsValue.contains(",")) continue;
+                String[] latLng = gpsValue.trim().split("\\s*,\\s*");
+                if (latLng.length < 2) continue;
+                double lat, lng;
+                try {
+                    lat = Double.parseDouble(latLng[0].trim());
+                    lng = Double.parseDouble(latLng[1].trim());
+                } catch (NumberFormatException e) {
+                    Log.w(TAG, "getMapNotePointsGeoJson: invalid lat,lng: " + gpsValue);
+                    continue;
+                }
+                int uidIdx = c.getColumnIndex(uidCol);
+                String uid = (uidIdx >= 0) ? c.getString(uidIdx) : "";
+                JSONObject geom = new JSONObject();
+                geom.put("type", "Point");
+                geom.put("coordinates", new JSONArray().put(lng).put(lat));
+                JSONObject props = new JSONObject();
+                props.put("uid", uid != null ? uid : "");
+                if (gistypVal != null) {
+                    props.put("GISTYP", gistypVal);
+                }
+                JSONObject feature = new JSONObject();
+                feature.put("type", "Feature");
+                feature.put("geometry", geom);
+                feature.put("properties", props);
+                features.put(feature);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "getMapNotePointsGeoJson: JSON build failed", e);
+            return "{\"type\":\"FeatureCollection\",\"features\":[]}";
+        }
+        try {
+            JSONObject fc = new JSONObject();
+            fc.put("type", "FeatureCollection");
+            fc.put("features", features);
+            return fc.toString();
+        } catch (JSONException e) {
+            Log.e(TAG, "getMapNotePointsGeoJson: FeatureCollection build failed", e);
+            return "{\"type\":\"FeatureCollection\",\"features\":[]}";
+        }
+    }
+
     //Get values for all instances of a given variable, from a keychain with * values.
 
     public DBColumnPicker getAllVariableInstances(Selection s) {

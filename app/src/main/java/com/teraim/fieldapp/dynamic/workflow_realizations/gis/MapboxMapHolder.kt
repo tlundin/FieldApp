@@ -4,15 +4,12 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.util.Log
 import android.os.Handler
 import android.os.Looper
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.PopupWindow
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.GsonBuilder
@@ -34,6 +31,10 @@ import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.MapboxMap
 import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
+import com.mapbox.maps.ViewAnnotationAnchor
+import com.mapbox.maps.ViewAnnotationAnchorConfig
+import com.mapbox.maps.ViewAnnotationOptions
+import com.mapbox.maps.viewannotation.geometry
 import com.mapbox.maps.extension.style.expressions.generated.Expression
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.any
 import com.mapbox.maps.extension.style.expressions.generated.Expression.Companion.color
@@ -63,7 +64,9 @@ import com.mapbox.maps.extension.style.sources.generated.GeoJsonSource
 import com.mapbox.maps.extension.style.sources.generated.geoJsonSource
 import com.mapbox.bindgen.Value
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import com.teraim.fieldapp.GlobalState
 import com.teraim.fieldapp.R
 import com.teraim.fieldapp.dynamic.types.DB_Context
@@ -93,6 +96,11 @@ class MapboxMapHolder(
     private val gisObjectsBaseUrl: String
 ) : Drawable {
 
+    interface OnMapNotePlacementListener {
+        fun onMapNotePlaced(point: Point, gistyp: String, label: String)
+        fun onMapNotePlacementCancelled()
+    }
+
     companion object {
         private const val TAG = "MapboxMapHolder"
         /** Zoom level at which object labels become visible (e.g. ~1/3 of Sweden visible at zoom 6). */
@@ -111,6 +119,10 @@ class MapboxMapHolder(
         private const val TEAM_OTHERS_INNER_LAYER_ID = "layer-team-others-inner"
         private const val NAVIGATE_LINE_SOURCE_ID = "source-navigate-line"
         private const val NAVIGATE_LINE_LAYER_ID = "layer-navigate-line"
+        /** GeoJSON layer built from DB: variabler rows with GISTYP=map_note and GPSCOORD. */
+        private const val MAP_NOTE_SOURCE_ID = "source-map-notes"
+        private const val MAP_NOTE_LAYER_ID = "layer-map-notes"
+        const val MAP_NOTE_LAYER_NAME = "map_notes"
         private const val WIGGLE_MIN_MS = 5_000L
         private const val WIGGLE_MAX_MS = 15_000L
         private const val FRESH_POSITION_MS = 5 * 60 * 1000L  // 5 minutes
@@ -152,6 +164,7 @@ class MapboxMapHolder(
             field = value
             if (value != null) {
                 processPendingLayers()
+                loadMapNoteLayerFromDb()
                 setupMapClickListener()
             }
         }
@@ -611,6 +624,115 @@ class MapboxMapHolder(
         Log.d(TAG, "Added Mapbox layer: $name (polyType=${spec.polyType}, fillColor=${spec.fillColor}, showLabels=${spec.showLabels})")
     }
 
+    /** Loads the map_note GeoJSON layer from the database and adds it to the style (with other layers, below team). */
+    private fun loadMapNoteLayerFromDb() {
+        val map = mapboxMap ?: return
+        scope.launch {
+            val geoJson = withContext(Dispatchers.IO) {
+                GlobalState.getInstance().db.getMapNotePointsGeoJson()
+            }
+            map.getStyle { style ->
+                if (style.styleSourceExists(MAP_NOTE_SOURCE_ID)) return@getStyle
+                addMapNoteLayerToStyle(style, geoJson)
+            }
+        }
+    }
+
+    private fun addMapNoteLayerToStyle(style: Style, geoJson: String) {
+        val featureCollection = FeatureCollection.fromJson(geoJson)
+        val features = featureCollection.features() ?: emptyList()
+        if (features.isEmpty()) {
+            Log.d(TAG, "Map note layer: no map_note points in DB")
+        } else {
+            Log.d(TAG, "Map note layer: adding ${features.size} map_note points from DB")
+        }
+        if (style.styleSourceExists(MAP_NOTE_SOURCE_ID)) style.removeStyleSource(MAP_NOTE_SOURCE_ID)
+        if (style.styleLayerExists(MAP_NOTE_LAYER_ID)) style.removeStyleLayer(MAP_NOTE_LAYER_ID)
+        // Ensure note icons are available in the style (one icon id per gistyp)
+        ensureMapNoteIconsInStyle(style)
+        style.addSource(
+            geoJsonSource(MAP_NOTE_SOURCE_ID) {
+                featureCollection(featureCollection)
+            }
+        )
+        fun addLayerOrBelowTeam(layer: com.mapbox.maps.extension.style.layers.Layer) {
+            if (style.styleLayerExists(TEAM_LAYER_ID)) style.addLayerBelow(layer, TEAM_LAYER_ID) else style.addLayer(layer)
+        }
+        addLayerOrBelowTeam(
+            symbolLayer(MAP_NOTE_LAYER_ID, MAP_NOTE_SOURCE_ID) {
+                filter(
+                    any(
+                        eq(geometryType(), literal("Point")),
+                        eq(geometryType(), literal("MultiPoint"))
+                    )
+                )
+                // Choose icon by gistyp property in GeoJSON (GISTYP)
+                iconImage(
+                    match(
+                        get("GISTYP"),
+                        literal("map_note"), literal("map_note_icon"),
+                        literal("map_parking"), literal("map_parking_icon"),
+                        literal("map_poi"), literal("map_poi_icon"),
+                        // default
+                        literal("map_note_icon")
+                    )
+                )
+                iconSize(1.0)
+                iconAllowOverlap(true)
+                visibility(Visibility.VISIBLE)
+            }
+        )
+        layerState[MAP_NOTE_LAYER_NAME] = LayerState(
+            MAP_NOTE_SOURCE_ID, "", "", MAP_NOTE_LAYER_ID, null, true
+        )
+    }
+
+    /**
+     * Ensure that the three map-note icons (note, parking, poi) are added to the style.
+     * Uses the same drawable→bitmap path as other GIS icons to avoid null bitmaps.
+     */
+    private fun ensureMapNoteIconsInStyle(style: Style) {
+        val ctx = mapView.context ?: run {
+            Log.w(TAG, "ensureMapNoteIconsInStyle: mapView.context is null, skipping icon load")
+            return
+        }
+        fun addIfMissing(id: String, resId: Int) {
+            if (style.hasStyleImage(id)) return
+            val drawable = ContextCompat.getDrawable(ctx, resId)
+            val bitmap: Bitmap? = if (drawable != null) Tools.drawableToBitmap(drawable) else null
+            if (bitmap != null) {
+                // Regular bitmap icons (non-SDF); color is baked into the asset.
+                style.addImage(id, bitmap, false)
+                Log.d(TAG, "ensureMapNoteIconsInStyle: added style image $id")
+            } else {
+                Log.w(TAG, "ensureMapNoteIconsInStyle: could not create bitmap for $id (resId=$resId)")
+            }
+        }
+        addIfMissing("map_note_icon", R.drawable.ic_map_note)
+        addIfMissing("map_parking_icon", R.drawable.ic_map_parking)
+        addIfMissing("map_poi_icon", R.drawable.ic_map_poi)
+    }
+
+    /** Re-fetches map_note points from the DB and updates the map note layer (e.g. after adding a new note). */
+    fun refreshMapNoteLayer() {
+        val map = mapboxMap ?: return
+        scope.launch {
+            val geoJson = withContext(Dispatchers.IO) {
+                GlobalState.getInstance().db.getMapNotePointsGeoJson()
+            }
+            map.getStyle { style ->
+                val source = style.getSource(MAP_NOTE_SOURCE_ID) as? GeoJsonSource
+                if (source != null) {
+                    val fc = FeatureCollection.fromJson(geoJson)
+                    source.featureCollection(fc, "refresh-map-notes-${System.currentTimeMillis()}")
+                    Log.d(TAG, "refreshMapNoteLayer: updated source with ${fc.features()?.size ?: 0} features")
+                } else {
+                    addMapNoteLayerToStyle(style, geoJson)
+                }
+            }
+        }
+    }
+
     /**
      * Re-fetches all GeoJSON layers from the server and updates the map.
      * Updates source data in place (keeps layers) so Mapbox re-renders with new data.
@@ -695,6 +817,10 @@ class MapboxMapHolder(
     private fun setupMapClickListener() {
         val map = mapboxMap ?: return
         map.addOnMapClickListener { point ->
+            if (addObjectPlacementMode) {
+                Handler(Looper.getMainLooper()).post { updatePlacementPoint(point) }
+                return@addOnMapClickListener true
+            }
             val screenCoordinate = map.pixelForCoordinate(point)
             val queryGeometry = RenderedQueryGeometry(screenCoordinate)
             val gisLayerIds = layerState.values.flatMap { state ->
@@ -728,7 +854,8 @@ class MapboxMapHolder(
                         if (properties != null) {
                             Handler(Looper.getMainLooper()).post {
                                 if (isTeamLayer) {
-                                    showTeamMemberBubble(properties, screenCoordinate)
+                                    val geoPoint = featureCenter(mapFeature)?.let { (lat, lng) -> Point.fromLngLat(lng, lat) } ?: point
+                                    showTeamMemberBubble(properties, geoPoint)
                                 } else {
                                     showFeaturePropertiesDialog(mapFeature, properties, layerName)
                                 }
@@ -750,8 +877,11 @@ class MapboxMapHolder(
         }
     }
 
-    private fun showTeamMemberBubble(properties: JsonObject, screenPoint: ScreenCoordinate) {
+    /** Shows the team member info bubble as a view annotation at the needle's map coordinates so it stays aligned on resize/zoom. */
+    private fun showTeamMemberBubble(properties: JsonObject, geoPoint: Point) {
         val context = mapView.context ?: return
+        val mbMapView = mapView as? MapView ?: return
+        val annotationManager = mbMapView.viewAnnotationManager
         val name = safePropString(properties, "name") ?: "—"
         val members = lastTeamMembers ?: emptyList()
         val member = members.firstOrNull { it.name == name }
@@ -759,36 +889,29 @@ class MapboxMapHolder(
         val lastSeenText = formatLastSeen(timestampMs)
         val displayName = name.removeSuffix(" (me)").replace(Regex("\\[[^\\]]*\\]$"), "").trim().ifEmpty { name }
         teamMemberBubbleDismissRunnable?.let { mePulseHandler.removeCallbacks(it) }
-        teamMemberBubblePopup?.dismiss()
+        teamMemberBubbleView?.let { annotationManager.removeViewAnnotation(it); teamMemberBubbleView = null }
         val bubbleView = LayoutInflater.from(context).inflate(R.layout.popup_team_member_bubble, null)
+        bubbleView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         bubbleView.findViewById<android.widget.TextView>(R.id.team_member_bubble_name).text = displayName
         bubbleView.findViewById<android.widget.TextView>(R.id.team_member_bubble_last_seen).text = lastSeenText
-        bubbleView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)
-        val popup = PopupWindow(bubbleView, ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, true)
-        popup.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        // screenPoint is in pixels relative to the MapView's top-left.
-        // Compute position within the map view, then translate to absolute screen coordinates.
-        val mapLoc = IntArray(2)
-        mapView.getLocationOnScreen(mapLoc)
-        val mapWidth = mapView.width.coerceAtLeast(1)
-        val mapHeight = mapView.height.coerceAtLeast(1)
-        val bubbleW = bubbleView.measuredWidth.coerceAtLeast(1)
-        val bubbleH = bubbleView.measuredHeight.coerceAtLeast(1)
-
-        // Position bubble so its "tail" points to the icon's top center.
-        // First compute coordinates within the map view bounds.
-        val iconTopOffsetPx = context.resources.getDimensionPixelSize(R.dimen.team_member_icon_top_offset)
-        val xInMap = (screenPoint.x - bubbleW / 2).toInt().coerceIn(0, (mapWidth - bubbleW).coerceAtLeast(0))
-        val yInMap = (screenPoint.y - iconTopOffsetPx - bubbleH).toInt().coerceIn(0, (mapHeight - bubbleH).coerceAtLeast(0))
-
-        // Translate to absolute screen coordinates for the popup.
-        val x = mapLoc[0] + xInMap
-        val y = mapLoc[1] + yInMap
-        popup.showAtLocation(mapView.rootView, Gravity.NO_GRAVITY, x, y)
-        teamMemberBubblePopup = popup
+        val needleHeightPx = context.resources.getDimensionPixelSize(R.dimen.team_member_icon_top_offset)
+        val options = ViewAnnotationOptions.Builder()
+            .geometry(geoPoint)
+            .allowOverlap(true)
+            .variableAnchors(listOf(
+                ViewAnnotationAnchorConfig.Builder()
+                    .anchor(ViewAnnotationAnchor.BOTTOM)
+                    .offsetY(needleHeightPx.toDouble())
+                    .build()
+            ))
+            .build()
+        annotationManager.addViewAnnotation(bubbleView, options)
+        teamMemberBubbleView = bubbleView
         teamMemberBubbleDismissRunnable = Runnable {
-            popup.dismiss()
-            teamMemberBubblePopup = null
+            teamMemberBubbleView?.let { view ->
+                (mapView as? MapView)?.viewAnnotationManager?.removeViewAnnotation(view)
+            }
+            teamMemberBubbleView = null
             teamMemberBubbleDismissRunnable = null
         }
         mePulseHandler.postDelayed(teamMemberBubbleDismissRunnable!!, TEAM_BUBBLE_DISMISS_MS)
@@ -1323,9 +1446,89 @@ class MapboxMapHolder(
     private var wiggleResetRunnable: Runnable? = null
     /** True once we've scheduled a wiggle for the current team layer; reset when layer is torn down. */
     private var wiggleScheduled = false
-    private var teamMemberBubblePopup: PopupWindow? = null
+    private var teamMemberBubbleView: View? = null
     private var teamMemberBubbleDismissRunnable: Runnable? = null
     private val TEAM_BUBBLE_DISMISS_MS = 10_000L
+
+    /** Map note placement mode: user selected an object type and is choosing location on map. */
+    private var addObjectPlacementMode = false
+    private var addObjectGistyp: String? = null
+    private var addObjectLabel: String? = null
+    private var placementPoint: Point? = null
+    private var placementPreviewView: View? = null
+    private var placementBarView: View? = null
+    private var onMapNotePlacementListener: OnMapNotePlacementListener? = null
+
+    fun setOnMapNotePlacementListener(listener: OnMapNotePlacementListener?) {
+        onMapNotePlacementListener = listener
+    }
+
+    /** Start "add object" flow: show placement UI; user taps map to set position, then OK or Cancel. */
+    fun startAddObjectMode(gistyp: String, label: String) {
+        if (addObjectPlacementMode) return
+        addObjectPlacementMode = true
+        addObjectGistyp = gistyp
+        addObjectLabel = label
+        placementPoint = null
+        showPlacementBar()
+        Log.d(TAG, "Add object mode started: gistyp=$gistyp label=$label")
+    }
+
+    private fun showPlacementBar() {
+        val context = mapView.context ?: return
+        val parent = mapView.parent as? ViewGroup ?: return
+        val bar = LayoutInflater.from(context).inflate(R.layout.map_note_placement_bar, parent, false)
+        bar.findViewById<Button>(R.id.map_note_placement_ok).setOnClickListener {
+            if (placementPoint != null && addObjectGistyp != null && addObjectLabel != null) {
+                onMapNotePlacementListener?.onMapNotePlaced(placementPoint!!, addObjectGistyp!!, addObjectLabel!!)
+            }
+            cancelPlacementMode()
+        }
+        bar.findViewById<Button>(R.id.map_note_placement_cancel).setOnClickListener { cancelPlacementMode() }
+        bar.findViewById<Button>(R.id.map_note_placement_ok).isEnabled = false
+        parent.addView(bar)
+        placementBarView = bar
+    }
+
+    private fun updatePlacementPoint(point: Point) {
+        placementPoint = point
+        val mbMapView = mapView as? MapView ?: return
+        val annotationManager = mbMapView.viewAnnotationManager
+        placementPreviewView?.let { annotationManager.removeViewAnnotation(it); placementPreviewView = null }
+        val context = mapView.context ?: return
+        val preview = ImageView(context).apply {
+            setImageResource(R.drawable.ic_needle_symbol)
+            layoutParams = ViewGroup.LayoutParams(
+                context.resources.getDimensionPixelSize(R.dimen.team_member_icon_top_offset) * 2,
+                context.resources.getDimensionPixelSize(R.dimen.team_member_icon_top_offset) * 3
+            )
+        }
+        val options = ViewAnnotationOptions.Builder()
+            .geometry(point)
+            .allowOverlap(true)
+            .variableAnchors(listOf(
+                ViewAnnotationAnchorConfig.Builder()
+                    .anchor(ViewAnnotationAnchor.CENTER)
+                    .build()
+            ))
+            .build()
+        annotationManager.addViewAnnotation(preview, options)
+        placementPreviewView = preview
+        placementBarView?.findViewById<Button>(R.id.map_note_placement_ok)?.isEnabled = true
+    }
+
+    private fun cancelPlacementMode() {
+        addObjectPlacementMode = false
+        addObjectGistyp = null
+        addObjectLabel = null
+        placementPoint = null
+        placementPreviewView?.let { (mapView as? MapView)?.viewAnnotationManager?.removeViewAnnotation(it) }
+        placementPreviewView = null
+        placementBarView?.let { (it.parent as? ViewGroup)?.removeView(it) }
+        placementBarView = null
+        onMapNotePlacementListener?.onMapNotePlacementCancelled()
+        Log.d(TAG, "Add object mode cancelled")
+    }
 
     private fun startMePulse() {
         stopMePulse()

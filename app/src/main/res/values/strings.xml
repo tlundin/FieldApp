@@ -22,6 +22,9 @@
     <string name="ok">OK</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="add_map_note_content_description">Add object to map</string>
+    <string name="add_map_note_title">Add object</string>
+    <string name="select_object_type">Select object type</string>
 
     <string name="DeviceType">Device Type</string>
     <string name="Team">Sync Group</string>

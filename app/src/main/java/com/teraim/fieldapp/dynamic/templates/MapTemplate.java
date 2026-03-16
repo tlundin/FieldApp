@@ -138,6 +138,7 @@ public class MapTemplate extends Executor {
 					+ GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)
 					+ "/gis_objects/";
 			mapboxMapHolder = new MapboxMapHolder(mapView, gisObjectsBaseUrl);
+			setupMapNotePlacementListener();
 			ViewGroup trakterContainer = view.findViewById(R.id.trakter_card_container);
 			if (trakterContainer != null) {
 				mapboxMapHolder.setTrakterCardContainer(trakterContainer);
@@ -443,11 +444,57 @@ public class MapTemplate extends Executor {
 			rootView.findViewById(R.id.fab_refresh),
 			rootView.findViewById(R.id.fab_layer_toggle),
 			rootView.findViewById(R.id.fab_center_on_user),
-			rootView.findViewById(R.id.fab_map_type_toggle)
+			rootView.findViewById(R.id.fab_map_type_toggle),
+			rootView.findViewById(R.id.fab_add_object)
 		};
 		fabTools.setOnClickListener(v -> {
 			fabMenuExpanded = !fabMenuExpanded;
 			animateFabMenu(subFabs, fabMenuExpanded);
+		});
+		FloatingActionButton addObjectFab = rootView.findViewById(R.id.fab_add_object);
+		if (addObjectFab != null) {
+			addObjectFab.setOnClickListener(v -> showAddObjectTypeDialog());
+		}
+	}
+
+	private void showAddObjectTypeDialog() {
+		if (getContext() == null || mapboxMapHolder == null) return;
+		// Object types for "map notes" layer (gistyp = value stored in DB, label = display name)
+		final String[][] types = {
+			{ "map_note", "Note" },
+			{ "map_parking", "Parking" },
+			{ "map_poi", "Point of interest" }
+		};
+		String[] labels = new String[types.length];
+		for (int i = 0; i < types.length; i++) labels[i] = types[i][1];
+		new AlertDialog.Builder(requireContext())
+			.setTitle(getString(R.string.select_object_type))
+			.setItems(labels, (dialog, which) -> {
+				String gistyp = types[which][0];
+				String label = types[which][1];
+				mapboxMapHolder.startAddObjectMode(gistyp, label);
+			})
+			.setNegativeButton(android.R.string.cancel, null)
+			.show();
+	}
+
+	private void setupMapNotePlacementListener() {
+		if (mapboxMapHolder == null) return;
+		mapboxMapHolder.setOnMapNotePlacementListener(new com.teraim.fieldapp.dynamic.workflow_realizations.gis.MapboxMapHolder.OnMapNotePlacementListener() {
+			@Override
+			public void onMapNotePlaced(com.mapbox.geojson.Point point, String gistyp, String label) {
+				java.util.Map<String, String> keyHash = new java.util.HashMap<>();
+				keyHash.put("uid", java.util.UUID.randomUUID().toString());
+				keyHash.put("gistyp", gistyp);
+				String gpsCoordValue = point.latitude() + "," + point.longitude();
+				com.teraim.fieldapp.GlobalState.getInstance().getDb().insertMapNotePoint(keyHash, gpsCoordValue);
+				if (getMapboxMapHolder() != null) getMapboxMapHolder().refreshMapNoteLayer();
+				android.widget.Toast.makeText(getContext(), getString(R.string.ok), android.widget.Toast.LENGTH_SHORT).show();
+			}
+			@Override
+			public void onMapNotePlacementCancelled() {
+				// no-op
+			}
 		});
 	}
 

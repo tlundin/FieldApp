@@ -189,6 +189,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		super.onCreate(savedInstanceState);
 		survivedCreate = false;
 
+		// Always ensure we have a logger instance, even if GlobalState is not yet initialized.
+		// This prevents null-pointer crashes when logging during early startup.
+		o = LogRepository.getInstance();
+
 		gs = GlobalState.getInstance();
 		if (gs == null) {
 			Log.e("vortex","globalstate null in executor, exit");
@@ -196,7 +200,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		}
 		al = gs.getVariableConfiguration();
 		varCache=gs.getVariableCache();
-		o = gs.getLogger();
 
 
 		ifi = new IntentFilter();
