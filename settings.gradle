@@ -5,6 +5,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
 
 // Load Mapbox downloads token from local.properties (not committed to repo)
 // This token is used by the Mapbox Maven repository for authentication
