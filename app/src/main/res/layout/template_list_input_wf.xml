@@ -14,7 +14,6 @@
             android:orientation="horizontal" >
 
             <ScrollView
-                android:id="@+id/scrollView1"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="0.5"
@@ -72,7 +71,6 @@
                     android:orientation="horizontal">
 
                     <ScrollView
-                        android:id="@+id/scrollView4"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="0.5"
@@ -86,7 +84,6 @@
                         </LinearLayout>
                     </ScrollView>
                     <ScrollView
-                        android:id="@+id/scrollView2"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
                         android:layout_weight="0.5"

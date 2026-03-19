@@ -117,12 +117,10 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             }
         } catch (IOException e) {
             e.printStackTrace();
-            ;
             o.addCriticalText("Error reading import file header. Check syntax of Version field on the first row");
             return new LoadResult(this,ErrorCode.IOError);
-        };
+        }
 
-        ;
         o.addCriticalText("Could not find beginning of data (features) in input file");
         return new LoadResult(this,ErrorCode.IOError);
     }
@@ -138,7 +136,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             if (tag.equals(JsonToken.END_ARRAY)) {
                 //end array means we are done.
                 this.setEssence();
-                ;
                 o.addText("Found "+myGisObjects.size()+" objects");
                 freezeSteps = myGisObjects.size();
                 Log.d(TAG,"Found "+myGisObjects.size()+" objects of type "+fileName);
@@ -159,7 +156,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                     attrCount1++;
                     if (attrCount1 > 3) {
                         if (!geometryF) {
-                            ;
                             o.addCriticalText("Attribute Geometry missing in Json file " + myType);
                             return new LoadResult(this, ErrorCode.ParseError, "Attribute Geometry missing in " + myType);
                         }
@@ -249,12 +245,10 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                 attrCount2++;
                                 if (attrCount2 > 2) {
                                     if (!geoTypeF) {
-                                        ;
                                         o.addCriticalText("Geotype eg. 'Polygon' is missing in Json file " + myType);
                                         return new LoadResult(this, ErrorCode.ParseError, "Geotype missing in " + myType);
 
                                     } else {
-                                        ;
                                         o.addCriticalText("Attribute Coordinates missing in Json file " + myType);
                                         return new LoadResult(this, ErrorCode.ParseError, "Coordinates missing in " + myType);
 
@@ -273,7 +267,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                         //Log.d(TAG,"type matched: "+mType);
                                         geoTypeF = true;
                                         if (mType == null) {
-                                            ;
                                             o.addCriticalText("Type field expected (point, polygon..., but got null");
                                             Log.e("vortex", "type null!");
                                             return new LoadResult(this, ErrorCode.ParseError, "Type field expected (point, polygon..., but got null");
@@ -371,7 +364,7 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
 
                                     default:
-                                        Log.d(TAG,"in default...not good: "+reader.peek()+"::::"+reader.toString());
+                                        Log.d(TAG,"in default...not good: "+reader.peek()+"::::"+ reader);
                                         List<String> skippies = new ArrayList<>();
                                         while (reader.hasNext()) {
                                             String skipped = this.getAttribute(reader);
@@ -381,7 +374,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
                                         }
                                         if (skippies.size() > 0 && isDebug) {
-                                            ;
                                             o.addCriticalText("");
                                             o.addCriticalText("Skipped " + skippies.size() + " attributes in file " + getFileName() + ":");
                                             for (String skip : skippies) {
@@ -409,7 +401,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                                     if (myCoordinates!=null && !myCoordinates.isEmpty())
                                         myGisObjects.add(new GisObject(keyChain, myCoordinates, attributes));
                                     else {
-                                        ;
                                         o.addCriticalText("missing coordinates for Linestring/multipoint in "+getFileName());
                                         Log.e("vortex", "No coordinates for multipoint in " + myType + "!");
 
@@ -446,16 +437,14 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
 
             } else {
-                ;
-                o.addCriticalText("Parse error when parsing file "+fileName+". Expected Object type at "+reader.toString());
-                Log.e("vortex","Parse error when parsing file "+fileName+". Expected Object type at "+reader.toString()+" peek: "+reader.peek());
-                return new LoadResult(this,ErrorCode.ParseError,"Parse error when parsing file "+fileName+". Expected Object type at "+reader.toString()+" peek: "+reader.peek());
+                o.addCriticalText("Parse error when parsing file "+fileName+". Expected Object type at "+ reader);
+                Log.e("vortex","Parse error when parsing file "+fileName+". Expected Object type at "+ reader +" peek: "+reader.peek());
+                return new LoadResult(this,ErrorCode.ParseError,"Parse error when parsing file "+fileName+". Expected Object type at "+ reader +" peek: "+reader.peek());
             }
         } catch (MalformedJsonException je) {
             Tools.printErrorToLog(o, je,null);
             return new LoadResult(this,ErrorCode.IOError);
         } catch (Exception e) {
-            ;
             o.addCriticalText("Fel i styrfil "+fileName);
             Tools.printErrorToLog(o,e,null);
             return new LoadResult(this,ErrorCode.IOError);
@@ -518,7 +507,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
             boolean generatedUID = false;
             if (generatedUID) {
-                ;
                 o.addYellowText("At least one row in file "+fileName+" did not contain FixedGID (UUID). Generated value will be used");
             }
             myDb.beginTransaction();
@@ -535,7 +523,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
         if (!myDb.fastHistoricalInsert(go.getKeyHash(),
                 GisConstants.GPS_Coord_Var_Name,coordS)) {
-            ;
             o.addCriticalText("Row: "+counter+". Insert failed for "+GisConstants.GPS_Coord_Var_Name+". Hash: "+go.getKeyHash().toString());
         }
         if (isDebug) {
@@ -567,7 +554,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                 }
                 */
             } else if (!myDb.fastHistoricalInsert(go.getKeyHash(),key,attr.get(key))) {
-                ;
                 o.addCriticalText("Row: "+counter+". Insert failed for "+key+". Hash: "+go.getKeyHash().toString());
             }
             if (isDebug && varTable != null) {
@@ -586,7 +572,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
             myDb.endTransactionSuccess();
 
             if (isDebug && !missingVariables.isEmpty()) {
-                ;
                 o.addText("Missing variables in " + this.fileName + ":");
 
                 for (String m : missingVariables) {
@@ -594,7 +579,6 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
                 }
             }
             if (isDebug && !dubletter.isEmpty()) {
-                ;
                 o.addText(fileName+"has more than one of: ");
                 for (GisObject g:dubletter) {
                     o.addText(g.getKeyHash().toString());

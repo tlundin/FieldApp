@@ -134,17 +134,14 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             MenuItem y = menu.getItem(1);
             MenuItem z = menu.getItem(2);
             Log.d(TAG, "myVars has " + myVars.size() + " elements. "
-                    + myVars.toString());
+                    + myVars);
             if (myVars.size() > 0) {
                 z.setVisible(true);
                 List<String> row = myVars.keySet().iterator().next()
                         .getBackingDataSet();
                 String url = al.getUrl(row);
 
-                if (url == null || url.length() == 0)
-                    x.setVisible(false);
-                else
-                    x.setVisible(true);
+                x.setVisible(url != null && url.length() != 0);
                 if (row != null && ((al.getVariableDescription(row) != null
                         && al.getVariableDescription(row).length() > 0 ) || (al.getGroupDescription(row)!=null && al.getGroupDescription(row).length()>0)))
                     y.setVisible(true);
@@ -280,8 +277,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
         // content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
         scrollableInputContainer = (ScrollView)LayoutInflater.from(myContext.getContext()).inflate(
                 R.layout.input_container, null);
-        innerInputContainer = (LinearLayout)scrollableInputContainer.findViewById(R.id.inner);
-        headerInputCointainer = (TextView) innerInputContainer.findViewById(R.id.header);
+        innerInputContainer = scrollableInputContainer.findViewById(R.id.inner);
+        headerInputCointainer = innerInputContainer.findViewById(R.id.header);
        // inputContainer = new LinearLayout(context.getContext());
        // inputContainer.setOrientation(LinearLayout.VERTICAL);
        // inputContainer.setLayoutParams(new LinearLayout.LayoutParams(
@@ -557,7 +554,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                         + "...opt has " + opt.length + " elements.");
                                 val = new String[opt.length];
                                 int c = 0;
-                                String tmp[];
+                                String[] tmp;
                                 for (String s : opt) {
                                     s = s.replace("{", "");
                                     s = s.replace("}", "");
@@ -678,7 +675,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 LinearLayout sl = (LinearLayout) view;
                 Spinner sp = sl.findViewById(R.id.spinner);
                 int s = sp.getSelectedItemPosition();
-                String v[] = values.get(variable);
+                String[] v = values.get(variable);
                 if (v != null) {
                     if (s >= 0 && s < v.length)
                         newValue = v[s];
@@ -1176,7 +1173,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 String[] opt = null;
                 String tag = (String) sp.getTag(R.string.u1);
                 Log.d(TAG,"TAG IS "+tag);
-                String val[] = values.get(variable);
+                String[] val = values.get(variable);
                 if (val != null) {
 
                     for (int i = 0; i < val.length; i++) {

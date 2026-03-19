@@ -189,7 +189,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private long lastRedraw = 0;
     private Handler teamHandler = null;
 
-    private IntentFilter filter = new IntentFilter();
+    private final IntentFilter filter = new IntentFilter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1089,8 +1089,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             boolean twoButton = false;
 
             private void showProgress(int max) {
-                if (mContext instanceof Activity) {
-                    Activity activity = (Activity) mContext;
+                if (mContext instanceof Activity activity) {
                     if (activity.isFinishing() || activity.isDestroyed()) {
                         return;
                     }
@@ -1423,7 +1422,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
 
-    private SyncGroup syncGroup = null;
+    private final SyncGroup syncGroup = null;
 
     private SyncGroup getSyncGroup() {
         return syncGroup;

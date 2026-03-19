@@ -83,7 +83,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 	@Override
 	public void handleEvent(ConnectionEvent e) {
-		Log.d(TAG,"In HandleEvent "+this.toString());
+		Log.d(TAG,"In HandleEvent "+ this);
 		switch(e) {
 		case connectionAttemptFailed:
 			ui.alert("Trying to establish connection. Attempts left: #"+mConnection.getTriesRemaining());
@@ -149,9 +149,8 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 	private void handle(Object message) {
 		GlobalState gs = GlobalState.getInstance();
 
-		if (message instanceof SyncEntry[]) {
-			SyncEntry[] ses = (SyncEntry[])message;
-			ui.alert("Inserting data");
+		if (message instanceof SyncEntry[] ses) {
+            ui.alert("Inserting data");
 			o.addText("");
 			o.addGreenText("[BT MESSAGE -->Received SYNCENTRIES: "+ses.length+"]");
 			syncReport = gs.getDb().synchronise(ses, ui,o,this);	
@@ -161,9 +160,8 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 
 			pSyncDone=true;
 
-		} else if (message instanceof SyncSuccesful) {
-			SyncSuccesful ssf = (SyncSuccesful)message;
-			Log.d(TAG,"[BT MESSAGE -->Received SyncSuccessful message]");
+		} else if (message instanceof SyncSuccesful ssf) {
+            Log.d(TAG,"[BT MESSAGE -->Received SyncSuccessful message]");
 			if (ssf!=null && ssf.getLastEntrySent()>0) {
 				GlobalState.getInstance().getDb().syncDone(ssf.getLastEntrySent());
 				o.addText("");
@@ -173,14 +171,13 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 				mSyncDone=true;
 			} else 
 				ui.alert("Sync failed on checksum");
-		} else if (message instanceof SyncStatus) {
-			SyncStatus ss = (SyncStatus)message;
-			Log.d(TAG,"Received sync status!");
+		} else if (message instanceof SyncStatus ss) {
+            Log.d(TAG,"Received sync status!");
 			ui.alert("Transferred :"+ss.getStatus());
 		} else if (message instanceof NothingToSync) {
 			Log.d(TAG,"[BT MESSAGE -->Received Nothing to SYNC message]");
 			pSyncDone=true;
-		} else if (message instanceof PingMessage) {
+		} else if (message instanceof PingMessage sp) {
 			if (mState !=State.initial) {
 				Log.e("vortex","Double kiss...discard");
 				return;
@@ -191,8 +188,7 @@ public class DataSyncSessionManager implements ConnectionListener,SyncStatusList
 			else if (message instanceof SlavePing && !gs.isMaster()) 
 				ui.alert("Both devices configured as Client. Please change under Configuration.");
 			else {
-				final PingMessage sp = (PingMessage)message;
-				String myAppName = gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
+                String myAppName = gs.getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
 
 				String partnerAppName = sp.getPartnerAppName();
 

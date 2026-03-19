@@ -64,8 +64,8 @@ class MathUtils {
 		float py = p1.y;
 		float ox = p2.x;
 		float oy = p2.y;
-		float cosV = (float)Math.cos((double)angle);
-		float sinV = (float)Math.sin((double)angle);
+		float cosV = (float)Math.cos(angle);
+		float sinV = (float)Math.sin(angle);
 		p1.x = (cosV * (px-ox) - sinV * (py-oy) + ox);
 		p1.y = (sinV * (px-ox) + cosV * (py-oy) + oy);
 	}

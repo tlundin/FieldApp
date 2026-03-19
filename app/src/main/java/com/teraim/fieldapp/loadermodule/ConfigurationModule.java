@@ -131,7 +131,7 @@ public abstract class ConfigurationModule {
 	public LoadResult thawSynchronously() {
 		initLazyFields(); // Ensure frozenPath is set (e.g. when thaw runs on executor thread).
 		Type essenceType = getEssenceType();
-		Log.d(TAG, "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName() + "");
+		Log.d(TAG, "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName());
 		if (essenceType == null) {
 			Log.e("ConfigModule", "getEssenceType() returned null for " + this.getClass().getSimpleName());
 			return new LoadResult(this, ErrorCode.thawFailed);

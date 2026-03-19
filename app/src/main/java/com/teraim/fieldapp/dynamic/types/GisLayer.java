@@ -145,14 +145,14 @@ public class GisLayer {
 
 	public void setBold(boolean isBold) {
 
-		Log.d(TAG,"SetBold called with "+isBold+" on "+this.getLabel()+" Obj: "+this.toString());
+		Log.d(TAG,"SetBold called with "+isBold+" on "+this.getLabel()+" Obj: "+ this);
 		GlobalState.getInstance().getPreferences().put(PersistenceHelper.LAYER_BOLDNESS+getId(), isBold?1:0);
 		this.myBoldness=isBold;
 	}
 
 	public void setVisible(boolean isVisible) {
 
-		Log.d(TAG,"SetVisible called with "+isVisible+" on "+this.getLabel()+" Obj: "+this.toString());
+		Log.d(TAG,"SetVisible called with "+isVisible+" on "+this.getLabel()+" Obj: "+ this);
 		GlobalState.getInstance().getPreferences().put(PersistenceHelper.LAYER_VISIBILITY+getId(), isVisible?1:0);
 		this.myVisibility=isVisible;
 	}
@@ -262,21 +262,18 @@ public class GisLayer {
 		if (go instanceof DynamicGisPoint) {
 			go.markAsUseful();
 		}
-		else if (go instanceof GisPointObject) {
-			GisPointObject gop = (GisPointObject)go;
-			boolean inside = gisImageView.translateMapToRealCoordinates(gop.getLocation(),xy);
+		else if (go instanceof GisPointObject gop) {
+            boolean inside = gisImageView.translateMapToRealCoordinates(gop.getLocation(),xy);
 			//Log.d(TAG,"translated "+gop.getLocation().getX()+","+gop.getLocation().getY()+" to "+xy[0]+","+xy[1]+" inside "+inside);
 			if (inside) {
 				go.markAsUseful();
 				gop.setTranslatedLocation(xy);
 			}
-			return;
-		}
-		else if (go instanceof GisPolygonObject) {
-			GisPolygonObject gpo = (GisPolygonObject) go;
+        }
+		else if (go instanceof GisPolygonObject gpo) {
 
 
-			if (gpo.getPolygons()==null) {
+            if (gpo.getPolygons()==null) {
 				LogRepository.getInstance().addText("");
 				LogRepository.getInstance().addCriticalText("POLY had *NULL* coordinates: "+go.getLabel());
 				go.markForDestruction();
@@ -292,9 +289,8 @@ public class GisLayer {
 			}
 
 		}
-		else if (go instanceof GisPathObject) {
-			GisPathObject gpo = (GisPathObject)go;
-			boolean hasAtleastOneCornerInside = false;
+		else if (go instanceof GisPathObject gpo) {
+            boolean hasAtleastOneCornerInside = false;
 			if (go.getCoordinates()==null) {
 				LogRepository.getInstance().addText("");
 				LogRepository.getInstance().addCriticalText("Gis object had *NULL* coordinates: "+go.getLabel());

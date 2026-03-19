@@ -22,7 +22,7 @@ import java.util.Set;
 public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Listable> {
 	private static final String TAG = "WF_Table_Row";
 
-	private transient WF_Table myWfTable;
+	private final transient WF_Table myWfTable;
 	private List<String> myRow;
 	private List<WF_Cell> myColumns;
 	private final WF_Context myContext;

@@ -81,7 +81,7 @@ public void setValue(String value) {
 	catch (NumberFormatException e) {
 		Log.d(TAG,"Numberinput in wrong format");
 	}
-	Log.d(TAG,"Variable "+this.toString()+" set to "+val+" from string "+value);
+	Log.d(TAG,"Variable "+ this +" set to "+val+" from string "+value);
 }
 
 }

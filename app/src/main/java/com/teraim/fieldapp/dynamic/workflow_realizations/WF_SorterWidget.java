@@ -29,7 +29,7 @@ public class WF_SorterWidget extends WF_Widget {
 
 
     private transient WF_Filter existing=null;
-	private transient WF_List targetList;
+	private final transient WF_List targetList;
 	private transient ToggleButton previousButton=null;
 
 	public WF_SorterWidget(String name,WF_Context ctx, final String type, final WF_List targetList,final ViewGroup container,final String selectionField, final String displayField,String selectionPattern,boolean isVisible) {
@@ -164,7 +164,7 @@ public class WF_SorterWidget extends WF_Widget {
 						if (row.size()>cIndex) {
 							String sortFacets = row.get(cIndex);
 							if (sortFacets!=null) {
-								String facets[] = sortFacets.split("\\|");
+								String[] facets = sortFacets.split("\\|");
 								if (facets.length>0) {
                                     Collections.addAll(txts, facets);
 								}
@@ -174,10 +174,10 @@ public class WF_SorterWidget extends WF_Widget {
 							o.addText("");
 							o.addCriticalText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
 							Log.e("vortex","SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the row is shorter:"+row.size());
-							Log.e("vortex","Current row: "+row.toString() );
+							Log.e("vortex","Current row: "+ row);
 							o.addText("");
 							o.addText("Current Columns:"+t.getColumnHeaders().toString());
-							o.addText("Current row: "+row.toString() );
+							o.addText("Current row: "+ row);
 						}
 					}
 					//Add a wildcard button.
@@ -236,7 +236,7 @@ public class WF_SorterWidget extends WF_Widget {
 						if (row.size()>cIndex) {
 							String sortFacets = row.get(cIndex);
 							if (sortFacets!=null) {
-								String facets[] = sortFacets.split("\\|");
+								String[] facets = sortFacets.split("\\|");
 								if (facets.length>0) {
 									Collections.addAll(txts, facets);
 								}
@@ -247,10 +247,10 @@ public class WF_SorterWidget extends WF_Widget {
 							o.addText("");
 							o.addCriticalText("SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the current row only contains "+row.size()+" elements");
 							Log.e("vortex","SorterWidget: column to sort on ["+displayField+"] was found in column# "+(cIndex+1)+" but the row is shorter:"+row.size());
-							Log.e("vortex","Current row: "+row.toString() );
+							Log.e("vortex","Current row: "+ row);
 							o.addText("");
 							o.addText("Current Columns:"+t.getColumnHeaders().toString());
-							o.addText("Current row: "+row.toString() );
+							o.addText("Current row: "+ row);
 						}
 					}
 					//Add a wildcard button.

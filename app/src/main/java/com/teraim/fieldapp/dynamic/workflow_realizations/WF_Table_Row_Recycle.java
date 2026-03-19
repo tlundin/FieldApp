@@ -34,9 +34,9 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 	private final String id;
 
 	// For the main header row, this stores the dynamically added header cell views.
-	private List<View> headerCellViews = new ArrayList<>();
+	private final List<View> headerCellViews = new ArrayList<>();
 	// For data rows, this stores the dynamically added aggregate cell views.
-	private List<View> aggregateCellViewsInRow = new ArrayList<>();
+	private final List<View> aggregateCellViewsInRow = new ArrayList<>();
 
 	private TableRow actualHeaderCellsContainer; // For header row, this is R.id.header_content_row. For data rows, this is getWidget().
 

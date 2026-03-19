@@ -170,7 +170,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			return;
 		}
 		WF_Gis_Map gisB = myContext.getCurrentGis();
-		Log.d(TAG,"Creating GisPointObjects - myContext is "+String.valueOf(myContext)+" refresh is "+refresh+ " myGis is "+String.valueOf(gisB));
+		Log.d(TAG,"Creating GisPointObjects - myContext is "+ myContext +" refresh is "+refresh+ " myGis is "+ gisB);
 		setDefaultBitmaps(myContext);
 		o = LogRepository.getInstance();
 		GlobalState gs = GlobalState.getInstance();
@@ -340,7 +340,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			try {
 				myGisObjects = new HashSet<GisObject>();
 				boolean hasV1Value = pickerLocation1.moveToFirst();
-				boolean hasV2Value = twoVars ? pickerLocation2.moveToFirst() : false;
+				boolean hasV2Value = twoVars && pickerLocation2.moveToFirst();
 				String v1Val = hasV1Value ? pickerLocation1.getVariable().value : null;
 				String v2Val = hasV2Value ? pickerLocation2.getVariable().value : null;
 				//No values! A dynamic variable can create new ones, so create object anyway.
@@ -412,7 +412,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 								map2 = pickerLocation1.getKeyColumnValues();
 								Log.d(TAG, "Found columns " + map2.toString() + " for " + storedVar2.name);
 								if (Tools.sameKeys(map1, map2)) {
-									Log.e("Glapp", "key mismatch in db fetch: X key:" + map1.toString() + "\nY key: " + map2.toString());
+									Log.e("Glapp", "key mismatch in db fetch: X key:" + map1 + "\nY key: " + map2);
 								} else {
 									if (!dynamic) {
 										myGisObjects.add(new StaticGisPoint(this, map1, new SweLocation(storedVar1.value, storedVar2.value), statusVarP.first, statusVarP.second));

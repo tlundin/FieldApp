@@ -278,8 +278,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     List<Location> gopCoordinates = gop.getCoordinates();
                     if (gopCoordinates != null && !gopCoordinates.isEmpty()) {
                         Location last = gopCoordinates.get(gopCoordinates.size()-1);
-                        if (last instanceof SweLocation) {
-                            SweLocation sweloc = (SweLocation)last;
+                        if (last instanceof SweLocation sweloc) {
                             switch (d) {
                                 case UP:
                                     sweloc.north+=changeDistance;
@@ -1161,7 +1160,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (layer instanceof MapGisLayer)
                 continue;
             if (layer.hasWidget()) {
-                Log.d(TAG,"layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+layer.toString());
+                Log.d(TAG,"layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+ layer);
                 layersRow = li.inflate(R.layout.layers_row, null);
                 final CheckBox lFet = layersRow.findViewById(R.id.cbFet);
                 final CheckBox lShow = layersRow.findViewById(R.id.cbShow);

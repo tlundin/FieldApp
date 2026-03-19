@@ -80,7 +80,7 @@ public class FilterSelectionDialogFragment extends DialogFragment {
         } else if (context instanceof OnFilterSelectedListener) {
             selectionListener = (OnFilterSelectedListener) context;
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement OnFilterSelectedListener");
         }
     }

@@ -179,7 +179,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		Variable v;
 		long t = System.currentTimeMillis(), t2 = 0;
 		int i = 0;
-		int tot = mapmap.keySet().size();
+		int tot = mapmap.size();
 		WF_ClickableField.clearStaticGlobals();
 		for (String vs : mapmap.keySet()) {
 			long t1 = System.currentTimeMillis();

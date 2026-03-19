@@ -114,11 +114,11 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 
 
 	private boolean candMenuVisible=false, initialized = false;
-	private Set<GisObject> teamMembers = null;
+	private final Set<GisObject> teamMembers = null;
 	private TeamStatusViewModel teamStatusViewModel=null;
 
 	// Flag to track if team data has been initialized (i.e., its layer bag has been added)
-	private boolean teamLayerBagInitialized = false;
+	private final boolean teamLayerBagInitialized = false;
 	private Observer<Set<GisPointObject>> teamMembersObserver;
 
 	public GisImageView(Context context) {
@@ -711,10 +711,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 								if (!go.isUseful() || (go.equals(touchedGop)) || isExcludedByStandardFilter(go.getStatusVariableValue())) {
 									continue;
 								}
-								if (go instanceof GisPointObject) {
-									GisPointObject gop = (GisPointObject) go;
+								if (go instanceof GisPointObject gop) {
 
-									// Debugging: Log GisPointObject details before translating/drawing
+                                    // Debugging: Log GisPointObject details before translating/drawing
 									if (gop.getLocation() == null) {
 										Log.e("GisImageView", "ERROR: GisPointObject " + gop.getLabel() + " (UUID: " + gop.getKeyHash().get("uuid") + ") has a null Location. Skipping drawing.");
 										// You could also mark it for destruction here if a null location means it's invalid
@@ -938,7 +937,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			beingDrawn = go.equals(newGisObj);
 		}
 		GisPointObject gop;
-		boolean isBold = (layerO==null?false:layerO.isBold());
+		boolean isBold = (layerO != null && layerO.isBold());
 		if (go instanceof GisPointObject) {
 			gop = (GisPointObject) go;
 			if (gop.getTranslatedLocation() != null) {
@@ -949,12 +948,10 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 			} else
 				Log.e("vortex", "NOT calling drawpoint since translatedlocation was null");
 
-		} else if (go instanceof GisPathObject) {
+		} else if (go instanceof GisPathObject gpo) {
 			boolean singlePath = false,isPolygon = (go instanceof GisPolygonObject);
 
-			GisPathObject gpo = (GisPathObject) go;
-
-			if (beingDrawn) {
+            if (beingDrawn) {
 				Path p = createPathFromCoordinates(gpo.getCoordinates(),false);
 				if (p != null)
 					canvas.drawPath(p, polyPaint);

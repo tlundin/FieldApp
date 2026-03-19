@@ -77,16 +77,14 @@ public class AddGisLayerBlock extends Block {
 
 		Drawable gisMap = myContext.getDrawable(target);
 		
-		if (gisMap instanceof MapboxMapHolder) {
-			MapboxMapHolder holder = (MapboxMapHolder) gisMap;
-			Log.d(TAG, "Adding Mapbox layer: " + name + ", gistype=" + gistype + ", polyType=" + polyType);
+		if (gisMap instanceof MapboxMapHolder holder) {
+            Log.d(TAG, "Adding Mapbox layer: " + name + ", gistype=" + gistype + ", polyType=" + polyType);
 			holder.addLayer(name, label, isVisible, hasWidget, showLabels, isBold,
 					fillColor, fillOpacity, lineColor, lineWidth, lineDasharray, circleRadius, polyType,
 					objContext, onClick, gistype);
 			Log.d(TAG, "Added Mapbox layer: " + name);
-		} else if (gisMap instanceof WF_Gis_Map) {
-            WF_Gis_Map myGis = ((WF_Gis_Map) gisMap);
-			if (!myGis.isZoomLevel()) {
+		} else if (gisMap instanceof WF_Gis_Map myGis) {
+            if (!myGis.isZoomLevel()) {
 			final GisLayer gisLayer = new GisLayer(name,label,isVisible,isBold,hasWidget,showLabels);
 			Log.d(TAG,"Adding layer "+name+" with myObj"+gisLayer.hashCode());
 			myGis.addLayer(gisLayer);

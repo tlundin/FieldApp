@@ -279,7 +279,7 @@ public class GisObjectsMenu extends View {
 		//Create Menu items.
 		myGis=gis;
 		myMap=map;
-		if (myMenuItems!=null && !myMenuItems.keySet().isEmpty()) {
+		if (myMenuItems!=null && !myMenuItems.isEmpty()) {
 			//Last entry is first in tab order
 			String firstEntry=null;
 			for (String key:myMenuItems.keySet()) {
@@ -288,7 +288,7 @@ public class GisObjectsMenu extends View {
 			//String firstEntry = myMenuItems.keySet().iterator().next();
 			currentPalette= userSelectedPalette==null?firstEntry:userSelectedPalette;
 			//Make sure userSelectedPalette is not from previous collection.
-			if (!myMenuItems.keySet().contains(currentPalette))
+			if (!myMenuItems.containsKey(currentPalette))
 				currentPalette=firstEntry;
 			for (String paletteName : myMenuItems.keySet()) {
 				List<FullGisObjectConfiguration> myMenuItemsForPalette = myMenuItems.get(paletteName);

@@ -512,7 +512,7 @@ public class BluetoothConnectionProvider extends ConnectionProvider {
 					broadcastData(message);
 				} catch (ClassNotFoundException e) {
 					if (message != null) {
-						Log.e("NILS","CLASS NOT FOUND IN Stream for "+message.toString());
+						Log.e("NILS","CLASS NOT FOUND IN Stream for "+ message);
 					}
 					e.printStackTrace();
 				} catch (Exception e) {

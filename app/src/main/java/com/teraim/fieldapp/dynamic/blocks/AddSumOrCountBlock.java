@@ -23,7 +23,7 @@ public  class AddSumOrCountBlock extends DisplayFieldBlock {
     private final String myPattern;
     private final String target;
     private final String result;
-	private transient WF_Not_ClickableField_SumAndCountOfVariables.Type type;
+	private final transient WF_Not_ClickableField_SumAndCountOfVariables.Type type;
 	private final String format;
 
 	private boolean isVisible = true;

@@ -83,7 +83,7 @@ public class DbHelper extends SQLiteOpenHelper {
     private final Context ctx;
 
 
-    public static enum Table_Timestamps {
+    public enum Table_Timestamps {
         LABEL,
         VALUE,
         SYNCGROUP
@@ -694,7 +694,7 @@ public class DbHelper extends SQLiteOpenHelper {
         String dd = "";
 
         if (s.selectionArgs != null) {
-            String realColNames[] = new String[s.selectionArgs.length];
+            String[] realColNames = new String[s.selectionArgs.length];
             //get the true column names.
             String selection = s.selection;
             if (selection == null) {
@@ -704,20 +704,20 @@ public class DbHelper extends SQLiteOpenHelper {
             String selA = "";
             for (String ss : s.selectionArgs)
                 selA += ss + ",";
-            String zel[] = selection.split("=");
+            String[] zel = selection.split("=");
             for (int ii = 0; ii < s.selectionArgs.length; ii++) {
                 String z = zel[ii];
                 int iz = z.indexOf("L");
                 if (iz == -1) {
                     if (!z.isEmpty()) {
                         int li = z.lastIndexOf(" ");
-                        String last = z.substring(li + 1, z.length());
+                        String last = z.substring(li + 1);
                         realColNames[ii] = last;
 
                     }
 
                 } else {
-                    String col = z.substring(iz, z.length());
+                    String col = z.substring(iz);
                     realColNames[ii] = getRealColumnNameFromDatabaseName(col);
 
                 }
@@ -1123,13 +1123,13 @@ public class DbHelper extends SQLiteOpenHelper {
         if (keySet == null) {
             selectionArgs = new String[]{name};
         } else {
-            selectionArgs = new String[keySet.keySet().size() + 1];
+            selectionArgs = new String[keySet.size() + 1];
             int c = 0;
             for (String key : keySet.keySet()) {
                 selectionArgs[c++] = keySet.get(key);
             }
             //add name part
-            selectionArgs[keySet.keySet().size()] = name;
+            selectionArgs[keySet.size()] = name;
         }
         return selectionArgs;
     }
@@ -1158,7 +1158,7 @@ public class DbHelper extends SQLiteOpenHelper {
             }
 
             ret.selection = selection;
-            String[] selectionArgs = new String[keySet.keySet().size()];
+            String[] selectionArgs = new String[keySet.size()];
             int c = 0;
             for (String key : keySet.keySet())
                 selectionArgs[c++] = keySet.get(key);
@@ -1399,7 +1399,7 @@ public class DbHelper extends SQLiteOpenHelper {
         int n=0;
         whereClause.setLength(0);
         //Create arguments. Add space for team and timestamp.
-        String [] whereArgs = new String[keys.keySet().size()+2];
+        String [] whereArgs = new String[keys.size()+2];
         for (String key : keys.keySet()) {
             //Put variable name last.
             whereClause.append(getDatabaseColumnName(key) + "= ? AND ");
@@ -1765,7 +1765,7 @@ public class DbHelper extends SQLiteOpenHelper {
 
         //map keypairs. Create delete statement.
         Map<String, String> map = new HashMap<String, String>();
-        String pairs[] = keyPairs.split(",");
+        String[] pairs = keyPairs.split(",");
         String column, value;
         boolean exact = true;
         SelectionBuilder selectionBuilder = new SelectionBuilder();

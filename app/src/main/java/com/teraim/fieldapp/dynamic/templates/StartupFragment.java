@@ -95,7 +95,7 @@ public class StartupFragment extends Executor {
         if (context instanceof StartProvider) {
             startInstance = ((StartProvider) context).getStartInstance();
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement StartProvider");
         }
     }
@@ -437,7 +437,7 @@ public class StartupFragment extends Executor {
                 loadedProvYtaTypes.addAll(Arrays.asList(provYtaTypesString.split(",")));
             }
             GlobalState.getInstance().setProvYtaTypes(loadedProvYtaTypes);
-            Log.d(TAG, "Loaded ProvYta types from persistence: " + loadedProvYtaTypes.toString());
+            Log.d(TAG, "Loaded ProvYta types from persistence: " + loadedProvYtaTypes);
         }
     }
 

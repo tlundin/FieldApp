@@ -9,8 +9,9 @@ import java.util.Set;
 
 public interface WF_Cell {
 
-	enum CellType { Aggregate, Normal };
-	void addVariable(final String varId, boolean displayOut, String format, boolean isVisible, boolean showHistorical, String prefetchValue);
+	enum CellType { Aggregate, Normal }
+
+    void addVariable(final String varId, boolean displayOut, String format, boolean isVisible, boolean showHistorical, String prefetchValue);
 	
 	
 	boolean hasValue();

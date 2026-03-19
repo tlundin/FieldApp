@@ -22,7 +22,7 @@ public class CreateTwoDimensionalDataSourceBlock extends Block {
 
 
 
-	private transient CategorySeries series;
+	private final transient CategorySeries series;
 	private transient List<Variable> myVariables;
 	private transient XYMultipleSeriesDataset dataset;
     private String myChart=null;

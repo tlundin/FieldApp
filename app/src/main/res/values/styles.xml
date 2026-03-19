@@ -6,9 +6,6 @@
         <item name="android:textStyle">normal</item>
     </style>
 
-    <style name="AppBaseTheme" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
-    </style>
-
     <style name="MyActionBar" parent="@style/Widget.MaterialComponents.Toolbar.Primary">
         <item name="titleTextAppearance">@style/MyTitleTextStyle</item>
     </style>
@@ -19,11 +16,6 @@
     <style name="MyButton" parent="Widget.MaterialComponents.Button">
         <item name="backgroundTint">@color/my_button_background_tint</item>
         <item name="android:textColor">@color/my_button_text_color</item>
-    </style>
-
-    <style name="AppTheme.NoActionBar">
-        <item name="windowActionBar">false</item>
-        <item name="windowNoTitle">true</item>
     </style>
 
     <style name="RightSlideAnimation">
@@ -61,18 +53,6 @@
 
     </style>
 
-    <style name="GreenStyle" parent="@android:style/Widget.TextView">
-        <item name="android:textColor">@color/green</item>
-    </style>
-    <style name="RedStyle" parent="@android:style/Widget.TextView">
-        <item name="android:textColor">@color/red</item>
-    </style>
-    <style name="WhiteStyle" parent="@android:style/Widget.TextView">
-        <item name="android:textColor">@color/white</item>
-    </style>
-    <style name="YellowStyle" parent="@android:style/Widget.TextView">
-        <item name="android:textColor">@color/yellow</item>
-    </style>
     <style name="PurpleStyle" parent="@android:style/Widget.TextView">
         <item name="android:textColor">@color/purple</item>
     </style>
@@ -103,10 +83,4 @@
         <item name="android:textColor">@color/secondary_text</item>
     </style>
 
-    <color name="navigation_item_text_color_selector">
-        <selector xmlns:android="http://schemas.android.com/apk/res/android">
-            <item android:state_checked="true" android:color="@color/navigation_item_text_color_selected" />
-            <item android:color="@color/navigation_item_text_color" />
-        </selector>
-    </color>
 </resources>

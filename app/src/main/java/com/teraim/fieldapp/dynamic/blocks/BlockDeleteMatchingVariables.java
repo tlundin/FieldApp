@@ -55,7 +55,7 @@ public class BlockDeleteMatchingVariables extends Block {
 
 			for (String key:hash.keySet()) {
 
-				last = (i == hash.keySet().size()-1);
+				last = (i == hash.size()-1);
 				keyBuilder.append(key).append("=").append(hash.get(key));
 				if (!last)
 					keyBuilder.append(",");
@@ -65,15 +65,15 @@ public class BlockDeleteMatchingVariables extends Block {
 			int rowsAffected = GlobalState.getInstance().getDb().erase(keyBuilder.toString(),pattern);
 			if (rowsAffected>0) {
 				Log.d(TAG,("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + keyBuilder + "] and pattern [" + pattern + "]"));
-				o.addText("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + hash + "] and pattern [" + keyBuilder.toString() + "]");
+				o.addText("Deleteblock " + this.getBlockId() + " erased " + rowsAffected + " entries for [" + hash + "] and pattern [" + keyBuilder + "]");
 				//Create sync entry.
-				Log.d(TAG,"Creating Erase sync entry for "+keyBuilder.toString());
+				Log.d(TAG,"Creating Erase sync entry for "+ keyBuilder);
 				GlobalState.getInstance().getDb().insertEraseAuditEntry(keyBuilder.toString(),pattern);
 			}
 			else {
-				Log.d(TAG,"Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+keyBuilder.toString()+"]");
+				Log.d(TAG,"Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+ keyBuilder +"]");
 				o.addText("");
-				o.addYellowText("Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+keyBuilder.toString()+"]");
+				o.addYellowText("Deleteblock "+this.getBlockId()+" erased no entries for ["+hash+"] and pattern ["+ keyBuilder +"]");
 
 			}
 

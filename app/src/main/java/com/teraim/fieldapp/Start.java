@@ -647,7 +647,7 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode,permissions,grantResults);
         switch (requestCode) {
             case PERMISSION_ALL: {
@@ -659,7 +659,6 @@ public class Start extends MenuActivity implements StartProvider {
                     Log.e("vortex","Permission denied: "+ Arrays.toString(permissions));
 
                 }
-                return;
             }
 
             // other 'case' lines to check for other

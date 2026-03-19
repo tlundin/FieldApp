@@ -17,7 +17,7 @@ public class WF_Cell_Widget extends WF_ClickableField implements WF_Cell, EventL
 
 
 	private final Map<String, String> myHash;
-	private CellType cellType;
+	private final CellType cellType;
 
 	public WF_Cell_Widget(Map<String, String> columnKeyHash, String headerT, String descriptionT,
 			WF_Context context, String id,boolean isVisible,CellType type) {

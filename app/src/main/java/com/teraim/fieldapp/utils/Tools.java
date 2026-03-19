@@ -178,7 +178,7 @@ public class Tools {
 		StringBuilder result = new StringBuilder();
 		int i=1;
 		for (String key:keyChain.keySet()) {
-			result.append(key).append("=").append(keyChain.get(key)).append(i < keyChain.keySet().size() ? "," : "");
+			result.append(key).append("=").append(keyChain.get(key)).append(i < keyChain.size() ? "," : "");
 			i++;
 		}
 		return result.toString();
@@ -365,7 +365,7 @@ public class Tools {
 
 			// 3. Write the JSON string to the file
 			try (Writer writer = new BufferedWriter(new OutputStreamWriter(
-					new FileOutputStream(fileName), "UTF-8"))) {
+					new FileOutputStream(fileName), StandardCharsets.UTF_8))) {
 				writer.write(jsonOutput);
 			}
 
@@ -413,8 +413,8 @@ public class Tools {
 	 * @return An object of type T, or null if reading or parsing fails.
 	 */
 	public static <T> T readObjectFromFileAsJson(String fileName, Class<T> classOfT) {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
-			System.out.println("Reading object from file " + fileName+ " class is "+classOfT.toString()+"");
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8))) {
+			System.out.println("Reading object from file " + fileName+ " class is "+classOfT.toString());
 			return gson.fromJson(reader, classOfT);
 		} catch (JsonSyntaxException e) {
 			Log.e("Tools.JsonIO", "JSON syntax error in file: " + fileName);
@@ -436,8 +436,8 @@ public class Tools {
 	 * @return An object of the generic type, or null if reading or parsing fails.
 	 */
 	public static <T> T readObjectFromFileAsJson(String fileName, Type typeOfT) {
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), "UTF-8"))) {
-			System.out.println("Reading object from file " + fileName+ " class type "+typeOfT+"");
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileName), StandardCharsets.UTF_8))) {
+			System.out.println("Reading object from file " + fileName+ " class type "+typeOfT);
 			Long startTime = System.currentTimeMillis();
 			Object result = gson.fromJson(reader, typeOfT);
 //			System.out.println("DEBUG: JSON being read from file:"+rawJsonContent);
@@ -786,9 +786,8 @@ public class Tools {
 			return false;
 		if (num instanceof Double || num instanceof Float || num instanceof Integer)
 			return true;
-		if (num instanceof String) {
-			String str = (String)num;
-			if (str==null||str.length()==0)
+		if (num instanceof String str) {
+            if (str==null||str.length()==0)
 				return false;
 			int i=0;
 			//Log.d(TAG,"isnumeric? str "+str);
@@ -936,7 +935,7 @@ public class Tools {
 				}
 
 			} else
-				Log.e("nils","List "+variable.getId()+" has too few parameters: "+listValues.toString());
+				Log.e("nils","List "+variable.getId()+" has too few parameters: "+ listValues);
 		} else
 			Log.e("nils","List "+variable.getId()+" has strange parameters: "+listValues.toString());
 		return opt;
@@ -1232,7 +1231,7 @@ public class Tools {
 				ucon.setConnectTimeout(5000);
 				try (BufferedInputStream in = new BufferedInputStream(ucon.getInputStream());
 					 BufferedOutputStream fout = new BufferedOutputStream(new FileOutputStream(fileName))) {
-					final byte data[] = new byte[4096];
+					final byte[] data = new byte[4096];
 					int count;
 					while ((count = in.read(data, 0, 4096)) != -1) {
 						fout.write(data, 0, count);
@@ -1273,7 +1272,7 @@ public class Tools {
 		Log.d(TAG,"urlString: "+urlString);
 		try (BufferedInputStream in = new BufferedInputStream(new URL(urlString).openStream());
 			 FileOutputStream fout = new FileOutputStream(filename)) {
-			final byte data[] = new byte[1024];
+			final byte[] data = new byte[1024];
 			int count;
 			while ((count = in.read(data, 0, 1024)) != -1) {
 				fout.write(data, 0, count);

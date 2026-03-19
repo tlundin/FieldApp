@@ -17,7 +17,7 @@ public class GISListConfiguration extends CI_ConfigurationModule {
     private static final String TAG = "GISListConfiguration";
 
     public static final String NAME = "content";
-    private List<String> gisTypes = new ArrayList<>();
+    private final List<String> gisTypes = new ArrayList<>();
 
     public GISListConfiguration(Context context, PersistenceHelper gPh, PersistenceHelper ph, String urlOrPath, LogRepository debugConsole) {
         super(context,gPh,ph, FileFormat.txt, urlOrPath, "content", "Gis content                ");

@@ -45,7 +45,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 	private final Context ctx;
 	private ActionMode mActionMode;
 
-	private CellType cellType;
+	private final CellType cellType;
 	private static final int backgroundColor=Color.TRANSPARENT;
 
 	private void setBackgroundColor(int color) {
@@ -91,15 +91,9 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 						.getBackingDataSet();
 				String url = al.getUrl(row);
 
-				if (url == null || url.length() == 0)
-					x.setVisible(false);
-				else
-					x.setVisible(true);
-				if (row != null && al.getVariableDescription(row) != null
-						&& al.getVariableDescription(row).length() > 0)
-					y.setVisible(true);
-				else
-					y.setVisible(false);
+                x.setVisible(url != null && url.length() != 0);
+                y.setVisible(row != null && al.getVariableDescription(row) != null
+                        && al.getVariableDescription(row).length() > 0);
 
 			} else {
 				x.setVisible(false);

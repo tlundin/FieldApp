@@ -2,17 +2,11 @@ package com.teraim.fieldapp.synchronization;
 
 import java.io.Serializable;
 
-public class SyncFailed implements Serializable {
+public record SyncFailed(String reason) implements Serializable {
 
 	/**
-	 * 
+	 *
 	 */
 	private static final long serialVersionUID = -9068482556518812383L;
-	private final String reason;
-	public SyncFailed(String reason) {
-		this.reason=reason;
-	}
-	public String getReason() {
-		return reason;
-	}
+
 }

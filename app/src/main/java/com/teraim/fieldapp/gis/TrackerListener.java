@@ -41,7 +41,7 @@ public interface TrackerListener {
 		public long time;
 	}
 
-	public enum Type {
+	enum Type {
 		MENU,
 		MAP,
 		USER

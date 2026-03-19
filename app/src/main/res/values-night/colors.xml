@@ -7,12 +7,8 @@
     <color name="accent">#03DAC6</color>
 
     <!-- Text on dark surfaces -->
-    <color name="my_dark_on_surface_color">#DEFFFFFF</color>
     <color name="my_light_on_surface_color">#DEFFFFFF</color>
-    <color name="my_dark_divider_color">#1FFFFFFF</color>
     <color name="my_light_divider_color">#1FFFFFFF</color>
 
     <!-- Navigation drawer in dark mode -->
-    <color name="navigation_item_text_color">#E6E1E5</color>
-    <color name="navigation_item_text_color_selected">#D0BCFF</color>
 </resources>

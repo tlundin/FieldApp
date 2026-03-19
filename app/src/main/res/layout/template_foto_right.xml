@@ -107,7 +107,6 @@
         android:textAppearance="?android:attr/textAppearanceLarge" />
 
     <ImageView
-        android:id="@+id/imageView1"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_alignTop="@+id/pic_vast"

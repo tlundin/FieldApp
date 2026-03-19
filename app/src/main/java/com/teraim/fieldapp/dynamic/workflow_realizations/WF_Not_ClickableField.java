@@ -200,11 +200,10 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 			if (variable.getType() != Variable.DataType.bool) {
 
-				if (outC instanceof OutSpin) {
+				if (outC instanceof OutSpin os) {
 					Log.d(TAG,"gets here. "+ Arrays.toString(((OutSpin) outC).opt));
 					outS = value;
-					OutSpin os = ((OutSpin)outC);
-					if (os.opt!=null && os.val!=null)						
+                    if (os.opt!=null && os.val!=null)
 						for (int i=0;i<os.val.length;i++)
 							if (os.val[i].equals(value)) {
 								outS = os.opt[i];
@@ -343,7 +342,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 					}		
 				} else {
 					if(value.contains(".")) {
-						String p[]  = value.split("\\.");
+						String[] p = value.split("\\.");
 						value = p[0];
 					}
 					if (value.length()<lf) 

@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +60,7 @@ public final class DataLoader {
                 URLConnection ucon = url.openConnection();
                 ucon.setConnectTimeout(5000);
                 try (InputStream in = ucon.getInputStream();
-                     BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"))) {
+                     BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
 
                     // Get Version, Read, Parse, Freeze... (your existing logic)
                     float version = getVersion(reader, module);

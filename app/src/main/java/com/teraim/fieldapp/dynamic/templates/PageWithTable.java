@@ -99,7 +99,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public static final String HEADER_ROW_ID = "TableHeader";
     private boolean tableTypeSimple=false;
 
-    private List<ColumnDefinition> columnDefinitions = new ArrayList<>();
+    private final List<ColumnDefinition> columnDefinitions = new ArrayList<>();
     private int currentlyFocusedColumn = -1;
 
     // Filter states
@@ -623,8 +623,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         Set<String> columnFiltersSet = new HashSet<>(availableColumnFilterLabels);
 
         for (Listable item : masterTableRowsDataList) {
-            if (item instanceof WF_Table_Row_Recycle) {
-                WF_Table_Row_Recycle rowWidget = (WF_Table_Row_Recycle) item;
+            if (item instanceof WF_Table_Row_Recycle rowWidget) {
                 if (rowWidget.getRowData() == null) continue;
 
                 boolean shouldDisplay = true; // Assume true by default for this row
@@ -1072,8 +1071,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
 
         ColumnDefinition colDef = new ColumnDefinition(label, colKey, type, parsedWidth, backgroundColor, textColor, true);
-        colDef.isVisible = true;
-        if (!isDisplayed) colDef.isVisible = false;
+        colDef.isVisible = isDisplayed;
         columnDefinitions.add(colDef);
         addColumnInternal(colDef, columnDefinitions.size() - 1);
 
@@ -1094,8 +1092,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         AggregateColumn aggColInstance = new AggregateColumn(label, expressionE, format, aggF, isLogical, masterTableRowsDataList);
 
         for (Listable item : masterTableRowsDataList) {
-            if (item instanceof WF_Table_Row_Recycle) {
-                WF_Table_Row_Recycle wft = (WF_Table_Row_Recycle) item;
+            if (item instanceof WF_Table_Row_Recycle wft) {
                 View aggCellView;
                 // Use colDef.width (which is parsedWidth) for aggregate cells
                 if (!isLogical) {
@@ -1151,8 +1148,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
         if (myContext != null && myContext.getEventListeners(Event.EventType.onSave) != null) {
             for (Object listener : myContext.getEventListeners(Event.EventType.onSave)) {
-                if (listener instanceof AggregateColumn) {
-                    AggregateColumn aggCol = (AggregateColumn) listener;
+                if (listener instanceof AggregateColumn aggCol) {
                     ColumnDefinition aggColDef = null;
                     for(ColumnDefinition cd : columnDefinitions) if (cd.isAggregate && cd.label.equals(aggCol.label)) { aggColDef = cd; break; }
                     if (aggColDef != null) {
@@ -1207,8 +1203,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             for (int i = 0; i < tableRecyclerView.getChildCount(); i++) {
                 View child = tableRecyclerView.getChildAt(i);
                 RecyclerView.ViewHolder rawViewHolder = tableRecyclerView.getChildViewHolder(child);
-                if (rawViewHolder instanceof TableBodyAdapter.RowViewHolder) {
-                    TableBodyAdapter.RowViewHolder viewHolder = (TableBodyAdapter.RowViewHolder) rawViewHolder;
+                if (rawViewHolder instanceof TableBodyAdapter.RowViewHolder viewHolder) {
                     if (viewHolder.rowScrollView != source) {
                         viewHolder.rowScrollView.scrollTo(scrollX, 0);
                     }

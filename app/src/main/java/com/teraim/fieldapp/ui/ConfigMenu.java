@@ -332,9 +332,8 @@ public class ConfigMenu extends AppCompatActivity {
 
 			teamPref.setEnabled(devFuncPref.isChecked());
 
-			if (pref instanceof EditTextPreference) {
-				EditTextPreference etp = (EditTextPreference) pref;
-				if (!isEmpty(etp.getText())) {
+			if (pref instanceof EditTextPreference etp) {
+                if (!isEmpty(etp.getText())) {
 					if (key.equals(PersistenceHelper.BUNDLE_NAME)) {
 						Log.d(TAG, "changing bundle (normalizing to lowercase)");
 						String bundleName = etp.getText() != null ? etp.getText().trim().toLowerCase(Locale.ROOT) : "";
@@ -348,9 +347,8 @@ public class ConfigMenu extends AppCompatActivity {
 					}
 				}
 				pref.setSummary(etp.getText());
-			} else if (pref instanceof ListPreference) {
-				ListPreference letp = (ListPreference) pref;
-				pref.setSummary(letp.getEntry());
+			} else if (pref instanceof ListPreference letp) {
+                pref.setSummary(letp.getEntry());
 				if (key.equals(PersistenceHelper.LOG_LEVEL)) {
 					String logLevelStr = letp.getValue();
 					Log.d(TAG, "changing log level to " + logLevelStr);

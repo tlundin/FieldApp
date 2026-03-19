@@ -83,7 +83,7 @@ public class GeoJSONExporter extends Exporter {
 					rutMap.put(uid,currentHash.get(NamedVariables.AreaTerm));
 
 					sub = currentHash.get("sub");
-					Log.d(TAG,"Current HASH "+currentHash.toString());
+					Log.d(TAG,"Current HASH "+ currentHash);
 
 
 					//Log.d(TAG,"CURRENT_HASH: "+currentHash);
@@ -156,7 +156,7 @@ public class GeoJSONExporter extends Exporter {
 				Log.d(TAG,"now inserting into json.");
 				//For each fixedGid (uid)...
 				if (gisObjects!=null) {
-					final int sz = gisObjects.keySet().size();
+					final int sz = gisObjects.size();
 					int curr = 0;
 					for (final String keyUID:gisObjects.keySet()) {
 						//Log.d(TAG, "sub sets under " + keyUID);

@@ -23,6 +23,6 @@
 	android:layout_marginRight="5dp"
     android:gravity="center_vertical|left"
     android:text="%"
-    android:textSize="20sp" />
+     />
 
 </LinearLayout>

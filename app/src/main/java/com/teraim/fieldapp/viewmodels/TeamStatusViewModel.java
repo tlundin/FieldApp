@@ -29,6 +29,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects; // Added for Objects.equals
 import java.util.concurrent.atomic.AtomicInteger;
@@ -79,17 +80,17 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
     private final MutableLiveData<Boolean> _serverPendingUpdate = new MutableLiveData<>();
     public LiveData<Boolean> serverPendingUpdate = _serverPendingUpdate;
 
-    private RequestQueue requestQueue;
+    private final RequestQueue requestQueue;
     private final AtomicInteger activeRequestCount = new AtomicInteger(0);
-    private GlobalState gs;
-    private PersistenceHelper globalPh;
+    private final GlobalState gs;
+    private final PersistenceHelper globalPh;
     private GPS_State latestSignal;
 
     // List to hold all available custom map needle bitmaps
-    private List<Bitmap> allAvailableCustomNeedles;
+    private final List<Bitmap> allAvailableCustomNeedles;
     // Cache for individual team member specific needles (loaded from server parameter)
     // Key: user UUID, Value: Bitmap for their icon
-    private Map<String, Bitmap> teamMemberSpecificNeedleCache;
+    private final Map<String, Bitmap> teamMemberSpecificNeedleCache;
 
     public TeamStatusViewModel(Application application) {
         super(application);
@@ -182,11 +183,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 public String getBodyContentType() { return "application/json; charset=utf-8"; }
                 @Override
                 public byte[] getBody() throws AuthFailureError {
-                    try {
-                        return requestBody.getBytes("utf-8");
-                    } catch (UnsupportedEncodingException e) {
-                        throw new AuthFailureError("Encoding error", e);
-                    }
+                    return requestBody.getBytes(StandardCharsets.UTF_8);
                 }
                 @Override
                 protected Response<String> parseNetworkResponse(NetworkResponse response) {
@@ -343,14 +340,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 @Override
                 public byte[] getBody() throws AuthFailureError {
-                    try {
-                        return requestBody == null ? null : requestBody.getBytes("utf-8");
-                    } catch (UnsupportedEncodingException uee) {
-                        Log.e(TAG, String.format("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8"));
-                        _errorMessage.postValue("Encoding error for position data.");
-                        decrementAndCheck.run();
-                        throw new AuthFailureError("Encoding error", uee);
-                    }
+                    return requestBody == null ? null : requestBody.getBytes(StandardCharsets.UTF_8);
                 }
 
                 @Override
@@ -727,11 +717,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         if (error.networkResponse != null) {
             String statusCode = String.valueOf(error.networkResponse.statusCode);
             String responseBody = "";
-            try {
-                responseBody = new String(error.networkResponse.data, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                Log.e(TAG, "Failed to parse error response body: " + e.getMessage());
-            }
+            responseBody = new String(error.networkResponse.data, StandardCharsets.UTF_8);
             return "HTTP " + statusCode + (responseBody.isEmpty() ? "" : ": " + responseBody);
         }
         if (error.getMessage() != null) {

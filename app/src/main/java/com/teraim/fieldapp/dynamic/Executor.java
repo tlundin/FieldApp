@@ -211,7 +211,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		brr = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context ctx, Intent intent) {
-				Log.d(TAG,"GETS HERE:::::: "+this.toString()+"  P: "+Executor.this.toString());
+				Log.d(TAG,"GETS HERE:::::: "+ this +"  P: "+ Executor.this);
 				if (intent.getAction().equals(REDRAW_PAGE)) {
 					boolean callAfterSub=intent.getBooleanExtra("RedrawAfterExecutingSub",false);
 					Log.d(TAG,"callAfterSUB: "+callAfterSub);
@@ -277,8 +277,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 		wf = getFlow();
 		if (wf == null) {
 			Log.e("Vortex","WF was null in Executor. Exiting...");
-			return;
-		} else {
+        } else {
 			myContext.setWorkflow(wf);
 
 			Log.d(TAG,"tracker created");
@@ -316,7 +315,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 	@Override
 	public void onResume() {
-		Log.d(TAG, "in Executor onResume " + this.toString());
+		Log.d(TAG, "in Executor onResume " + this);
 		gs = GlobalState.getInstance();
 		if (gs == null) {
 			Log.e("vortex","globalstate null in executor, exit");
@@ -391,7 +390,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	public void onPause()
 	{
 
-		Log.d(TAG, "onPause() for executor "+this.toString());
+		Log.d(TAG, "onPause() for executor "+ this);
 		if (myContext != null) {
 			if (myContext.hasGPSTracker())
 				stopLocationUpdates();
@@ -513,7 +512,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			for (EvalExpr e:wf.getContext()) {
 				if (e instanceof Atom) {
 					if (((Atom)e).isVariable()) {
-						Log.d(TAG,"Found variable in context:"+e.toString());
+						Log.d(TAG,"Found variable in context:"+ e);
 						if (contextVars==null)
 							contextVars = new ArrayList<String>();
 						contextVars.add(e.toString());
@@ -583,9 +582,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					Log.e("vortex", "blockId was not Integer");
 				}
 
-				if (b instanceof PageDefineBlock) {
-					PageDefineBlock bl = (PageDefineBlock) b;
-					Log.d(TAG, "Found pagedefine!");
+				if (b instanceof PageDefineBlock bl) {
+                    Log.d(TAG, "Found pagedefine!");
 					if (bl.hasGPS()) {
 						myContext.enableGPS(bl.gpsPriority());
 						o.addText("GPS scanning started");
@@ -609,76 +607,66 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 						}
 
 					}
-				} else if (b instanceof ButtonBlock) {
+				} else if (b instanceof ButtonBlock bl) {
 					
 					o.addYellowText("ButtonBlock found " + b.getBlockId());
-					ButtonBlock bl = (ButtonBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockCreateTextField) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockCreateTextField bl) {
 					
 					o.addYellowText("CreatTextBlock found " + b.getBlockId());
-					BlockCreateTextField bl = (BlockCreateTextField) b;
-					bl.create(myContext);
-				} else if (b instanceof CreateSortWidgetBlock) {
+                    bl.create(myContext);
+				} else if (b instanceof CreateSortWidgetBlock bl) {
 					
 					o.addYellowText("CreateSortWidgetBlock found " + b.getBlockId());
-					CreateSortWidgetBlock bl = (CreateSortWidgetBlock) b;
-					bl.create(myContext);
+                    bl.create(myContext);
 				}/*
 			else if (b instanceof ListFilterBlock) {
 				
 				o.addYellowText("ListFilterBlock found");
 				ListFilterBlock bl = (ListFilterBlock)b;
 				bl.create(myContext);
-			}*/ else if (b instanceof CreateEntryFieldBlock) {
+			}*/ else if (b instanceof CreateEntryFieldBlock bl) {
 					
 					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
-					CreateEntryFieldBlock bl = (CreateEntryFieldBlock) b;
-					Log.d(TAG, "CreateEntryFieldBlock found");
+                    Log.d(TAG, "CreateEntryFieldBlock found");
 					Variable v = bl.create(myContext);
 					if (v != null)
 						visiVars.add(v);
-				} else if (b instanceof CreateSliderEntryFieldBlock) {
+				} else if (b instanceof CreateSliderEntryFieldBlock bl) {
 					
 					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
-					CreateSliderEntryFieldBlock bl = (CreateSliderEntryFieldBlock) b;
-					Log.d(TAG, "CreateSliderEntryFieldBlock found");
+                    Log.d(TAG, "CreateSliderEntryFieldBlock found");
 					Variable v = bl.create(myContext);
 					if (v != null)
 						visiVars.add(v);
-				} else if (b instanceof AddSumOrCountBlock) {
+				} else if (b instanceof AddSumOrCountBlock bl) {
 					
 					o.addYellowText("AddSumOrCountBlock found " + b.getBlockId());
-					AddSumOrCountBlock bl = (AddSumOrCountBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof DisplayValueBlock) {
+                    bl.create(myContext);
+				} else if (b instanceof DisplayValueBlock bl) {
 					
 					o.addYellowText("DisplayValueBlock found " + b.getBlockId());
-					DisplayValueBlock bl = (DisplayValueBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof CoupledVariableGroupBlock) {
+                    bl.create(myContext);
+				} else if (b instanceof CoupledVariableGroupBlock bl) {
 					
 					o.addYellowText("Slidergroupblock found " + b.getBlockId());
-					CoupledVariableGroupBlock bl = (CoupledVariableGroupBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof AddVariableToEveryListEntryBlock) {
+                    bl.create(myContext);
+				} else if (b instanceof AddVariableToEveryListEntryBlock bl) {
 					
 					o.addYellowText("AddVariableToEveryListEntryBlock found " + b.getBlockId());
-					AddVariableToEveryListEntryBlock bl = (AddVariableToEveryListEntryBlock) b;
 
-					if (myListBlocks.get(bl.getTarget()) != null) {
+                    if (myListBlocks.get(bl.getTarget()) != null) {
 						Log.d(TAG, "Addvariable: found target list");
 						myListBlocks.get(bl.getTarget()).associateVariableBlock(bl);
 
 					}
 
 
-				} else if (b instanceof BlockCreateListEntriesFromFieldList) {
+				} else if (b instanceof BlockCreateListEntriesFromFieldList bl) {
 					
 					o.addYellowText("BlockCreateListEntriesFromFieldList found " + b.getBlockId());
 					//delay creation until filters applied.
-					BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;
-					bl.create(myContext);
+                    bl.create(myContext);
 					myListBlocks.put(bl.getListId(), bl);
 
 					/*
@@ -689,55 +677,46 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 					}
 					*/
-				} else if (b instanceof StartCameraBlock) {
+				} else if (b instanceof StartCameraBlock bl) {
 					
 					o.addYellowText("BlockStartCamera found " + b.getBlockId());
-					StartCameraBlock bl = (StartCameraBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockCreateTable) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockCreateTable bl) {
 					
 					o.addYellowText("BlockCreateTable found " + b.getBlockId());
-					BlockCreateTable bl = (BlockCreateTable) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockCreateTableEntriesFromFieldList) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockCreateTableEntriesFromFieldList bl) {
 					
 					o.addYellowText("BlockCreateTableEntriesFromFieldList found " + b.getBlockId());
-					BlockCreateTableEntriesFromFieldList bl = (BlockCreateTableEntriesFromFieldList) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockAddColumnsToTable) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockAddColumnsToTable bl) {
 					
 					o.addYellowText("BlockAddColumn(s)ToTable found " + b.getBlockId());
-					BlockAddColumnsToTable bl = (BlockAddColumnsToTable) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockAddAggregateColumnToTable) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockAddAggregateColumnToTable bl) {
 					
 					o.addYellowText("BlockAddAggregateColumnToTable found " + b.getBlockId());
-					BlockAddAggregateColumnToTable bl = (BlockAddAggregateColumnToTable) b;
-					bl.create(myContext);
-				} else if (b instanceof BlockAddVariableToTable) {
+                    bl.create(myContext);
+				} else if (b instanceof BlockAddVariableToTable bl) {
 					
 					o.addYellowText("BlockAddVariableToTable(s)ToTable found " + b.getBlockId());
-					BlockAddVariableToTable bl = (BlockAddVariableToTable) b;
-					bl.create(myContext);
-				} else if (b instanceof AddVariableToEntryFieldBlock) {
+                    bl.create(myContext);
+				} else if (b instanceof AddVariableToEntryFieldBlock bl) {
 					
 					o.addYellowText("AddVariableToEntryFieldBlock found " + b.getBlockId());
-					AddVariableToEntryFieldBlock bl = (AddVariableToEntryFieldBlock) b;
-					Variable v = bl.create(myContext);
+                    Variable v = bl.create(myContext);
 					if (v != null)
 						visiVars.add(v);
 
-				} else if (b instanceof AddVariableToListEntry) {
+				} else if (b instanceof AddVariableToListEntry bl) {
 					
 					o.addYellowText("AddVariableToListEntry found " + b.getBlockId());
-					AddVariableToListEntry bl = (AddVariableToListEntry) b;
-					Variable v = bl.create(myContext);
+                    Variable v = bl.create(myContext);
 					//TODO: REMOVE THIS??
-				} else if (b instanceof AddEntryToFieldListBlock) {
+				} else if (b instanceof AddEntryToFieldListBlock bl) {
 					
 					o.addYellowText("AddEntryToFieldListBlock found " + b.getBlockId());
-					AddEntryToFieldListBlock bl = (AddEntryToFieldListBlock) b;
-					bl.create(myContext);
+                    bl.create(myContext);
 
 				} else if (b instanceof NoOpBlock) {
 					
@@ -763,19 +742,16 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 						}
 					}
 
-				} else if (b instanceof JumpBlock) {
+				} else if (b instanceof JumpBlock bl) {
 					
 					o.addYellowText("Jumpblock found " + b.getBlockId());
-					JumpBlock bl = (JumpBlock) b;
-					jump.put(bl.getBlockId(), bl.getJumpTo());
-				} else if (b instanceof CreateImageBlock) {
+                    jump.put(bl.getBlockId(), bl.getJumpTo());
+				} else if (b instanceof CreateImageBlock bl) {
 					
 					o.addYellowText("CreateImageBlock found " + b.getBlockId());
-					CreateImageBlock bl = (CreateImageBlock) b;
-					bl.create(myContext);
-				} else if (b instanceof SetValueBlock) {
-					final SetValueBlock bl = (SetValueBlock) b;
-					//final List<TokenizedItem> tokens = gs.getRuleExecutor().findTokens(bl.getFormula(),null);
+                    bl.create(myContext);
+				} else if (b instanceof SetValueBlock bl) {
+                    //final List<TokenizedItem> tokens = gs.getRuleExecutor().findTokens(bl.getFormula(),null);
 					if (bl.getBehavior() != ExecutionBehavior.constant && bl.getBehavior() != ExecutionBehavior.constant_value) {
 						EventListener tiva = new EventListener() {
 							@Override
@@ -890,11 +866,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					}
 
 
-				} else if (b instanceof ConditionalContinuationBlock) {
+				} else if (b instanceof ConditionalContinuationBlock bl) {
 					
 					o.addYellowText("ConditionalContinuationBlock " + b.getBlockId());
-					final ConditionalContinuationBlock bl = (ConditionalContinuationBlock) b;
-					final String formula = bl.getFormula();
+                    final String formula = bl.getFormula();
 					//final List<TokenizedItem> vars = gs.getRuleExecutor().findTokens(formula,null);
 					if (bl.isExpressionOk()) {
 						EventListener tiva = new EventListener() {
@@ -982,9 +957,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				} else if (b instanceof CreateCategoryDataSourceBlock) {
 					((CreateCategoryDataSourceBlock) b).create(myContext);
 
-				} else if (b instanceof CreateGisBlock) {
-					CreateGisBlock bl = ((CreateGisBlock) b);
-					// With MapTemplate, network, and use_maps enabled, use map background instead of loading image layers.
+				} else if (b instanceof CreateGisBlock bl) {
+                    // With MapTemplate, network, and use_maps enabled, use map background instead of loading image layers.
 					String template = myContext.getWorkflow() != null ? myContext.getWorkflow().getTemplate() : null;
 					boolean hasNetwork = Tools.hasNetworkConnection(gs.getContext());
 					boolean useMaps = gs.getGlobalPreferences().getPreferences().getBoolean(PersistenceHelper.MAP_ENABLED, true);
@@ -1016,9 +990,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					// This is still needed to prevent the loop from continuing immediately.
 					savedBlockPointer = blockP + 1;
 					return;
-				} else if (b instanceof AddGisMapViewBlock) {
-					AddGisMapViewBlock bl = (AddGisMapViewBlock) b;
-					if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
+				} else if (b instanceof AddGisMapViewBlock bl) {
+                    if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
 						((com.teraim.fieldapp.dynamic.templates.MapTemplate) this).registerMapboxMapFromGisMapView(bl.getGisMapView());
 					}
 				} else if (b instanceof AddGisLayerBlock) {
@@ -1030,9 +1003,8 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					((AddGisFilter) b).create(myContext);
 				} else if (b instanceof BlockDeleteMatchingVariables) {
 					((BlockDeleteMatchingVariables) b).create(myContext);
-				} else if (b instanceof AddFilter) {
-					AddFilter bl = ((AddFilter) b);
-					if (myListBlocks.get(bl.getTarget()) != null) {
+				} else if (b instanceof AddFilter bl) {
+                    if (myListBlocks.get(bl.getTarget()) != null) {
 						Log.d(TAG, "Added filter to " + bl.getTarget());
 						myListBlocks.get(bl.getTarget()).associateFilterBlock(bl);
 					} else
@@ -1054,7 +1026,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			}
 
 
-			if (!myListBlocks.keySet().isEmpty()) {
+			if (!myListBlocks.isEmpty()) {
 				addLoadDialog();
 				Log.d(TAG, "I have lists...creating");
 				Iterator<String> it = myListBlocks.keySet().iterator();
@@ -1076,9 +1048,9 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 				if (errorBlock != null)
 					Tools.printErrorToLog(o, e, "id: " + errorBlock.getBlockId());
 				else
-					Tools.printErrorToLog(o, e, "index: " + Integer.toString(blockP) + " (after execution)");
+					Tools.printErrorToLog(o, e, "index: " + blockP + " (after execution)");
 			} else
-				Tools.printErrorToLog(o, e, "index: " + Integer.toString(blockP));
+				Tools.printErrorToLog(o, e, "index: " + blockP);
 		}
 	}
 

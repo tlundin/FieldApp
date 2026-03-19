@@ -38,7 +38,7 @@ public class ProvytaView extends View {
 	private final Paint pl = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
 
     private final Paint pSma = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
-	private Paint pSmaSelected = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
+	private final Paint pSmaSelected = new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
     private Marker focusMarker;
 	private String msg = "";
 	private List<Delyta> delytor;
@@ -144,7 +144,7 @@ public class ProvytaView extends View {
 		float sr = 2.8f* oScaleF;
 		Coord c=null;
 		//6 meter ut på 0,120,240
-		int sDists[] = new int[]{30,50,70};
+		int[] sDists = new int[]{30,50,70};
 		for (int i = 0; i<(abo?3:1);i++) {
 			int sDist = sDists[i];
 			c = calc_xy((int)(sDist* oScaleF),0);
@@ -251,7 +251,7 @@ public class ProvytaView extends View {
     }
 
 	public void showDistance(int dist) {
-		msg = "Avst: "+String.valueOf(dist)+"m";
+		msg = "Avst: "+ dist +"m";
 	}
 
 
@@ -273,14 +273,14 @@ public class ProvytaView extends View {
 	private void drawDelyta(Delyta d,Canvas c, float cx, float cy, float oScaleF) {
 		float startX,startY,endX,endY;
 		for (Segment s:d.getSegments()) {	
-			if (s.isArc) {
+			if (s.isArc()) {
 //				if (!d.isSelected())
 //					continue;	
 //				else {
 					RectF oval = new RectF(-r+cx, -r+cy, r+cx, r+cy);	
-					Log.d(TAG,"start - end"+s.start.rikt+"-"+s.end.rikt);
-					float start = s.start.rikt;
-					float end = Delyta.rDist((int)start,s.end.rikt);
+					Log.d(TAG,"start - end"+ s.start().rikt+"-"+ s.end().rikt);
+					float start = s.start().rikt;
+					float end = Delyta.rDist((int)start, s.end().rikt);
 					Log.d(TAG,"Drawing arc from "+start+" with sweep "+end);
 					start = start-90;
 					if (start<0)
@@ -293,10 +293,10 @@ public class ProvytaView extends View {
 //				}
 			} else {
 				//float mirror = margY+r*2;							
-				startX = cx+(s.start.x*oScaleF);
-				startY = cy+(s.start.y*oScaleF);
-				endX = cx+(s.end.x*oScaleF);
-				endY = cy+(s.end.y*oScaleF);				
+				startX = cx+(s.start().x*oScaleF);
+				startY = cy+(s.start().y*oScaleF);
+				endX = cx+(s.end().x*oScaleF);
+				endY = cy+(s.end().y*oScaleF);
 				Log.d(TAG,"Drawing Start: "+startX+","+startY+" End: "+endX+","+endY);
 				p.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
 //				c.drawLine(startX,startY,endX,endY, d.isSelected()?pySelected:p);	
@@ -306,8 +306,8 @@ public class ProvytaView extends View {
 		}
 		Point numPos = d.getNumberPos();
 		if (numPos!=null) {
-			float nx = cx+(numPos.x*oScaleF);
-			float ny = cy+(numPos.y*oScaleF);
+			float nx = cx+(numPos.x() *oScaleF);
+			float ny = cy+(numPos.y() *oScaleF);
 			Log.d(TAG,"Drawing number at: "+nx+","+ny);
 			px.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
 			c.drawText(d.getId()+"["+Math.round(d.getArea()/100)+"]", nx, ny, pl);

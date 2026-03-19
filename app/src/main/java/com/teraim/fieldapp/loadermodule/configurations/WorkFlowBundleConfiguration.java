@@ -203,8 +203,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name = parser.getName();
 			if (parser.getName().equals("language")) {
-				;
-				o.addGreenText("Language set to: "+language);
+                o.addGreenText("Language set to: "+language);
 				language = readText("language",parser);
 			}
 			else if (name.equals("workflow")) {
@@ -429,8 +428,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				return blocks;
 			}
 		}
-		;
-		o.addGreenText("No duplicate block IDs");
+        o.addGreenText("No duplicate block IDs");
 		return blocks;
 	}
 
@@ -2065,8 +2063,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private void dummyWarning(String block,XmlPullParser parser) {
 		o.addText("Parsing block: "+block);
-		;
-		o.addCriticalText("This type of block is not supported");
+        o.addCriticalText("This type of block is not supported");
 	}
 
 
@@ -2400,8 +2397,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					break;
 				case "workflowname":
 					workflowName = readSymbol("workflowname", parser);
-					;
-					o.addGreenText("Reading workflow: [" + workflowName + "]");
+                    o.addGreenText("Reading workflow: [" + workflowName + "]");
 					Log.d(TAG, "Reading workflow: " + workflowName);
 
 					break;
@@ -2420,8 +2416,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 		}
 		if (workflowName == null)  {
-			;
-			o.addCriticalText("Error reading startblock. Workflowname missing");
+            o.addCriticalText("Error reading startblock. Workflowname missing");
 			throw new XmlPullParserException("Parameter missing");
 		}
 		checkForNull("block_ID",id,"workflowname",workflowName);
@@ -2619,8 +2614,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				lab = par;
 				continue;
 			} else if (par==null) {
-				;
-				o.addYellowText("Parameter "+lab+" was NULL");
+                o.addYellowText("Parameter "+lab+" was NULL");
 
 			}
 		}
@@ -2656,13 +2650,11 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//Check that it does not start with a number.
 		if (text!=null) {
 			if (text.length()>0 && Character.isDigit(text.charAt(0))) {
-				;
-				o.addCriticalText("XML: EXCEPTION - Symbol started with integer");
+                o.addCriticalText("XML: EXCEPTION - Symbol started with integer");
 				throw new XmlPullParserException("Symbol cannot start with integer");
 			}
 		} else {
-			;
-			o.addCriticalText("XML: EXCEPTION - Symbol was NULL");
+            o.addCriticalText("XML: EXCEPTION - Symbol was NULL");
 			throw new XmlPullParserException("Symbol cannot be null");
 		}
 		return text;

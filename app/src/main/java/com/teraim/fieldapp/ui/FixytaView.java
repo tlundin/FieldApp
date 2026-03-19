@@ -153,7 +153,7 @@ public class FixytaView extends View {
 
 
 	public void showDistance(int dist) {
-		msg = "Avst: "+String.valueOf(dist)+"m";
+		msg = "Avst: "+ dist +"m";
 	}
 
 	

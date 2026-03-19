@@ -90,7 +90,7 @@ public class GlobalState implements GlobalStateCore {
     // Legacy UI-coupled references. These are being gradually migrated into
     // a dedicated GlobalUiBinding implementation.
     private DrawerMenu myDrawerMenu;
-    private GlobalUiBinding uiBinding;
+    private final GlobalUiBinding uiBinding;
 
     public String TEXT_LARGE;
     private String myPartner = "?";
@@ -108,7 +108,7 @@ public class GlobalState implements GlobalStateCore {
     private final CharSequence logTxt;
     private final String userUUID;
     private ModuleRegistry moduleRegistry;
-    private RequestQueue requestQueue;
+    private final RequestQueue requestQueue;
 
     // Explicit representation of the current logical session/workflow state.
     // This is kept in-memory only for now; persistence and restoration will be
@@ -300,7 +300,7 @@ public class GlobalState implements GlobalStateCore {
         return mAccount;
     }
 
-    private boolean callInProgress = false;
+    private final boolean callInProgress = false;
 
 
     public String getMyTeam() {
@@ -424,11 +424,11 @@ public class GlobalState implements GlobalStateCore {
 
 
     public class TeamPosition {
-        private String name;
-        private String uuid;
-        private long timestampMillis;
-        private double lat;
-        private double lng;
+        private final String name;
+        private final String uuid;
+        private final long timestampMillis;
+        private final double lat;
+        private final double lng;
 
         public TeamPosition(String name, String uuid, long timestampMillis, double lat, double lng) {
             this.name = name;
@@ -566,7 +566,7 @@ public class GlobalState implements GlobalStateCore {
     public String[] getWorkflowNames() {
         if (myWfs == null)
             return null;
-        String[] array = new String[myWfs.keySet().size()];
+        String[] array = new String[myWfs.size()];
         myWfs.keySet().toArray(array);
         return array;
 
@@ -575,7 +575,7 @@ public class GlobalState implements GlobalStateCore {
     public String[] getWorkflowLabels() {
         if (myWfs == null)
             return null;
-        String[] array = new String[myWfs.keySet().size()];
+        String[] array = new String[myWfs.size()];
         int i = 0;
         String label;
         for (Workflow wf : myWfs.values()) {
@@ -718,9 +718,8 @@ public class GlobalState implements GlobalStateCore {
         public void handleMessage(Message msg) {
             Intent intent = null;
 
-            if (msg.obj instanceof String) {
+            if (msg.obj instanceof String s) {
                 //Log.d(TAG,"IN HANDLE MESSAGE WITH MSG: "+msg.toString());
-                String s = (String) msg.obj;
                 intent = new Intent();
                 intent.setAction(s);
             } else if (msg.obj instanceof Intent)
@@ -816,11 +815,9 @@ public class GlobalState implements GlobalStateCore {
         if (myDrawerMenu != null && !menuOps.isEmpty()) {
             myDrawerMenu.clear();
             for (MenuOp op : menuOps) {
-                if (op instanceof MenuHeaderOp) {
-                    MenuHeaderOp h = (MenuHeaderOp) op;
+                if (op instanceof MenuHeaderOp h) {
                     myDrawerMenu.addHeader(h.label, h.textColor, h.bgColor);
-                } else if (op instanceof MenuEntryOp) {
-                    MenuEntryOp e = (MenuEntryOp) op;
+                } else if (op instanceof MenuEntryOp e) {
                     Workflow wf = getWorkflow(e.workflowName);
                     if (wf != null) {
                         myDrawerMenu.addItem(wf.getLabel(), wf, e.textColor, e.bgColor);

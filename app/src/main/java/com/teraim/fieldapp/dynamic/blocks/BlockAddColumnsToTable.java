@@ -82,7 +82,7 @@ public class BlockAddColumnsToTable extends Block {
 				} else
 					columnKeyL.add(key);
 				}
-				Log.d(TAG,"Colkey: "+columnKeyL.toString()+" \nLabels: "+labels.toString());
+				Log.d(TAG,"Colkey: "+ columnKeyL +" \nLabels: "+ labels);
 			}
 		}
 		myTable.addColumns(labels,columnKeyL,type,width,backgroundColor,textColor);

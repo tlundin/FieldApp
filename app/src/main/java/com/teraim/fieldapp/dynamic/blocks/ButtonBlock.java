@@ -101,8 +101,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 	private transient android.graphics.drawable.Drawable originalBackground;
 	private transient GlobalState gs;
 	private transient VariableCache varCache;
-	private transient DB_Context buttonContextOld = null, buttonContext = null;
-	private transient Map<String, String> statusVariableHash = null;
+	private final transient DB_Context buttonContextOld = null;
+    private transient DB_Context buttonContext = null;
+	private final transient Map<String, String> statusVariableHash = null;
 	private String exportMethod="file";
 	private String exportFormat = "csv";
 	private String exportFileName = null;
@@ -172,7 +173,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 				if (exportMethod.length() > 7) {
 
 					if (exportMethod.contains("@")) {
-						targetMailAdress = exportMethod.substring(7, exportMethod.length());
+						targetMailAdress = exportMethod.substring(7);
 						Log.d(TAG, "Target mail address is : " + targetMailAdress);
 					} else {
 						//config error
@@ -471,9 +472,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 									boolean done = false;
 
-									if (button instanceof WF_StatusButton) {
-										WF_StatusButton statusButton = ((WF_StatusButton) button);
-										WF_StatusButton.Status status = statusButton.getStatus();
+									if (button instanceof WF_StatusButton statusButton) {
+                                        WF_StatusButton.Status status = statusButton.getStatus();
 										if (status == WF_StatusButton.Status.ready) {
 											final WF_StatusButton tmpSB = statusButton;
 											new AlertDialog.Builder(ctx)
@@ -671,7 +671,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 											} else if (exportMethod.startsWith("upload")) {
 
-												if (!Connectivity.isConnected((Activity) ctx)) {
+												if (!Connectivity.isConnected(ctx)) {
 													o.addText("");
 													o.addCriticalText("Export failed - no network");
 													msg = "Check your connection and try again";
@@ -712,7 +712,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 														Set<String> alreadyExported = sp.getStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, Collections.emptySet());
 														Set<String> newSetAfterExport = new HashSet<String>();
 														newSetAfterExport.addAll(alreadyExported);
-														Log.d(TAG, "Images I know: " + alreadyExported.toString());
+														Log.d(TAG, "Images I know: " + alreadyExported);
 														for (int i = 0; i < imgs.length; i++) {
 															Log.d(TAG, "Image name: " + imgs[i].getName());
 															String imageName = imgs[i].getName();
@@ -908,7 +908,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 					//Check if a sync is required. Pop current fragment.
 					private void goBack() {
 						if (myContext.getFragmentActivity() instanceof androidx.fragment.app.FragmentActivity) {
-							((androidx.fragment.app.FragmentActivity) myContext.getFragmentActivity()).getSupportFragmentManager().popBackStackImmediate();
+							myContext.getFragmentActivity().getSupportFragmentManager().popBackStackImmediate();
 						}
 						//myContext.reload();
 						if (syncRequired)

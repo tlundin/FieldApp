@@ -21,7 +21,6 @@
         android:textStyle="bold" />
 
     <RadioGroup
-        android:id="@+id/toggleGroup"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
@@ -69,7 +68,6 @@
     </RadioGroup>
 
     <LinearLayout
-        android:id="@+id/layer_header_l"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="horizontal">

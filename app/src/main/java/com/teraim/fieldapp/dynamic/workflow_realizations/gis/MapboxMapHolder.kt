@@ -181,7 +181,7 @@ class MapboxMapHolder(
     var onCenterClickWorkflow: String? = null
 
     /** Container for the Trakter info card. Set by MapTemplate so we use the correct view. */
-    var trakterCardContainer: android.view.ViewGroup? = null
+    var trakterCardContainer: ViewGroup? = null
         set(value) {
             field = value
             value?.let { container ->
@@ -1145,7 +1145,7 @@ class MapboxMapHolder(
             val objContextE = Expressor.preCompileExpression(objContext)
             val dbContext = DB_Context.evaluate(objContextE)
             if (dbContext.isOk) {
-                val ctx = dbContext.getContext() ?: HashMap()
+                val ctx = dbContext.context ?: HashMap()
                 val merged = HashMap(ctx)
                 merged["år"] = Constants.getYear()
                 safePropString(properties, "FIXEDGID").takeIf { it != "—" }?.removeSurrounding("{", "}")?.takeIf { it.isNotBlank() }?.let { merged["uid"] = it }
@@ -1322,7 +1322,7 @@ class MapboxMapHolder(
             val objContextE = Expressor.preCompileExpression(objContext)
             val evaluated = DB_Context.evaluate(objContextE)
             if (evaluated.isOk) {
-                val ctx = evaluated.getContext()
+                val ctx = evaluated.context
                 val merged = if (ctx != null) HashMap(ctx) else HashMap<String, String>()
                 merged["gistyp"] = "Trakter"
                 merged["år"] = Constants.getYear()
@@ -1432,7 +1432,7 @@ class MapboxMapHolder(
     private var lastTeamMembers: List<TeamMemberMapPoint>? = null
 
     private fun isMe(member: TeamMemberMapPoint): Boolean {
-        val myUuid = GlobalState.getInstance().getUserUUID() ?: return false
+        val myUuid = GlobalState.getInstance().userUUID ?: return false
         val memberUuid = member.uuid ?: return false
         return memberUuid.trim().equals(myUuid.trim(), ignoreCase = true)
     }

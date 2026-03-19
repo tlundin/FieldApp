@@ -303,7 +303,7 @@ public class Expressor {
                 res[i++] = intVal;
             }
             else
-                System.err.println("Got NULL back when evaluating " + expr.toString() + " . will not be included in endresult.");
+                System.err.println("Got NULL back when evaluating " + expr + " . will not be included in endresult.");
         }
 
         return res;
@@ -349,7 +349,7 @@ public class Expressor {
                 //System.out.println("Part Result "+rez.toString());
                 endResult.append(rez);
             } else
-                System.err.println("Got null back when evaluating "+expr.toString()+" . will not be included in endresult.");
+                System.err.println("Got null back when evaluating "+ expr +" . will not be included in endresult.");
 
         }
 
@@ -406,7 +406,7 @@ public class Expressor {
         if (eval !=null && !(eval instanceof Boolean)) {
             Log.e("vortex","eval was not bool back in analyzeBoolean...likely missing [..]?");
             
-            o.addCriticalText("The expression "+expr.toString()+" evaluated to: '"+eval.getClass()+"' but must be Boolean. Missing [ ] around the expression can cause this");
+            o.addCriticalText("The expression "+ expr +" evaluated to: '"+eval.getClass()+"' but must be Boolean. Missing [ ] around the expression can cause this");
             return false;
         } else
             return (Boolean)eval;
@@ -780,52 +780,50 @@ public class Expressor {
     //And expression is one or a set of tokens, making up a semantic entity, such as function.
     //This tool cuts out the next expression from the token stream.
 
-    private static class ExpressionAnalyzer {
-        //stream to use
-        private final Iterator<Token>it;
-
-        ExpressionAnalyzer(Iterator<Token> iterator) {
-            it = iterator;
-        }
+    /**
+     * @param it stream to use
+     */
+    private record ExpressionAnalyzer(Iterator<Token> it) {
 
 
         boolean hasNext() {
-            return it.hasNext();
-        }
-        Expr next() {
-            Token t;
-            if (it.hasNext()) {
-                t = it.next();
-                //System.out.println("In next: "+t.type);
-                assert(t!=null);
-                TokenType type = t.type;
-
-                switch (type) {
-                    case leftparenthesis:
-                        return new Push();
-                    case rightparenthesis:
-                        return new Pop();
-                    case variable:
-                    case number:
-                    case literal:
-                    case comma:
-                        return new Atom(t);
-                    case operand:
-                        return new Operand(t);
-                    case text:
-                        return new Text(t);
-
-                }
-                TokenType p = type.parent;
-                if (isFunction(type)) {
-                    return new Function(type, it);
-                }
+                return it.hasNext();
             }
 
-            return null;
+        Expr next() {
+                Token t;
+                if (it.hasNext()) {
+                    t = it.next();
+                    //System.out.println("In next: "+t.type);
+                    assert (t != null);
+                    TokenType type = t.type;
 
+                    switch (type) {
+                        case leftparenthesis:
+                            return new Push();
+                        case rightparenthesis:
+                            return new Pop();
+                        case variable:
+                        case number:
+                        case literal:
+                        case comma:
+                            return new Atom(t);
+                        case operand:
+                            return new Operand(t);
+                        case text:
+                            return new Text(t);
+
+                    }
+                    TokenType p = type.parent;
+                    if (isFunction(type)) {
+                        return new Function(type, it);
+                    }
+                }
+
+                return null;
+
+            }
         }
-    }
     //marker class
     abstract static class Expr implements Serializable {
         private static final long serialVersionUID = -1968204853256767316L;
@@ -872,7 +870,7 @@ public class Expressor {
                     Variable v=Expressor.getVariable(myToken.str);
 
                     if (v==null || v.getValue() == null ) {
-                        System.out.println("Variable '"+this.toString()+"' does not have a value or Variable is missing.");
+                        System.out.println("Variable '"+ this +"' does not have a value or Variable is missing.");
                         return null;
                     }
 
@@ -991,7 +989,7 @@ public class Expressor {
 
             Object arg2v = arg2.eval();
 
-            Log.e("vortex",(arg1v.toString())+ " " + operator.myToken.str+" "+((arg2v==null)?"null":arg2v.toString()));
+            Log.e("vortex",(arg1v)+ " " + operator.myToken.str+" "+((arg2v==null)?"null":arg2v.toString()));
             if (arg2v==null) {
                 Log.e("vortex","Arg2 is null! Operator is "+operator.myToken.str);
                 String opS =operator.myToken.str;
@@ -1167,9 +1165,9 @@ public class Expressor {
                     }
                 }
             } catch (ClassCastException e) {
-                Log.d(TAG,"Classcast exception for expression "+this.toString()+"arg1: "+arg1v);
+                Log.d(TAG,"Classcast exception for expression "+ this +"arg1: "+arg1v);
                 
-                o.addCriticalText("Illegal arguments (wrong type) in expression: " +this.toString()+". Missing $ operator?");
+                o.addCriticalText("Illegal arguments (wrong type) in expression: " + this +". Missing $ operator?");
 
             }
             return null;
@@ -2216,7 +2214,7 @@ public class Expressor {
 
         @Override
         public String toString() {
-            return getType().name()+"("+args.toString()+")";
+            return getType().name()+"("+ args +")";
         }
 
         private class ExportDialogDummy implements ExportDialogInterface {

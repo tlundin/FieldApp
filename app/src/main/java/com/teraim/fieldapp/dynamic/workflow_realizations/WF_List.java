@@ -41,7 +41,7 @@ public abstract class WF_List extends WF_Widget implements Sortable,Filterable {
 		super(id,v,isVisible,ctx);
 		myContext = ctx;
 		gs = GlobalState.getInstance();
-		myW = (TableLayout)v.findViewById(R.id.table);
+		myW = v.findViewById(R.id.table);
 		redraw = true;
 	}
 	//TODO: MERGE THESE

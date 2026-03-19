@@ -251,9 +251,8 @@ public class MapTemplate extends Executor {
 			LatLong latLong;
 			if (loc instanceof LatLong) {
 				latLong = (LatLong) loc;
-			} else if (loc instanceof SweLocation) {
-				SweLocation swe = (SweLocation) loc;
-				latLong = Geomatte.convertToLatLong(swe.getY(), swe.getX());
+			} else if (loc instanceof SweLocation swe) {
+                latLong = Geomatte.convertToLatLong(swe.getY(), swe.getX());
 			} else {
 				continue;
 			}
@@ -520,7 +519,7 @@ public class MapTemplate extends Executor {
 					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 0f)
 				);
 				set.setDuration(duration);
-				set.setStartDelay(i * 40);
+				set.setStartDelay(i * 40L);
 				set.start();
 			} else {
 				AnimatorSet set = new AnimatorSet();
@@ -529,7 +528,7 @@ public class MapTemplate extends Executor {
 					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 16f)
 				);
 				set.setDuration(duration);
-				set.setStartDelay((subFabs.length - 1 - i) * 40);
+				set.setStartDelay((subFabs.length - 1 - i) * 40L);
 				set.addListener(new android.animation.AnimatorListenerAdapter() {
 					@Override
 					public void onAnimationEnd(android.animation.Animator animation) {
@@ -604,13 +603,12 @@ public class MapTemplate extends Executor {
 				for (GisPointObject g : team) {
 					if (g.isUser()) {
 						com.teraim.fieldapp.dynamic.types.Location loc = g.getLocation();
-						if (loc instanceof LatLong) {
-							LatLong ll = (LatLong) loc;
-							lat = ll.getX();
+						if (loc instanceof LatLong ll) {
+                            lat = ll.getX();
 							lng = ll.getY();
 							break;
 						} else if (loc instanceof SweLocation) {
-							LatLong ll = Geomatte.convertToLatLong(((SweLocation) loc).getY(), ((SweLocation) loc).getX());
+							LatLong ll = Geomatte.convertToLatLong(loc.getY(), loc.getX());
 							lat = ll.getX();
 							lng = ll.getY();
 							break;

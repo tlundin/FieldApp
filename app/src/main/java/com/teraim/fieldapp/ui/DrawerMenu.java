@@ -35,7 +35,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 	private ActionBarDrawerToggle toggle;
 	private int nextItemId = 1000;
 	private SparseIntArray index;
-	private Map<Integer, Workflow> workflowMap = new HashMap<>();
+	private final Map<Integer, Workflow> workflowMap = new HashMap<>();
 	private boolean open = false;
 	private NavigationView navigationView;
 

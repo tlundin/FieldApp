@@ -120,31 +120,31 @@ public class Polygon
 			if (_firstPoint)
 			{
 				_boundingBox = new BoundingBox();
-				_boundingBox.xMax = point.x;
-				_boundingBox.xMin = point.x;
-				_boundingBox.yMax = point.y;
-				_boundingBox.yMin = point.y;
+				_boundingBox.xMax = point.x();
+				_boundingBox.xMin = point.x();
+				_boundingBox.yMax = point.y();
+				_boundingBox.yMin = point.y();
 
 				_firstPoint = false;
 			}
 			else
 			{
 				// set bounding box
-				if (point.x > _boundingBox.xMax)
+				if (point.x() > _boundingBox.xMax)
 				{
-					_boundingBox.xMax = point.x;
+					_boundingBox.xMax = point.x();
 				}
-				else if (point.x < _boundingBox.xMin)
+				else if (point.x() < _boundingBox.xMin)
 				{
-					_boundingBox.xMin = point.x;
+					_boundingBox.xMin = point.x();
 				}
-				if (point.y > _boundingBox.yMax)
+				if (point.y() > _boundingBox.yMax)
 				{
-					_boundingBox.yMax = point.y;
+					_boundingBox.yMax = point.y();
 				}
-				else if (point.y < _boundingBox.yMin)
+				else if (point.y() < _boundingBox.yMin)
 				{
-					_boundingBox.yMin = point.y;
+					_boundingBox.yMin = point.y();
 				}
 			}
 		}
@@ -218,14 +218,14 @@ public class Polygon
 
 		else if (ray.isVertical() && !side.isVertical())
 		{
-			float x = ray.getStart().x;
+			float x = ray.getStart().x();
 			float y = side.getA() * x + side.getB();
 			intersectPoint = new Point(x, y);
 		}
 
 		else if (!ray.isVertical() && side.isVertical())
 		{
-			float x = side.getStart().x;
+			float x = side.getStart().x();
 			float y = ray.getA() * x + ray.getB();
 			intersectPoint = new Point(x, y);
 		}
@@ -266,7 +266,7 @@ public class Polygon
 	 */
 	private boolean inBoundingBox(Point point)
 	{
-        return !(point.x < _boundingBox.xMin) && !(point.x > _boundingBox.xMax) && !(point.y < _boundingBox.yMin) && !(point.y > _boundingBox.yMax);
+        return !(point.x() < _boundingBox.xMin) && !(point.x() > _boundingBox.xMax) && !(point.y() < _boundingBox.yMin) && !(point.y() > _boundingBox.yMax);
     }
 
 	private static class BoundingBox
