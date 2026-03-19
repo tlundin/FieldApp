@@ -865,7 +865,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				bearing = parseDoubleOrNull(readText("bearing", parser));
 			} else if (name.equals("team_visible")) {
 				String raw = readText("team_visible", parser);
-				teamVisible = raw != null && "true".equalsIgnoreCase(raw.trim());
+				teamVisible = raw == null || "true".equalsIgnoreCase(raw.trim());
 			} else if (name.equals("on_click")) {
 				// Deprecated: on_click is now on block_add_gis_layer (per-layer). Ignore on map view.
 				skip(name, parser);

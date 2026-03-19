@@ -35,11 +35,11 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources false
+            shrinkResources = false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.txt'
-            signingConfig signingConfigs.config
+            signingConfig = signingConfigs.config
             ndk {
-                debugSymbolLevel 'FULL'
+                debugSymbolLevel = 'FULL'
             }
         }
     }
@@ -55,6 +55,11 @@ android {
     kotlinOptions {
         jvmTarget = '17'
     }
+}
+
+// Enable deprecation warnings from javac
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:deprecation']
 }
 
 dependencies {

@@ -650,6 +650,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             clearLayerCaches();
         } else {
             myLayers = new ArrayList<>();
+            // Default visibility for the Team layer:
+            // - For legacy CreateGisBlock-based maps, use createGisBlock.isTeamVisible()
+            // - For block_add_gis_map_view-based maps, MapTemplate uses GisMapView.isTeamVisible()
+            //   to decide whether to set up the team overlay; here we just honor the CreateGisBlock flag.
             if (createGisBlock.isTeamVisible()) {
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {

@@ -67,7 +67,7 @@ import java.util.Arrays;
  */
 public class Start extends MenuActivity implements StartProvider {
     private static final String TAG = "Start";
-
+    private static Start currentInstance;
 
     //	private Map<String,List<String>> menuStructure;
 
@@ -104,6 +104,7 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentInstance = this;
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         // Setup handler for uncaught exceptions.
 /*        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
@@ -152,6 +153,12 @@ public class Start extends MenuActivity implements StartProvider {
         actionbar.setDisplayHomeAsUpEnabled(true);
         mDrawerMenu = new  DrawerMenu(this,toolbar);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
+        // If GlobalState already exists (for example after a configuration
+        // change), reattach this new DrawerMenu instance so that its contents
+        // can be rebuilt from the recorded menu definition.
+        if (GlobalState.getInstance() != null) {
+            GlobalState.getInstance().setDrawerMenu(mDrawerMenu);
+        }
 
         // 2. Get the shared ViewModel
         GisViewModel gisViewModel = new ViewModelProvider(this).get(GisViewModel.class);
@@ -505,15 +512,20 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     public void onDestroy() {
+        if (currentInstance == this) {
+            currentInstance = null;
+        }
         if (histT!=null) {
             histT.cancel(true);
         }
 
-        if (GlobalState.getInstance()!=null) {
-
-            //kill tracker
+        // Only tear down the GlobalState and close the database when the
+        // activity is actually finishing (e.g. user exits the app). During
+        // configuration changes such as rotation, we keep the process-wide
+        // GlobalState instance alive so that configuration and workflow state
+        // are preserved across Activity recreation.
+        if (isFinishing() && GlobalState.getInstance()!=null) {
             GlobalState.getInstance().getDb().closeDatabaseBeforeExit();
-
             GlobalState.destroy();
         }
 
@@ -724,6 +736,10 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     public Start getStartInstance() {
         return startInstance;
+    }
+
+    public static Start getCurrentInstance() {
+        return currentInstance;
     }
     /*
     @Override

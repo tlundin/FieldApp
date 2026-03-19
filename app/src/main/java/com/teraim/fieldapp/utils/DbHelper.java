@@ -613,7 +613,7 @@ public class DbHelper extends SQLiteOpenHelper {
                 if (Tools.writeToFile(exportFolder + exportFileName + "." + exporter.getType(), r.getData())) {
                     Log.d(TAG, "export: file written successfully");
                     LogRepository logger = LogRepository.getInstance();
-                    logger.addText("Exported to folder: "+exportFolder);
+                    logger.addText("Exported file: " + exportFolder + exportFileName + "." + exporter.getType());
                     c.close();
                     res = r;
                 } else {

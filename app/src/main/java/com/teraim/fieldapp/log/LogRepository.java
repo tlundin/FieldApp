@@ -104,10 +104,38 @@ public class LogRepository {
      * @param text The text to append.
      */
     public synchronized void addCriticalText(String text) {
+        if (text == null || text.isEmpty()) {
+            return;
+        }
+
         Log.d(TAG, text);
         hasNewCriticalEvent.postValue(true);
-        // Append to both logs
-        appendTextWithColor(text, Color.RED, true);
+
+        final String prefix = "[Critical] ";
+
+        // Always add to the main log
+        trimLog(allLogContent);
+        boolean prependNewlineAll = allLogContent.length() > 0;
+        String stringToAppendAll = prependNewlineAll ? "\n" + prefix + text : prefix + text;
+        int startAll = allLogContent.length();
+        allLogContent.append(stringToAppendAll);
+        int prefixStartAll = startAll + (prependNewlineAll ? 1 : 0);
+        int prefixEndAll = prefixStartAll + prefix.length();
+        allLogContent.setSpan(new ForegroundColorSpan(Color.RED), prefixStartAll, prefixEndAll, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        allLogContent.setSpan(new ForegroundColorSpan(Color.WHITE), prefixEndAll, allLogContent.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        // Also add to the critical log
+        trimLog(criticalLogContent);
+        boolean prependNewlineCrit = criticalLogContent.length() > 0;
+        String stringToAppendCrit = prependNewlineCrit ? "\n" + prefix + text : prefix + text;
+        int startCrit = criticalLogContent.length();
+        criticalLogContent.append(stringToAppendCrit);
+        int prefixStartCrit = startCrit + (prependNewlineCrit ? 1 : 0);
+        int prefixEndCrit = prefixStartCrit + prefix.length();
+        criticalLogContent.setSpan(new ForegroundColorSpan(Color.RED), prefixStartCrit, prefixEndCrit, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        criticalLogContent.setSpan(new ForegroundColorSpan(Color.WHITE), prefixEndCrit, criticalLogContent.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        updateLiveData();
     }
 
     /**

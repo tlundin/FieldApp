@@ -31,6 +31,8 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.StartProvider;
+import com.teraim.fieldapp.SessionPersistence;
+import com.teraim.fieldapp.SessionSnapshot;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
@@ -259,6 +261,14 @@ public class StartupFragment extends Executor {
         DbHelper myDb = new DbHelper(requireActivity().getApplicationContext(), t, globalPh, ph, bundleName);
         gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, myDb, workflows, t, sd,logText, imgMetaFormat);
 
+        // Restore any previously saved lightweight session information into the
+        // newly created GlobalState. For now this only affects the explicit
+        // SessionState representation and does not alter module loading logic.
+        SessionSnapshot previousSnapshot = SessionPersistence.load(requireActivity().getApplicationContext());
+        if (previousSnapshot != null && gs.getSessionState() != null) {
+            gs.getSessionState().restoreFromSnapshot(previousSnapshot);
+        }
+
         if (gs.getBackupManager().timeToBackup()) {
             gs.getBackupManager().backUp();
         }
@@ -269,6 +279,12 @@ public class StartupFragment extends Executor {
         gs.setModuleRegistry(moduleRegistry);
         startInstance.getDrawerMenu().closeDrawer();
         startInstance.getDrawerMenu().clear();
+        gs.clearMenuDefinition();
+
+        // Capture a session snapshot after successful initialization so that
+        // a lightweight representation of the session can be restored later.
+        SessionSnapshot snapshot = gs.createSessionSnapshot();
+        SessionPersistence.save(requireActivity().getApplicationContext(), snapshot);
 
         Workflow wf = gs.getWorkflow("Main");
         if (wf == null) {
@@ -295,6 +311,7 @@ public class StartupFragment extends Executor {
                         Log.d(TAG, "User triggered a force reload.");
                         if (GlobalState.getInstance() != null) {
                             GlobalState.getInstance().getDrawerMenu().clear();
+                            GlobalState.getInstance().clearMenuDefinition();
                             GlobalState.destroyInstance();
                             // Clear persisted provYtaTypes as they will be re-generated
                             ph.remove(KEY_PROVYTE_TYPES);

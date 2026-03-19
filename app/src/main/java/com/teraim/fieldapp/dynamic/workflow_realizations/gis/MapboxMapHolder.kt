@@ -1436,8 +1436,13 @@ class MapboxMapHolder(
         val memberUuid = member.uuid ?: return false
         return memberUuid.trim().equals(myUuid.trim(), ignoreCase = true)
     }
-    /** Team layer visibility (for layer list toggle). */
+    /** Team layer visibility (for layer list toggle). Defaults to true; MapTemplate may override based on GisMapView. */
     private var teamLayerVisible: Boolean = true
+
+    /** Allows MapTemplate / GisMapView config to set initial visibility of the team layer. */
+    fun setInitialTeamLayerVisible(visible: Boolean) {
+        teamLayerVisible = visible
+    }
     private val mePulseHandler = Handler(Looper.getMainLooper())
     private var mePulseRunnable: Runnable? = null
     private var mePulseExpandRunnable: Runnable? = null

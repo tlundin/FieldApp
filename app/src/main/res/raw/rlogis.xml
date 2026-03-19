@@ -86,6 +86,7 @@
       <zoom>4</zoom>
       <pitch>0</pitch>
       <bearing>0</bearing>
+      <team_visible>false</team_visible>
     </block_add_gis_map_view>
     <block_add_gis_layer>
       <block_ID>1014</block_ID>

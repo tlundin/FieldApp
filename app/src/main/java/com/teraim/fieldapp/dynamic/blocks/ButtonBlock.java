@@ -735,6 +735,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 														});
 														final OkHttpClient client = gs.getHTTPClient();
 														final AtomicInteger counter = new AtomicInteger(0);
+														final List<String> exportedItemsForLog = new ArrayList<>();
 
 														final Callback cb = new Callback() {
 															@Override
@@ -783,10 +784,19 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	call.cancel();
 																} else {
 																	String exportedImgName = "";
+																	if (counter.get() == 1) {
+																		// First successful response is for the exported data file itself.
+																		synchronized (exportedItemsForLog) {
+																			exportedItemsForLog.add("File: " + exportFile.getAbsolutePath());
+																		}
+																	}
 																	if (counter.get() >= 2) {
 																		exportedImgName = imagesToExport.get(counter.get() - 2).name;
 																		newSetAfterExport.add(exportedImgName);
 																		sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, newSetAfterExport).commit();
+																		synchronized (exportedItemsForLog) {
+																			exportedItemsForLog.add("Image: " + exportedImgName);
+																		}
 																	}
 																	if (counter.get() == totalToExport) {
 																		StringBuilder eMsg = new StringBuilder();
@@ -804,6 +814,15 @@ public  class ButtonBlock extends Block  implements EventListener {
 																				((WF_StatusButton) button).changeStatus(WF_StatusButton.Status.ready_exported);
 																			}
 																		});
+
+																		// Log the exported items to the application log repository.
+																		StringBuilder logMsg = new StringBuilder("Exported items:");
+																		synchronized (exportedItemsForLog) {
+																			for (String item : exportedItemsForLog) {
+																				logMsg.append("\n- ").append(item);
+																			}
+																		}
+																		o.addText(logMsg.toString());
 																	} else {
 																		String finalExportedImgName = exportedImgName;
 																		((Activity) ctx).runOnUiThread(() -> {

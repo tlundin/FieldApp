@@ -402,8 +402,28 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 mBound = false;
             }
         }
+        // If initialization was already completed in a previous Activity instance
+        // (for example before a configuration change), GlobalState will be
+        // non-null but we may not have received a fresh INITDONE broadcast in
+        // this new instance. In that case, re-establish the same post-init
+        // wiring as in the INITDONE branch of our BroadcastReceiver so that
+        // the menu row is correctly populated after rotation.
+        if (GlobalState.getInstance() != null && !initDone) {
+            initDone = true;
+            gs = GlobalState.getInstance();
+            GlobalState.getInstance().registerListener(this, Type.MENU);
+            TeamStatusViewModel teamStatusViewModel = new ViewModelProvider(this).get(TeamStatusViewModel.class);
+            fetchTeamUpdatesRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    teamStatusViewModel.sendAndReceiveTeamPositions();
+                    teamHandler.postDelayed(this, TimeUnit.SECONDS.toMillis(Constants.LOCATION_UPDATE_INTERVAL));
+                }
+            };
+        }
         if (initDone) {
             startTeamUpdatesPolling(Constants.LOCATION_UPDATE_INTERVAL);
+            refreshStatusRow();
         }
     }
 
@@ -569,6 +589,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
     private void refreshStatusRow() {
+        // If the menu has not yet been created (e.g. onResume called before
+        // onCreateOptionsMenu after a configuration change), bail out early.
+        if (mnu[MENU_ITEM_GPS_QUALITY] == null
+                || mnu[MENU_ITEM_SYNC_TYPE] == null
+                || mnu[MENU_ITEM_CONTEXT] == null
+                || mnu[MENU_ITEM_LOG_WARNING] == null
+                || mnu[MENU_ITEM_SETTINGS] == null
+                || mnu[MENU_ITEM_ABOUT] == null) {
+            return;
+        }
+
         //If init failed, show only log and settings
         if (initFailed) {
             if (mnu[MENU_ITEM_LOG_WARNING] != null) {
@@ -578,7 +609,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             }
             //Init done succesfully? Show all items.
         } else if (GlobalState.getInstance() != null && initDone) {
-            if (latestSignal.state == GPS_State.State.disabled) {
+            // Guard against latestSignal being null (can happen after lifecycle
+            // events where GPS has not yet produced a value in this instance).
+            if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
                 mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
                 monitorGPS(false);
             }

@@ -179,12 +179,14 @@ public class MapTemplate extends Executor {
 	@Override
 	public void onViewCreated(View view, Bundle savedInstanceState) {
 		super.onViewCreated(view, savedInstanceState);
-		// Always set up team layer when we have the Mapbox map (block_add_gis_map_view). Cached workflow may have teamVisible=false.
+		// Always wire up team overlay when we have a GisMapView; initial visibility is controlled by GisMapView.isTeamVisible().
 		boolean teamEnabled = pendingGisMapViewConfig != null && mapboxMapHolder != null;
 		Log.d(TAG, "onViewCreated: pendingConfig=" + (pendingGisMapViewConfig != null)
 				+ " mapboxMapHolder=" + (mapboxMapHolder != null) + " -> teamLayerEnabled=" + teamEnabled);
 
 		if (teamEnabled) {
+			// Apply initial visibility (checked/unchecked) for Team layer based on GisMapView.teamVisible.
+			mapboxMapHolder.setInitialTeamLayerVisible(pendingGisMapViewConfig.isTeamVisible());
 			Log.d(TAG, "Setting up team layer: observing TeamStatusViewModel");
 			teamStatusViewModel = new ViewModelProvider(requireActivity()).get(TeamStatusViewModel.class);
 			teamStatusViewModel.sendAndReceiveTeamPositions(); // trigger initial fetch
@@ -434,6 +436,11 @@ public class MapTemplate extends Executor {
 
 	public MapboxMapHolder getMapboxMapHolder() {
 		return mapboxMapHolder;
+	}
+
+	/** Exposes current GisMapView config so map realizations can honor its settings (e.g. team visibility). */
+	public GisMapView getPendingGisMapViewConfig() {
+		return pendingGisMapViewConfig;
 	}
 
 	private void setupFabMenu(View rootView) {

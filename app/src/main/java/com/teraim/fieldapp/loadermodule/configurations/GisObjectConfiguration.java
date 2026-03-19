@@ -587,18 +587,17 @@ public class GisObjectConfiguration extends JSONConfigurationModule {
 
             if (isDebug && !missingVariables.isEmpty()) {
                 ;
-                o.addCriticalText("VARIABLES MISSING IN VARIABLES CONFIGURATION FOR " + this.fileName + ":");
+                o.addText("Missing variables in " + this.fileName + ":");
 
                 for (String m : missingVariables) {
-                    ;
-                    o.addCriticalText(m);
+                    o.addText(m);
                 }
             }
             if (isDebug && !dubletter.isEmpty()) {
                 ;
-                o.addCriticalText("Filen "+fileName+"har dubletter: ");
+                o.addText(fileName+"has more than one of: ");
                 for (GisObject g:dubletter) {
-                    o.addCriticalText(g.getKeyHash().toString());
+                    o.addText(g.getKeyHash().toString());
                 }
             }
             if (isDebug && dubletter.isEmpty()) {

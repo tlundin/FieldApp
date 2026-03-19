@@ -26,7 +26,7 @@ dependencyResolutionManagement {
         mavenCentral()
         // Mapbox Maven repository - requires MAPBOX_DOWNLOADS_TOKEN from local.properties
         // The token is loaded above and set as a system property
-        maven { url 'https://api.mapbox.com/downloads/v2/releases/maven' }
+        maven { url = uri('https://api.mapbox.com/downloads/v2/releases/maven') }
     }
 }
 

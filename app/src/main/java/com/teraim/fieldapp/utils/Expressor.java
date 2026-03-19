@@ -53,8 +53,6 @@ import java.util.Stack;
 public class Expressor {
 	private static final String TAG = "Expressor";
 
-
-
     private static List<List<String>>  targetList = null;
 
     //Types of tokens recognized by the Engine.
@@ -95,6 +93,8 @@ public class Expressor {
         getSweRefX(valueFunction,1),
         getSweRefY(valueFunction,1),
         getAppName(valueFunction,0),
+        getAppVersion(valueFunction,0),
+        getBundleVersion(valueFunction,0),
         getUserRole(valueFunction,0),
         getTeamName(valueFunction,0),
         getUserName(valueFunction,0),
@@ -1609,6 +1609,10 @@ public class Expressor {
                     break;
                 case getAppName:
                     return GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME);
+                case getAppVersion:
+                    return GlobalState.getInstance().getGlobalPreferences().getF(PersistenceHelper.CURRENT_VERSION_OF_APP);
+                case getBundleVersion:
+                    return GlobalState.getInstance().getGlobalPreferences().getF(PersistenceHelper.CURRENT_VERSION_OF_WF_BUNDLE);
                 case getStatusVariableValues:
                     if (checkPreconditions(evalArgs,1,No_Null_Literal)) {
                         //Gets the status from all buttons on the page.
