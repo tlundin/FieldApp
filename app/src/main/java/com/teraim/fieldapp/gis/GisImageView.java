@@ -17,6 +17,7 @@ import android.graphics.Path;
 import android.graphics.Path.FillType;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
@@ -1168,7 +1169,7 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		final int interval = TimeOut*1000;
 
 		if (handler==null) {
-			handler = new Handler();
+			handler = new Handler(Looper.getMainLooper());
 			Runnable runnable = new Runnable(){
 				public void run() {
 					displayDistanceAndDirectionL(null);

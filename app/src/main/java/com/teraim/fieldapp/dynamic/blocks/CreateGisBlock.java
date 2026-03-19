@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -282,7 +283,7 @@ public class CreateGisBlock extends Block {
 				mapLayers.clear();
 			}
 
-			new Handler().postDelayed(new Runnable() {
+			new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 				public void run() {
 
 					Bitmap bmp = Tools.getScaledImageRegion(myContext.getContext(),cachedImgFilePath,r);

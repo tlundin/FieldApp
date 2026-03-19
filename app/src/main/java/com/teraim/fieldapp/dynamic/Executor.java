@@ -783,7 +783,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 													}
 													Log.d(TAG, "Variable has sideEffects...re-executing flow");
 													myContext.setMyEndIsNear();
-													new Handler().postDelayed(new Runnable() {
+													new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 														public void run() {
 															//myContext.resetState();
 
@@ -884,7 +884,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 								if (bl.evaluate()) {
 									//redraw! We block all other conditional blocks from triggering.
 									myContext.setMyEndIsNear();
-									new Handler().postDelayed(new Runnable() {
+									new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 										public void run() {
 											//myContext.resetState();
 											Set<Variable> previouslyVisibleVars = visiVars;
@@ -1184,7 +1184,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 			return;
 		}
 		myContext.setMyEndIsNear();
-		new Handler().postDelayed(new Runnable() {
+		new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 			public void run() {
 				//myContext.resetState();
 				Executor.this.run();

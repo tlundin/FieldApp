@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -175,7 +176,7 @@ public class NudgeView extends View {
                             //Start timer for automatic nudging.
                             if (l||r||d||u ) {
                                 downCount=true;
-                                final Handler handler = new Handler();
+                                final Handler handler = new Handler(Looper.getMainLooper());
                                 final Runnable runnable = new Runnable(){
                                     public void run() {
                                        if (downCount) {

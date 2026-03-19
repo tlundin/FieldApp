@@ -1,6 +1,7 @@
 package com.teraim.fieldapp.dynamic.blocks;
 
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.teraim.fieldapp.GlobalState;
@@ -287,7 +288,7 @@ public class CoupledVariableGroupBlock extends Block implements EventListener {
         if (slidersToCalibrate.size()>0) {
 
 
-            handler = new Handler();
+            handler = new Handler(Looper.getMainLooper());
             Runnable runnable = new Runnable() {
                 public void run() {
                     if (currentSum != sumToReach) {

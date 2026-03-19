@@ -273,7 +273,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             //delay or discard call.
                             Log.d(TAG, "Calling redraw");
                             if (handler == null) {
-                                handler = new Handler();
+                                handler = new Handler(Looper.getMainLooper());
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -460,6 +460,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         private SyncConsumerThread syncConsumerThread;
 
         IncomingHandler(MenuActivity menuActivity) {
+            super(Looper.getMainLooper());
 
             this.menuActivity = menuActivity;
             syncConsumerThread = null;
@@ -661,7 +662,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private void monitorGPS(boolean on) {
         //Log.d(TAG,"MONITOR CALLED "+on);
         if (on && GPShandler == null) {
-            GPShandler = new Handler();
+            GPShandler = new Handler(Looper.getMainLooper());
             Runnable runnable = new Runnable(){
                 public void run() {
                     GPShandler=null;

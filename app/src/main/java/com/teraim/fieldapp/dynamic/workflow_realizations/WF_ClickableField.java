@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.text.InputFilter;
 import android.text.Selection;
@@ -1155,7 +1156,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 // this is the spinner.
                 final Spinner sp = v.findViewById(R.id.spinner);
 
-                final Handler h = new Handler();
+                final Handler h = new Handler(Looper.getMainLooper());
                 if (firstSpinner != null)
                     new Thread(new Runnable() {
                         public void run() {
