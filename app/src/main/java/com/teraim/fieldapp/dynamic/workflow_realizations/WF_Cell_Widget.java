@@ -27,8 +27,10 @@ public class WF_Cell_Widget extends WF_ClickableField implements WF_Cell, EventL
 
 		myHash = columnKeyHash;
 		cellType = type;
-		context.registerEventListener(this, Event.EventType.onSave);
+		// Registering event listeners per cell is expensive; defer until first variable is attached.
 	}
+
+	private boolean eventListenerRegistered = false;
 
 
 
@@ -51,6 +53,10 @@ public class WF_Cell_Widget extends WF_ClickableField implements WF_Cell, EventL
 	public void addVariable(final String varId, boolean displayOut,String format,boolean isVisible,boolean showHistorical, String prefetchValue) {	
 		Variable var = GlobalState.getInstance().getVariableCache().getCheckedVariable(myHash, varId, prefetchValue, prefetchValue!=null);
 		super.addVariable(var, displayOut, format, isVisible,showHistorical);
+		if (!eventListenerRegistered && var != null) {
+			myContext.registerEventListener(this, Event.EventType.onSave);
+			eventListenerRegistered = true;
+		}
 	}
 
 	@Override

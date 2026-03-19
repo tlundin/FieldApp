@@ -618,6 +618,48 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
     }
 
+    /**
+     * Lazily materialize output views (the rendered/printed part) for already-attached variables.
+     * This is used by {@link com.teraim.fieldapp.ui.TableBodyAdapter} to avoid inflating UI for
+     * thousands of off-screen table cells.
+     *
+     * Note: we only lazily materialize non-list variables here. List variables require spinner
+     * option arrays to be available, so they should be created eagerly at attach time.
+     */
+    public void ensureOutputViewsCreated() {
+        if (myVars == null || myVars.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<Variable, VariableView> entry : myVars.entrySet()) {
+            Variable variable = entry.getKey();
+            VariableView vv = entry.getValue();
+            if (variable == null || vv == null) {
+                continue;
+            }
+
+            // Already materialized for this variable instance.
+            if (myOutputFields != null && myOutputFields.containsKey(variable)) {
+                continue;
+            }
+
+            // Only lazy-create non-list outputs. List outputs are created eagerly.
+            if (variable.getType() == DataType.list) {
+                continue;
+            }
+
+            LinearLayout ll = getFieldLayout();
+            OutC w = new OutC(ll, vv.format);
+            myOutputFields.put(variable, w);
+            outputContainer.addView(ll, 0);
+            refreshOutputField(variable, w);
+        }
+
+        if (outputContainer != null) {
+            outputContainer.requestLayout();
+        }
+    }
+
     private int findSpinnerIndexFromValue(String hist, String[] val) {
         int h = Integer.parseInt(hist);
         if (val == null)

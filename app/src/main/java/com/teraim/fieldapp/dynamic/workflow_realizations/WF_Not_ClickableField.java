@@ -33,7 +33,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 	final WF_Context myContext;
 	String myDescription;
 	private boolean showAuthor  = false;
-	final Map<Variable,OutC> myOutputFields = new HashMap<Variable,OutC>();
+	protected final Map<Variable,OutC> myOutputFields = new HashMap<Variable,OutC>();
 
 	//Hack! Used to determine what is the master key for this type of element.
 	//If DisplayOut & Virgin --> This is master key.

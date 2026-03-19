@@ -543,6 +543,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 	private void execute(int blockP) {
 
 		boolean notDone = true;
+		List<Block> deferredUiBlocks = new ArrayList<>();
 		savedBlockPointer = -1;
 		Log.d(TAG, "in execute with blockP " + blockP);
 		myContext.clearExecutedBlocks();
@@ -582,7 +583,10 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					Log.e("vortex", "blockId was not Integer");
 				}
 
-				if (b instanceof PageDefineBlock bl) {
+				boolean deferUiCreation = shouldDeferUiBlock(b);
+				if (deferUiCreation) {
+					deferredUiBlocks.add(b);
+				} else if (b instanceof PageDefineBlock bl) {
                     Log.d(TAG, "Found pagedefine!");
 					if (bl.hasGPS()) {
 						myContext.enableGPS(bl.gpsPriority());
@@ -607,50 +611,16 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 						}
 
 					}
-				} else if (b instanceof ButtonBlock bl) {
-					
-					o.addYellowText("ButtonBlock found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockCreateTextField bl) {
-					
-					o.addYellowText("CreatTextBlock found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof CreateSortWidgetBlock bl) {
-					
-					o.addYellowText("CreateSortWidgetBlock found " + b.getBlockId());
-                    bl.create(myContext);
 				}/*
 			else if (b instanceof ListFilterBlock) {
 				
 				o.addYellowText("ListFilterBlock found");
 				ListFilterBlock bl = (ListFilterBlock)b;
 				bl.create(myContext);
-			}*/ else if (b instanceof CreateEntryFieldBlock bl) {
-					
-					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
-                    Log.d(TAG, "CreateEntryFieldBlock found");
-					Variable v = bl.create(myContext);
-					if (v != null)
-						visiVars.add(v);
-				} else if (b instanceof CreateSliderEntryFieldBlock bl) {
-					
-					o.addYellowText("CreateEntryFieldBlock found " + b.getBlockId());
-                    Log.d(TAG, "CreateSliderEntryFieldBlock found");
-					Variable v = bl.create(myContext);
-					if (v != null)
-						visiVars.add(v);
-				} else if (b instanceof AddSumOrCountBlock bl) {
-					
-					o.addYellowText("AddSumOrCountBlock found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof DisplayValueBlock bl) {
-					
-					o.addYellowText("DisplayValueBlock found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof CoupledVariableGroupBlock bl) {
-					
-					o.addYellowText("Slidergroupblock found " + b.getBlockId());
-                    bl.create(myContext);
+			}*/
+				else if (b instanceof CoupledVariableGroupBlock bl) {
+					// delayed in deferred phase
+					o.addYellowText("CoupledVariableGroupBlock queued " + b.getBlockId());
 				} else if (b instanceof AddVariableToEveryListEntryBlock bl) {
 					
 					o.addYellowText("AddVariableToEveryListEntryBlock found " + b.getBlockId());
@@ -677,47 +647,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 					}
 					*/
-				} else if (b instanceof StartCameraBlock bl) {
-					
-					o.addYellowText("BlockStartCamera found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockCreateTable bl) {
-					
-					o.addYellowText("BlockCreateTable found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockCreateTableEntriesFromFieldList bl) {
-					
-					o.addYellowText("BlockCreateTableEntriesFromFieldList found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockAddColumnsToTable bl) {
-					
-					o.addYellowText("BlockAddColumn(s)ToTable found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockAddAggregateColumnToTable bl) {
-					
-					o.addYellowText("BlockAddAggregateColumnToTable found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof BlockAddVariableToTable bl) {
-					
-					o.addYellowText("BlockAddVariableToTable(s)ToTable found " + b.getBlockId());
-                    bl.create(myContext);
-				} else if (b instanceof AddVariableToEntryFieldBlock bl) {
-					
-					o.addYellowText("AddVariableToEntryFieldBlock found " + b.getBlockId());
-                    Variable v = bl.create(myContext);
-					if (v != null)
-						visiVars.add(v);
-
-				} else if (b instanceof AddVariableToListEntry bl) {
-					
-					o.addYellowText("AddVariableToListEntry found " + b.getBlockId());
-                    Variable v = bl.create(myContext);
-					//TODO: REMOVE THIS??
-				} else if (b instanceof AddEntryToFieldListBlock bl) {
-					
-					o.addYellowText("AddEntryToFieldListBlock found " + b.getBlockId());
-                    bl.create(myContext);
-
 				} else if (b instanceof NoOpBlock) {
 					
 					o.addYellowText("Noopblock found and skipped! " + b.getBlockId());
@@ -746,10 +675,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					
 					o.addYellowText("Jumpblock found " + b.getBlockId());
                     jump.put(bl.getBlockId(), bl.getJumpTo());
-				} else if (b instanceof CreateImageBlock bl) {
-					
-					o.addYellowText("CreateImageBlock found " + b.getBlockId());
-                    bl.create(myContext);
 				} else if (b instanceof SetValueBlock bl) {
                     //final List<TokenizedItem> tokens = gs.getRuleExecutor().findTokens(bl.getFormula(),null);
 					if (bl.getBehavior() != ExecutionBehavior.constant && bl.getBehavior() != ExecutionBehavior.constant_value) {
@@ -942,21 +867,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 
 					((RuleBlock) b).create(myContext, blocks);
 
-				} else if (b instanceof MenuHeaderBlock) {
-					((MenuHeaderBlock) b).create(myContext);
-					myContext.setHasMenu();
-				} else if (b instanceof MenuEntryBlock) {
-					((MenuEntryBlock) b).create(myContext);
-					myContext.setHasMenu();
-				} else if (b instanceof RoundChartBlock) {
-					((RoundChartBlock) b).create(myContext);
-
-				} else if (b instanceof BarChartBlock) {
-					((BarChartBlock) b).create(myContext);
-
-				} else if (b instanceof CreateCategoryDataSourceBlock) {
-					((CreateCategoryDataSourceBlock) b).create(myContext);
-
 				} else if (b instanceof CreateGisBlock bl) {
                     // With MapTemplate, network, and use_maps enabled, use map background instead of loading image layers.
 					String template = myContext.getWorkflow() != null ? myContext.getWorkflow().getTemplate() : null;
@@ -990,17 +900,6 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					// This is still needed to prevent the loop from continuing immediately.
 					savedBlockPointer = blockP + 1;
 					return;
-				} else if (b instanceof AddGisMapViewBlock bl) {
-                    if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
-						((com.teraim.fieldapp.dynamic.templates.MapTemplate) this).registerMapboxMapFromGisMapView(bl.getGisMapView());
-					}
-				} else if (b instanceof AddGisLayerBlock) {
-					((AddGisLayerBlock) b).create(myContext);
-
-				} else if (b instanceof AddGisPointObjects) {
-					((AddGisPointObjects) b).create(myContext);
-				} else if (b instanceof AddGisFilter) {
-					((AddGisFilter) b).create(myContext);
 				} else if (b instanceof BlockDeleteMatchingVariables) {
 					((BlockDeleteMatchingVariables) b).create(myContext);
 				} else if (b instanceof AddFilter bl) {
@@ -1025,6 +924,7 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					Log.d(TAG, "EXECUTION STOPPED ON BLOCK " + b.getBlockId());
 			}
 
+			executeDeferredUiBlocks(deferredUiBlocks);
 
 			if (!myListBlocks.isEmpty()) {
 				addLoadDialog();
@@ -1051,6 +951,131 @@ public abstract class Executor extends Fragment implements AsyncResumeExecutorI 
 					Tools.printErrorToLog(o, e, "index: " + blockP + " (after execution)");
 			} else
 				Tools.printErrorToLog(o, e, "index: " + blockP);
+		}
+	}
+
+	private boolean shouldDeferUiBlock(Block b) {
+		return b instanceof ButtonBlock
+				|| b instanceof BlockCreateTextField
+				|| b instanceof CreateSortWidgetBlock
+				|| b instanceof CreateEntryFieldBlock
+				|| b instanceof CreateSliderEntryFieldBlock
+				|| b instanceof AddSumOrCountBlock
+				|| b instanceof DisplayValueBlock
+				|| b instanceof CoupledVariableGroupBlock
+				|| b instanceof StartCameraBlock
+				|| b instanceof BlockCreateTable
+				|| b instanceof BlockCreateTableEntriesFromFieldList
+				|| b instanceof BlockAddColumnsToTable
+				|| b instanceof BlockAddAggregateColumnToTable
+				|| b instanceof BlockAddVariableToTable
+				|| b instanceof AddVariableToEntryFieldBlock
+				|| b instanceof AddVariableToListEntry
+				|| b instanceof AddEntryToFieldListBlock
+				|| b instanceof CreateImageBlock
+				|| b instanceof MenuHeaderBlock
+				|| b instanceof MenuEntryBlock
+				|| b instanceof RoundChartBlock
+				|| b instanceof BarChartBlock
+				|| b instanceof CreateCategoryDataSourceBlock
+				|| b instanceof AddGisMapViewBlock
+				|| b instanceof AddGisLayerBlock
+				|| b instanceof AddGisPointObjects
+				|| b instanceof AddGisFilter;
+	}
+
+	private void executeDeferredUiBlocks(List<Block> deferredUiBlocks) {
+		if (deferredUiBlocks.isEmpty()) {
+			return;
+		}
+		Log.d(TAG, "Executing deferred UI blocks: " + deferredUiBlocks.size());
+		for (Block b : deferredUiBlocks) {
+			if (b instanceof ButtonBlock bl) {
+				o.addYellowText("ButtonBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockCreateTextField bl) {
+				o.addYellowText("CreatTextBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof CreateSortWidgetBlock bl) {
+				o.addYellowText("CreateSortWidgetBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof CreateEntryFieldBlock bl) {
+				o.addYellowText("CreateEntryFieldBlock deferred-exec " + b.getBlockId());
+				Variable v = bl.create(myContext);
+				if (v != null) {
+					visiVars.add(v);
+				}
+			} else if (b instanceof CreateSliderEntryFieldBlock bl) {
+				o.addYellowText("CreateSliderEntryFieldBlock deferred-exec " + b.getBlockId());
+				Variable v = bl.create(myContext);
+				if (v != null) {
+					visiVars.add(v);
+				}
+			} else if (b instanceof AddSumOrCountBlock bl) {
+				o.addYellowText("AddSumOrCountBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof DisplayValueBlock bl) {
+				o.addYellowText("DisplayValueBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof CoupledVariableGroupBlock bl) {
+				o.addYellowText("CoupledVariableGroupBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof StartCameraBlock bl) {
+				o.addYellowText("BlockStartCamera deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockCreateTable bl) {
+				o.addYellowText("BlockCreateTable deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockCreateTableEntriesFromFieldList bl) {
+				o.addYellowText("BlockCreateTableEntriesFromFieldList deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockAddColumnsToTable bl) {
+				o.addYellowText("BlockAddColumn(s)ToTable deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockAddAggregateColumnToTable bl) {
+				o.addYellowText("BlockAddAggregateColumnToTable deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof BlockAddVariableToTable bl) {
+				o.addYellowText("BlockAddVariableToTable deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof AddVariableToEntryFieldBlock bl) {
+				o.addYellowText("AddVariableToEntryFieldBlock deferred-exec " + b.getBlockId());
+				Variable v = bl.create(myContext);
+				if (v != null) {
+					visiVars.add(v);
+				}
+			} else if (b instanceof AddVariableToListEntry bl) {
+				o.addYellowText("AddVariableToListEntry deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof AddEntryToFieldListBlock bl) {
+				o.addYellowText("AddEntryToFieldListBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof CreateImageBlock bl) {
+				o.addYellowText("CreateImageBlock deferred-exec " + b.getBlockId());
+				bl.create(myContext);
+			} else if (b instanceof MenuHeaderBlock) {
+				((MenuHeaderBlock) b).create(myContext);
+				myContext.setHasMenu();
+			} else if (b instanceof MenuEntryBlock) {
+				((MenuEntryBlock) b).create(myContext);
+				myContext.setHasMenu();
+			} else if (b instanceof RoundChartBlock) {
+				((RoundChartBlock) b).create(myContext);
+			} else if (b instanceof BarChartBlock) {
+				((BarChartBlock) b).create(myContext);
+			} else if (b instanceof CreateCategoryDataSourceBlock) {
+				((CreateCategoryDataSourceBlock) b).create(myContext);
+			} else if (b instanceof AddGisMapViewBlock bl) {
+				if (this instanceof com.teraim.fieldapp.dynamic.templates.MapTemplate) {
+					((com.teraim.fieldapp.dynamic.templates.MapTemplate) this).registerMapboxMapFromGisMapView(bl.getGisMapView());
+				}
+			} else if (b instanceof AddGisLayerBlock) {
+				((AddGisLayerBlock) b).create(myContext);
+			} else if (b instanceof AddGisPointObjects) {
+				((AddGisPointObjects) b).create(myContext);
+			} else if (b instanceof AddGisFilter) {
+				((AddGisFilter) b).create(myContext);
+			}
 		}
 	}
 

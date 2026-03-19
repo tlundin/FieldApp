@@ -287,13 +287,8 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		if (targetRow == null) { Log.e("WF_Table_Row_Recycle", "Target TableRow for adding cell is null. Row ID: " + id); return; }
 
 		Context ctx = myContext.getContext();
-		boolean isAggregateCellDefinition = false; // Check if the definition implies it's for an aggregate column header
-		for(PageWithTable.ColumnDefinition cd: myWfTable.getColumnDefinitions()) { // Assuming myWfTable has a getter for columnDefinitions
-			if (cd.key.equals(colKey) && cd.isAggregate) {
-				isAggregateCellDefinition = true;
-				break;
-			}
-		}
+		// We already get cellType from caller (Normal vs Aggregate) so avoid scanning all column definitions per cell.
+		boolean isAggregateCellDefinition = cellType == WF_Cell.CellType.Aggregate;
 
 
 		if ("simple".equals(type)) {
@@ -367,6 +362,26 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		targetContainer.addView(emptyCell); return cb;
 	}
 	public List<WF_Cell> getCells() { return myColumns; }
+
+	/**
+	 * Lazily inflate output views for off-screen cells when they become visible/bound.
+	 * This avoids inflating output widgets for all cells up-front.
+	 */
+	public void ensureCellOutputsCreated() {
+		if (myColumns == null || myColumns.isEmpty()) {
+			return;
+		}
+
+		for (WF_Cell cell : myColumns) {
+			if (cell instanceof WF_ClickableField) {
+				((WF_ClickableField) cell).ensureOutputViewsCreated();
+			}
+		}
+
+		if (getWidget() != null) {
+			getWidget().requestLayout();
+		}
+	}
 	@Override
 	public String getLabel() { if (al == null) { return "*ConfigErr*"; } return al.getEntryLabel(myRow); }
 	@Override public String getKey() { return getLabel(); }

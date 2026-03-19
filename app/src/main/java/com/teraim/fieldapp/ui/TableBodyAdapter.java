@@ -1,6 +1,7 @@
 package com.teraim.fieldapp.ui;
 
 import android.content.Context;
+import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,6 +89,20 @@ public class TableBodyAdapter extends RecyclerView.Adapter<TableBodyAdapter.RowV
         // Updated bind method to take WF_Table_Row_Recycle
         public void bind(WF_Table_Row_Recycle rowWidgetItem) {
             cellContainer.removeAllViews(); // Clear previous content from the LinearLayout container
+
+			// Materialize lazy outputs only for the row that is about to become visible.
+			// This keeps the initial table attach phase from inflating thousands of output views.
+			if (rowWidgetItem != null) {
+				long t0 = SystemClock.elapsedRealtime();
+				rowWidgetItem.ensureCellOutputsCreated();
+				long t1 = SystemClock.elapsedRealtime();
+				long dt = t1 - t0;
+				if (dt > 0) {
+					Log.d("TableTiming",
+							"TableBodyAdapter#bind materializeOutputs rowLabel="
+									+ rowWidgetItem.getLabel() + " dt=" + dt + "ms");
+				}
+			}
 
             // Get the pre-configured View from the WF_Table_Row_Recycle widget.
             // This view was inflated from R.layout.table_row in PageWithTable.
