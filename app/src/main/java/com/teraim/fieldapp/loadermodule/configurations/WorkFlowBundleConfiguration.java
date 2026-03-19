@@ -1909,6 +1909,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String namn=null,containerId=null,postLabel="",id=null,initialValue=null,label=null,variableName=null,group=null;
 		String textColor = "Black";
 		int min=0,max=100;
+		int textSizeSp = -1;
 		String backgroundColor = null,verticalMargin=null,verticalFormat=null;
 		Unit unit = Unit.nd;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_slider_entry_field");
@@ -1981,13 +1982,25 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "vertical_format":
 					verticalFormat = readText("vertical_format", parser);
 					break;
+				case "text_size":
+					{
+						String ts = readText("text_size", parser);
+						if (ts != null && ts.length() > 0) {
+							try {
+								textSizeSp = Integer.parseInt(ts);
+							} catch (NumberFormatException e) {
+								textSizeSp = -1;
+							}
+						}
+					}
+					break;
 				default:
 					skip(name, parser, o);
 					break;
 			}
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"variableName",variableName);
-		return new CreateSliderEntryFieldBlock(id,namn, containerId,isVisible,showHistorical,initialValue,label,variableName,group,textColor,backgroundColor,min,max,verticalFormat,verticalMargin);
+		return new CreateSliderEntryFieldBlock(id,namn, containerId,isVisible,showHistorical,initialValue,label,variableName,group,textColor,backgroundColor,min,max,verticalFormat,verticalMargin,textSizeSp);
 	}
 
 	private CreateEntryFieldBlock readBlockCreateEntryField(XmlPullParser parser)throws IOException, XmlPullParserException {
@@ -1996,6 +2009,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String namn=null,containerId=null,postLabel="",format=null,id=null,initialValue=null,label=null;
 		Unit unit = Unit.nd;
 		String textColor = "black";
+		int textSizeSp = -1;
 		String backgroundColor = null,verticalMargin=null,verticalFormat=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_entry_field");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -2044,13 +2058,25 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "vertical_format":
 					verticalFormat = readText("vertical_format", parser);
 					break;
+				case "text_size":
+					{
+						String ts = readText("text_size", parser);
+						if (ts != null && ts.length() > 0) {
+							try {
+								textSizeSp = Integer.parseInt(ts);
+							} catch (NumberFormatException e) {
+								textSizeSp = -1;
+							}
+						}
+					}
+					break;
 				default:
 					skip(name, parser, o);
 					break;
 			}
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"format",format);
-		return new CreateEntryFieldBlock(id,namn, containerId,isVisible,format,showHistorical,initialValue,label,autoOpenSpinner,textColor,backgroundColor,verticalFormat,verticalMargin);
+		return new CreateEntryFieldBlock(id,namn, containerId,isVisible,format,showHistorical,initialValue,label,autoOpenSpinner,textColor,backgroundColor,verticalFormat,verticalMargin,textSizeSp);
 	}
 
 	/**

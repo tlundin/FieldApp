@@ -76,7 +76,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 		if (ef==null) 	{
 			cr++;
 			//Log.d(TAG,entryLabel);
-			WF_ClickableField entryF = new WF_ClickableField_Selection(entryLabel,al.getDescription(r),myContext,this.getId()+"_"+index++,true,format);
+			WF_ClickableField entryF = new WF_ClickableField_Selection(entryLabel,al.getDescription(r),myContext,this.getId()+"_"+index++,true,format,-1);
 			get().add(entryF);
 			ef = new EntryField();
 			entryFields.put(entryLabel, ef);
@@ -267,7 +267,7 @@ public class WF_List_UpdateOnSaveEvent extends WF_Static_List implements EventLi
 
 	@Override
 	public void addFieldListEntry(String listEntryID,String label,String description) {
-		WF_ClickableField entryF = new WF_ClickableField_Selection(label,description,myContext,this.getId()+listEntryID,true,myEntryFieldFormat);
+		WF_ClickableField entryF = new WF_ClickableField_Selection(label,description,myContext,this.getId()+listEntryID,true,myEntryFieldFormat,-1);
 		get().add(entryF);
 		EntryField ef = new EntryField();
 		entryFields.put(this.getId()+listEntryID, ef);

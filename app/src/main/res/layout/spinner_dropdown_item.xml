@@ -6,5 +6,9 @@
     android:layout_height="48dp"
     android:singleLine="true"
     android:ellipsize="marquee"
+    android:paddingStart="@dimen/spacing_sm"
+    android:paddingEnd="@dimen/spacing_sm"
+    android:background="@drawable/spinner_dropdown_item_background"
+    android:gravity="center_vertical|start"
     android:textColor="@color/primary_text"
     android:textAppearance="@style/TextAppearance.FieldValue" />

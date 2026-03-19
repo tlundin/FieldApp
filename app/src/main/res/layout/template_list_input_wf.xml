@@ -26,6 +26,8 @@
                     android:id="@+id/Selected"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/spacing_sm"
+                    android:paddingEnd="@dimen/spacing_sm"
                     android:orientation="vertical" >
                 </LinearLayout>
             </ScrollView>
@@ -133,6 +135,8 @@
                     android:id="@+id/fieldList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:paddingStart="@dimen/spacing_sm"
+                    android:paddingEnd="@dimen/spacing_sm"
                     android:orientation="vertical" >
 
 

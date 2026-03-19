@@ -932,6 +932,14 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                     spinner.setAdapter(varV.adapter);
                     innerInputContainer.addView(sl);
+                    // Ensure the dropdown list uses the same width as the spinner/dialog.
+                    // Without this, the Spinner's dropdown can be measured too wide (e.g. screen width).
+                    spinner.post(() -> {
+                        int w = spinner.getWidth();
+                        if (w > 0) {
+                            spinner.setDropDownWidth(w);
+                        }
+                    });
                     Log.d(TAG, "Adding spinner for label " + label);
 
                     if (firstSpinner == null && vc==0 && autoOpenSpinner)

@@ -13,6 +13,8 @@
         android:gravity="center_vertical|right"
         android:layout_height="match_parent"
         android:text="30"
+		android:textAppearance="@style/TextAppearance.FieldValueXLarge"
+        android:textStyle="bold"
          />
 
 	<TextView
@@ -23,6 +25,7 @@
 	android:layout_marginRight="5dp"
     android:gravity="center_vertical|left"
     android:text="%"
+    android:textAppearance="@style/TextAppearance.FieldValueLarge"
      />
 
 </LinearLayout>

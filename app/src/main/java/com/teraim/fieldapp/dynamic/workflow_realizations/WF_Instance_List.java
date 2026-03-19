@@ -131,7 +131,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							String entryInstanceLabel = al.getEntryLabel(var.getBackingDataSet())+" ["+index+"]";
 							WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
 							if (ef == null) {
-								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat);
+								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat,-1);
 								Log.d(TAG,"Added list entry for "+entryInstanceLabel);
 								//cache
 								entryFields.put(entryInstanceLabel, ef);
