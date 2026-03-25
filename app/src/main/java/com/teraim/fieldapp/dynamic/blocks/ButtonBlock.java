@@ -636,7 +636,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 										Report jRep = gs.getDb().export(buttonContext.getContext(), exporter, exportFileName);
 										ExportReport exportResult = jRep.getReport();
 										if (exportResult == ExportReport.OK) {
-											msg = jRep.noOfVars + " variables exported to file: " + exportFileName + "." + exporter.getType() + "\n";
+												msg = ctx.getString(R.string.export_vars_exported_to_file, jRep.noOfVars, exportFileName, exporter.getType());
 											Log.d(TAG, "Exportmetod: " + exportMethod);
 											if (exportMethod == null || exportMethod.equalsIgnoreCase("file")) {
 												//nothing more to do...file is already on disk.
@@ -646,8 +646,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 														@Override
 														public void run() {
 															exporter.getDialog().setCheckSend(Exporter.FAILED);
-															exporter.getDialog().setSendStatus("Configuration error");
-															msg += "\nForwarding to " + exportMethod + " failed." + "\nPlease check your configuration.";
+																exporter.getDialog().setSendStatus(ctx.getString(R.string.export_configuration_error));
+																msg += "\n" + ctx.getString(R.string.export_forwarding_failed_to_method, exportMethod)
+																		+ "\n" + ctx.getString(R.string.export_please_check_your_configuration);
 														}
 
 													});
@@ -658,11 +659,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 														@Override
 														public void run() {
 															exporter.getDialog().setCheckSend(Exporter.SUCCESS);
-															exporter.getDialog().setSendStatus("OK");
-															if (!targetMailAdress.isEmpty())
-																msg += "\nFile forwarded to " + targetMailAdress + ".";
-															else
-																msg += "\nFile forwarded by mail.";
+																exporter.getDialog().setSendStatus(ctx.getString(R.string.ok));
+																if (!targetMailAdress.isEmpty())
+																	msg += "\n" + ctx.getString(R.string.export_file_forwarded_to, targetMailAdress);
+																else
+																	msg += "\n" + ctx.getString(R.string.export_file_forwarded_by_mail);
 														}
 
 													});
@@ -673,21 +674,21 @@ public  class ButtonBlock extends Block  implements EventListener {
 
 												if (!Connectivity.isConnected(ctx)) {
 													o.addText("");
-													o.addCriticalText("Export failed - no network");
-													msg = "Check your connection and try again";
+													o.addCriticalText(ctx.getString(R.string.export_failed_no_network));
+													msg = ctx.getString(R.string.export_check_connection_try_again);
 													((Activity) ctx).runOnUiThread(new Runnable() {
 														@Override
 														public void run() {
 															exporter.getDialog().setCheckSend(Exporter.FAILED);
-															exporter.getDialog().setSendStatus("No network");
+															exporter.getDialog().setSendStatus(ctx.getString(R.string.export_send_status_no_network));
 														}
 													});
 												} else {
 													String exportServerURL = gs.getGlobalPreferences().get(PersistenceHelper.EXPORT_SERVER_URL);
 													if (exportServerURL == PersistenceHelper.UNDEFINED) {
 														o.addText("");
-														o.addCriticalText("Export Server URL not defined - Please configure in the Settings Menu");
-														msg = "Export Server URL not defined - Please configure in the Settings Menu";
+														o.addCriticalText(ctx.getString(R.string.export_server_url_not_defined));
+														msg = ctx.getString(R.string.export_server_url_not_defined);
 													} else {
 														String exportFileEndpoint = exportServerURL + "/upload";
 														File[] externalStorageVolumes =
@@ -730,7 +731,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 															public void run() {
 
 																exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
-																exporter.getDialog().setSendStatus("[0/" + totalToExport + "]. Waiting for response...");
+																exporter.getDialog().setSendStatus(ctx.getString(R.string.export_waiting_for_response, 0, totalToExport));
 															}
 														});
 														final OkHttpClient client = gs.getHTTPClient();
@@ -756,11 +757,11 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	@Override
 																	public void run() {
 																		exporter.getDialog().setCheckSend(Exporter.FAILED);
-																		exporter.getDialog().setSendStatus("FAILED");
+																		exporter.getDialog().setSendStatus(ctx.getString(R.string.export_send_status_failed));
 																		if ("timeout".equals(err) && counter.get() > 0) {
-																			exporter.getDialog().setOutCome("Network Timeout. [" + (counter.get() - 1) + "] images exported. Please retry to send the remaining images");
+																			exporter.getDialog().setOutCome(ctx.getString(R.string.export_network_timeout_outcome, counter.get() - 1));
 																		} else
-																			exporter.getDialog().setOutCome("Export failed.\n Error: " + displayMessage);
+																			exporter.getDialog().setOutCome(ctx.getString(R.string.export_failed_error_details, displayMessage));
 																	}
 																});
 																if (call != null)
@@ -777,8 +778,8 @@ public  class ButtonBlock extends Block  implements EventListener {
 																		@Override
 																		public void run() {
 																			exporter.getDialog().setCheckSend(Exporter.FAILED);
-																			exporter.getDialog().setSendStatus("FAILED");
-																			exporter.getDialog().setOutCome("Export failed.\nResponse: " + resp + "\nReturn code: " + code);
+																		exporter.getDialog().setSendStatus(ctx.getString(R.string.export_send_status_failed));
+																		exporter.getDialog().setOutCome(ctx.getString(R.string.export_failed_response_details, resp, code));
 																		}
 																	});
 																	call.cancel();
@@ -787,7 +788,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	if (counter.get() == 1) {
 																		// First successful response is for the exported data file itself.
 																		synchronized (exportedItemsForLog) {
-																			exportedItemsForLog.add("File: " + exportFile.getAbsolutePath());
+																			exportedItemsForLog.add(ctx.getString(R.string.export_log_file_prefix) + exportFile.getAbsolutePath());
 																		}
 																	}
 																	if (counter.get() >= 2) {
@@ -795,18 +796,18 @@ public  class ButtonBlock extends Block  implements EventListener {
 																		newSetAfterExport.add(exportedImgName);
 																		sp.edit().putStringSet(PersistenceHelper.EXPORTED_IMAGES_KEY, newSetAfterExport).commit();
 																		synchronized (exportedItemsForLog) {
-																			exportedItemsForLog.add("Image: " + exportedImgName);
+																			exportedItemsForLog.add(ctx.getString(R.string.export_log_image_prefix) + exportedImgName);
 																		}
 																	}
 																	if (counter.get() == totalToExport) {
 																		StringBuilder eMsg = new StringBuilder();
 																		if (imagesToExport.size() == 0)
-																			eMsg.append("No new images to export.");
+																			eMsg.append(ctx.getString(R.string.export_no_new_images_to_export));
 																		else
-																			eMsg.append("All files exported.");
+																			eMsg.append(ctx.getString(R.string.export_all_files_exported));
 
 																		((Activity) ctx).runOnUiThread(() -> {
-																			exporter.getDialog().setSendStatus("[" + (counter.get()) + "/" + totalToExport + "]");
+																			exporter.getDialog().setSendStatus(ctx.getString(R.string.export_send_status_progress, counter.get(), totalToExport));
 																			exporter.getDialog().setCheckSend(Exporter.SUCCESS);
 																			exporter.getDialog().setOutCome(eMsg.toString());
 																			if (button instanceof WF_StatusButton) {
@@ -816,7 +817,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																		});
 
 																		// Log the exported items to the application log repository.
-																		StringBuilder logMsg = new StringBuilder("Exported items:");
+																		StringBuilder logMsg = new StringBuilder(ctx.getString(R.string.export_exported_items));
 																		synchronized (exportedItemsForLog) {
 																			for (String item : exportedItemsForLog) {
 																				logMsg.append("\n- ").append(item);
@@ -826,7 +827,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																	} else {
 																		String finalExportedImgName = exportedImgName;
 																		((Activity) ctx).runOnUiThread(() -> {
-																			exporter.getDialog().setSendStatus("[" + (counter.get()) + "/" + totalToExport + "]");
+																			exporter.getDialog().setSendStatus(ctx.getString(R.string.export_send_status_progress, counter.get(), totalToExport));
 																			exporter.getDialog().setOutCome(finalExportedImgName);
 																			exporter.getDialog().setCheckSend(Exporter.IN_PROGRESS);
 																		});
@@ -840,7 +841,7 @@ public  class ButtonBlock extends Block  implements EventListener {
 																			client.newCall(request).enqueue(this);
 																		} else {
 																			o.addText("");
-																			o.addCriticalText("Failed to compress bitmap. Export failed");
+																			o.addCriticalText(ctx.getString(R.string.export_failed_to_compress_bitmap));
 																		}
 																	}
 																}
@@ -856,9 +857,9 @@ public  class ButtonBlock extends Block  implements EventListener {
 											}
 										} else {
 											if (exportResult == ExportReport.NO_DATA)
-												msg = "Nothing to export! Have you entered any values? Have you marked your export variables as 'global'? (Local variables are not exported)";
+												msg = ctx.getString(R.string.export_nothing_to_export);
 											else
-												msg = "Export failed. Reason: " + exportResult;
+												msg = ctx.getString(R.string.export_failed_reason_prefix, exportResult);
 										}
 
 										((Activity) ctx).runOnUiThread(new Runnable() {

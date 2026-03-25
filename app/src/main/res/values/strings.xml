@@ -131,4 +131,31 @@
     <string name="team_member_active_now">active now</string>
     <string name="team_member_seen_ago">seen %1$s ago</string>
 
+    <!-- Export dialog (ButtonBlock.displayExportDialog) -->
+    <string name="export_vars_exported_to_file">%1$d variables exported to file: %2$s.%3$s&#10;</string>
+    <string name="export_configuration_error">Configuration error</string>
+    <string name="export_forwarding_failed_to_method">Forwarding to %1$s failed.</string>
+    <string name="export_please_check_your_configuration">Please check your configuration.</string>
+    <string name="export_file_forwarded_to">File forwarded to %1$s.</string>
+    <string name="export_file_forwarded_by_mail">File forwarded by mail.</string>
+    <string name="export_failed_no_network">Export failed - no network</string>
+    <string name="export_check_connection_try_again">Check your connection and try again</string>
+    <string name="export_send_status_no_network">No network</string>
+    <string name="export_server_url_not_defined">Export Server URL not defined - Please configure in the Settings Menu</string>
+    <string name="export_waiting_for_response">[%1$d/%2$d]. Waiting for response...</string>
+    <string name="export_send_status_failed">FAILED</string>
+    <string name="export_send_status_progress">[%1$d/%2$d]</string>
+    <string name="export_network_timeout_outcome">Network Timeout. [%1$d] images exported. Please retry to send the remaining images</string>
+    <string name="export_failed_error_details">Export failed.&#10;Error: %1$s</string>
+    <string name="export_failed_response_details">Export failed.&#10;Response: %1$s&#10;Return code: %2$d</string>
+    <string name="export_no_new_images_to_export">No new images to export.</string>
+    <string name="export_all_files_exported">All files exported.</string>
+    <string name="export_failed_to_compress_bitmap">Failed to compress bitmap. Export failed</string>
+    <string name="export_nothing_to_export">Nothing to export.</string>
+    <string name="export_failed_reason_prefix">Export failed. Reason: %1$s</string>
+
+    <string name="export_exported_items">Exported items:</string>
+    <string name="export_log_file_prefix">File: </string>
+    <string name="export_log_image_prefix">Image: </string>
+
 </resources>
