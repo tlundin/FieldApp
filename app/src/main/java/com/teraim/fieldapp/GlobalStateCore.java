@@ -85,7 +85,8 @@ public interface GlobalStateCore {
 
     // Map-related hints
     void setPendingMapCenter(double lat, double lng);
-    double[] getAndClearPendingMapCenter();
+    void setPendingMapCenter(double lat, double lng, Double zoomLevel);
+    GlobalState.PendingMapCamera getAndClearPendingMapCamera();
 
     // Logging & files
     LogRepository getLogger();

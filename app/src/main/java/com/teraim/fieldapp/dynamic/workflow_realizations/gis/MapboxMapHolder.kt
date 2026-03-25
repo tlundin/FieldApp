@@ -84,6 +84,7 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.HashMap
+import java.util.Locale
 import kotlin.math.abs
 
 /**
@@ -229,7 +230,11 @@ class MapboxMapHolder(
         val polyType: String?,
         val objContext: String? = null,
         val onClick: String? = null,
-        val gistype: String? = null
+        val gistype: String? = null,
+        /** Fixed prefix for labels instead of GeoJSON TYPKOD; concatenated with OBJECTID. */
+        val iconLabel: String? = null,
+        /** above, below, left, right — placement relative to point or polygon centroid. */
+        val iconLabelPosition: String? = null
     )
 
     /** Per-layer obj_context and on_click for feature click handling (e.g. TRAKTER dialog). */
@@ -256,7 +261,9 @@ class MapboxMapHolder(
         polyType: String? = null,
         objContext: String? = null,
         onClick: String? = null,
-        gistype: String? = null
+        gistype: String? = null,
+        iconLabel: String? = null,
+        iconLabelPosition: String? = null
     ) {
         if (layerState.containsKey(name)) {
             Log.d(TAG, "Layer $name already added")
@@ -268,7 +275,7 @@ class MapboxMapHolder(
         val pending = PendingLayer(
             name, label, isVisible, hasWidget, showLabels, isBold,
             fillColor, fillOpacity, lineColor, lineWidth, lineDasharray, circleRadius, polyType,
-            objContext, onClick, gistype
+            objContext, onClick, gistype, iconLabel, iconLabelPosition
         )
         val map = mapboxMap
         if (map == null) {
@@ -418,10 +425,55 @@ class MapboxMapHolder(
         if (layerType.equals("trakter", ignoreCase = true)) trakterStatusColorExpression()
         else pystatusColorExpression(defaultColorInt)
 
-    /** Returns label field expression: TRAKT only for trakter, TYPKOD + OBJECTID for others. */
-    private fun labelFieldExpression(layerType: String): Expression =
-        if (layerType.equals("trakter", ignoreCase = true)) concat(get("TRAKT"), literal(""))
-        else concat(get("TYPKOD"), literal(" "), get("OBJECTID"))
+    private enum class IconLabelPositionKind { ABOVE, BELOW, LEFT, RIGHT }
+
+    private fun parseIconLabelPosition(raw: String?): IconLabelPositionKind? {
+        if (raw.isNullOrBlank()) return null
+        return when (raw.trim().lowercase(Locale.US)) {
+            "above", "top" -> IconLabelPositionKind.ABOVE
+            "below", "bottom" -> IconLabelPositionKind.BELOW
+            "left" -> IconLabelPositionKind.LEFT
+            "right" -> IconLabelPositionKind.RIGHT
+            else -> {
+                Log.w(TAG, "Unknown icon_label_position '$raw', using default placement")
+                null
+            }
+        }
+    }
+
+    /**
+     * Mapbox text-anchor and text-offset (ems) for feature labels.
+     * @param polygonCentroid true for the polygon-only label layer when points use a separate symbol layer.
+     */
+    private fun labelAnchorAndOffset(spec: PendingLayer, polygonCentroid: Boolean): Pair<TextAnchor, List<Double>> {
+        val pos = parseIconLabelPosition(spec.iconLabelPosition)
+        if (pos == null) {
+            return if (polygonCentroid) {
+                TextAnchor.CENTER to listOf(0.0, 0.0)
+            } else {
+                TextAnchor.BOTTOM to listOf(0.0, 2.0)
+            }
+        }
+        return when (pos) {
+            IconLabelPositionKind.ABOVE -> TextAnchor.BOTTOM to listOf(0.0, 2.0)
+            IconLabelPositionKind.BELOW -> TextAnchor.TOP to listOf(0.0, 0.8)
+            IconLabelPositionKind.LEFT -> TextAnchor.RIGHT to listOf(-2.2, 0.0)
+            IconLabelPositionKind.RIGHT -> TextAnchor.LEFT to listOf(2.2, 0.0)
+        }
+    }
+
+    /** Label text: trakter uses TRAKT; else TYPKOD + OBJECTID, or icon_label + OBJECTID when [PendingLayer.iconLabel] is set. */
+    private fun labelFieldExpression(layerType: String, spec: PendingLayer): Expression {
+        if (layerType.equals("trakter", ignoreCase = true)) {
+            return concat(get("TRAKT"), literal(""))
+        }
+        val prefix = spec.iconLabel?.trim()?.takeIf { it.isNotEmpty() }
+        return if (prefix != null) {
+            concat(literal(prefix), get("OBJECTID"))
+        } else {
+            concat(get("TYPKOD"), literal(" "), get("OBJECTID"))
+        }
+    }
 
     /**
      * Normalize poly_type from XML to a point shape. Returns icon id for symbol layer, or null for circle layer.
@@ -565,13 +617,14 @@ class MapboxMapHolder(
                     visibility(visibility)
                     // Add text label directly to symbol layer if showLabels is true (visible when zoomed in)
                     if (spec.showLabels) {
-                        textField(labelFieldExpression(layerType))
+                        val (tAnchor, tOff) = labelAnchorAndOffset(spec, polygonCentroid = false)
+                        textField(labelFieldExpression(layerType, spec))
                         textColor(Color.BLACK)
                         textHaloColor(Color.WHITE)
                         textHaloWidth(1.0)
                         textSize(12.0)
-                        textAnchor(TextAnchor.BOTTOM)
-                        textOffset(listOf(0.0, 2.0)) // Positive Y moves text up above the point
+                        textAnchor(tAnchor)
+                        textOffset(tOff)
                         textAllowOverlap(true)
                         textIgnorePlacement(false)
                         textOpacity(step(zoom(), literal(0.0), literal(LABEL_VISIBLE_ZOOM_LEVEL) to literal(1.0)))
@@ -598,19 +651,20 @@ class MapboxMapHolder(
                     eq(geometryType(), literal("MultiPolygon"))
                 )
             }
+            val (polyLabelAnchor, polyLabelOffset) = labelAnchorAndOffset(
+                spec,
+                polygonCentroid = pointShapeIconId != null
+            )
             addLayerOrBelowTeam(
                 symbolLayer(labelLayerId, sourceId) {
                     filter(labelFilter)
-                    textField(labelFieldExpression(layerType))
+                    textField(labelFieldExpression(layerType, spec))
                     textColor(Color.BLACK)
                     textHaloColor(Color.WHITE)
                     textHaloWidth(1.0)
                     textSize(12.0)
-                    // Use BOTTOM anchor with positive offset for circles (above point), CENTER for polygons
-                    textAnchor(if (pointShapeIconId == null) TextAnchor.BOTTOM else TextAnchor.CENTER)
-                    if (pointShapeIconId == null) {
-                        textOffset(listOf(0.0, 2.0)) // Positive Y moves text up above the circle
-                    }
+                    textAnchor(polyLabelAnchor)
+                    textOffset(polyLabelOffset)
                     textAllowOverlap(true)
                     textIgnorePlacement(false)
                     visibility(visibility)
@@ -1158,7 +1212,8 @@ class MapboxMapHolder(
             if (wf != null) {
                 val center = featureCenter(feature)
                 if (center != null) {
-                    GlobalState.getInstance().setPendingMapCenter(center.first, center.second)
+                    val zoom = mapboxMap?.cameraState?.zoom
+                    GlobalState.getInstance().setPendingMapCenter(center.first, center.second, zoom)
                 }
                 GlobalState.getInstance().changePage(wf, null)
             } else {

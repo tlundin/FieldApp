@@ -165,6 +165,8 @@
 <name>akerkant_layer</name>
 <gistype>akerkant</gistype>
 <label>Åkerkanter</label>
+<icon_label>TR </icon_label>
+<icon_label_position>right</icon_label_position>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
@@ -203,7 +205,7 @@
 <name>gräsmarks_layer</name>
 <gistype>lansgras</gistype>
 <label>Gräsmark</label>
-<show_labels>true</show_labels>
+<show_labels>false</show_labels>
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>
 <fill_color>#98FB98</fill_color>
@@ -222,6 +224,8 @@
 <name>hallmark_layer</name>
 <gistype>basiskberghall</gistype>
 <label>Hällmark</label>
+<icon_label>HL </icon_label>
+<icon_label_position>left</icon_label_position>
 <show_labels>true</show_labels>
 <is_visible>true</is_visible>
 <has_widget>true</has_widget>

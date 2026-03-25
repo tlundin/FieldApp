@@ -31,13 +31,17 @@ public class AddGisLayerBlock extends Block {
 	private final String objContext;
 	private final String onClick;
 	private final String gistype;
+	/** When set, map label is this fixed prefix plus OBJECTID from GeoJSON (replaces TYPKOD + space + OBJECTID). */
+	private final String iconLabel;
+	/** Optional: above, below, left, right — label placement relative to point/centroid (default: above). */
+	private final String iconLabelPosition;
 
 	public AddGisLayerBlock(String id, String name, String label,
 			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold,
 			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
 			Float circleRadius, String polyType) {
 		this(id, name, label, target, isVisible, hasWidget, showLabels, isBold,
-				fillColor, fillOpacity, lineColor, lineWidth, null, circleRadius, polyType, null, null, null);
+				fillColor, fillOpacity, lineColor, lineWidth, null, circleRadius, polyType, null, null, null, null, null);
 	}
 
 	public AddGisLayerBlock(String id, String name, String label,
@@ -45,13 +49,22 @@ public class AddGisLayerBlock extends Block {
 			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
 			Float circleRadius, String polyType, String objContext, String onClick) {
 		this(id, name, label, target, isVisible, hasWidget, showLabels, isBold,
-				fillColor, fillOpacity, lineColor, lineWidth, null, circleRadius, polyType, objContext, onClick, null);
+				fillColor, fillOpacity, lineColor, lineWidth, null, circleRadius, polyType, objContext, onClick, null, null, null);
 	}
 
 	public AddGisLayerBlock(String id, String name, String label,
 			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold,
 			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
 			String lineDasharray, Float circleRadius, String polyType, String objContext, String onClick, String gistype) {
+		this(id, name, label, target, isVisible, hasWidget, showLabels, isBold,
+				fillColor, fillOpacity, lineColor, lineWidth, lineDasharray, circleRadius, polyType, objContext, onClick, gistype, null, null);
+	}
+
+	public AddGisLayerBlock(String id, String name, String label,
+			String target, boolean isVisible, boolean hasWidget, boolean showLabels, boolean isBold,
+			String fillColor, Float fillOpacity, String lineColor, Float lineWidth,
+			String lineDasharray, Float circleRadius, String polyType, String objContext, String onClick, String gistype,
+			String iconLabel, String iconLabelPosition) {
 		super();
 		this.blockId = id;
 		this.name = name;
@@ -71,6 +84,8 @@ public class AddGisLayerBlock extends Block {
 		this.objContext = objContext;
 		this.onClick = onClick;
 		this.gistype = gistype;
+		this.iconLabel = iconLabel;
+		this.iconLabelPosition = iconLabelPosition;
 	}
 
 	public void create(WF_Context myContext) {
@@ -81,7 +96,7 @@ public class AddGisLayerBlock extends Block {
             Log.d(TAG, "Adding Mapbox layer: " + name + ", gistype=" + gistype + ", polyType=" + polyType);
 			holder.addLayer(name, label, isVisible, hasWidget, showLabels, isBold,
 					fillColor, fillOpacity, lineColor, lineWidth, lineDasharray, circleRadius, polyType,
-					objContext, onClick, gistype);
+					objContext, onClick, gistype, iconLabel, iconLabelPosition);
 			Log.d(TAG, "Added Mapbox layer: " + name);
 		} else if (gisMap instanceof WF_Gis_Map myGis) {
             if (!myGis.isZoomLevel()) {

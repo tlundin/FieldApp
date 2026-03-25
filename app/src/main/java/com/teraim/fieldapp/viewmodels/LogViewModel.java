@@ -2,6 +2,7 @@ package com.teraim.fieldapp.viewmodels;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModel;
+import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.log.LogRepository;
 
 public class LogViewModel extends ViewModel {
@@ -31,5 +32,15 @@ public class LogViewModel extends ViewModel {
     // You can also add methods here to trigger actions on the repository if needed
     public void clearLog() {
         logRepository.clear();
+    }
+
+    /** Appends a snapshot of VariableCache variables in the current DB_Context to the log. */
+    public void printVariablesToLog() {
+        GlobalState gs = GlobalState.getInstance();
+        if (gs == null) {
+            logRepository.addText("Print variables: GlobalState is not available.");
+            return;
+        }
+        logRepository.addText(gs.getVariableCache().buildVariableDiagnosticText());
     }
 }

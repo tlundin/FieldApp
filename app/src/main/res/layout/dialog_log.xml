@@ -94,6 +94,13 @@
                 android:text="Crash App"
                 android:layout_marginStart="4dp"/>
         </LinearLayout>
+
+        <Button
+            android:id="@+id/button_print_variables"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Print variables"/>
     </LinearLayout>
 
 </LinearLayout>

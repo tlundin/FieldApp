@@ -12,6 +12,7 @@ import com.teraim.fieldapp.utils.DbHelper.TmpVal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -624,6 +625,32 @@ public class VariableCache {
 
             } else
                 Log.d(TAG, "*NULL*");
+        }
+    }
+
+    /**
+     * Dump for the session log: one line per variable in {@link #currentCache} only —
+     * variable id and value (sorted by id).
+     */
+    public String buildVariableDiagnosticText() {
+        StringBuilder sb = new StringBuilder(1024);
+        sb.append("Variables (current context)\n\n");
+        appendSortedVariableNameAndValue(sb, currentCache);
+        return sb.toString();
+    }
+
+    private static void appendSortedVariableNameAndValue(StringBuilder sb, Map<String, Variable> map) {
+        if (map == null || map.isEmpty()) {
+            sb.append("(none)\n");
+            return;
+        }
+        List<String> keys = new ArrayList<>(map.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            Variable v = map.get(key);
+            if (v == null) continue;
+            String val = v.getValue();
+            sb.append(v.getId()).append(" = ").append(val == null ? "" : val).append("\n");
         }
     }
 

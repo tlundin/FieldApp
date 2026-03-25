@@ -96,6 +96,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
     boolean iAmOpen = false;
     private Spinner firstSpinner = null;
+    // Auto-open spinner should only happen once per dialog open.
+    private boolean pendingAutoOpenSpinner = false;
     private List<Rule> myRules;
 
     class VariableView {
@@ -345,14 +347,16 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 //alert.setMessage(myDescription);
 
                 headerInputCointainer.setText(myDescription);
-                refreshInputFields();
                 iAmOpen = true;
+                pendingAutoOpenSpinner = autoOpenSpinner;
+                refreshInputFields();
 
                 alert.setPositiveButton(R.string.save,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 iAmOpen = false;
+                                pendingAutoOpenSpinner = false;
                                 save();
                                 refresh();
                                 ViewGroup x = ((ViewGroup) scrollableInputContainer
@@ -368,6 +372,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 iAmOpen = false;
+                                pendingAutoOpenSpinner = false;
                                 ViewGroup x = ((ViewGroup) scrollableInputContainer
                                         .getParent());
                                 if (x != null)
@@ -1207,19 +1212,21 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 final Spinner sp = v.findViewById(R.id.spinner);
 
                 final Handler h = new Handler(Looper.getMainLooper());
-                if (firstSpinner != null)
+                if (firstSpinner != null && pendingAutoOpenSpinner) {
+                    pendingAutoOpenSpinner = false;
                     new Thread(new Runnable() {
                         public void run() {
 
                             h.postDelayed(new Runnable() {
                                 public void run() {
                                     // Open the Spinner...
-                                    if (firstSpinner.isShown())
+                                    if (iAmOpen && firstSpinner.isShown())
                                         firstSpinner.performClick();
                                 }
                             }, 500);
                         }
                     }).start();
+                }
 
                 String[] opt = null;
                 String tag = (String) sp.getTag(R.string.u1);

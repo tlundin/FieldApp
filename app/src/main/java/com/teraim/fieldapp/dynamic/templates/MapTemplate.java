@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.dynamic.templates;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -357,13 +358,13 @@ public class MapTemplate extends Executor {
 						}
 					}
 					Log.d(TAG, "Mapbox style loaded successfully");
-					// Pending map center (from trakt center-on) takes precedence; then GisMapView; else Stockholm
-					double[] pending = GlobalState.getInstance().getAndClearPendingMapCenter();
-					if (pending != null && pending.length >= 2) {
-						double lat = pending[0];
-						double lng = pending[1];
-						double zoom = 10.5;
-						Log.d(TAG, "Map centering on pending (WGS84): lat=" + lat + ", lng=" + lng);
+					// Pending map camera (GeoJSON feature open preserves user zoom; TRAKT center-on uses default zoom)
+					GlobalState.PendingMapCamera pending = GlobalState.getInstance().getAndClearPendingMapCamera();
+					if (pending != null) {
+						double lat = pending.lat;
+						double lng = pending.lng;
+						double zoom = pending.zoom != null ? pending.zoom : 10.5;
+						Log.d(TAG, "Map centering on pending (WGS84): lat=" + lat + ", lng=" + lng + ", zoom=" + zoom);
 						Point initialPoint = Point.fromLngLat(lng, lat);
 						mapboxMap.setCamera(new CameraOptions.Builder().center(initialPoint).zoom(zoom).build());
 					} else if (pendingGisMapViewConfig != null) {
@@ -506,27 +507,49 @@ public class MapTemplate extends Executor {
 
 	private void animateFabMenu(View[] subFabs, boolean expand) {
 		int duration = 200;
+		boolean landscape = getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+		float slidePx = 16f;
 		for (int i = 0; i < subFabs.length; i++) {
 			View f = subFabs[i];
 			if (f == null) continue;
 			if (expand) {
 				f.setVisibility(View.VISIBLE);
 				f.setAlpha(0f);
-				f.setTranslationY(16f);
+				if (landscape) {
+					f.setTranslationX(slidePx);
+					f.setTranslationY(0f);
+				} else {
+					f.setTranslationY(slidePx);
+					f.setTranslationX(0f);
+				}
 				AnimatorSet set = new AnimatorSet();
-				set.playTogether(
-					ObjectAnimator.ofFloat(f, View.ALPHA, 1f),
-					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 0f)
-				);
+				if (landscape) {
+					set.playTogether(
+						ObjectAnimator.ofFloat(f, View.ALPHA, 1f),
+						ObjectAnimator.ofFloat(f, View.TRANSLATION_X, 0f)
+					);
+				} else {
+					set.playTogether(
+						ObjectAnimator.ofFloat(f, View.ALPHA, 1f),
+						ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 0f)
+					);
+				}
 				set.setDuration(duration);
 				set.setStartDelay(i * 40L);
 				set.start();
 			} else {
 				AnimatorSet set = new AnimatorSet();
-				set.playTogether(
-					ObjectAnimator.ofFloat(f, View.ALPHA, 0f),
-					ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, 16f)
-				);
+				if (landscape) {
+					set.playTogether(
+						ObjectAnimator.ofFloat(f, View.ALPHA, 0f),
+						ObjectAnimator.ofFloat(f, View.TRANSLATION_X, slidePx)
+					);
+				} else {
+					set.playTogether(
+						ObjectAnimator.ofFloat(f, View.ALPHA, 0f),
+						ObjectAnimator.ofFloat(f, View.TRANSLATION_Y, slidePx)
+					);
+				}
 				set.setDuration(duration);
 				set.setStartDelay((subFabs.length - 1 - i) * 40L);
 				set.addListener(new android.animation.AnimatorListenerAdapter() {
@@ -534,6 +557,7 @@ public class MapTemplate extends Executor {
 					public void onAnimationEnd(android.animation.Animator animation) {
 						f.setVisibility(View.GONE);
 						f.setAlpha(1f);
+						f.setTranslationX(0f);
 						f.setTranslationY(0f);
 					}
 				});

@@ -772,6 +772,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String fillColor=null,lineColor=null,polyType=null,lineDasharray=null;
 		Float fillOpacity=null,lineWidth=null,circleRadius=null;
 		String objContext=null,onClick=null,gistype=null;
+		String iconLabel=null,iconLabelPosition=null;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d(TAG,"In block block_add_gis_layer!!");
@@ -816,6 +817,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				objContext = readText("obj_context", parser);
 			} else if (name.equals("on_click")) {
 				onClick = readText("on_click", parser);
+			} else if (name.equals("icon_label")) {
+				iconLabel = readText("icon_label", parser);
+			} else if (name.equals("icon_label_position")) {
+				iconLabelPosition = readText("icon_label_position", parser);
 			}
 			else {
 				Log.e("vortex","Skipped "+name);
@@ -828,8 +833,11 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String onClickTrimmed = (onClick != null && !onClick.trim().isEmpty()) ? onClick.trim() : null;
 		String gistypeTrimmed = (gistype != null && !gistype.trim().isEmpty()) ? gistype.trim() : null;
 		String lineDasharrayTrimmed = (lineDasharray != null && !lineDasharray.trim().isEmpty()) ? lineDasharray.trim() : null;
+		String iconLabelTrimmed = (iconLabel != null && !iconLabel.trim().isEmpty()) ? iconLabel.trim() : null;
+		String iconLabelPositionTrimmed = (iconLabelPosition != null && !iconLabelPosition.trim().isEmpty()) ? iconLabelPosition.trim() : null;
 		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold,
-				fillColor,fillOpacity,lineColor,lineWidth,lineDasharrayTrimmed,circleRadius,polyType,objContextTrimmed,onClickTrimmed,gistypeTrimmed);
+				fillColor,fillOpacity,lineColor,lineWidth,lineDasharrayTrimmed,circleRadius,polyType,objContextTrimmed,onClickTrimmed,gistypeTrimmed,
+				iconLabelTrimmed, iconLabelPositionTrimmed);
 
 	}
 

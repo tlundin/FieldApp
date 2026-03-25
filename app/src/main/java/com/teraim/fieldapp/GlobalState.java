@@ -150,6 +150,22 @@ public class GlobalState implements GlobalStateCore {
     /** Pending map center (WGS84 lat, lng) for MapTemplate when opened from a GIS object. Cleared after use. */
     private Double pendingMapCenterLat;
     private Double pendingMapCenterLng;
+    /** When non-null, MapTemplate uses this zoom when applying pending center; otherwise default (e.g. 10.5). Not persisted in session. */
+    private Double pendingMapZoom;
+
+    /** Lat/lng and optional zoom for restoring the map after navigation from a GIS feature. */
+    public static final class PendingMapCamera {
+        public final double lat;
+        public final double lng;
+        /** Null means use MapTemplate default zoom for pending center. */
+        public final Double zoom;
+
+        public PendingMapCamera(double lat, double lng, Double zoom) {
+            this.lat = lat;
+            this.lng = lng;
+            this.zoom = zoom;
+        }
+    }
 
     public static GlobalState getInstance() {
 
@@ -383,22 +399,32 @@ public class GlobalState implements GlobalStateCore {
 
     /** Set pending map center (WGS84) so MapTemplate can focus there when opened from a GIS object. */
     public void setPendingMapCenter(double lat, double lng) {
+        setPendingMapCenter(lat, lng, null);
+    }
+
+    /**
+     * Set pending map camera for MapTemplate. {@code zoomLevel} null keeps default zoom when the map opens
+     * (e.g. TRAKT center-on); non-null preserves user zoom when returning from a GeoJSON feature workflow.
+     */
+    public void setPendingMapCenter(double lat, double lng, Double zoomLevel) {
         this.pendingMapCenterLat = lat;
         this.pendingMapCenterLng = lng;
+        this.pendingMapZoom = zoomLevel;
         if (sessionState != null) {
             sessionState.setPendingMapCenterLat(lat);
             sessionState.setPendingMapCenterLng(lng);
         }
     }
 
-    /** Get and clear pending map center. Returns {lat, lng} or null if none set. */
-    public double[] getAndClearPendingMapCenter() {
+    /** Get and clear pending map camera, or null if none set. */
+    public PendingMapCamera getAndClearPendingMapCamera() {
         if (pendingMapCenterLat == null || pendingMapCenterLng == null) {
             return null;
         }
-        double[] result = new double[] { pendingMapCenterLat, pendingMapCenterLng };
+        PendingMapCamera result = new PendingMapCamera(pendingMapCenterLat, pendingMapCenterLng, pendingMapZoom);
         pendingMapCenterLat = null;
         pendingMapCenterLng = null;
+        pendingMapZoom = null;
         if (sessionState != null) {
             sessionState.setPendingMapCenterLat(null);
             sessionState.setPendingMapCenterLng(null);
