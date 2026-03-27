@@ -14,6 +14,7 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 
 import androidx.appcompat.app.AlertDialog;
 
@@ -363,7 +364,10 @@ public class MapTemplate extends Executor {
 					if (pending != null) {
 						double lat = pending.lat;
 						double lng = pending.lng;
-						double zoom = pending.zoom != null ? pending.zoom : 10.5;
+						// If no explicit zoom was requested with pending center, honor block_add_gis_map_view zoom.
+						double zoom = pending.zoom != null
+								? pending.zoom
+								: (pendingGisMapViewConfig != null ? pendingGisMapViewConfig.getZoom() : 10.5);
 						Log.d(TAG, "Map centering on pending (WGS84): lat=" + lat + ", lng=" + lng + ", zoom=" + zoom);
 						Point initialPoint = Point.fromLngLat(lng, lat);
 						mapboxMap.setCamera(new CameraOptions.Builder().center(initialPoint).zoom(zoom).build());
@@ -734,21 +738,98 @@ public class MapTemplate extends Executor {
 					.show();
 			return;
 		}
+		int screenHeightPx = requireContext().getResources().getDisplayMetrics().heightPixels;
+		// Keep the whole popup more compact.
+		int dialogHeightPx = (int) (screenHeightPx / 2f);
+		int maxListHeightPx = dialogHeightPx;
+
+		ScrollView scrollView = new ScrollView(requireContext());
 		LinearLayout container = new LinearLayout(requireContext());
 		container.setOrientation(LinearLayout.VERTICAL);
 		container.setPadding(50, 40, 50, 40);
+
+		// Indices of layers that participate in the "toggle all" logic (exclude Team).
+		final ArrayList<Integer> nonTeamLayerIndices = new ArrayList<>();
+		for (int i = 0; i < layerNames.size(); i++) {
+			String name = layerNames.get(i);
+			if (!MapboxMapHolder.TEAM_LAYER_DISPLAY_NAME.equals(name)) {
+				nonTeamLayerIndices.add(i);
+			}
+		}
+
+		// "Toggle all" header checkbox (only for non-team layers).
+		CheckBox cbAll = new CheckBox(requireContext());
+		cbAll.setText(R.string.toggle_all_layers);
+		container.addView(cbAll);
+
+		List<CheckBox> layerCbs = new ArrayList<>();
+		final boolean[] suppressCallbacks = new boolean[] { false };
+
+		// Create per-layer checkboxes.
 		for (String name : layerNames) {
 			CheckBox cb = new CheckBox(requireContext());
 			cb.setText(name);
 			cb.setChecked(mapboxMapHolder.isLayerVisible(name));
-			cb.setOnCheckedChangeListener((buttonView, isChecked) -> mapboxMapHolder.setLayerVisibility(name, isChecked));
+			cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
+				if (suppressCallbacks[0]) return;
+				mapboxMapHolder.setLayerVisibility(name, isChecked);
+				boolean allChecked = true;
+				for (Integer idx : nonTeamLayerIndices) {
+					if (idx >= 0 && idx < layerCbs.size()) {
+						CheckBox existing = layerCbs.get(idx);
+						if (!existing.isChecked()) {
+							allChecked = false;
+							break;
+						}
+					}
+				}
+				if (nonTeamLayerIndices.isEmpty()) {
+					allChecked = false;
+				}
+				suppressCallbacks[0] = true;
+				cbAll.setChecked(allChecked);
+				suppressCallbacks[0] = false;
+			});
+			layerCbs.add(cb);
 			container.addView(cb);
 		}
-		new AlertDialog.Builder(requireContext())
+
+		// Initialize "toggle all" from current state.
+		boolean allChecked = true;
+		for (Integer idx : nonTeamLayerIndices) {
+			if (idx >= 0 && idx < layerCbs.size()) {
+				if (!layerCbs.get(idx).isChecked()) {
+					allChecked = false;
+					break;
+				}
+			}
+		}
+		cbAll.setChecked(!nonTeamLayerIndices.isEmpty() && allChecked);
+
+		cbAll.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			if (suppressCallbacks[0]) return;
+			suppressCallbacks[0] = true;
+			for (Integer idx : nonTeamLayerIndices) {
+				if (idx < 0 || idx >= layerNames.size() || idx >= layerCbs.size()) continue;
+				String name = layerNames.get(idx);
+				CheckBox cb = layerCbs.get(idx);
+				cb.setChecked(isChecked);
+				mapboxMapHolder.setLayerVisibility(name, isChecked);
+			}
+			suppressCallbacks[0] = false;
+		});
+
+		scrollView.addView(container, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+		scrollView.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxListHeightPx));
+
+		AlertDialog dialog = new AlertDialog.Builder(requireContext())
 				.setTitle(R.string.select_layers_title)
-				.setView(container)
+				.setView(scrollView)
 				.setPositiveButton(android.R.string.ok, null)
 				.show();
+		if (dialog != null && dialog.getWindow() != null) {
+			dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, dialogHeightPx);
+		}
 	}
 
 	private boolean shouldShowMap() {

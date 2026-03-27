@@ -28,8 +28,15 @@
     <string name="UserName">Username</string>
     <string name="DevOp">Advanced</string>
     <string name="log_levels_h">Log Levels</string>
-    <string name="UserName_dm">Required for sync</string>
+    <string name="UserName_dm">Required</string>
     <string name="Team_s">Required for sync</string>
+    <string name="organisation_h">Organisation</string>
+    <string name="organisation_summary">Preset server endpoints</string>
+    <string name="organisation_default">Default</string>
+    <string name="organisation_slu">SLU</string>
+    <string name="setup_required_hint">Setup required</string>
+    <string name="username_missing_title">Username missing</string>
+    <string name="username_missing_continue_message">Running the app without a Username will prevent some functions to work properly. Continue?</string>
 
     <string name="developer_functions">Developer Functions</string>
     <string name="Automatic_backup">Backup</string>
@@ -72,6 +79,10 @@
     <string name="contact_us_button_text">Contact us</string>
     <string name="start">Start</string>
     <string name="gis_object">Object</string>
+    <string name="map_pick_feature_title">Several objects in this area</string>
+    <string name="map_pick_team_row">Team: %1$s</string>
+    <string name="map_pick_trakter_row">Trakt %1$s — %2$s</string>
+    <string name="map_pick_trakter_id_only">Id %1$s — %2$s</string>
     <string name="continue_">Continue</string>
     <string name="reset_cache_d">Erase all cached files to force reload</string>
     <string name="resetCache">Clear Cache</string>
@@ -112,6 +123,7 @@
     <string name="use_maps_summary">Enable map functionality</string>
     <string name="map_needle_title">Map needles</string>
     <string name="select_layers_title">Layers</string>
+    <string name="toggle_all_layers">Toggle all layers</string>
     <string name="no_layers_loaded">No layers loaded yet.</string>
     <string name="no_user_position_available">No user position available. Enable location and ensure GPS has a fix.</string>
     <string name="trakter_center_on">Center on</string>

@@ -22,4 +22,14 @@
         <item>@drawable/icon_set3</item>
         <item>@drawable/icon_set4</item>
     </array>
+
+    <string-array name="organisation_entries">
+        <item>@string/organisation_default</item>
+        <item>@string/organisation_slu</item>
+    </string-array>
+
+    <string-array name="organisation_values">
+        <item>default</item>
+        <item>slu</item>
+    </string-array>
 </resources>

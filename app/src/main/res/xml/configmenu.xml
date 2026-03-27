@@ -13,11 +13,18 @@
         <EditTextPreference
             android:dialogMessage="@string/Team_s"
             android:dialogTitle="@string/Team"
-            android:defaultValue="vortexsynk"
             android:inputType="textCapSentences"
             android:key="lag_id"
             android:summary="@string/Team_s"
             android:title="@string/Team" />
+        <ListPreference
+            android:key="organisation"
+            android:title="@string/organisation_h"
+            android:dialogTitle="@string/organisation_h"
+            android:defaultValue="default"
+            android:entries="@array/organisation_entries"
+            android:entryValues="@array/organisation_values"
+            android:summary="@string/organisation_summary" />
         <EditTextPreference
             android:dialogMessage="@string/appDialMsg"
             android:dialogTitle="App"
@@ -25,7 +32,7 @@
             android:key="bundle_name"
             android:title="@string/app_name_t" />
         <EditTextPreference
-            android:defaultValue="https://www.teraim.com/"
+            android:defaultValue="https://www.teraim.com"
             android:dialogMessage="App server URL"
             android:dialogTitle="URL"
             android:key="server_location"
@@ -38,14 +45,6 @@
             android:key="export_server_location"
             android:summary="@string/s_summary_e"
             android:title="Export Server URL" />
-<!--        <Preference-->
-<!--            android:title="@string/reload_config"-->
-<!--            android:key="reload_config"-->
-<!--            android:summary="@string/reload_config_d"/>-->
-        <Preference
-            android:title="@string/scan_QR_code_h"
-            android:key="scan_qr_code"
-            android:summary="@string/scan_QR_code" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/map_settings">
         <CheckBoxPreference

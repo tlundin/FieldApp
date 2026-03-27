@@ -8,18 +8,21 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -47,6 +50,7 @@ import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfigurati
 import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.MenuActivity;
+import com.teraim.fieldapp.ui.ConfigMenu;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
@@ -56,10 +60,12 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.net.URL;
 
 
 /**
@@ -124,6 +130,7 @@ public class StartupFragment extends Executor {
                 initialize();
             }
         }
+        ensureDerivedSyncGroup();
 
         // Load configuration and display initial UI text
         bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
@@ -199,6 +206,14 @@ public class StartupFragment extends Executor {
         // This is the primary entry point for the automatic load.
         // If GlobalState is not initialized, it means we need to load the configuration.
         if (GlobalState.getInstance() == null) {
+            // If we can't even talk to the backend endpoints, go directly to setup.
+            if (shouldSkipLoadingForSetup()) {
+                Toast.makeText(requireContext(), R.string.setup_required_hint, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(requireActivity(), ConfigMenu.class);
+                startActivity(intent);
+                return;
+            }
+
             Log.d(TAG, "GlobalState is null. Starting initial configuration load.");
             Bundle b = this.getArguments();
             if (b != null && b.getBoolean(Constants.RELOAD_DB_MODULES)) {
@@ -296,6 +311,14 @@ public class StartupFragment extends Executor {
         gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
         startInstance.changePage(wf, null);
+
+        // After the default project has been loaded, immediately route new users
+        // to setup when required fields (e.g. Username) are missing.
+        if (isUsernameMissing()) {
+            Toast.makeText(requireContext(), R.string.setup_required_hint, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireActivity(), ConfigMenu.class);
+            startActivity(intent);
+        }
         return false;
     }
 
@@ -341,37 +364,105 @@ public class StartupFragment extends Executor {
         String appBaseUrl = serverURL + bundleName.toLowerCase(Locale.ROOT) + "/";
         final String cacheFolder = requireContext().getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/";
 
-        // Use a full anonymous class to implement the multi-method interface
-        Tools.onLoadCacheImage(appBaseUrl, "bg_image.jpg", cacheFolder, new Tools.WebLoaderCb() {
-            @Override
-            public void loaded(Boolean result) {
-                if (result) {
-                    Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
-                    if (bm != null) bgImageView.setImageBitmap(bm);
+        // Always prefer downloading when network is available, but never block the UI:
+        // - online: download (or use existing cached file) then show from cache
+        // - offline: skip download and show whatever is already cached
+        if (Connectivity.isConnected(getContext())) {
+            // Show generic theme-matching background while we attempt download.
+            setGenericStartupBackground();
+
+            // Force refresh of background image when online. The caching helper
+            // skips downloads when the cache file already exists.
+            File bgCacheFile = new File(cacheFolder + "bg_image.jpg");
+            if (bgCacheFile.exists()) {
+                // Best-effort: if delete fails, the helper may skip re-download.
+                // This is still correct UX-wise because we always fall back to cached decoding below.
+                //noinspection ResultOfMethodCallIgnored
+                bgCacheFile.delete();
+            }
+
+            Tools.onLoadCacheImage(appBaseUrl, "bg_image.jpg", cacheFolder, new Tools.WebLoaderCb() {
+                @Override
+                public void loaded(Boolean result) {
+                    if (result != null && result) {
+                        Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
+                        if (bm != null) {
+                            bgImageView.setBackground(null);
+                            bgImageView.setImageBitmap(bm);
+                            return;
+                        }
+                    }
+                    // If server didn't have the image (or decode failed), fall back to generic background.
+                    setGenericStartupBackground();
                 }
-            }
 
-            @Override
-            public void progress(int bytesRead) {
-                // You can leave this empty if you don't need to show download progress
-            }
-        });
-
-        // Use a full anonymous class here as well
-        Tools.onLoadCacheImage(appBaseUrl, "logo.png", cacheFolder, new Tools.WebLoaderCb() {
-            @Override
-            public void loaded(Boolean result) {
-                if (result) {
-                    Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
-                    if (bm != null) logoImageView.setImageBitmap(bm);
+                @Override
+                public void progress(int bytesRead) {
+                    // Intentionally ignore progress for now.
                 }
+            });
+
+            Tools.onLoadCacheImage(appBaseUrl, "logo.png", cacheFolder, new Tools.WebLoaderCb() {
+                @Override
+                public void loaded(Boolean result) {
+                    // Logo is optional; keep existing/default if download fails.
+                    if (result != null && result) {
+                        Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
+                        if (bm != null) logoImageView.setImageBitmap(bm);
+                    }
+                }
+
+                @Override
+                public void progress(int bytesRead) {
+                    // Intentionally ignore progress for now.
+                }
+            });
+        } else {
+            // No network: rely on cached files only.
+            Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
+            if (bm != null) {
+                bgImageView.setBackground(null);
+                bgImageView.setImageBitmap(bm);
+            } else {
+                setGenericStartupBackground();
             }
 
-            @Override
-            public void progress(int bytesRead) {
-                // Leave empty
+            Bitmap logoBm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
+            if (logoBm != null) logoImageView.setImageBitmap(logoBm);
+        }
+    }
+
+    private void setGenericStartupBackground() {
+        if (!isAdded() || bgImageView == null) return;
+        // Theme-driven gradient so it looks good in both light/dark modes.
+        int primary = resolveThemeColor(R.attr.colorPrimary, 0x6750A4); // fallback indigo
+        int primaryVariant = resolveThemeColor(R.attr.colorPrimaryVariant, primary);
+
+        GradientDrawable gradient = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{primary, primaryVariant}
+        );
+        // Slight transparency makes it play nicely with the overlayed text.
+        gradient.setAlpha(220);
+        bgImageView.setBackground(gradient);
+        // If previously loaded an image bitmap, remove it so background is visible.
+        bgImageView.setImageDrawable(null);
+    }
+
+    private int resolveThemeColor(int attrResId, int defaultColor) {
+        if (!isAdded()) return defaultColor;
+        Context ctx = getContext();
+        if (ctx == null) return defaultColor;
+        TypedValue typedValue = new TypedValue();
+        if (ctx.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(ctx, typedValue.resourceId);
             }
-        });
+            if (typedValue.data != 0) {
+                return typedValue.data;
+            }
+        }
+        return defaultColor;
     }
 
     private boolean initIfFirstTime() {
@@ -393,6 +484,7 @@ public class StartupFragment extends Executor {
         globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
         globalPh.put(PersistenceHelper.SERVER_URL, Constants.DEFAULT_SERVER_URI);
         globalPh.put(PersistenceHelper.EXPORT_SERVER_URL, Constants.DEFAULT_EXPORT_SERVER);
+        ensureDerivedSyncGroup();
 
         // Create required application folders (use getFilesDir() if external storage unavailable, e.g. some emulators)
         File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
@@ -412,6 +504,53 @@ public class StartupFragment extends Executor {
         globalPh.put(PersistenceHelper.FIRST_TIME_KEY, "Initialized");
         globalPh.put(PersistenceHelper.TIME_OF_FIRST_USE, System.currentTimeMillis());
         LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
+    }
+
+    private void ensureDerivedSyncGroup() {
+        try {
+            String bundle = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
+            if (bundle == null) bundle = "";
+            bundle = bundle.trim();
+            if (bundle.isEmpty()) return;
+
+            String normalizedBundle = bundle.toLowerCase(Locale.ROOT);
+            String expectedTeam = normalizedBundle + "synk" + Calendar.getInstance().get(Calendar.YEAR);
+            String currentTeam = globalPh.get(PersistenceHelper.LAG_ID_KEY, "");
+            if (currentTeam == null || currentTeam.trim().isEmpty() || !expectedTeam.equals(currentTeam)) {
+                globalPh.put(PersistenceHelper.LAG_ID_KEY, expectedTeam);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to derive Sync Group", e);
+        }
+    }
+
+    private boolean isUsernameMissing() {
+        String username = globalPh.get(PersistenceHelper.USER_ID_KEY, "");
+        return username == null || username.trim().isEmpty() || PersistenceHelper.UNDEFINED.equals(username);
+    }
+
+    private boolean shouldSkipLoadingForSetup() {
+        // We allow configuration loading even if Username is missing (it is required for some functions,
+        // but not for downloading configuration), but we should not load if endpoints are missing/invalid.
+        String server = globalPh.get(PersistenceHelper.SERVER_URL, "");
+        String exportServer = globalPh.get(PersistenceHelper.EXPORT_SERVER_URL, "");
+        String bundle = globalPh.get(PersistenceHelper.BUNDLE_NAME, "");
+
+        return isMissingOrInvalidHttpUrl(server) || isMissingOrInvalidHttpUrl(exportServer) || bundle == null || bundle.trim().isEmpty();
+    }
+
+    private boolean isMissingOrInvalidHttpUrl(String url) {
+        if (url == null) return true;
+        url = url.trim();
+        if (url.isEmpty() || PersistenceHelper.UNDEFINED.equals(url)) return true;
+
+        try {
+            URL parsed = new URL(url);
+            String protocol = parsed.getProtocol();
+            return protocol == null || !(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https"));
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     /**

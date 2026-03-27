@@ -27,8 +27,15 @@
 	<string name="UserName">Användare</string>
 	<string name="DevOp">Avancerat</string>
 	<string name="log_levels_h">Logg-nivåer</string>
-	<string name="UserName_dm">Måste anges för synk</string>
+	<string name="UserName_dm">Måste anges</string>
 	<string name="Team_s">Måste anges för synk</string>
+	<string name="organisation_h">Organisation</string>
+	<string name="organisation_summary">Förvalda serveradresser</string>
+	<string name="organisation_default">Standard</string>
+	<string name="organisation_slu">SLU</string>
+	<string name="setup_required_hint">Inställning krävs</string>
+	<string name="username_missing_title">Saknar användarnamn</string>
+	<string name="username_missing_continue_message">Att köra appen utan ett Användarnamn gör att vissa funktioner inte fungerar korrekt. Fortsätt?</string>
 
     <string name="developer_functions">Avlusningsfunktioner</string>
     <string name="Automatic_backup">Säkerhetskopiering</string>
@@ -70,6 +77,10 @@
 	<string name="contact_us_button_text">Kontakta oss</string>
     <string name="start">Starta</string>
     <string name="gis_object">Objekt</string>
+    <string name="map_pick_feature_title">Flera objekt i området</string>
+    <string name="map_pick_team_row">Lag: %1$s</string>
+    <string name="map_pick_trakter_row">Trakt %1$s — %2$s</string>
+    <string name="map_pick_trakter_id_only">Id %1$s — %2$s</string>
 	<string name="continue_">Fortsätt</string>
     <string name="reset_cache_d">Ta bort alla cacheade filer</string>
 	<string name="resetCache">Töm cache</string>
@@ -110,6 +121,7 @@
 	<string name="use_maps_summary">Aktivera kartfunktionalitet</string>
 	<string name="map_needle_title">Kartnålar</string>
     <string name="select_layers_title">Kartlager</string>
+	<string name="toggle_all_layers">Växla alla lager</string>
 	<string name="no_layers_loaded">Inga lager laddade än.</string>
 	<string name="no_user_position_available">Ingen användarposition tillgänglig. Aktivera plats och säkerställ att GPS har fix.</string>
 	<string name="trakter_center_on">Centrera på</string>

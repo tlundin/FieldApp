@@ -10,6 +10,7 @@ import android.os.Handler
 import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.GsonBuilder
@@ -17,6 +18,8 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonPrimitive
 import com.mapbox.geojson.Feature
+import com.mapbox.geojson.Geometry
+import com.mapbox.geojson.MultiPoint
 import com.mapbox.geojson.MultiPolygon
 import com.mapbox.geojson.Point
 import com.mapbox.geojson.Polygon
@@ -29,6 +32,8 @@ import com.mapbox.maps.plugin.animation.camera
 import com.mapbox.maps.plugin.gestures.addOnMapClickListener
 import com.mapbox.geojson.FeatureCollection
 import com.mapbox.maps.MapboxMap
+import com.mapbox.maps.QueriedRenderedFeature
+import com.mapbox.maps.ScreenBox
 import com.mapbox.maps.ScreenCoordinate
 import com.mapbox.maps.Style
 import com.mapbox.maps.ViewAnnotationAnchor
@@ -80,12 +85,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.HashMap
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.sqrt
 
 /**
  * Mapbox-backed map drawable. Registered as the "map" when using MapTemplate with network.
@@ -108,6 +116,13 @@ class MapboxMapHolder(
         private const val LABEL_VISIBLE_ZOOM_LEVEL = 6.0
         /** Zoom level for ~20 km visible horizontally/vertically (centering on trakt). */
         private const val CENTER_ON_ZOOM_LEVEL = 10.5
+        /** Tight fit for trakt polygons: keep horizontal padding low so polygon fills screen width. */
+        private const val TRAKT_FIT_PADDING_SIDE_DP = 10.0
+        private const val TRAKT_FIT_PADDING_TOP_DP = 28.0
+        private const val TRAKT_FIT_PADDING_BOTTOM_DP = 28.0
+        /** Extra nudge after fit, for slightly more aggressive zoom-in. */
+        private const val TRAKT_FIT_EXTRA_ZOOM = 0.35
+        private const val TRAKT_FIT_MAX_ZOOM = 17.5
         private const val TEAM_SOURCE_ID = "source-team"
         private const val TEAM_LAYER_ID = "layer-team"
         private const val TEAM_HALO_LAYER_ID = "layer-team-halo"
@@ -124,6 +139,8 @@ class MapboxMapHolder(
         private const val MAP_NOTE_SOURCE_ID = "source-map-notes"
         private const val MAP_NOTE_LAYER_ID = "layer-map-notes"
         const val MAP_NOTE_LAYER_NAME = "map_notes"
+        /** Half-width/height of the map tap query box in dp (~44dp total — comfortable finger target). */
+        private const val MAP_CLICK_ZONE_HALF_DP = 11f
         private const val WIGGLE_MIN_MS = 5_000L
         private const val WIGGLE_MAX_MS = 15_000L
         private const val FRESH_POSITION_MS = 5 * 60 * 1000L  // 5 minutes
@@ -194,11 +211,14 @@ class MapboxMapHolder(
 
     private var trakterBottomSheetCallback: BottomSheetBehavior.BottomSheetCallback? = null
 
-    private val layerState = mutableMapOf<String, LayerState>()
+    /** Insertion order = XML / addLayer order; used for hit-test priority and refresh. */
+    private val layerState = linkedMapOf<String, LayerState>()
     /** Stored layer specs for refresh (re-fetch GeoJSON from server). */
-    private val layerSpecs = mutableMapOf<String, PendingLayer>()
+    private val layerSpecs = linkedMapOf<String, PendingLayer>()
     private val pendingLayers = mutableListOf<PendingLayer>()
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    /** Serializes GeoJSON fetch + style install so stack order matches XML / addLayer call order. */
+    private val layerInstallMutex = Mutex()
     private var visible = true
 
     /** When set, draw dotted line from user to target and show distance. Updated when team layer refreshes. */
@@ -271,6 +291,11 @@ class MapboxMapHolder(
         }
         if (objContext != null || onClick != null) {
             layerClickConfig[name] = objContext to onClick
+            // Also index by gistype to avoid name-mismatch issues
+            // (e.g. "trakter_layer" name but gistype "trakter").
+            gistype?.trim()?.lowercase(Locale.US)?.takeIf { it.isNotEmpty() }?.let { gt ->
+                layerClickConfig[gt] = objContext to onClick
+            }
         }
         val pending = PendingLayer(
             name, label, isVisible, hasWidget, showLabels, isBold,
@@ -284,7 +309,9 @@ class MapboxMapHolder(
             return
         }
         scope.launch {
-            addLayerInternal(map, pending)
+            layerInstallMutex.withLock {
+                addLayerInternal(map, pending)
+            }
         }
     }
 
@@ -294,8 +321,10 @@ class MapboxMapHolder(
             pendingLayers.toList().also { pendingLayers.clear() }
         }
         scope.launch {
-            for (spec in toProcess) {
-                addLayerInternal(map, spec)
+            layerInstallMutex.withLock {
+                for (spec in toProcess) {
+                    addLayerInternal(map, spec)
+                }
             }
         }
     }
@@ -420,9 +449,12 @@ class MapboxMapHolder(
         )
     }
 
-    /** Returns status color expression for the layer; trakter uses TRAKTSTATUS, others use PYSTATUS. */
-    private fun statusColorExpression(layerType: String, defaultColorInt: Int): Expression =
-        if (layerType.equals("trakter", ignoreCase = true)) trakterStatusColorExpression()
+    /**
+     * Status fill/point color: TRAKTSTATUS only when [gistype] is `trakter` (from XML).
+     * Never inferred from layer name — missing gistype uses PYSTATUS like other layers.
+     */
+    private fun statusColorExpression(gistype: String?, defaultColorInt: Int): Expression =
+        if (gistype != null && gistype.equals("trakter", ignoreCase = true)) trakterStatusColorExpression()
         else pystatusColorExpression(defaultColorInt)
 
     private enum class IconLabelPositionKind { ABOVE, BELOW, LEFT, RIGHT }
@@ -462,9 +494,9 @@ class MapboxMapHolder(
         }
     }
 
-    /** Label text: trakter uses TRAKT; else TYPKOD + OBJECTID, or icon_label + OBJECTID when [PendingLayer.iconLabel] is set. */
-    private fun labelFieldExpression(layerType: String, spec: PendingLayer): Expression {
-        if (layerType.equals("trakter", ignoreCase = true)) {
+    /** Label text: gistype `trakter` uses TRAKT; else TYPKOD + OBJECTID, or icon_label + OBJECTID when [PendingLayer.iconLabel] is set. */
+    private fun labelFieldExpression(gistype: String?, spec: PendingLayer): Expression {
+        if (gistype != null && gistype.equals("trakter", ignoreCase = true)) {
             return concat(get("TRAKT"), literal(""))
         }
         val prefix = spec.iconLabel?.trim()?.takeIf { it.isNotEmpty() }
@@ -545,8 +577,8 @@ class MapboxMapHolder(
         fun addLayerOrBelowTeam(layer: com.mapbox.maps.extension.style.layers.Layer) {
             if (style.styleLayerExists(TEAM_LAYER_ID)) style.addLayerBelow(layer, TEAM_LAYER_ID) else style.addLayer(layer)
         }
-        val layerType = spec.gistype?.takeIf { it.isNotBlank() } ?: layerNameToType(name)
-        val statusColorExpr = statusColorExpression(layerType, fillColorInt)
+        val gistypeKey = spec.gistype?.trim()?.takeIf { it.isNotEmpty() }
+        val statusColorExpr = statusColorExpression(gistypeKey, fillColorInt)
         addLayerOrBelowTeam(
             fillLayer(fillLayerId, sourceId) {
                 filter(
@@ -618,7 +650,7 @@ class MapboxMapHolder(
                     // Add text label directly to symbol layer if showLabels is true (visible when zoomed in)
                     if (spec.showLabels) {
                         val (tAnchor, tOff) = labelAnchorAndOffset(spec, polygonCentroid = false)
-                        textField(labelFieldExpression(layerType, spec))
+                        textField(labelFieldExpression(gistypeKey, spec))
                         textColor(Color.BLACK)
                         textHaloColor(Color.WHITE)
                         textHaloWidth(1.0)
@@ -658,7 +690,7 @@ class MapboxMapHolder(
             addLayerOrBelowTeam(
                 symbolLayer(labelLayerId, sourceId) {
                     filter(labelFilter)
-                    textField(labelFieldExpression(layerType, spec))
+                    textField(labelFieldExpression(gistypeKey, spec))
                     textColor(Color.BLACK)
                     textHaloColor(Color.WHITE)
                     textHaloWidth(1.0)
@@ -867,7 +899,180 @@ class MapboxMapHolder(
             state.labelLayerId?.let { style.getLayer(it)?.visibility(visibility) }
         }
     }
-    
+
+    private data class MapPickHit(
+        val feature: Feature,
+        val properties: JsonObject,
+        val layerName: String?,
+        val isTeam: Boolean,
+        val zOrder: Int
+    )
+
+    private fun isTeamStyleLayerId(layerId: String): Boolean =
+        layerId == TEAM_LAYER_ID || layerId == TEAM_ME_INNER_LAYER_ID || layerId == TEAM_OTHERS_INNER_LAYER_ID
+
+    /** Collapse fill/outline/point/label hits for the same GeoJSON feature into one row. */
+    private fun featureDedupKey(source: String?, feature: Feature): String {
+        val src = source ?: ""
+        val fid = feature.id()
+        if (fid != null) return "$src|$fid"
+        val geomTag = feature.geometry()?.javaClass?.simpleName ?: ""
+        val props = feature.properties()
+        val sig = listOf("GISTYP", "OBJECTID", "TYPKOD", "TRAKT").joinToString("|") { key ->
+            props?.get(key)?.takeIf { !it.isJsonNull }?.let { jsonElementToString(it) } ?: ""
+        }
+        return "$src|$geomTag|$sig"
+    }
+
+    private fun pickListRowLabel(context: android.content.Context, hit: MapPickHit): String {
+        if (hit.isTeam) {
+            val raw = safePropString(hit.properties, "name")
+            val name = if (raw != "—") raw else context.getString(R.string.Team)
+            return context.getString(R.string.map_pick_team_row, name)
+        }
+        val gistypeFromFeature = hit.properties.get("GISTYP")?.takeIf { !it.isJsonNull }?.asString
+        val spec = hit.layerName?.let { layerSpecs[it] }
+        val gistype = gistypeFromFeature?.takeIf { it.isNotBlank() }
+            ?: spec?.gistype?.trim()?.takeIf { it.isNotEmpty() }
+        val objectId = safePropString(hit.properties, "OBJECTID")
+        if (gistype != null && gistype.startsWith("map_", ignoreCase = true)) {
+            val typeLabel = gistype.removePrefix("map_")
+            return if (objectId != "—" && objectId.isNotEmpty()) "$typeLabel $objectId" else typeLabel
+        }
+        if (gistype != null && gistype.equals("trakter", ignoreCase = true)) {
+            val trakt = safePropString(hit.properties, "TRAKT")
+            if (trakt != "—" && trakt.isNotEmpty()) return trakt
+        }
+        val iconPrefix = spec?.iconLabel?.trim()?.takeIf { it.isNotEmpty() }
+        if (iconPrefix != null && objectId != "—" && objectId.isNotEmpty()) {
+            return iconPrefix + objectId
+        }
+        val typkod = safePropString(hit.properties, "TYPKOD")
+        val typkodPart = if (typkod != "—" && typkod.isNotEmpty()) typkod else ""
+        val objectIdPart = if (objectId != "—" && objectId.isNotEmpty()) objectId else ""
+        val combined = "$typkodPart $objectIdPart".trim()
+        return if (combined.isNotEmpty()) combined else context.getString(R.string.gis_object)
+    }
+
+    /**
+     * Raw query hits often include the same logical feature several times (fill + outline + point + label).
+     * Keep one entry per feature, preferring the highest style-layer index (topmost paint order).
+     */
+    private fun dedupeHitsForPicker(
+        raw: List<QueriedRenderedFeature>,
+        layerDrawOrderIndex: Map<String, Int>
+    ): List<MapPickHit> {
+        val best = linkedMapOf<String, MapPickHit>()
+        for (qf in raw) {
+            val qfInner = qf.queriedFeature
+            val mapFeature = qfInner.feature
+            val properties = mapFeature.properties() ?: continue
+            val source = qfInner.source
+            val layerId = qf.layers.firstOrNull() ?: continue
+            val z = qf.layers.maxOfOrNull { layerDrawOrderIndex[it] ?: -1 } ?: -1
+            val isTeam = isTeamStyleLayerId(layerId)
+            val layerName = if (!isTeam) layerIdToLayerName(layerId) else null
+            val key = featureDedupKey(source, mapFeature)
+            val candidate = MapPickHit(mapFeature, properties, layerName, isTeam, z)
+            val existing = best[key]
+            if (existing == null || candidate.zOrder > existing.zOrder) {
+                best[key] = candidate
+            }
+        }
+        return best.values.sortedByDescending { it.zOrder }
+    }
+
+    private fun openPickedMapHit(context: android.content.Context, hit: MapPickHit, fallbackGeoPoint: Point) {
+        if (hit.isTeam) {
+            val geoPoint = featureCenter(hit.feature)?.let { (lat, lng) -> Point.fromLngLat(lng, lat) } ?: fallbackGeoPoint
+            showTeamMemberBubble(hit.properties, geoPoint)
+        } else {
+            showFeaturePropertiesDialog(hit.feature, hit.properties, hit.layerName)
+        }
+    }
+
+    private data class PickerRow(val title: String, val hit: MapPickHit?)
+
+    /**
+     * Sort pick list with point-like features first and polygon-like features last.
+     * Fallback heuristic: layer names containing "polygon" are treated as polygon layers.
+     */
+    private fun pickListCategory(hit: MapPickHit): Int {
+        if (hit.isTeam) return 0
+        return when (hit.feature.geometry()) {
+            is Point, is MultiPoint -> 0
+            is Polygon, is MultiPolygon -> 2
+            else -> if (hit.layerName?.contains("polygon", ignoreCase = true) == true) 2 else 1
+        }
+    }
+
+    private fun pickListLayerHeader(hit: MapPickHit): String {
+        val layerName = hit.layerName ?: return mapView.context.getString(R.string.gis_object)
+        return layerSpecs[layerName]?.label?.takeIf { it.isNotBlank() } ?: layerName
+    }
+
+    private fun pointDistancePx(
+        map: MapboxMap,
+        tap: ScreenCoordinate,
+        hit: MapPickHit
+    ): Double? {
+        if (hit.isTeam) return null
+        return when (val g = hit.feature.geometry()) {
+            is Point -> {
+                val p = map.pixelForCoordinate(g)
+                val dx = p.x - tap.x
+                val dy = p.y - tap.y
+                sqrt(dx * dx + dy * dy)
+            }
+            is MultiPoint -> {
+                g.coordinates()
+                    .map { map.pixelForCoordinate(it) }
+                    .map { p ->
+                        val dx = p.x - tap.x
+                        val dy = p.y - tap.y
+                        sqrt(dx * dx + dy * dy)
+                    }
+                    .minOrNull()
+            }
+            else -> null
+        }
+    }
+
+    private fun showMapHitPicker(context: android.content.Context, hits: List<MapPickHit>, fallbackGeoPoint: Point) {
+        val orderedHits = hits.sortedWith(
+            compareBy<MapPickHit> { pickListCategory(it) }.thenByDescending { it.zOrder }
+        )
+        val rows = mutableListOf<PickerRow>()
+        val groups = orderedHits.groupBy { if (pickListCategory(it) >= 2) "Polygons" else "Points" }
+        listOf("Points", "Polygons").forEach { groupName ->
+            val groupHits = groups[groupName].orEmpty()
+            if (groupHits.isEmpty()) return@forEach
+            rows += PickerRow(groupName, null)
+            val byLayer = groupHits.groupBy { pickListLayerHeader(it) }
+            byLayer.forEach { (layerHeader, layerHits) ->
+                rows += PickerRow("  $layerHeader", null)
+                layerHits.forEach { hit ->
+                    rows += PickerRow("    " + pickListRowLabel(context, hit), hit)
+                }
+            }
+        }
+        val labels = rows.map { it.title }
+        val adapter = object : ArrayAdapter<String>(
+            context,
+            android.R.layout.simple_list_item_1,
+            labels
+        ) {
+            override fun isEnabled(position: Int): Boolean = rows[position].hit != null
+        }
+        AlertDialog.Builder(context)
+            .setTitle(R.string.map_pick_feature_title)
+            .setAdapter(adapter) { _, which ->
+                rows.getOrNull(which)?.hit?.let { openPickedMapHit(context, it, fallbackGeoPoint) }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
     private fun setupMapClickListener() {
         val map = mapboxMap ?: return
         map.addOnMapClickListener { point ->
@@ -876,7 +1081,10 @@ class MapboxMapHolder(
                 return@addOnMapClickListener true
             }
             val screenCoordinate = map.pixelForCoordinate(point)
-            val queryGeometry = RenderedQueryGeometry(screenCoordinate)
+            val halfPx = MAP_CLICK_ZONE_HALF_DP * mapView.resources.displayMetrics.density
+            val min = ScreenCoordinate(screenCoordinate.x - halfPx, screenCoordinate.y - halfPx)
+            val max = ScreenCoordinate(screenCoordinate.x + halfPx, screenCoordinate.y + halfPx)
+            val queryGeometry = RenderedQueryGeometry(ScreenBox(min, max))
             val gisLayerIds = layerState.values.flatMap { state ->
                 listOfNotNull(
                     state.fillLayerId,
@@ -887,32 +1095,38 @@ class MapboxMapHolder(
             }
             val teamLayerIds = listOf(TEAM_LAYER_ID, TEAM_ME_INNER_LAYER_ID, TEAM_OTHERS_INNER_LAYER_ID)
             val allLayerIds = gisLayerIds + teamLayerIds
+            val layerDrawOrderIndex = allLayerIds.withIndex().associate { it.value to it.index }
             val queryOptions = RenderedQueryOptions(
                 if (allLayerIds.isEmpty()) null else allLayerIds,
                 null
             )
-            Log.d(TAG, "Map tap: querying layers (count=${allLayerIds.size})")
+            Log.d(TAG, "Map tap: querying box ~${(2 * halfPx).toInt()}px (halfDp=$MAP_CLICK_ZONE_HALF_DP), layers=${allLayerIds.size}")
             map.queryRenderedFeatures(queryGeometry, queryOptions) { result ->
-                val features = result.value
-                if (features.isNullOrEmpty()) {
-                    Log.d(TAG, "queryRenderedFeatures: no features at tap (layerIds=${allLayerIds.size})")
+                val raw = result.value
+                if (raw.isNullOrEmpty()) {
+                    Log.d(TAG, "queryRenderedFeatures: no features in click zone")
                 } else {
-                    val queriedFeature = features.firstOrNull()
-                    if (queriedFeature != null) {
-                        val mapFeature = queriedFeature.queriedFeature.feature
-                        val properties = mapFeature.properties()
-                        val layerId = queriedFeature.layers.firstOrNull()
-                        val layerName = layerId?.let { layerIdToLayerName(it) }
-                        val isTeamLayer = layerId == TEAM_LAYER_ID || layerId == TEAM_ME_INNER_LAYER_ID || layerId == TEAM_OTHERS_INNER_LAYER_ID
-                        Log.d(TAG, "queryRenderedFeatures: hit layer=$layerName isTeam=$isTeamLayer gistyp=${properties?.get("GISTYP")?.asString}")
-                        if (properties != null) {
-                            Handler(Looper.getMainLooper()).post {
-                                if (isTeamLayer) {
-                                    val geoPoint = featureCenter(mapFeature)?.let { (lat, lng) -> Point.fromLngLat(lng, lat) } ?: point
-                                    showTeamMemberBubble(properties, geoPoint)
-                                } else {
-                                    showFeaturePropertiesDialog(mapFeature, properties, layerName)
-                                }
+                    val hits = dedupeHitsForPicker(raw, layerDrawOrderIndex)
+                    Log.d(TAG, "queryRenderedFeatures: raw=${raw.size} deduped=${hits.size}")
+                    Handler(Looper.getMainLooper()).post {
+                        val ctx = mapView.context ?: return@post
+                        val nearPointThresholdPx = halfPx / 2.0
+                        val nearestPointHit = hits
+                            .mapNotNull { h -> pointDistancePx(map, screenCoordinate, h)?.let { d -> h to d } }
+                            .filter { (_, d) -> d <= nearPointThresholdPx }
+                            .minByOrNull { it.second }
+                            ?.first
+                        val shouldPrioritizeNearPoint = nearestPointHit != null &&
+                            hits.any { it !== nearestPointHit && pickListCategory(it) >= 2 } &&
+                            hits.none { it !== nearestPointHit && pickListCategory(it) < 2 }
+                        when (hits.size) {
+                            0 -> Unit
+                            // Close point tap + only polygon alternatives: pick the point directly.
+                            else -> if (shouldPrioritizeNearPoint) {
+                                openPickedMapHit(ctx, nearestPointHit!!, point)
+                            } else when (hits.size) {
+                                1 -> openPickedMapHit(ctx, hits.first(), point)
+                                else -> showMapHitPicker(ctx, hits, point)
                             }
                         }
                     }
@@ -1322,12 +1536,7 @@ class MapboxMapHolder(
                 Log.i(TAG, "Center-on: featureCenter=$center")
                 if (center != null) {
                     val (lat, lng) = center
-                    val point = Point.fromLngLat(lng, lat)
-                    val cameraOptions = CameraOptions.Builder()
-                        .center(point)
-                        .zoom(CENTER_ON_ZOOM_LEVEL)
-                        .build()
-                    (mapView as? MapView)?.camera?.easeTo(cameraOptions)
+                    centerCameraOnTraktFeature(feature, Point.fromLngLat(lng, lat))
                     dismissCard()
                     performCenterOnTrakterWorkflow(trakt, properties, lat, lng)
                 } else {
@@ -1369,7 +1578,7 @@ class MapboxMapHolder(
     }
 
     private fun performCenterOnTrakterWorkflow(trakt: String, properties: JsonObject, lat: Double, lng: Double) {
-        val (objContext, onClick) = layerClickConfig["trakter"] ?: (null to null)
+        val (objContext, onClick) = resolveTrakterClickConfig()
         val keyHash = HashMap<String, String>()
         keyHash["trakt"] = trakt
         GlobalState.getInstance().setDBContext(DB_Context(null, keyHash))
@@ -1414,6 +1623,24 @@ class MapboxMapHolder(
         }
     }
 
+    private fun resolveTrakterClickConfig(): Pair<String?, String?> {
+        // Common keys we've seen in XMLs and dynamic layer naming.
+        val directCandidates = listOf("trakter", "trakter_layer", "trakter_poly_layer")
+        for (key in directCandidates) {
+            val cfg = layerClickConfig[key]
+            if (cfg != null && (!cfg.first.isNullOrBlank() || !cfg.second.isNullOrBlank())) {
+                return cfg
+            }
+        }
+
+        // Fallback: any configured layer key that starts with/contains "trakter".
+        val fallback = layerClickConfig.entries.firstOrNull { (k, v) ->
+            (k.startsWith("trakter", ignoreCase = true) || k.contains("trakter", ignoreCase = true))
+                    && (!v.first.isNullOrBlank() || !v.second.isNullOrBlank())
+        }?.value
+        return fallback ?: (null to null)
+    }
+
     /** Fallback when trakter_card_container is not in the view hierarchy: show Material card in AlertDialog. */
     private fun showTrakterInfoAlertDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
         val card = LayoutInflater.from(context).inflate(R.layout.card_trakter_info, null)
@@ -1450,8 +1677,7 @@ class MapboxMapHolder(
             val center = featureCenter(feature)
             if (center != null) {
                 val (lat, lng) = center
-                val point = Point.fromLngLat(lng, lat)
-                (mapView as? MapView)?.camera?.easeTo(CameraOptions.Builder().center(point).zoom(CENTER_ON_ZOOM_LEVEL).build())
+                centerCameraOnTraktFeature(feature, Point.fromLngLat(lng, lat))
                 dialog.dismiss()
                 performCenterOnTrakterWorkflow(trakt, properties, lat, lng)
             }
@@ -1477,6 +1703,40 @@ class MapboxMapHolder(
             names.add(TEAM_LAYER_DISPLAY_NAME)
         }
         return names
+    }
+
+    /**
+     * For trakt center-on: fit polygon geometry with tight side padding so it fills the screen width.
+     * Falls back to legacy fixed zoom for point-only or missing geometry.
+     */
+    private fun centerCameraOnTraktFeature(feature: Feature, fallbackCenter: Point) {
+        val map = mapboxMap ?: return
+        val mapViewRef = mapView as? MapView
+        val density = mapView.resources.displayMetrics.density
+        val side = TRAKT_FIT_PADDING_SIDE_DP * density
+        val top = TRAKT_FIT_PADDING_TOP_DP * density
+        val bottom = TRAKT_FIT_PADDING_BOTTOM_DP * density
+        val geometry: Geometry? = feature.geometry()
+        val cameraOptions = when (geometry) {
+            is Polygon, is MultiPolygon -> {
+                val fit = map.cameraForGeometry(
+                    geometry,
+                    EdgeInsets(top, side, bottom, side)
+                )
+                val fitZoom = fit.zoom ?: CENTER_ON_ZOOM_LEVEL
+                CameraOptions.Builder()
+                    .center(fit.center ?: fallbackCenter)
+                    .bearing(fit.bearing)
+                    .pitch(fit.pitch)
+                    .zoom((fitZoom + TRAKT_FIT_EXTRA_ZOOM).coerceAtMost(TRAKT_FIT_MAX_ZOOM))
+                    .build()
+            }
+            else -> CameraOptions.Builder()
+                .center(fallbackCenter)
+                .zoom(CENTER_ON_ZOOM_LEVEL)
+                .build()
+        }
+        mapViewRef?.camera?.easeTo(cameraOptions)
     }
     fun isLayerVisible(layerName: String): Boolean {
         if (layerName == TEAM_LAYER_DISPLAY_NAME) return teamLayerVisible

@@ -100,6 +100,15 @@ public class LogRepository {
     }
 
     /**
+     * Adds text to both the main and critical-only buffers.
+     * This is useful for debug actions where the user expects the output to show
+     * regardless of the current log level filter.
+     */
+    public synchronized void addTextToBothLogs(String text) {
+        appendTextWithColor(text, Color.WHITE, true);
+    }
+
+    /**
      * Appends critical text in RED. This text is added to BOTH the main log and the critical-only log.
      * @param text The text to append.
      */

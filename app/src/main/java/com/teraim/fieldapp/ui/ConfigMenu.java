@@ -74,6 +74,26 @@ public class ConfigMenu extends AppCompatActivity {
 		setTitle(R.string.settings);
 	}
 
+	@Override
+	public void onBackPressed() {
+		SharedPreferences prefs = getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE);
+		String username = prefs.getString(PersistenceHelper.USER_ID_KEY, "");
+		boolean usernameMissing = username == null || username.trim().isEmpty() || PersistenceHelper.UNDEFINED.equals(username);
+		if (!usernameMissing) {
+			super.onBackPressed();
+			return;
+		}
+
+		new AlertDialog.Builder(this)
+				.setTitle(R.string.username_missing_title)
+				.setMessage(R.string.username_missing_continue_message)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setCancelable(false)
+				.setPositiveButton(R.string.continue_, (dialog, which) -> super.onBackPressed())
+				.setNegativeButton(R.string.cancel, (dialog, which) -> dialog.cancel())
+				.show();
+	}
+
 	/**
 	 * The SettingsFragment now extends PreferenceFragmentCompat from the AndroidX library.
 	 */
@@ -84,24 +104,17 @@ public class ConfigMenu extends AppCompatActivity {
 		private EditTextPreference teamPref;
 		private EditTextPreference userPref;
 		private EditTextPreference appPref;
+		private ListPreference organisationPref;
 		private CheckBoxPreference devFuncPref;
 		private AlertDialog progressDialog; // Use AlertDialog for progress display
 		private ListPreference logPref; // Changed to ListPreference for consistency
 		private MapNeedlePreference mapNeedlePref; // New preference for map needles
-		private ActivityResultLauncher<Uri> captureQrImageLauncher;
-		private Uri pendingQrImageUri;
-
-		@Override
-		public void onCreate(Bundle savedInstanceState) {
-			super.onCreate(savedInstanceState);
-			captureQrImageLauncher = registerForActivityResult(new ActivityResultContracts.TakePicture(), result -> {
-				if (result != null && result) {
-					handleQrCaptureResult();
-				} else {
-					Log.d(TAG, "QR capture cancelled or failed.");
-				}
-			});
-		}
+		private boolean highlightAppNameAfterOrgChange = false;
+		/**
+		 * Prevents internal preference normalization / derived-field updates
+		 * from triggering a restart when the user only opens the setup screen.
+		 */
+		private boolean suppressRestart = false;
 
 
 		/**
@@ -116,6 +129,10 @@ public class ConfigMenu extends AppCompatActivity {
 			getPreferenceManager().setSharedPreferencesName(Constants.GLOBAL_PREFS);
 			// Load the preferences from an XML resource.
 			setPreferencesFromResource(R.xml.configmenu, rootKey);
+
+			// We do some normalization / derived-field syncing below.
+			// Those should not count as user changes (otherwise we'd restart on back).
+			suppressRestart = true;
 
 			//Create a filter that stops users from entering disallowed characters.
 			InputFilter filter = (source, start, end, dest, dstart, dend) -> {
@@ -171,7 +188,7 @@ public class ConfigMenu extends AppCompatActivity {
 			serverPref.setSummary(serverPref.getText());
 
 			exp_serverPref = findPreference(PersistenceHelper.EXPORT_SERVER_URL);
-			exp_serverPref.setText(exp_serverPref.getText());
+			exp_serverPref.setText(normalizeExportServerUrl(exp_serverPref.getText()));
 			exp_serverPref.setSummary(exp_serverPref.getText());
 
 			appPref = findPreference(PersistenceHelper.BUNDLE_NAME);
@@ -184,6 +201,12 @@ public class ConfigMenu extends AppCompatActivity {
 			}
 			appPref.setSummary(appPref.getText());
 			appPref.setOnBindEditTextListener(editText -> editText.setFilters(new InputFilter[]{filter}));
+
+			organisationPref = findPreference("organisation");
+			ensureOrganisationSelectionForCurrentEndpoints();
+			ensureDerivedSyncGroup();
+			highlightAppNameAfterOrgChange = false;
+			updateRequiredHighlights();
 
 			logPref = findPreference(PersistenceHelper.LOG_LEVEL);
 			if (logPref != null) {
@@ -267,28 +290,8 @@ public class ConfigMenu extends AppCompatActivity {
 				return true;
 			});
 
-			final Preference QRPref = findPreference("scan_qr_code");
-
-			QRPref.setOnPreferenceClickListener(preference -> {
-				File[] externalStorageVolumes =
-						ContextCompat.getExternalFilesDirs(requireContext(), null);
-				File primaryExternalStorage = externalStorageVolumes[0];
-				//create data folder.
-				File picsDir = new File(primaryExternalStorage.getAbsolutePath() + "/pics/");
-				if (!picsDir.exists()) {
-					picsDir.mkdirs();
-				}
-				File file = new File(picsDir, Constants.TEMP_BARCODE_IMG_NAME);
-				pendingQrImageUri = FileProvider.getUriForFile(
-						requireContext(),
-						requireContext().getPackageName() + ".fileprovider",
-						file
-				);
-				captureQrImageLauncher.launch(pendingQrImageUri);
-				return true;
-			});
-
-
+			// Initialization done; subsequent edits should count as user changes.
+			suppressRestart = false;
 		}
 
 		private boolean isCharAllowed(char c) {
@@ -321,7 +324,9 @@ public class ConfigMenu extends AppCompatActivity {
 
 		public void onSharedPreferenceChanged(
 				SharedPreferences sharedPreferences, @NonNull String key) {
-			askForRestart();
+			if (!suppressRestart) {
+				askForRestart();
+			}
 			Preference pref = findPreference(key);
 			Log.d(TAG, "getzz with key " + key);
 			// This can be null if the preference is not on the current screen.
@@ -331,6 +336,19 @@ public class ConfigMenu extends AppCompatActivity {
 			}
 
 			teamPref.setEnabled(devFuncPref.isChecked());
+
+			if ("organisation".equals(key)) {
+				String newOrg = sharedPreferences.getString("organisation", "default");
+				applyOrganisationPreset(newOrg);
+				if (!suppressRestart) {
+					highlightAppNameAfterOrgChange = true;
+					if (pref instanceof ListPreference letp) {
+						pref.setSummary(letp.getEntry());
+					}
+					updateRequiredHighlights();
+				}
+				return;
+			}
 
 			if (pref instanceof EditTextPreference etp) {
                 if (!isEmpty(etp.getText())) {
@@ -344,6 +362,8 @@ public class ConfigMenu extends AppCompatActivity {
 					} else if (key.equals(PersistenceHelper.SERVER_URL)) {
 						Log.d(TAG, "changing server");
 						etp.setText(Tools.server(etp.getText()));
+					} else if (key.equals(PersistenceHelper.EXPORT_SERVER_URL)) {
+						etp.setText(normalizeExportServerUrl(etp.getText()));
 					}
 				}
 				pref.setSummary(etp.getText());
@@ -365,6 +385,14 @@ public class ConfigMenu extends AppCompatActivity {
 				Log.d(TAG, "Map needle set changed via custom preference.");
 				Log.d(TAG, "key: "+mapNeedlePref.getKey()+" value "+getPreferenceManager().getSharedPreferences().getInt(mapNeedlePref.getKey(),-1));
 			}
+
+			if (!suppressRestart && PersistenceHelper.USER_ID_KEY.equals(key)) {
+				updateRequiredHighlights();
+			}
+			if (!suppressRestart && PersistenceHelper.BUNDLE_NAME.equals(key)) {
+				highlightAppNameAfterOrgChange = false;
+				updateRequiredHighlights();
+			}
 		}
 
 		private void askForRestart() {
@@ -375,65 +403,117 @@ public class ConfigMenu extends AppCompatActivity {
 			return s == null || s.isEmpty();
 		}
 
-		private void handleQrCaptureResult() {
-			if (!isAdded()) {
-				Log.d(TAG, "QR capture result ignored: fragment not attached.");
+		private void applyOrganisationPreset(String organisation) {
+			if (organisation == null) organisation = "default";
+			if ("slu".equalsIgnoreCase(organisation)) {
+				setServerAndExportUrls("https://www.slu.se/rloresources", "https://rlo.slu.se/api/v1/fieldpad");
+			} else {
+				setServerAndExportUrls("https://www.teraim.com", "https://synkserver.net");
+			}
+		}
+
+		private void setServerAndExportUrls(String serverUrl, String exportServerUrl) {
+			if (serverPref == null || exp_serverPref == null) return;
+
+			String normalizedServer = Tools.server(serverUrl);
+			String normalizedExport = normalizeExportServerUrl(exportServerUrl);
+
+			getPreferenceManager().getSharedPreferences()
+					.edit()
+					.putString(PersistenceHelper.SERVER_URL, normalizedServer)
+					.putString(PersistenceHelper.EXPORT_SERVER_URL, normalizedExport)
+					.apply();
+
+			serverPref.setText(normalizedServer);
+			serverPref.setSummary(normalizedServer);
+			exp_serverPref.setText(normalizedExport);
+			exp_serverPref.setSummary(normalizedExport);
+		}
+
+		private void ensureOrganisationSelectionForCurrentEndpoints() {
+			if (organisationPref == null || serverPref == null || exp_serverPref == null) return;
+
+			String normalizedServer = serverPref.getText();
+			if (normalizedServer == null) normalizedServer = "";
+			normalizedServer = Tools.server(normalizedServer);
+
+			String normalizedExport = normalizeExportServerUrl(exp_serverPref.getText());
+
+			String sluServer = Tools.server("https://www.slu.se/rloresources");
+			String sluExport = normalizeExportServerUrl("https://rlo.slu.se/api/v1/fieldpad");
+
+			String currentOrg = organisationPref.getValue();
+			if ("slu".equalsIgnoreCase(currentOrg)) {
+				// If the user has explicitly selected SLU, don't immediately override.
 				return;
 			}
-			Log.d(TAG, "QR image captured, starting scan.");
-			String url = (new BarcodeReader(requireActivity())).analyze();
 
-			Log.d(TAG, "GOT " + (url == null ? "null" : url));
-
-			//www.teraim.com?project=Rlotst&team=Rlo2017&name=Lotta&sync=Internet&control=major
-			if (url != null) {
-				Uri uri = Uri.parse(url);
-
-				final String application = uri.getQueryParameter("application");
-				final String team = uri.getQueryParameter("team");
-				final String name = uri.getQueryParameter("name");
-				final String server = uri.getPath();
-
-				(new AlertDialog.Builder(requireActivity())).setTitle("Recieved QR configuration")
-						.setMessage("The following QR setting was received:" +
-								Tools.printIfNotNull("\nApplication: ", application) +
-								Tools.printIfNotNull("\nTeam: ", team) +
-								Tools.printIfNotNull("\nName: ", name) +
-								Tools.printIfNotNull("\nServer: ", server) +
-								"\n********************" +
-								"\nApply these changes?"
-
-						)
-						.setCancelable(false)
-						.setNegativeButton(R.string.cancel, (dialog, which) -> {
-
-						})
-						.setPositiveButton(R.string.ok, (dialog, which) -> {
-
-
-							if (team != null)
-								teamPref.setText(team);
-
-							if (application != null) {
-								appPref.setText(application);
-							}
-							if (name != null)
-								userPref.setText(name);
-							if (server != null)
-								serverPref.setText(server);
-						})
-						.show();
-				askForRestart();
-
+			if (sluServer.equals(normalizedServer) && sluExport.equals(normalizedExport)) {
+				organisationPref.setValue("slu");
 			} else {
-				new AlertDialog.Builder(requireActivity()).setTitle("Error")
-						.setMessage("NO QR code found in image.")
-						.setPositiveButton(R.string.ok, (dialog, which) -> {
-						})
-						.setCancelable(false)
-						.setIcon(android.R.drawable.ic_dialog_alert)
-						.show();
+				organisationPref.setValue("default");
 			}
+		}
+
+		private void ensureDerivedSyncGroup() {
+			if (appPref == null || teamPref == null) return;
+
+			String bundle = appPref.getText();
+			if (bundle == null) bundle = "";
+			bundle = bundle.trim();
+			if (bundle.isEmpty()) return;
+
+			String normalizedBundle = bundle.toLowerCase(Locale.ROOT);
+			String expectedTeam = normalizedBundle + "synk" + Calendar.getInstance().get(Calendar.YEAR);
+
+			String currentTeam = teamPref.getText();
+			if (currentTeam == null) currentTeam = "";
+			currentTeam = currentTeam.trim();
+
+			if (currentTeam.isEmpty() || !expectedTeam.equals(currentTeam)) {
+				teamPref.setText(expectedTeam);
+				teamPref.setSummary(expectedTeam);
+				getPreferenceManager().getSharedPreferences()
+						.edit()
+						.putString(PersistenceHelper.LAG_ID_KEY, expectedTeam)
+						.apply();
+			}
+		}
+
+		private void updateRequiredHighlights() {
+			if (userPref == null || appPref == null) return;
+
+			String username = userPref.getText();
+			boolean usernameMissing = isEmpty(username) || PersistenceHelper.UNDEFINED.equals(username);
+			if (usernameMissing) {
+				userPref.setTitle(getString(R.string.UserName) + " *");
+				userPref.setSummary(getString(R.string.UserName_dm));
+			} else {
+				userPref.setTitle(getString(R.string.UserName));
+				userPref.setSummary(username);
+			}
+
+			String appName = appPref.getText();
+			boolean appMissing = isEmpty(appName);
+			boolean appShouldHighlight = highlightAppNameAfterOrgChange || appMissing;
+			if (appShouldHighlight) {
+				appPref.setTitle(getString(R.string.app_name_t) + " *");
+				appPref.setSummary(appMissing ? getString(R.string.appDialMsg) : appName);
+			} else {
+				appPref.setTitle(getString(R.string.app_name_t));
+				appPref.setSummary(appName);
+			}
+		}
+
+		private String normalizeExportServerUrl(String exportServerUrl) {
+			if (exportServerUrl == null) return "";
+			String url = exportServerUrl.trim();
+			if (url.isEmpty()) return "";
+			if (!url.matches("^(https?)://.*$")) url = "https://" + url;
+			while (url.endsWith("/")) {
+				url = url.substring(0, url.length() - 1);
+			}
+			return url;
 		}
 
 		private void showProgressDialog() {

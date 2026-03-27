@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:versionCode="1234"
-    android:versionName="12.34">
+    android:versionCode="1236"
+    android:versionName="12.36">
 
     <uses-feature
         android:glEsVersion="0x00020000"

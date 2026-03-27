@@ -2020,7 +2020,33 @@ public class DbHelper extends SQLiteOpenHelper {
         cv.put("var", "GISTYP");
         cv.put("value", keyHash.get("gistyp"));
         db().insert(TABLE_VARIABLES, null, cv);
+        // Add stable per-type sequence id so UI can label items as "parking 1", "poi 23", etc.
+        int nextObjectId = queryNextMapNoteObjectId(gistypCol, keyHash.get("gistyp"));
+        cv.put("var", "OBJECTID");
+        cv.put("value", String.valueOf(nextObjectId));
+        db().insert(TABLE_VARIABLES, null, cv);
         Log.d(TAG, "insertMapNotePoint: inserted map note uid=" + keyHash.get("uid") + " gistyp=" + keyHash.get("gistyp"));
+    }
+
+    private int queryNextMapNoteObjectId(String gistypCol, String gistypValue) {
+        int next = 1;
+        String where = VARID + "=? AND " + gistypCol + "=?";
+        String[] args = new String[]{"OBJECTID", gistypValue};
+        try (Cursor c = db().query(TABLE_VARIABLES, new String[]{VALUE}, where, args, null, null, null)) {
+            int valueIdx = c.getColumnIndex(VALUE);
+            while (c.moveToNext()) {
+                if (valueIdx < 0) continue;
+                String s = c.getString(valueIdx);
+                if (s == null) continue;
+                try {
+                    int parsed = Integer.parseInt(s.trim());
+                    if (parsed >= next) next = parsed + 1;
+                } catch (NumberFormatException ignore) {
+                    // Ignore malformed OBJECTID rows.
+                }
+            }
+        }
+        return next;
     }
 
     /**
@@ -2067,6 +2093,21 @@ public class DbHelper extends SQLiteOpenHelper {
                         keySel.buildSelection(), keySel.buildArgs(), null, null, null, "1")) {
                     if (c2.moveToNext()) gpsValue = c2.getString(0);
                 }
+                // Optional OBJECTID for map notes (used for readable picker labels).
+                keySel = new SelectionBuilder();
+                for (String col : keyCols) {
+                    int idx = c.getColumnIndex(col);
+                    if (idx >= 0) {
+                        String v = c.getString(idx);
+                        if (v != null && !v.isEmpty()) keySel.addEquals(col, v);
+                    }
+                }
+                keySel.addEquals(VARID, "OBJECTID");
+                String objectIdValue = null;
+                try (Cursor c3 = db().query(TABLE_VARIABLES, new String[]{VALUE},
+                        keySel.buildSelection(), keySel.buildArgs(), null, null, "id DESC", "1")) {
+                    if (c3.moveToNext()) objectIdValue = c3.getString(0);
+                }
                 if (gpsValue == null || !gpsValue.contains(",")) continue;
                 String[] latLng = gpsValue.trim().split("\\s*,\\s*");
                 if (latLng.length < 2) continue;
@@ -2087,6 +2128,9 @@ public class DbHelper extends SQLiteOpenHelper {
                 props.put("uid", uid != null ? uid : "");
                 if (gistypVal != null) {
                     props.put("GISTYP", gistypVal);
+                }
+                if (objectIdValue != null && !objectIdValue.trim().isEmpty()) {
+                    props.put("OBJECTID", objectIdValue.trim());
                 }
                 JSONObject feature = new JSONObject();
                 feature.put("type", "Feature");
