@@ -12,6 +12,9 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
+import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.Delyta;
 import com.teraim.fieldapp.dynamic.types.Marker;
 import com.teraim.fieldapp.dynamic.types.Point;
@@ -50,26 +53,26 @@ public class ProvytaView extends View {
 		super(context,attrs);
 
 		abo = isNineHoler;
-		pf.setColor(Color.BLACK);
+		pf.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		pf.setStyle(Style.STROKE);
 		pf.setStrokeWidth(1);
 
 
         Paint pySelected = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-        pySelected.setColor(Color.BLACK);
+        pySelected.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		pySelected.setStyle(Style.STROKE);
 		pySelected.setStrokeWidth(3);
 
 
-		p.setColor(Color.BLACK);
+		p.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		p.setStyle(Style.STROKE);
 		p.setStrokeWidth(2);
 
-		px.setColor(Color.DKGRAY);
+		px.setColor(ContextCompat.getColor(context, R.color.secondary_text));
 		px.setTypeface(Typeface.SANS_SERIF);
 
 
-		pl.setColor(Color.BLACK);
+		pl.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		pl.setStyle(Style.STROKE);
 		pl.setTypeface(Typeface.DEFAULT_BOLD); 
 		pl.setTextSize(15);
@@ -83,7 +86,7 @@ public class ProvytaView extends View {
 
 
         Paint p100 = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG);
-        p100.setColor(Color.BLACK);
+        p100.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		p100.setStrokeWidth(3);
 		p100.setStyle(Style.STROKE);
 		p100.setTypeface(Typeface.SANS_SERIF); 
@@ -286,7 +289,7 @@ public class ProvytaView extends View {
 					if (start<0)
 						start +=360;
 					
-					p.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
+					p.setColor(d.isSelected()?ContextCompat.getColor(getContext(), R.color.primary_text):isSelected?Color.LTGRAY:d.getColor());
 					c.drawArc(oval, start, end, false, p);
 //					c.drawArc(oval, start, end, false, pySelected);
 
@@ -298,7 +301,7 @@ public class ProvytaView extends View {
 				endX = cx+(s.end().x*oScaleF);
 				endY = cy+(s.end().y*oScaleF);
 				Log.d(TAG,"Drawing Start: "+startX+","+startY+" End: "+endX+","+endY);
-				p.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
+				p.setColor(d.isSelected()?ContextCompat.getColor(getContext(), R.color.primary_text):isSelected?Color.LTGRAY:d.getColor());
 //				c.drawLine(startX,startY,endX,endY, d.isSelected()?pySelected:p);	
 				c.drawLine(startX,startY,endX,endY, p);
 			}
@@ -309,7 +312,7 @@ public class ProvytaView extends View {
 			float nx = cx+(numPos.x() *oScaleF);
 			float ny = cy+(numPos.y() *oScaleF);
 			Log.d(TAG,"Drawing number at: "+nx+","+ny);
-			px.setColor(d.isSelected()?Color.BLACK:isSelected?Color.LTGRAY:d.getColor());
+			px.setColor(d.isSelected()?ContextCompat.getColor(getContext(), R.color.primary_text):isSelected?Color.LTGRAY:d.getColor());
 			c.drawText(d.getId()+"["+Math.round(d.getArea()/100)+"]", nx, ny, pl);
 		}	}
 

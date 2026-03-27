@@ -13,7 +13,7 @@
     android:layout_height="wrap_content"
     android:paddingLeft="5dp"
     android:text="TÅG 1"
-    android:textColor="@color/black"
+    android:textColor="?attr/colorOnSurface"
     android:textSize="22sp"
     android:textStyle="bold" 
     android:paddingRight="5dp">

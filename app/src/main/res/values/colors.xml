@@ -8,10 +8,13 @@
     <color name="accent">#03DAC6</color>
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#757575</color>
+    <color name="error_text">#B00020</color>
     <color name="primary_dark_translucent">#B35D4037</color><!-- 70% -->
     <color name="background_light">#f3f3f3</color>
+    <color name="background_base">#f3f3f3</color>
     <color name="transparent_blue">#700000FF</color>
     <color name="white">#FFFFFF</color>
+    <color name="button_on_primary">#FFFFFF</color>
     <color name="black">#000000</color>
     <color name="grey2">#d3d3d3</color>
     <color name="purple">#E6E6FA</color>
@@ -21,10 +24,24 @@
     <color name="client_owner_bg">#e5e5ff</color>
     <color name="selected_header_background">#2F8432</color>
     <color name="selected_header_text_color">#FFFFFF</color>
-    <color name="default_text_color">#FFFFFF</color>
+    <color name="default_text_color">#212121</color>
     <color name="my_light_on_surface_color">#DE000000</color> <!-- 87% Black - Good for text on light surfaces -->
     <!-- Or a dark grey like: <color name="my_light_on_surface_color">#FF212121</color> -->
     <color name="my_light_divider_color">#1F000000</color> <!-- 12% Black - Good for dividers on light surfaces -->
+    <!-- Legacy color lookup tokens (light theme) -->
+    <color name="legacy_black_light">#000000</color>
+    <color name="legacy_white_light">#FFFFFF</color>
+    <color name="legacy_green_light">#00FF00</color>
+    <color name="legacy_red_light">#FF0000</color>
+    <color name="legacy_blue_light">#0000FF</color>
+    <color name="legacy_lightgray_light">#D3D3D3</color>
+    <!-- Base declarations for night-qualified legacy colors (lint requires defaults) -->
+    <color name="legacy_black_dark">#000000</color>
+    <color name="legacy_white_dark">#FFFFFF</color>
+    <color name="legacy_green_dark">#00FF00</color>
+    <color name="legacy_red_dark">#FF0000</color>
+    <color name="legacy_blue_dark">#0000FF</color>
+    <color name="legacy_lightgray_dark">#D3D3D3</color>
     <!-- A purple -->
     <!-- White text on primary -->
     <!-- White surface -->

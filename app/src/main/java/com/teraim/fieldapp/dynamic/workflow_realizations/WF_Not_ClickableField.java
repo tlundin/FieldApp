@@ -107,7 +107,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 		//Show owner.
 		showAuthor = GlobalState.getInstance().getGlobalPreferences().getB(PersistenceHelper.SHOW_AUTHOR_KEY);
 		if (format.getBackgroundColor()!=null) {
-			backgroundColor = Tools.getColorResource(myContext.getContext(),format.getBackgroundColor());
+			backgroundColor = Tools.getColorResource(myContext.getContext(),format.getBackgroundColor(), R.color.black, true);
 			getWidget().setBackgroundColor(backgroundColor);
 		}
 
@@ -181,8 +181,9 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 			if (variable.hasBrokenRules()||variable.hasValueOutOfRange()) {
 				Log.d(TAG,"VARID: "+variable.getId()+" hasBroken: "+variable.hasBrokenRules()+" hasoutofRange: "+variable.hasValueOutOfRange());
-				o.setTextColor(Color.RED);
-				u.setTextColor(Color.RED);
+				int errorColor = myContext.getContext().getResources().getColor(R.color.error_text, myContext.getContext().getTheme());
+				o.setTextColor(errorColor);
+				u.setTextColor(errorColor);
 			} else {
 				if (variable.isUsingDefault()) {
 					Log.d(TAG,"Variable "+variable.getId()+" is purple");

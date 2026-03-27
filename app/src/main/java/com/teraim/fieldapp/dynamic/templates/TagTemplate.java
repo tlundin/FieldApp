@@ -619,7 +619,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				header.setText("Tåg "+row);
 				String errorTxt="";
 				if (errorArray[row-1]!=null) {
-					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(Color.RED);
+					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(gs.getContext().getResources().getColor(R.color.error_text,gs.getContext().getTheme()));
 					errorTxt = "["+errorArray[row-1]+"]";
 				}  else
 					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(gs.getContext().getResources().getColor(R.color.blue_background,gs.getContext().getTheme()));
@@ -718,7 +718,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				}
 			}
 			if (errorArray[row]!=null) {
-				tagTextView.setTextColor(Color.RED);
+				tagTextView.setTextColor(gs.getContext().getResources().getColor(R.color.error_text,gs.getContext().getTheme()));
 				tagTextView.setText(tagT+errorArray[row]);
 			} else 
 				tagTextView.setTextColor(gs.getContext().getResources().getColor(R.color.blue_background,gs.getContext().getTheme()));

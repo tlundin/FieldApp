@@ -123,7 +123,7 @@ public class WF_DisplayValueField extends WF_Widget implements EventListener {
 		Log.d(TAG,"applying vertical marging of "+displayFieldFormat.getVerticalMargin()+" to "+this.getName());
 		Log.d(TAG,"unit: "+unit);
 		if (displayFieldFormat.getBackgroundColor()!=null && topElem != null)
-			topElem.setBackgroundColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getBackgroundColor()));
+			topElem.setBackgroundColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getBackgroundColor(), R.color.black, true));
 		if (displayFieldFormat.getTextColor()!=null)
 			header.setTextColor(Tools.getColorResource(myContext.getContext(),displayFieldFormat.getTextColor()));
 	}

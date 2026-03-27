@@ -21,8 +21,8 @@
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:src="@drawable/ic_layers"
-        app:backgroundTint="@color/white"
-        app:tint="@color/black"
+        app:backgroundTint="?attr/colorSurface"
+        app:tint="?attr/colorOnSurface"
         android:contentDescription="Toggle Layers" />
 
 </FrameLayout>

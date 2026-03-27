@@ -1072,7 +1072,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         if (varV.format != null && varV.format.equals("slider")) {
                             l = LayoutInflater.from(myContext.getContext()).inflate(
                                     R.layout.edit_field_slider, null);
-                            SeekBar sb = l.findViewById(R.id.seekbar);
+                            @SuppressLint("MissingInflatedId") SeekBar sb = l.findViewById(R.id.seekbar);
                             final EditText et = l.findViewById(R.id.edit);
                             et.setKeyListener(null);
                             String value = var.getValue();
@@ -1182,19 +1182,20 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                 TextView limit = v.findViewById(R.id.limit);
                 CharSequence limiTxt = new SpannableString("");
-                et.setTextColor(Color.BLACK);
-                if (variable.isUsingDefault()) {
-                    et.setTextColor(myContext.getContext().getResources()
-                            .getColor(R.color.purple,myContext.getContext().getTheme()));
-                } else
-                    Log.d(TAG, "Variable " + variable.getId()
-                            + " is NOT YELLOW");
+                et.setTextColor(myContext.getContext().getResources()
+                        .getColor(R.color.primary_text, myContext.getContext().getTheme()));
+                if (!variable.isUsingDefault())
+                    Log.d(TAG, "Variable " + variable.getId() + " is NOT default");
                 if (filter != null) {
                     if (variable.hasValueOutOfRange())
-                        et.setTextColor(Color.RED);
+                        et.setTextColor(myContext.getContext().getResources()
+                                .getColor(R.color.error_text, myContext.getContext().getTheme()));
                     limiTxt = TextUtils.concat(limiTxt, filter.prettyPrint());
                 }
-                et.setTextColor(Color.BLACK);
+                if (!(filter != null && variable.hasValueOutOfRange())) {
+                    et.setTextColor(myContext.getContext().getResources()
+                            .getColor(R.color.primary_text, myContext.getContext().getTheme()));
+                }
 				/*
 				 * CharSequence ruleExec =
 				 * ruleExecutor.getRuleExecutionAsString(
@@ -1276,6 +1277,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
         }
     }
+
 
 
 

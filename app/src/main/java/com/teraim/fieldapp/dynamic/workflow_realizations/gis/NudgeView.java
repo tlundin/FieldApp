@@ -16,6 +16,8 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.NudgeListener;
 
@@ -60,21 +62,23 @@ public class NudgeView extends View {
 
     private void init(Context context) {
         this.ctx = context;
+        int colorOnSurface = resolveThemeColor(context, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text);
+        int colorSurface = resolveThemeColor(context, com.google.android.material.R.attr.colorSurface, R.color.white);
         p1 = new Paint();
         p1.setColor(context.getColor(R.color.primary_dark));
         p1.setStyle(Paint.Style.FILL);
         p1neg = new Paint();
-        p1neg.setColor(Color.WHITE);
+        p1neg.setColor(colorSurface);
         p1neg.setStyle(Paint.Style.FILL);
         p2 = new Paint();
-        p2.setColor(Color.WHITE);
+        p2.setColor(colorSurface);
         p2.setStyle(Paint.Style.STROKE);
         p2.setStrokeWidth(3);
         p3 = new Paint();
-        p3.setColor(Color.WHITE);
+        p3.setColor(colorSurface);
         p3.setStyle(Paint.Style.FILL);
         p3neg = new Paint();
-        p3neg.setColor(Color.BLACK);
+        p3neg.setColor(colorOnSurface);
         p3neg.setStyle(Paint.Style.FILL);
 
         DisplayMetrics metrics = new DisplayMetrics();
@@ -220,6 +224,17 @@ public class NudgeView extends View {
             }
         });
 
+    }
+
+    private int resolveThemeColor(Context context, int attrResId, int fallbackColorResId) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(context, typedValue.resourceId);
+            }
+            return typedValue.data;
+        }
+        return ContextCompat.getColor(context, fallbackColorResId);
     }
 
 

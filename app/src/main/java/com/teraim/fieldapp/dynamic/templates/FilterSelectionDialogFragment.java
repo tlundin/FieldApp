@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import android.util.TypedValue;
 import android.graphics.Color;
@@ -121,10 +122,10 @@ public class FilterSelectionDialogFragment extends DialogFragment {
 
         if (isColumnFilter) {
             textView.setBackgroundResource(R.drawable.dialog_column_filter_label_background);
-            textView.setTextColor(context.getResources().getColor(android.R.color.white));
+            textView.setTextColor(resolveThemeColor(context, com.google.android.material.R.attr.colorOnSecondary, android.R.color.white));
         } else {
             textView.setBackgroundResource(R.drawable.dialog_filter_label_background);
-            textView.setTextColor(context.getResources().getColor(android.R.color.black));
+            textView.setTextColor(resolveThemeColor(context, com.google.android.material.R.attr.colorOnSurface, android.R.color.black));
         }
 
         textView.setPadding(16, 8, 16, 8);
@@ -196,5 +197,16 @@ public class FilterSelectionDialogFragment extends DialogFragment {
     public void onDetach() {
         super.onDetach();
         selectionListener = null; // Clear listener to prevent memory leaks
+    }
+
+    private int resolveThemeColor(Context context, int attrResId, int fallbackColorResId) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(context, typedValue.resourceId);
+            }
+            return typedValue.data;
+        }
+        return ContextCompat.getColor(context, fallbackColorResId);
     }
 }

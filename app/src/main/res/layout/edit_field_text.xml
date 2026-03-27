@@ -37,7 +37,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:ems="10"
-                    android:inputType="text" />
+                    android:inputType="text"
+                    style="@style/Widget.FieldApp.TextInputEditText" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView

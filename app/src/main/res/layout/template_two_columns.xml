@@ -18,7 +18,7 @@
     <View
         android:layout_width="1dip"
         android:layout_height="match_parent"
-        android:background="#000000" />
+        android:background="?attr/dividerColor" />
     <LinearLayout
         android:id="@+id/fieldPanelRight"
         android:layout_width="0px"

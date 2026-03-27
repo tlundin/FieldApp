@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.Observer;
@@ -144,6 +145,9 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 	private void init(Context ctx) {
 		this.setClickable(true);
 		this.ctx=ctx;
+		int colorOnSurface = ContextCompat.getColor(ctx, R.color.primary_text);
+		int colorSurface = ContextCompat.getColor(ctx, R.color.background_base);
+		int dividerColor = ContextCompat.getColor(ctx, R.color.my_light_divider_color);
 		calendar.setTime(new Date());
 		Paint grCursorPaint = new Paint();
 		grCursorPaint.setColor(Color.GRAY);
@@ -155,40 +159,40 @@ public class GisImageView extends GestureImageView implements TrackerListener {
 		rCursorPaint.setColor(Color.RED);
 		rCursorPaint.setStyle(Style.FILL);
 		Paint wCursorPaint = new Paint();
-		wCursorPaint.setColor(Color.WHITE);
+		wCursorPaint.setColor(colorSurface);
 		wCursorPaint.setStyle(Style.FILL);
 		bCursorPaint = new Paint();
-		bCursorPaint.setColor(Color.BLACK);
+		bCursorPaint.setColor(colorOnSurface);
 		bCursorPaint.setStyle(Style.FILL);
 		Paint markerPaint = new Paint();
 		markerPaint.setColor(Color.YELLOW);
 		markerPaint.setStyle(Style.FILL);
 		txtPaint = new Paint();
 		txtPaint.setTextSize(8);
-		txtPaint.setColor(Color.WHITE);
+		txtPaint.setColor(colorSurface);
 		txtPaint.setStyle(Style.FILL_AND_STROKE);
 		txtPaint.setTextAlign(Paint.Align.CENTER);
 		Paint selectedPaint = new Paint();
 		selectedPaint.setTextSize(8);
-		selectedPaint.setColor(Color.BLACK);
+		selectedPaint.setColor(colorOnSurface);
 
 		selectedPaint.setTextAlign(Paint.Align.CENTER);
 		Paint btnTxt = new Paint();
 		btnTxt.setTextSize(8);
-		btnTxt.setColor(Color.WHITE);
+		btnTxt.setColor(colorSurface);
 
 		btnTxt.setTextAlign(Paint.Align.CENTER);
 		vtnTxt = new Paint();
 		vtnTxt.setTextSize(8);
-		vtnTxt.setColor(Color.WHITE);
+		vtnTxt.setColor(colorSurface);
 		txtPaint.setStyle(Style.FILL_AND_STROKE);
 		vtnTxt.setTextAlign(Paint.Align.CENTER);
 		Paint borderPaint = new Paint();
-		borderPaint.setColor(Color.WHITE);
+		borderPaint.setColor(dividerColor);
 		borderPaint.setStyle(Style.STROKE);
 		borderPaint.setStrokeWidth(3);
 		polyPaint = new Paint();
-		polyPaint.setColor(Color.WHITE);
+		polyPaint.setColor(dividerColor);
 		polyPaint.setStyle(Style.STROKE);
 		polyPaint.setStrokeWidth( 2.0f * getResources().getDisplayMetrics().density );
 		polyPaint.setPathEffect( new DashPathEffect( new float[] {20,5,},0 ) );

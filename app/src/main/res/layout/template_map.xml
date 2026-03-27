@@ -78,8 +78,8 @@
             app:fabCustomSize="40dp"
             app:fabSize="mini"
             app:srcCompat="@drawable/ic_plus_black"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_zoom_minus"
@@ -91,8 +91,8 @@
             app:fabCustomSize="40dp"
             app:fabSize="mini"
             app:srcCompat="@drawable/ic_minus_black"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_refresh"
@@ -103,8 +103,8 @@
             android:contentDescription="Refresh map layers"
             app:fabCustomSize="48dp"
             app:srcCompat="@drawable/ic_refresh_black"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_layer_toggle"
@@ -115,8 +115,8 @@
             android:contentDescription="Toggle layers"
             app:fabCustomSize="48dp"
             app:srcCompat="@drawable/ic_layers"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_center_on_user"
@@ -127,8 +127,8 @@
             android:contentDescription="Center on user"
             app:fabCustomSize="48dp"
             app:srcCompat="@drawable/ic_center_on_user"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_map_type_toggle"
@@ -139,8 +139,8 @@
             android:contentDescription="Toggle satellite/standard map"
             app:fabCustomSize="48dp"
             app:srcCompat="@drawable/ic_map_layers"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fab_add_object"
@@ -151,8 +151,8 @@
             android:contentDescription="@string/add_map_note_content_description"
             app:fabCustomSize="48dp"
             app:srcCompat="@drawable/ic_add_map_note"
-            app:backgroundTint="@color/white"
-            app:tint="@color/black" />
+            app:backgroundTint="?attr/colorSurface"
+            app:tint="?attr/colorOnSurface" />
 
         <!-- Main tools FAB: circle, primary fill, soft elevation shadow -->
         <com.google.android.material.floatingactionbutton.FloatingActionButton

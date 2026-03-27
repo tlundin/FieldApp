@@ -12,14 +12,14 @@
         android:text="Delyta"
         android:layout_marginRight="10dp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textAppearance="?android:attr/textAppearanceMedium" />
     <TextView
         android:id="@+id/value"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Area"
-        android:textColor="@android:color/black"
+        android:textColor="?attr/colorOnSurface"
         android:textStyle="italic"
         android:layout_marginRight="10dp"
         android:textAppearance="?android:attr/textAppearanceMedium" />

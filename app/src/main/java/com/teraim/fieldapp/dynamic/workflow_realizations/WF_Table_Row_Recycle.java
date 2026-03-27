@@ -99,7 +99,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		headerTV.setTag(R.id.tag_original_text_size_sp, definition.textSizeSp);
 
 		Context ctx = myContext.getContext();
-		if (definition.backgroundColor != null) headerC.setBackgroundColor(Tools.getColorResource(ctx, definition.backgroundColor));
+		if (definition.backgroundColor != null) headerC.setBackgroundColor(Tools.getColorResource(ctx, definition.backgroundColor, R.color.black, true));
 		else headerC.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
 		//if (definition.textColor != null) headerTV.setTextColor(Tools.getColorResource(ctx, definition.textColor));
 		//else headerTV.setTextColor(ContextCompat.getColor(ctx, R.color.default_text_color));
@@ -152,7 +152,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 					String originalTextColorStr = (String) headerTV.getTag(R.id.tag_original_text_color);
 					Float originalTextSizeSp = (Float) headerTV.getTag(R.id.tag_original_text_size_sp);
 
-					if (originalBgColorStr != null) headerCellView.setBackgroundColor(Tools.getColorResource(ctx, originalBgColorStr));
+					if (originalBgColorStr != null) headerCellView.setBackgroundColor(Tools.getColorResource(ctx, originalBgColorStr, R.color.black, true));
 					else headerCellView.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
 
 					if (originalTextColorStr != null) headerTV.setTextColor(Tools.getColorResource(ctx, originalTextColorStr));
@@ -296,13 +296,13 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 			View widgetView = widget.getWidget();
 			if (widgetView instanceof CheckBox) {
 				if (textColor != null) ((CheckBox) widgetView).setTextColor(Tools.getColorResource(ctx, textColor));
-				if (backgroundColor != null) widgetView.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor));
+				if (backgroundColor != null) widgetView.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor, R.color.black, true));
 			}
 		} else {
 			widget = new WF_Cell_Widget(columnKeyHash, getLabel(), al.getDescription(myRow), myContext, this.getId() + colKey, true, cellType);
 			View widgetView = widget.getWidget();
 			if (widgetView != null) {
-				if (backgroundColor != null) widgetView.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor));
+				if (backgroundColor != null) widgetView.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor, R.color.black, true));
 				else widgetView.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
 			}
 		}
@@ -345,7 +345,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		View emptyCell = LayoutInflater.from(myContext.getContext()).inflate(R.layout.cell_field_text_aggregate, targetContainer, false);
 		View bg = emptyCell.findViewById(R.id.outputContainer); TextView tv= emptyCell.findViewById(R.id.contentT);
 		Context ctx = myContext.getContext();
-		if (backgroundColor!=null) bg.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor)); else bg.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
+		if (backgroundColor!=null) bg.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor, R.color.black, true)); else bg.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
 		if (textColor!=null) tv.setTextColor(Tools.getColorResource(ctx,textColor)); else tv.setTextColor(ContextCompat.getColor(ctx, R.color.default_text_color));
 		aggregateCellViewsInRow.add(emptyCell);
 		targetContainer.addView(emptyCell); return tv;
@@ -356,7 +356,7 @@ public class WF_Table_Row_Recycle extends WF_Widget implements Listable,Comparab
 		View emptyCell = LayoutInflater.from(myContext.getContext()).inflate(R.layout.cell_field_logical_aggregate, targetContainer, false);
 		CheckBox cb= emptyCell.findViewById(R.id.contentT);
 		Context ctx = myContext.getContext();
-		if (backgroundColor!=null) emptyCell.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor)); else emptyCell.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
+		if (backgroundColor!=null) emptyCell.setBackgroundColor(Tools.getColorResource(ctx,backgroundColor, R.color.black, true)); else emptyCell.setBackgroundColor(ContextCompat.getColor(ctx, android.R.color.transparent));
 		if (textColor!=null) cb.setTextColor(Tools.getColorResource(ctx,textColor)); else cb.setTextColor(ContextCompat.getColor(ctx, R.color.default_text_color));
 		aggregateCellViewsInRow.add(emptyCell);
 		targetContainer.addView(emptyCell); return cb;

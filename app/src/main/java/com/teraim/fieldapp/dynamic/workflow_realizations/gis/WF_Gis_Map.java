@@ -592,7 +592,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     Gravity.CENTER);
             myText.setLayoutParams(params1);
             myText.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-            myText.setTextColor(Color.WHITE);
+            myText.setTextColor(resolveThemeColor(ctx, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text));
             return myText;
         });
 
@@ -606,7 +606,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             myText.setLayoutParams(params12);
             myText.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
 
-            myText.setTextColor(Color.WHITE);
+            myText.setTextColor(resolveThemeColor(ctx, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text));
             return myText;
         });
 
@@ -1345,5 +1345,16 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             return true;
         }
         return b.booleanValue();
+    }
+
+    private int resolveThemeColor(Context context, int attrResId, int fallbackColorResId) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(context, typedValue.resourceId);
+            }
+            return typedValue.data;
+        }
+        return ContextCompat.getColor(context, fallbackColorResId);
     }
 }

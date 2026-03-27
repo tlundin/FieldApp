@@ -1,5 +1,6 @@
 package com.teraim.fieldapp.synchronization;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
@@ -34,6 +35,7 @@ import java.util.Set;
  */
 
 
+@SuppressLint("MissingPermission")
 public class BluetoothConnectionProvider extends ConnectionProvider {
 	private static final String TAG = "BluetoothConnectionProvider";
 

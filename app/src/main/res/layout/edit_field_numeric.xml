@@ -26,6 +26,7 @@
             android:layout_marginRight="10dp"
             android:ems="5"
             android:inputType="number"
+            style="@style/Widget.FieldApp.EditText"
              />
 
         <TextView

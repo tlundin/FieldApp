@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.BitmapFactory;
@@ -27,6 +28,7 @@ import android.view.WindowManager;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
+import androidx.core.graphics.ColorUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -72,6 +74,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1385,31 +1388,104 @@ public class Tools {
 	}
 
 	public static int getColorResource(Context ctx, String colorName, int defaultColor) {
+		return getColorResource(ctx, colorName, defaultColor, false);
+	}
+
+	public static int getColorResource(Context ctx, String colorName, int defaultColor, boolean useAsBackground) {
 
 		if(colorName !=null) {
-			if (colorName.startsWith("#"))
-				return Color.parseColor(colorName);
-			else if (colorName.equalsIgnoreCase("black"))
-			    return Color.BLACK;
-            else if (colorName.equalsIgnoreCase("white"))
-                return Color.WHITE;
-            else if (colorName.equalsIgnoreCase("green"))
-                return Color.GREEN;
-            else if (colorName.equalsIgnoreCase("red"))
-                return Color.RED;
-            else if (colorName.equalsIgnoreCase("blue"))
-                return Color.BLUE;
-            else if (colorName.equalsIgnoreCase("Lightgray"))
-            	return Color.parseColor("#D3D3D3");
+			String normalized = colorName.trim().toLowerCase(Locale.ROOT);
+			boolean darkMode = isDarkModeEnabled(ctx);
+
+			Integer mappedColor = getLegacyMappedColor(ctx, normalized, darkMode, useAsBackground);
+			if (mappedColor != null) {
+				return mappedColor;
+			}
+
+			if (normalized.startsWith("#")) {
+				try {
+					int parsed = Color.parseColor(normalized);
+					if (darkMode && useAsBackground) {
+						return transformHexForDarkTheme(parsed);
+					}
+					return parsed;
+				} catch (IllegalArgumentException ignored) {
+					// Fall through to default handling below.
+				}
+			}
 			try {
-				int resourceId = ctx.getResources().getIdentifier(colorName.toLowerCase(), "color", ctx.getPackageName());
-				return ctx.getColor(resourceId);
+				int resourceId = ctx.getResources().getIdentifier(normalized, "color", ctx.getPackageName());
+				if (resourceId != 0) {
+					return ContextCompat.getColor(ctx, resourceId);
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 		Log.e("plax","Color "+colorName+" not known...returning default");
-		return ctx.getColor(defaultColor);
+		return ContextCompat.getColor(ctx, defaultColor);
+	}
+
+	private static int transformHexForDarkTheme(int color) {
+		float[] hsl = new float[3];
+		ColorUtils.colorToHSL(color, hsl);
+		// Keep hue, reduce saturation slightly, and clamp lightness to dark-surface band.
+		hsl[1] = Math.max(0.18f, Math.min(hsl[1] * 0.85f, 0.65f));
+		hsl[2] = Math.max(0.18f, Math.min(hsl[2] * 0.45f, 0.34f));
+		return ColorUtils.HSLToColor(hsl);
+	}
+
+	private static boolean isDarkModeEnabled(Context ctx) {
+		int currentNightMode = ctx.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
+		return currentNightMode == Configuration.UI_MODE_NIGHT_YES;
+	}
+
+	private static Integer getLegacyMappedColor(Context ctx, String normalizedColor, boolean darkMode, boolean useAsBackground) {
+		if (normalizedColor == null || normalizedColor.isEmpty()) {
+			return null;
+		}
+		// For text/foreground use, keep classic literal semantics regardless of theme.
+		if (!useAsBackground) {
+			if (normalizedColor.equals("black") || normalizedColor.equals("#000000")) {
+				return ContextCompat.getColor(ctx, R.color.primary_text);
+			}
+			if (normalizedColor.equals("white") || normalizedColor.equals("#ffffff")) {
+				return Color.WHITE;
+			}
+			if (normalizedColor.equals("green") || normalizedColor.equals("#00ff00")) {
+				return Color.GREEN;
+			}
+			if (normalizedColor.equals("red") || normalizedColor.equals("#ff0000")) {
+				return Color.RED;
+			}
+			if (normalizedColor.equals("blue") || normalizedColor.equals("#0000ff")) {
+				return Color.BLUE;
+			}
+			if (normalizedColor.equals("lightgray") || normalizedColor.equals("#d3d3d3")) {
+				return Color.parseColor("#D3D3D3");
+			}
+			return null;
+		}
+		// Background use: apply day/night aware mapping.
+		if (normalizedColor.equals("black") || normalizedColor.equals("#000000")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_black_dark : R.color.legacy_black_light);
+		}
+		if (normalizedColor.equals("white") || normalizedColor.equals("#ffffff")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_white_dark : R.color.legacy_white_light);
+		}
+		if (normalizedColor.equals("green") || normalizedColor.equals("#00ff00")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_green_dark : R.color.legacy_green_light);
+		}
+		if (normalizedColor.equals("red") || normalizedColor.equals("#ff0000")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_red_dark : R.color.legacy_red_light);
+		}
+		if (normalizedColor.equals("blue") || normalizedColor.equals("#0000ff")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_blue_dark : R.color.legacy_blue_light);
+		}
+		if (normalizedColor.equals("lightgray") || normalizedColor.equals("#d3d3d3")) {
+			return ContextCompat.getColor(ctx, darkMode ? R.color.legacy_lightgray_dark : R.color.legacy_lightgray_light);
+		}
+		return null;
 	}
 
 	public static String getMajorVersion(String urlString) {
