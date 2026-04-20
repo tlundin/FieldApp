@@ -768,7 +768,7 @@ public class MapTemplate extends Executor {
 		// Create per-layer checkboxes.
 		for (String name : layerNames) {
 			CheckBox cb = new CheckBox(requireContext());
-			cb.setText(name);
+			cb.setText(mapboxMapHolder.getLayerDisplayName(name));
 			cb.setChecked(mapboxMapHolder.isLayerVisible(name));
 			cb.setOnCheckedChangeListener((buttonView, isChecked) -> {
 				if (suppressCallbacks[0]) return;

@@ -92,6 +92,7 @@ public class StartupFragment extends Executor {
     private String bundleName;
     private float oldAppVersion = -1;
     private boolean loadAllModules = false;
+    private boolean isLoadingConfiguration = false;
     private Start startInstance;
     private GisDatabaseWorkflow gisDatabaseWorkflowInstance;
 
@@ -155,7 +156,13 @@ public class StartupFragment extends Executor {
         viewModel = new ViewModelProvider(requireActivity()).get(ModuleLoaderViewModel.class);
 
         // Set up the listener for the reload button
-        loadConfigurationButton.setOnClickListener(v -> showReloadDialog());
+        updateLoadConfigurationButtonState();
+        loadConfigurationButton.setOnClickListener(v -> {
+            if (isLoadingConfiguration) {
+                return;
+            }
+            showReloadDialog();
+        });
         if (GlobalState.getInstance() == null) {
             viewModel.workflowState.observe(getViewLifecycleOwner(), result -> {
                 if (result == null) return;
@@ -165,11 +172,15 @@ public class StartupFragment extends Executor {
 
                 switch (result.status()) {
                     case LOADING:
+                        isLoadingConfiguration = true;
+                        updateLoadConfigurationButtonState();
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate Loading",getColor(requireContext(),R.color.purple));
                         Log.d(TAG, "Loading....");
 
                         break;
                     case SUCCESS:
+                        isLoadingConfiguration = false;
+                        updateLoadConfigurationButtonState();
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate success",getColor(requireContext(),R.color.purple));
                         // Pass the completed ModuleRegistry to the startApplication method.
                         // Corrected: Access registry on the unwrapped result
@@ -183,6 +194,8 @@ public class StartupFragment extends Executor {
                         }
                         break;
                     case FAILURE:
+                        isLoadingConfiguration = false;
+                        updateLoadConfigurationButtonState();
                         startupFailed = true;
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate Failure",getColor(requireContext(),R.color.purple));
                         showErrorDialog("An error occurred during loading. Please check your connection and try again.");
@@ -233,6 +246,8 @@ public class StartupFragment extends Executor {
      * @param loadAllModules If true, all modules will be fetched from the server, ignoring cache.
      */
     private void startLoadingProcess(boolean loadAllModules) {
+        isLoadingConfiguration = true;
+        updateLoadConfigurationButtonState();
         if (loadAllModules && GlobalState.getInstance() != null) {
             GlobalState.destroy();
         }
@@ -247,6 +262,14 @@ public class StartupFragment extends Executor {
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
         viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules, myContext);
+    }
+
+    private void updateLoadConfigurationButtonState() {
+        if (loadConfigurationButton == null) {
+            return;
+        }
+        loadConfigurationButton.setEnabled(!isLoadingConfiguration);
+        loadConfigurationButton.setPressed(isLoadingConfiguration);
     }
 
     /**

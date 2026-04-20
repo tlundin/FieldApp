@@ -1705,6 +1705,11 @@ class MapboxMapHolder(
         return names
     }
 
+    fun getLayerDisplayName(layerName: String): String {
+        if (layerName == TEAM_LAYER_DISPLAY_NAME) return TEAM_LAYER_DISPLAY_NAME
+        return layerSpecs[layerName]?.label?.takeIf { it.isNotBlank() } ?: layerName
+    }
+
     /**
      * For trakt center-on: fit polygon geometry with tight side padding so it fills the screen width.
      * Falls back to legacy fixed zoom for point-only or missing geometry.

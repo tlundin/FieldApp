@@ -56,7 +56,7 @@ public class GeoJSONExporter extends Exporter {
 				write("type","name");
 				writer.name("properties");
 				writer.beginObject();
-				write("name","EPSG:3006");
+				write("name","urn:ogc:def:crs:OGC:1.3:CRS84");
 				writer.endObject();
 				//end header
 				writer.endObject();
