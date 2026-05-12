@@ -128,6 +128,10 @@
     <string name="no_user_position_available">No user position available. Enable location and ensure GPS has a fix.</string>
     <string name="trakter_center_on">Center on</string>
     <string name="trakter_navigate">Navigate</string>
+    <string name="navigate_walk">Walk</string>
+    <string name="navigate_drive">Drive</string>
+    <string name="navigate_distance_label">Distance</string>
+    <string name="navigate_direction_label">Direction</string>
     <string name="trakter_info_title">Trakt %1$s</string>
     <string name="trakter_status_high">High priority</string>
     <string name="trakter_status_none">Nothing done</string>

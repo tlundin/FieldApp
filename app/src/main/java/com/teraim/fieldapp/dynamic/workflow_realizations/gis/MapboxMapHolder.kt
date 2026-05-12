@@ -12,6 +12,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonElement
@@ -93,6 +94,10 @@ import java.net.URL
 import java.util.HashMap
 import java.util.Locale
 import kotlin.math.abs
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
@@ -135,6 +140,8 @@ class MapboxMapHolder(
         private const val TEAM_OTHERS_INNER_LAYER_ID = "layer-team-others-inner"
         private const val NAVIGATE_LINE_SOURCE_ID = "source-navigate-line"
         private const val NAVIGATE_LINE_LAYER_ID = "layer-navigate-line"
+        private const val NAVIGATE_BASELINE_SOURCE_ID = "source-navigate-baseline"
+        private const val NAVIGATE_BASELINE_LAYER_ID = "layer-navigate-baseline"
         /** GeoJSON layer built from DB: variabler rows with GISTYP=map_note and GPSCOORD. */
         private const val MAP_NOTE_SOURCE_ID = "source-map-notes"
         private const val MAP_NOTE_LAYER_ID = "layer-map-notes"
@@ -224,6 +231,9 @@ class MapboxMapHolder(
     /** When set, draw dotted line from user to target and show distance. Updated when team layer refreshes. */
     @Volatile
     private var navigateTarget: Pair<Double, Double>? = null
+    /** Fixed navigation baseline start point (user position when navigation started). */
+    @Volatile
+    private var navigateStart: Pair<Double, Double>? = null
 
     data class LayerState(
         val sourceId: String,
@@ -1064,7 +1074,7 @@ class MapboxMapHolder(
         ) {
             override fun isEnabled(position: Int): Boolean = rows[position].hit != null
         }
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
             .setTitle(R.string.map_pick_feature_title)
             .setAdapter(adapter) { _, which ->
                 rows.getOrNull(which)?.hit?.let { openPickedMapHit(context, it, fallbackGeoPoint) }
@@ -1338,6 +1348,13 @@ class MapboxMapHolder(
                 dismissCard()
             }
         }
+        card.findViewById<View>(R.id.btn_navigate_drive)?.setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startDriveNavigateTo(context, center.first, center.second)
+                dismissCard()
+            }
+        }
         card.findViewById<View>(R.id.btn_start).setOnClickListener {
             runStartWorkflow(feature, properties, objContext, onClick)
             dismissCard()
@@ -1396,6 +1413,13 @@ class MapboxMapHolder(
             val center = featureCenter(feature)
             if (center != null) {
                 startNavigateTo(center.first, center.second)
+                dialog.dismiss()
+            }
+        }
+        card.findViewById<View>(R.id.btn_navigate_drive)?.setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startDriveNavigateTo(context, center.first, center.second)
                 dialog.dismiss()
             }
         }
@@ -1549,15 +1573,14 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                val (lat, lng) = center
-                val uri = Uri.parse("google.navigation:q=$lat,$lng")
-                val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                try {
-                    context.startActivity(intent)
-                } catch (_: android.content.ActivityNotFoundException) {
-                    val geoUri = Uri.parse("geo:$lat,$lng")
-                    context.startActivity(Intent(Intent.ACTION_VIEW, geoUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                }
+                startNavigateTo(center.first, center.second)
+            }
+            dismissCard()
+        }
+        card.findViewById<View>(R.id.btn_navigate_drive).setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startDriveNavigateTo(context, center.first, center.second)
             }
             dismissCard()
         }
@@ -1685,12 +1708,14 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                val (lat, lng) = center
-                try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=$lat,$lng")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                } catch (_: android.content.ActivityNotFoundException) {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("geo:$lat,$lng")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                }
+                startNavigateTo(center.first, center.second)
+            }
+            dialog.dismiss()
+        }
+        card.findViewById<View>(R.id.btn_navigate_drive).setOnClickListener {
+            val center = featureCenter(feature)
+            if (center != null) {
+                startDriveNavigateTo(context, center.first, center.second)
             }
             dialog.dismiss()
         }
@@ -2009,28 +2034,49 @@ class MapboxMapHolder(
      */
     fun startNavigateTo(targetLat: Double, targetLng: Double) {
         navigateTarget = targetLat to targetLng
+        val me = lastTeamMembers?.firstOrNull { isMe(it) }
+        navigateStart = me?.let { it.lat to it.lng }
         val map = mapboxMap ?: return
         map.getStyle { style ->
             val userLat = lastTeamMembers?.firstOrNull { isMe(it) }?.lat
             val userLng = lastTeamMembers?.firstOrNull { isMe(it) }?.lng
+            val baselineStart = navigateStart
+            if (baselineStart != null) {
+                updateNavigateBaselineInternal(style, baselineStart.first, baselineStart.second, targetLat, targetLng)
+            }
             if (userLat != null && userLng != null) {
                 updateNavigateLineInternal(style, userLat, userLng, targetLat, targetLng)
             } else {
-                showNavigateDistance(-1.0)  // "—" until GPS available
+                showNavigateMetrics(-1.0, null)  // "—" until GPS available
             }
         }
         showNavigateDistanceOverlay(true)
     }
 
+    private fun startDriveNavigateTo(context: android.content.Context, targetLat: Double, targetLng: Double) {
+        val uri = Uri.parse("google.navigation:q=$targetLat,$targetLng&mode=d")
+        val intent = Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        try {
+            context.startActivity(intent)
+        } catch (_: android.content.ActivityNotFoundException) {
+            val geoUri = Uri.parse("geo:$targetLat,$targetLng")
+            context.startActivity(Intent(Intent.ACTION_VIEW, geoUri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        }
+    }
+
     /** Stop navigate mode: remove line and hide distance overlay. */
     fun stopNavigate() {
         navigateTarget = null
+        navigateStart = null
+        // Hide overlay immediately so cancel feels responsive even if style callback is delayed.
+        showNavigateDistanceOverlay(false)
         val map = mapboxMap ?: return
         map.getStyle { style ->
             if (style.styleLayerExists(NAVIGATE_LINE_LAYER_ID)) style.removeStyleLayer(NAVIGATE_LINE_LAYER_ID)
             if (style.styleSourceExists(NAVIGATE_LINE_SOURCE_ID)) style.removeStyleSource(NAVIGATE_LINE_SOURCE_ID)
+            if (style.styleLayerExists(NAVIGATE_BASELINE_LAYER_ID)) style.removeStyleLayer(NAVIGATE_BASELINE_LAYER_ID)
+            if (style.styleSourceExists(NAVIGATE_BASELINE_SOURCE_ID)) style.removeStyleSource(NAVIGATE_BASELINE_SOURCE_ID)
         }
-        showNavigateDistanceOverlay(false)
     }
 
     private fun showNavigateDistanceOverlay(show: Boolean) {
@@ -2046,17 +2092,88 @@ class MapboxMapHolder(
         }
     }
 
-    private fun showNavigateDistance(distanceM: Double) {
+    private fun formatDistance(distanceM: Double): String =
+        when {
+            distanceM < 0 -> "—"
+            distanceM < 1000 -> "${distanceM.toInt()} m"
+            else -> String.format("%.1f km", distanceM / 1000)
+        }
+
+    private fun showNavigateMetrics(distanceM: Double, directionDeg: Double?) {
         Handler(Looper.getMainLooper()).post {
             val root = mapView.rootView
             val textView = root.findViewById<android.widget.TextView>(R.id.navigate_distance_text)
             if (textView != null) {
-                textView.text = when {
-                    distanceM < 0 -> "—"
-                    distanceM < 1000 -> "${distanceM.toInt()} m"
-                    else -> String.format("%.1f km", distanceM / 1000)
-                }
+                val dirText = if (directionDeg == null || directionDeg.isNaN()) "—"
+                else String.format(Locale.US, "%.1f°", directionDeg)
+                textView.text = "${mapView.context.getString(R.string.navigate_distance_label)}: ${formatDistance(distanceM)}\n" +
+                    "${mapView.context.getString(R.string.navigate_direction_label)}: $dirText"
             }
+        }
+    }
+
+    private fun normalizeAngleDeg(value: Double): Double {
+        var v = value
+        while (v > 180.0) v -= 360.0
+        while (v <= -180.0) v += 360.0
+        return v
+    }
+
+    private fun bearingDeg(fromLat: Double, fromLng: Double, toLat: Double, toLng: Double): Double {
+        // Planar approximation (adequate for local navigation cues).
+        val avgLatRad = Math.toRadians((fromLat + toLat) / 2.0)
+        val x = (toLng - fromLng) * cos(avgLatRad)
+        val y = toLat - fromLat
+        return Math.toDegrees(atan2(x, y))
+    }
+
+    /**
+     * Signed deviation between baseline (start->target) and current heading (me->target).
+     * Negative = left of baseline, positive = right of baseline.
+     */
+    private fun navigationDirectionDeg(
+        startLat: Double,
+        startLng: Double,
+        userLat: Double,
+        userLng: Double,
+        targetLat: Double,
+        targetLng: Double
+    ): Double {
+        val baselineBearing = bearingDeg(startLat, startLng, targetLat, targetLng)
+        val currentBearing = bearingDeg(userLat, userLng, targetLat, targetLng)
+        val magnitude = abs(normalizeAngleDeg(currentBearing - baselineBearing))
+
+        val avgLatRad = Math.toRadians((startLat + targetLat + userLat) / 3.0)
+        val sx = (targetLng - startLng) * cos(avgLatRad)
+        val sy = targetLat - startLat
+        val ux = (userLng - startLng) * cos(avgLatRad)
+        val uy = userLat - startLat
+        val cross = sx * uy - sy * ux
+        val sign = if (cross > 0.0) -1.0 else 1.0
+        return sign * magnitude
+    }
+
+    private fun updateNavigateBaselineInternal(
+        style: Style,
+        startLat: Double,
+        startLng: Double,
+        targetLat: Double,
+        targetLng: Double
+    ) {
+        val baseline = com.mapbox.geojson.LineString.fromLngLats(
+            listOf(Point.fromLngLat(startLng, startLat), Point.fromLngLat(targetLng, targetLat))
+        )
+        val feature = Feature.fromGeometry(baseline)
+        if (style.styleSourceExists(NAVIGATE_BASELINE_SOURCE_ID)) {
+            (style.getSource(NAVIGATE_BASELINE_SOURCE_ID) as? GeoJsonSource)?.feature(feature)
+        } else {
+            style.addSource(geoJsonSource(NAVIGATE_BASELINE_SOURCE_ID) { feature(feature) })
+            style.addLayer(
+                lineLayer(NAVIGATE_BASELINE_LAYER_ID, NAVIGATE_BASELINE_SOURCE_ID) {
+                    lineColor(Color.parseColor("#FFD54F"))
+                    lineWidth(3.0)
+                }
+            )
         }
     }
 
@@ -2084,7 +2201,11 @@ class MapboxMapHolder(
             )
         }
         val distanceKm = Geomatte.dist(userLat, userLng, targetLat, targetLng)
-        showNavigateDistance(distanceKm * 1000)
+        val start = navigateStart
+        val direction = if (start != null) {
+            navigationDirectionDeg(start.first, start.second, userLat, userLng, targetLat, targetLng)
+        } else null
+        showNavigateMetrics(distanceKm * 1000, direction)
     }
 
     /**

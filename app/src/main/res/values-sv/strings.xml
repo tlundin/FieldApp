@@ -126,6 +126,10 @@
 	<string name="no_user_position_available">Ingen användarposition tillgänglig. Aktivera plats och säkerställ att GPS har fix.</string>
 	<string name="trakter_center_on">Centrera på</string>
 	<string name="trakter_navigate">Navigera</string>
+	<string name="navigate_walk">Gå</string>
+	<string name="navigate_drive">Kör</string>
+	<string name="navigate_distance_label">Avstånd</string>
+	<string name="navigate_direction_label">Riktning</string>
 	<string name="trakter_info_title">Trakt %1$s</string>
 	<string name="trakter_status_high">Högprioriterad</string>
 	<string name="trakter_status_none">Inget gjort</string>
