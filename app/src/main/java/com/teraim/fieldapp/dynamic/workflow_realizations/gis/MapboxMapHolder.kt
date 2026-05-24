@@ -142,6 +142,10 @@ class MapboxMapHolder(
         private const val NAVIGATE_LINE_LAYER_ID = "layer-navigate-line"
         private const val NAVIGATE_BASELINE_SOURCE_ID = "source-navigate-baseline"
         private const val NAVIGATE_BASELINE_LAYER_ID = "layer-navigate-baseline"
+        /** Below this distance to target (m), direction is frozen (bearing math is unstable). */
+        private const val NAV_DIR_FREEZE_DISTANCE_M = 12.0
+        /** Smooth direction updates to damp GPS jitter (0 = off, higher = smoother). */
+        private const val NAV_DIR_SMOOTHING = 0.35
         /** GeoJSON layer built from DB: variabler rows with GISTYP=map_note and GPSCOORD. */
         private const val MAP_NOTE_SOURCE_ID = "source-map-notes"
         private const val MAP_NOTE_LAYER_ID = "layer-map-notes"
@@ -234,6 +238,8 @@ class MapboxMapHolder(
     /** Fixed navigation baseline start point (user position when navigation started). */
     @Volatile
     private var navigateStart: Pair<Double, Double>? = null
+    @Volatile
+    private var lastDisplayedDirectionDeg: Double? = null
 
     data class LayerState(
         val sourceId: String,
@@ -2034,6 +2040,7 @@ class MapboxMapHolder(
      */
     fun startNavigateTo(targetLat: Double, targetLng: Double) {
         navigateTarget = targetLat to targetLng
+        lastDisplayedDirectionDeg = null
         val me = lastTeamMembers?.firstOrNull { isMe(it) }
         navigateStart = me?.let { it.lat to it.lng }
         val map = mapboxMap ?: return
@@ -2068,6 +2075,7 @@ class MapboxMapHolder(
     fun stopNavigate() {
         navigateTarget = null
         navigateStart = null
+        lastDisplayedDirectionDeg = null
         // Hide overlay immediately so cancel feels responsive even if style callback is delayed.
         showNavigateDistanceOverlay(false)
         val map = mapboxMap ?: return
@@ -2119,17 +2127,19 @@ class MapboxMapHolder(
         return v
     }
 
-    private fun bearingDeg(fromLat: Double, fromLng: Double, toLat: Double, toLng: Double): Double {
-        // Planar approximation (adequate for local navigation cues).
-        val avgLatRad = Math.toRadians((fromLat + toLat) / 2.0)
-        val x = (toLng - fromLng) * cos(avgLatRad)
-        val y = toLat - fromLat
-        return Math.toDegrees(atan2(x, y))
+    /** Local east/north meters at ref latitude (WGS84 approximation). */
+    private fun toLocalMeters(lat: Double, lng: Double, refLat: Double): Pair<Double, Double> {
+        val latRad = Math.toRadians(refLat)
+        val mPerDegLat = 111_320.0
+        val mPerDegLng = 111_320.0 * cos(latRad)
+        return lng * mPerDegLng to lat * mPerDegLat
     }
 
     /**
-     * Signed deviation between baseline (start->target) and current heading (me->target).
-     * Negative = left of baseline, positive = right of baseline.
+     * Signed angle (degrees) of how far left/right of the yellow baseline the user is.
+     * Uses cross-track offset from the start→target segment (stable near the target),
+     * not the difference between two bearings to the target.
+     * Negative = left of baseline, positive = right, ~0° when on the line.
      */
     private fun navigationDirectionDeg(
         startLat: Double,
@@ -2139,18 +2149,33 @@ class MapboxMapHolder(
         targetLat: Double,
         targetLng: Double
     ): Double {
-        val baselineBearing = bearingDeg(startLat, startLng, targetLat, targetLng)
-        val currentBearing = bearingDeg(userLat, userLng, targetLat, targetLng)
-        val magnitude = abs(normalizeAngleDeg(currentBearing - baselineBearing))
+        val refLat = (startLat + targetLat + userLat) / 3.0
+        val (sx, sy) = toLocalMeters(targetLat - startLat, targetLng - startLng, refLat)
+        val (ux, uy) = toLocalMeters(userLat - startLat, userLng - startLng, refLat)
+        val len2 = sx * sx + sy * sy
+        if (len2 < 0.25) return Double.NaN
 
-        val avgLatRad = Math.toRadians((startLat + targetLat + userLat) / 3.0)
-        val sx = (targetLng - startLng) * cos(avgLatRad)
-        val sy = targetLat - startLat
-        val ux = (userLng - startLng) * cos(avgLatRad)
-        val uy = userLat - startLat
-        val cross = sx * uy - sy * ux
-        val sign = if (cross > 0.0) -1.0 else 1.0
-        return sign * magnitude
+        // Project user onto the baseline segment (clamp so "past target" still uses end point).
+        val t = ((ux * sx + uy * sy) / len2).coerceIn(0.0, 1.0)
+        val projX = t * sx
+        val projY = t * sy
+        val lateralM = (ux - projX) * sy - (uy - projY) * sx // signed meters, RH rule: + = left of start→target
+
+        val distToTargetM = Geomatte.dist(userLat, userLng, targetLat, targetLng) * 1000.0
+        if (distToTargetM < NAV_DIR_FREEZE_DISTANCE_M) {
+            return lastDisplayedDirectionDeg ?: 0.0
+        }
+
+        // Angle from lateral offset vs distance to target (stable; avoids bearing flip near target).
+        val angleDeg = Math.toDegrees(atan2(lateralM, distToTargetM.coerceAtLeast(1.0)))
+        val clamped = normalizeAngleDeg(angleDeg)
+
+        val smoothed = lastDisplayedDirectionDeg?.let { prev ->
+            val delta = normalizeAngleDeg(clamped - prev)
+            normalizeAngleDeg(prev + (1.0 - NAV_DIR_SMOOTHING) * delta)
+        } ?: clamped
+        lastDisplayedDirectionDeg = smoothed
+        return smoothed
     }
 
     private fun updateNavigateBaselineInternal(
