@@ -9,6 +9,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 
 
+import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -85,6 +86,21 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
     private final GlobalState gs;
     private final PersistenceHelper globalPh;
     private GPS_State latestSignal;
+    @Nullable
+    private Runnable onLocalGpsUpdated;
+
+    /** Latest device GPS fix for navigation (WGS84); independent of server team positions. */
+    public static final class LocalGpsFix {
+        public final double lat;
+        public final double lng;
+        public final float accuracyM;
+
+        public LocalGpsFix(double lat, double lng, float accuracyM) {
+            this.lat = lat;
+            this.lng = lng;
+            this.accuracyM = accuracyM;
+        }
+    }
 
     // List to hold all available custom map needle bitmaps
     private final List<Bitmap> allAvailableCustomNeedles;
@@ -137,9 +153,37 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
+    @Nullable
+    public LocalGpsFix getLocalGpsFix() {
+        if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
+            return null;
+        }
+        double lat = -1;
+        double lng = -1;
+        if (latestSignal.lat != -1 && latestSignal.lng != -1) {
+            lat = latestSignal.lat;
+            lng = latestSignal.lng;
+        } else if (latestSignal.x != -1 && latestSignal.y != -1) {
+            LatLong wgs84 = Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+            lat = wgs84.getX();
+            lng = wgs84.getY();
+        }
+        if (lat == -1 || lng == -1) {
+            return null;
+        }
+        return new LocalGpsFix(lat, lng, latestSignal.accuracy);
+    }
+
+    public void setOnLocalGpsUpdated(@Nullable Runnable listener) {
+        onLocalGpsUpdated = listener;
+    }
+
     @Override
     public void gpsStateChanged(GPS_State signal) {
         this.latestSignal = signal;
+        if (onLocalGpsUpdated != null && signal != null && signal.state == GPS_State.State.newValueReceived) {
+            onLocalGpsUpdated.run();
+        }
     }
 
     /**

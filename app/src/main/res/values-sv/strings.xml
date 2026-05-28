@@ -129,7 +129,9 @@
 	<string name="navigate_walk">Gå</string>
 	<string name="navigate_drive">Kör</string>
 	<string name="navigate_distance_label">Avstånd</string>
-	<string name="navigate_direction_label">Riktning</string>
+	<string name="navigate_bearing_label">Bäring</string>
+	<string name="walking_to_title">Går till</string>
+	<string name="navigate_accuracy_label">Noggrannhet</string>
 	<string name="trakter_info_title">Trakt %1$s</string>
 	<string name="trakter_status_high">Högprioriterad</string>
 	<string name="trakter_status_none">Inget gjort</string>

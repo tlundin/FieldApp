@@ -131,7 +131,9 @@
     <string name="navigate_walk">Walk</string>
     <string name="navigate_drive">Drive</string>
     <string name="navigate_distance_label">Distance</string>
-    <string name="navigate_direction_label">Direction</string>
+    <string name="navigate_bearing_label">Bearing</string>
+    <string name="walking_to_title">Walking to</string>
+    <string name="navigate_accuracy_label">Accuracy</string>
     <string name="trakter_info_title">Trakt %1$s</string>
     <string name="trakter_status_high">High priority</string>
     <string name="trakter_status_none">Nothing done</string>

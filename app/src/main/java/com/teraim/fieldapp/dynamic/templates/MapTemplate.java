@@ -22,6 +22,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.mapbox.common.MapboxOptions;
 import com.mapbox.geojson.Point;
 import com.mapbox.maps.CameraOptions;
+import com.mapbox.maps.CameraState;
 import com.mapbox.maps.MapView;
 import com.mapbox.maps.MapboxMap;
 import com.mapbox.maps.Style;
@@ -43,6 +44,7 @@ import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.utils.Tools;
+import com.teraim.fieldapp.viewmodels.MapSessionViewModel;
 import com.teraim.fieldapp.viewmodels.TeamStatusViewModel;
 
 import androidx.core.content.ContextCompat;
@@ -82,6 +84,7 @@ public class MapTemplate extends Executor {
 	private List<TeamMemberMapPoint> lastTeamMemberPoints;
 	/** True = satellite, false = standard streets. */
 	private boolean mapTypeSatellite = true;
+	private MapSessionViewModel mapSessionViewModel;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -99,11 +102,15 @@ public class MapTemplate extends Executor {
 	@Override
 	public void onStart() {
 		super.onStart();
+		if (mapView != null) {
+			mapView.onStart();
+		}
 		Log.d(TAG, "I'm in the onStart method");
 	}
 
 	@Override
 	public void onPause() {
+		persistMapSessionState();
 		super.onPause();
 		android.app.Activity activity = getActivity();
 		if (activity instanceof com.teraim.fieldapp.Start) {
@@ -140,6 +147,10 @@ public class MapTemplate extends Executor {
 					+ GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT)
 					+ "/gis_objects/";
 			mapboxMapHolder = new MapboxMapHolder(mapView, gisObjectsBaseUrl);
+			mapboxMapHolder.setOnWalkNavigationStateChanged(nav -> {
+				syncWalkNavigationToSession(nav);
+				return kotlin.Unit.INSTANCE;
+			});
 			setupMapNotePlacementListener();
 			ViewGroup trakterContainer = view.findViewById(R.id.trakter_card_container);
 			if (trakterContainer != null) {
@@ -191,6 +202,7 @@ public class MapTemplate extends Executor {
 			mapboxMapHolder.setInitialTeamLayerVisible(pendingGisMapViewConfig.isTeamVisible());
 			Log.d(TAG, "Setting up team layer: observing TeamStatusViewModel");
 			teamStatusViewModel = new ViewModelProvider(requireActivity()).get(TeamStatusViewModel.class);
+			mapboxMapHolder.setTeamStatusViewModel(teamStatusViewModel);
 			teamStatusViewModel.sendAndReceiveTeamPositions(); // trigger initial fetch
 			// Apply current value immediately (LiveData may already have 4 members from MenuActivity polling)
 			applyTeamMembersToMap(teamStatusViewModel.teamMemberGisObjects.getValue());
@@ -332,9 +344,13 @@ public class MapTemplate extends Executor {
 	private void doInitializeMap() {
 		if (mapboxMap == null) {
 			mapboxMap = mapView.getMapboxMap();
-			// Style: satellite vs standard from GisMapView, or default satellite
+			MapSessionViewModel session = getMapSessionViewModel();
+			// Style: restore user toggle after rotation, else GisMapView / default satellite
 			String styleUri = Style.SATELLITE_STREETS;
-			if (pendingGisMapViewConfig != null && "standard".equalsIgnoreCase(pendingGisMapViewConfig.getMapType())) {
+			if (session.hasSavedCamera) {
+				mapTypeSatellite = session.mapTypeSatellite;
+				styleUri = mapTypeSatellite ? Style.SATELLITE_STREETS : Style.MAPBOX_STREETS;
+			} else if (pendingGisMapViewConfig != null && "standard".equalsIgnoreCase(pendingGisMapViewConfig.getMapType())) {
 				styleUri = Style.MAPBOX_STREETS;
 				mapTypeSatellite = false;
 			} else {
@@ -359,6 +375,11 @@ public class MapTemplate extends Executor {
 						}
 					}
 					Log.d(TAG, "Mapbox style loaded successfully");
+					MapSessionViewModel session = getMapSessionViewModel();
+					if (session.hasSavedCamera) {
+						restoreSavedCamera(session);
+						Log.d(TAG, "Restored saved map camera after view recreation");
+					} else {
 					// Pending map camera (GeoJSON feature open preserves user zoom; TRAKT center-on uses default zoom)
 					GlobalState.PendingMapCamera pending = GlobalState.getInstance().getAndClearPendingMapCamera();
 					if (pending != null) {
@@ -381,6 +402,8 @@ public class MapTemplate extends Executor {
 						Point initialPoint = Point.fromLngLat(lng, lat);
 						mapboxMap.setCamera(new CameraOptions.Builder().center(initialPoint).zoom(zoom).build());
 					}
+					}
+					restoreWalkNavigationIfAny(session);
 					Log.d(TAG, "Map is ready");
 					setupLayerToggleFab();
 				}
@@ -603,6 +626,7 @@ public class MapTemplate extends Executor {
 						mapboxMapHolder.updateTeamLayer(lastTeamMemberPoints, null);
 					}
 					mapboxMapHolder.refreshLayers(null);
+					restoreWalkNavigationIfAny(getMapSessionViewModel());
 				}
 				mapboxMap.setCamera(new CameraOptions.Builder().center(center).zoom(zoom).build());
 				Log.d(TAG, "Map type toggled, camera restored");
@@ -863,6 +887,100 @@ public class MapTemplate extends Executor {
 
 
 	@Override
+	public void onStop() {
+		if (mapView != null) {
+			mapView.onStop();
+		}
+		super.onStop();
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		persistMapSessionState();
+		super.onSaveInstanceState(outState);
+	}
+
+	private MapSessionViewModel getMapSessionViewModel() {
+		if (mapSessionViewModel == null) {
+			mapSessionViewModel = new ViewModelProvider(requireActivity()).get(MapSessionViewModel.class);
+		}
+		return mapSessionViewModel;
+	}
+
+	private void syncWalkNavigationToSession(MapboxMapHolder.WalkNavigationState nav) {
+		MapSessionViewModel session = getMapSessionViewModel();
+		if (nav == null) {
+			session.clearWalkNavigation();
+			return;
+		}
+		session.walkNavActive = true;
+		session.walkNavTargetLat = nav.getTargetLat();
+		session.walkNavTargetLng = nav.getTargetLng();
+		if (nav.getStartLat() != null && nav.getStartLng() != null) {
+			session.hasWalkNavStart = true;
+			session.walkNavStartLat = nav.getStartLat();
+			session.walkNavStartLng = nav.getStartLng();
+		} else {
+			session.hasWalkNavStart = false;
+		}
+		session.walkNavTargetLabel = nav.getTargetLabel();
+		session.walkNavStartActionType = nav.getStartActionType();
+		session.walkNavFeatureJson = nav.getFeatureJson();
+		session.walkNavObjContext = nav.getObjContext();
+		session.walkNavOnClick = nav.getOnClick();
+		session.walkNavTraktName = nav.getTraktName();
+	}
+
+	private void persistMapSessionState() {
+		if (mapboxMap != null) {
+			CameraState cam = mapboxMap.getCameraState();
+			MapSessionViewModel session = getMapSessionViewModel();
+			session.hasSavedCamera = true;
+			session.savedCenterLat = cam.getCenter().latitude();
+			session.savedCenterLng = cam.getCenter().longitude();
+			session.savedZoom = cam.getZoom();
+			session.savedPitch = cam.getPitch();
+			session.savedBearing = cam.getBearing();
+			session.mapTypeSatellite = mapTypeSatellite;
+		}
+		if (mapboxMapHolder != null) {
+			syncWalkNavigationToSession(mapboxMapHolder.getWalkNavigationState());
+		}
+	}
+
+	private void restoreSavedCamera(MapSessionViewModel session) {
+		if (mapboxMap == null || !session.hasSavedCamera) return;
+		mapTypeSatellite = session.mapTypeSatellite;
+		Point center = Point.fromLngLat(session.savedCenterLng, session.savedCenterLat);
+		mapboxMap.setCamera(new CameraOptions.Builder()
+				.center(center)
+				.zoom(session.savedZoom)
+				.pitch(session.savedPitch)
+				.bearing(session.savedBearing)
+				.build());
+	}
+
+	private void restoreWalkNavigationIfAny(MapSessionViewModel session) {
+		if (!session.walkNavActive || mapboxMapHolder == null) return;
+		Double startLat = session.hasWalkNavStart ? session.walkNavStartLat : null;
+		Double startLng = session.hasWalkNavStart ? session.walkNavStartLng : null;
+		MapboxMapHolder.WalkNavigationState state = new MapboxMapHolder.WalkNavigationState(
+				session.walkNavTargetLat,
+				session.walkNavTargetLng,
+				startLat,
+				startLng,
+				session.walkNavTargetLabel,
+				session.walkNavStartActionType,
+				session.walkNavFeatureJson,
+				session.walkNavObjContext,
+				session.walkNavOnClick,
+				session.walkNavTraktName
+		);
+		mapboxMapHolder.restoreWalkNavigation(state);
+		Log.d(TAG, "Restored walk navigation after view recreation");
+	}
+
+	@Override
 	public void onResume() {
 		super.onResume();
 		android.app.Activity activity = getActivity();
@@ -890,6 +1008,7 @@ public class MapTemplate extends Executor {
 
 	@Override
 	public void onDestroyView() {
+		persistMapSessionState();
 		if (teamUpdateRunnable != null) {
 			teamUpdateHandler.removeCallbacks(teamUpdateRunnable);
 			teamUpdateRunnable = null;
@@ -912,6 +1031,7 @@ public class MapTemplate extends Executor {
 			mapboxMap = null;
 			mapReady = false;
 		}
+		// mapboxMapHolder and layers are recreated in onCreateView; session state is in MapSessionViewModel.
 		view = null;
 		mapboxMapHolder = null;
 	}

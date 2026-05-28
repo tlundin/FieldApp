@@ -6,10 +6,14 @@ import android.graphics.Bitmap
 import android.graphics.Color
 import android.net.Uri
 import android.util.Log
+import android.animation.ValueAnimator
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.TextView
 import android.widget.ArrayAdapter
 import androidx.core.content.ContextCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -82,6 +86,7 @@ import com.teraim.fieldapp.non_generics.Constants
 import com.teraim.fieldapp.utils.Expressor
 import com.teraim.fieldapp.utils.Geomatte
 import com.teraim.fieldapp.utils.Tools
+import com.teraim.fieldapp.viewmodels.TeamStatusViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -98,6 +103,7 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -142,10 +148,14 @@ class MapboxMapHolder(
         private const val NAVIGATE_LINE_LAYER_ID = "layer-navigate-line"
         private const val NAVIGATE_BASELINE_SOURCE_ID = "source-navigate-baseline"
         private const val NAVIGATE_BASELINE_LAYER_ID = "layer-navigate-baseline"
-        /** Below this distance to target (m), direction is frozen (bearing math is unstable). */
-        private const val NAV_DIR_FREEZE_DISTANCE_M = 12.0
-        /** Smooth direction updates to damp GPS jitter (0 = off, higher = smoother). */
+        /** Bearing smoothing (higher = slower to change). */
         private const val NAV_DIR_SMOOTHING = 0.35
+        /** Nudge value animations while GPS is updating (even if values are unchanged). */
+        private const val NAV_GPS_ALIVE_INTERVAL_MS = 3_000L
+        private const val NAV_VALUE_ANIM_MS = 650L
+        private const val NAV_ALIVE_ANIM_MS = 400L
+        /** Stop pulsing if no position update for this long. */
+        private const val NAV_GPS_STALE_MS = 15_000L
         /** GeoJSON layer built from DB: variabler rows with GISTYP=map_note and GPSCOORD. */
         private const val MAP_NOTE_SOURCE_ID = "source-map-notes"
         private const val MAP_NOTE_LAYER_ID = "layer-map-notes"
@@ -232,14 +242,51 @@ class MapboxMapHolder(
     private val layerInstallMutex = Mutex()
     private var visible = true
 
-    /** When set, draw dotted line from user to target and show distance. Updated when team layer refreshes. */
+    /** When set, draw dotted line from user to target and show distance/bearing from device GPS. */
     @Volatile
     private var navigateTarget: Pair<Double, Double>? = null
+    @Volatile
+    private var teamStatusViewModel: TeamStatusViewModel? = null
     /** Fixed navigation baseline start point (user position when navigation started). */
     @Volatile
     private var navigateStart: Pair<Double, Double>? = null
     @Volatile
-    private var lastDisplayedDirectionDeg: Double? = null
+    private var lastSmoothedBearingDeg: Double? = null
+    private val navigateOverlayHandler = Handler(Looper.getMainLooper())
+    private var navigateAliveRunnable: Runnable? = null
+    @Volatile
+    private var lastGpsNavigateUpdateMs: Long = 0L
+    private var navigateDistanceValueView: TextView? = null
+    private var navigateBearingValueView: TextView? = null
+    private var navigateAccuracyValueView: TextView? = null
+    private var navigateDistanceAnimator: ValueAnimator? = null
+    private var navigateBearingAnimator: ValueAnimator? = null
+    private var navigateAliveAnimator: ValueAnimator? = null
+    private var displayedDistanceM = Double.NaN
+    private var displayedBearingDeg = Double.NaN
+    private var displayedAccuracyM = Float.NaN
+    private var walkNavCard: View? = null
+    @Volatile
+    private var walkNavTargetLabel: String? = null
+    @Volatile
+    private var walkNavStartAction: WalkNavStartAction = WalkNavStartAction.None
+
+    private sealed class WalkNavStartAction {
+        data class GisObject(
+            val feature: Feature,
+            val properties: JsonObject,
+            val objContext: String,
+            val onClick: String
+        ) : WalkNavStartAction()
+
+        data class Trakt(
+            val feature: Feature,
+            val properties: JsonObject,
+            val trakt: String
+        ) : WalkNavStartAction()
+
+        data object None : WalkNavStartAction()
+    }
 
     data class LayerState(
         val sourceId: String,
@@ -1297,6 +1344,34 @@ class MapboxMapHolder(
         }
     }
 
+    private fun resolveTrakterCardContainer(): ViewGroup? {
+        trakterCardContainer?.let { return it }
+        (mapView.parent as? ViewGroup)?.findViewById<ViewGroup>(R.id.trakter_card_container)?.let { return it }
+        return mapView.rootView.findViewById<ViewGroup>(R.id.trakter_card_container)
+    }
+
+    /**
+     * Shows [card] in the bottom sheet after layout is stable.
+     * Expanding in the same frame as addView can shift the sheet when siblings relayout (e.g. navigate metrics).
+     */
+    private fun showCardInBottomSheet(container: ViewGroup, card: View) {
+        container.removeAllViews()
+        container.addView(card)
+        val behavior = BottomSheetBehavior.from(container)
+        behavior.isHideable = true
+        trakterBottomSheetCallback?.let { behavior.removeBottomSheetCallback(it) }
+        trakterBottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
+            override fun onStateChanged(bottomSheet: View, newState: Int) {
+                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
+                    container.removeAllViews()
+                }
+            }
+            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+        }
+        behavior.addBottomSheetCallback(trakterBottomSheetCallback!!)
+        container.post { behavior.state = BottomSheetBehavior.STATE_EXPANDED }
+    }
+
     /** Card with Start button for non-TRAKT GIS objects. Sets DB_Context from obj_context and changes page to on_click. */
     private fun showGisObjectStartDialog(
         context: android.content.Context,
@@ -1305,19 +1380,12 @@ class MapboxMapHolder(
         objContext: String,
         onClick: String
     ) {
-        var container = trakterCardContainer
-        if (container == null) {
-            container = (mapView.parent as? ViewGroup)?.findViewById(R.id.trakter_card_container)
-        }
-        if (container == null) {
-            container = mapView.rootView.findViewById(R.id.trakter_card_container)
-        }
+        val container = resolveTrakterCardContainer()
         if (container == null) {
             Log.w(TAG, "trakter_card_container not found, falling back to AlertDialog")
             showGisObjectStartAlertDialog(context, feature, properties, objContext, onClick)
             return
         }
-        container.removeAllViews()
         val card = LayoutInflater.from(context).inflate(R.layout.card_gis_object_start, container, false)
         val label = buildString {
             val typkod = safePropString(properties, "TYPKOD")
@@ -1350,7 +1418,12 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                startNavigateTo(center.first, center.second)
+                beginWalkNavigation(
+                    center.first,
+                    center.second,
+                    targetLabel = label,
+                    startAction = gisObjectWalkStartAction(feature, properties, objContext, onClick)
+                )
                 dismissCard()
             }
         }
@@ -1365,20 +1438,7 @@ class MapboxMapHolder(
             runStartWorkflow(feature, properties, objContext, onClick)
             dismissCard()
         }
-        container.addView(card)
-        val behavior = BottomSheetBehavior.from(container)
-        behavior.isHideable = true
-        trakterBottomSheetCallback?.let { behavior.removeBottomSheetCallback(it) }
-        trakterBottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-                    container.removeAllViews()
-                }
-            }
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-        }
-        behavior.addBottomSheetCallback(trakterBottomSheetCallback!!)
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        showCardInBottomSheet(container, card)
     }
 
     /** Fallback when trakter_card_container is not in the view hierarchy. */
@@ -1418,7 +1478,12 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate)?.setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                startNavigateTo(center.first, center.second)
+                beginWalkNavigation(
+                    center.first,
+                    center.second,
+                    targetLabel = label,
+                    startAction = gisObjectWalkStartAction(feature, properties, objContext, onClick)
+                )
                 dialog.dismiss()
             }
         }
@@ -1513,19 +1578,12 @@ class MapboxMapHolder(
     }
 
     private fun showTrakterInfoDialog(context: android.content.Context, feature: Feature, properties: JsonObject) {
-        var container = trakterCardContainer
-        if (container == null) {
-            container = (mapView.parent as? ViewGroup)?.findViewById(R.id.trakter_card_container)
-        }
-        if (container == null) {
-            container = mapView.rootView.findViewById(R.id.trakter_card_container)
-        }
+        val container = resolveTrakterCardContainer()
         if (container == null) {
             Log.w(TAG, "trakter_card_container not found, falling back to AlertDialog with card layout")
             showTrakterInfoAlertDialog(context, feature, properties)
             return
         }
-        container.removeAllViews()
         val card = LayoutInflater.from(context).inflate(R.layout.card_trakter_info, container, false)
         val trakt = safePropString(properties, "TRAKT")
         val traktStatusVal = try {
@@ -1579,7 +1637,12 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                startNavigateTo(center.first, center.second)
+                beginWalkNavigation(
+                    center.first,
+                    center.second,
+                    targetLabel = context.getString(R.string.trakter_info_title, trakt),
+                    startAction = traktWalkStartAction(feature, properties, trakt)
+                )
             }
             dismissCard()
         }
@@ -1590,20 +1653,7 @@ class MapboxMapHolder(
             }
             dismissCard()
         }
-        container.addView(card)
-        val behavior = BottomSheetBehavior.from(container)
-        behavior.isHideable = true
-        trakterBottomSheetCallback?.let { behavior.removeBottomSheetCallback(it) }
-        trakterBottomSheetCallback = object : BottomSheetBehavior.BottomSheetCallback() {
-            override fun onStateChanged(bottomSheet: View, newState: Int) {
-                if (newState == BottomSheetBehavior.STATE_HIDDEN) {
-                    container.removeAllViews()
-                }
-            }
-            override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-        }
-        behavior.addBottomSheetCallback(trakterBottomSheetCallback!!)
-        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        showCardInBottomSheet(container, card)
     }
 
     private fun performCenterOnTrakterWorkflow(trakt: String, properties: JsonObject, lat: Double, lng: Double) {
@@ -1634,9 +1684,9 @@ class MapboxMapHolder(
             Log.w(TAG, "Center-on: obj_context evaluation failed: " + dbContext.toString())
         }
         GlobalState.getInstance().setPendingMapCenter(lat, lng)
-        val wfName = onClick ?: onCenterClickWorkflow
+        val wfName = resolveTrakterWorkflowName()
         Log.i(TAG, "Center-on: workflow=$wfName (layer onClick=$onClick, map onCenterClick=$onCenterClickWorkflow)")
-        if (!wfName.isNullOrBlank()) {
+        if (wfName != null) {
             val wf = GlobalState.getInstance().getWorkflow(wfName)
             Log.i(TAG, "Center-on: workflow lookup result=${if (wf != null) "found" else "null"}")
             if (wf != null) {
@@ -1650,6 +1700,44 @@ class MapboxMapHolder(
         } else {
             Log.w(TAG, "Center-on workflow not set (on_click empty in block_add_gis_layer and block_add_gis_map_view)")
         }
+    }
+
+    /** Workflow name for trakt center-on / walk Start, or null if none is configured and registered. */
+    private fun resolveTrakterWorkflowName(): String? {
+        val (_, onClick) = resolveTrakterClickConfig()
+        val wfName = onClick?.takeIf { it.isNotBlank() } ?: onCenterClickWorkflow?.takeIf { it.isNotBlank() }
+        if (wfName.isNullOrBlank()) return null
+        return wfName.takeIf { GlobalState.getInstance().getWorkflow(it) != null }
+    }
+
+    private fun traktWalkStartAction(
+        feature: Feature,
+        properties: JsonObject,
+        trakt: String
+    ): WalkNavStartAction =
+        if (resolveTrakterWorkflowName() != null) {
+            WalkNavStartAction.Trakt(feature, properties, trakt)
+        } else {
+            WalkNavStartAction.None
+        }
+
+    private fun gisObjectWalkStartAction(
+        feature: Feature,
+        properties: JsonObject,
+        objContext: String,
+        onClick: String
+    ): WalkNavStartAction =
+        if (onClick.isNotBlank() && GlobalState.getInstance().getWorkflow(onClick) != null) {
+            WalkNavStartAction.GisObject(feature, properties, objContext, onClick)
+        } else {
+            WalkNavStartAction.None
+        }
+
+    private fun walkNavStartActionHasWorkflow(action: WalkNavStartAction): Boolean = when (action) {
+        WalkNavStartAction.None -> false
+        is WalkNavStartAction.GisObject ->
+            action.onClick.isNotBlank() && GlobalState.getInstance().getWorkflow(action.onClick) != null
+        is WalkNavStartAction.Trakt -> resolveTrakterWorkflowName() != null
     }
 
     private fun resolveTrakterClickConfig(): Pair<String?, String?> {
@@ -1714,7 +1802,12 @@ class MapboxMapHolder(
         card.findViewById<View>(R.id.btn_navigate).setOnClickListener {
             val center = featureCenter(feature)
             if (center != null) {
-                startNavigateTo(center.first, center.second)
+                beginWalkNavigation(
+                    center.first,
+                    center.second,
+                    targetLabel = context.getString(R.string.trakter_info_title, trakt),
+                    startAction = traktWalkStartAction(feature, properties, trakt)
+                )
             }
             dialog.dismiss()
         }
@@ -1930,11 +2023,166 @@ class MapboxMapHolder(
         mePulseHideRunnable = null
     }
 
-    /** Call when holder is no longer needed (e.g. MapTemplate.onDestroyView) to stop pulse animation. */
+    data class WalkNavigationState(
+        val targetLat: Double,
+        val targetLng: Double,
+        val startLat: Double?,
+        val startLng: Double?,
+        val targetLabel: String? = null,
+        val startActionType: Int = 0,
+        val featureJson: String? = null,
+        val objContext: String? = null,
+        val onClick: String? = null,
+        val traktName: String? = null
+    ) {
+        companion object {
+            const val ACTION_NONE = 0
+            const val ACTION_GIS_OBJECT = 1
+            const val ACTION_TRAKT = 2
+        }
+    }
+
+    /** Keeps [MapSessionViewModel] in sync whenever walk navigation starts or stops. */
+    var onWalkNavigationStateChanged: ((WalkNavigationState?) -> Unit)? = null
+
+    /** Supplies device GPS for walk navigation; team/server positions are only for the map needle. */
+    fun setTeamStatusViewModel(viewModel: TeamStatusViewModel) {
+        teamStatusViewModel?.setOnLocalGpsUpdated(null)
+        teamStatusViewModel = viewModel
+        viewModel.setOnLocalGpsUpdated {
+            if (navigateTarget != null) {
+                refreshNavigateFromLocalGps()
+            }
+        }
+        if (navigateTarget != null) {
+            refreshNavigateFromLocalGps()
+        }
+    }
+
+    private fun localGpsFix(): TeamStatusViewModel.LocalGpsFix? =
+        teamStatusViewModel?.getLocalGpsFix()
+
+    private fun refreshNavigateFromLocalGps() {
+        val target = navigateTarget ?: return
+        val fix = localGpsFix() ?: run {
+            showNavigateMetrics(-1.0, null, Float.NaN)
+            return
+        }
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            updateNavigateLineInternal(
+                style,
+                fix.lat,
+                fix.lng,
+                target.first,
+                target.second,
+                fix.accuracyM
+            )
+        }
+    }
+
+    private fun walkNavStartActionType(action: WalkNavStartAction): Int = when (action) {
+        WalkNavStartAction.None -> WalkNavigationState.ACTION_NONE
+        is WalkNavStartAction.GisObject -> WalkNavigationState.ACTION_GIS_OBJECT
+        is WalkNavStartAction.Trakt -> WalkNavigationState.ACTION_TRAKT
+    }
+
+    private fun walkNavStartActionFromState(state: WalkNavigationState): WalkNavStartAction {
+        val featureJson = state.featureJson ?: return WalkNavStartAction.None
+        return try {
+            val feature = Feature.fromJson(featureJson)
+            val properties = feature.properties() ?: JsonObject()
+            when (state.startActionType) {
+                WalkNavigationState.ACTION_GIS_OBJECT -> WalkNavStartAction.GisObject(
+                    feature,
+                    properties,
+                    state.objContext.orEmpty(),
+                    state.onClick.orEmpty()
+                )
+                WalkNavigationState.ACTION_TRAKT -> WalkNavStartAction.Trakt(
+                    feature,
+                    properties,
+                    state.traktName.orEmpty()
+                )
+                else -> WalkNavStartAction.None
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "restoreWalkNavigation: could not parse start action feature", e)
+            WalkNavStartAction.None
+        }
+    }
+
+    private fun notifyWalkNavigationStateChanged() {
+        onWalkNavigationStateChanged?.invoke(getWalkNavigationState())
+    }
+
+    fun getWalkNavigationState(): WalkNavigationState? {
+        val target = navigateTarget ?: return null
+        val start = navigateStart
+        val action = walkNavStartAction
+        return WalkNavigationState(
+            target.first,
+            target.second,
+            start?.first,
+            start?.second,
+            walkNavTargetLabel,
+            walkNavStartActionType(action),
+            when (action) {
+                is WalkNavStartAction.GisObject -> action.feature.toJson()
+                is WalkNavStartAction.Trakt -> action.feature.toJson()
+                WalkNavStartAction.None -> null
+            },
+            (action as? WalkNavStartAction.GisObject)?.objContext,
+            (action as? WalkNavStartAction.GisObject)?.onClick,
+            (action as? WalkNavStartAction.Trakt)?.trakt
+        )
+    }
+
+    /**
+     * Restores walk navigation UI/lines after map recreation (e.g. rotation).
+     * Call after [setMapboxMap] and style is loaded.
+     */
+    fun restoreWalkNavigation(state: WalkNavigationState) {
+        navigateTarget = state.targetLat to state.targetLng
+        navigateStart = if (state.startLat != null && state.startLng != null) {
+            state.startLat to state.startLng
+        } else {
+            null
+        }
+        walkNavTargetLabel = state.targetLabel
+        walkNavStartAction = walkNavStartActionFromState(state).let { action ->
+            if (walkNavStartActionHasWorkflow(action)) action else WalkNavStartAction.None
+        }
+        lastSmoothedBearingDeg = null
+        displayedDistanceM = Double.NaN
+        displayedBearingDeg = Double.NaN
+        displayedAccuracyM = Float.NaN
+        showNavigateDistanceOverlay(true)
+        showWalkNavCard()
+        startNavigateOverlayAlivePulse()
+        val map = mapboxMap ?: return
+        map.getStyle { style ->
+            navigateStart?.let { (lat, lng) ->
+                updateNavigateBaselineInternal(style, lat, lng, state.targetLat, state.targetLng)
+            }
+            refreshNavigateFromLocalGps()
+        }
+    }
+
+    /** Call when holder is no longer needed (e.g. MapTemplate.onDestroyView) to stop animations. */
     fun release() {
+        teamStatusViewModel?.setOnLocalGpsUpdated(null)
+        teamStatusViewModel = null
+        onWalkNavigationStateChanged = null
         stopMePulse()
         stopWiggle()
-        stopNavigate()
+        stopNavigateOverlayAlivePulse()
+        cancelNavigateValueAnimators()
+        // Map lines/UI are torn down with the MapView; session state is persisted by MapTemplate before release().
+        navigateTarget = null
+        navigateStart = null
+        walkNavTargetLabel = null
+        walkNavStartAction = WalkNavStartAction.None
     }
 
     private fun scheduleWiggle() {
@@ -2035,29 +2283,40 @@ class MapboxMapHolder(
     }
 
     /**
-     * Start navigate mode: draw dotted line from user to target and show distance.
-     * Line and distance updates when updateTeamLayer is called with "me" position.
+     * Start navigate mode: draw dotted line from device GPS to target and show distance/bearing.
      */
     fun startNavigateTo(targetLat: Double, targetLng: Double) {
+        beginWalkNavigation(targetLat, targetLng)
+    }
+
+    private fun beginWalkNavigation(
+        targetLat: Double,
+        targetLng: Double,
+        targetLabel: String? = null,
+        startAction: WalkNavStartAction = WalkNavStartAction.None
+    ) {
+        walkNavTargetLabel = targetLabel
+        walkNavStartAction = startAction
         navigateTarget = targetLat to targetLng
-        lastDisplayedDirectionDeg = null
-        val me = lastTeamMembers?.firstOrNull { isMe(it) }
-        navigateStart = me?.let { it.lat to it.lng }
+        lastSmoothedBearingDeg = null
+        lastGpsNavigateUpdateMs = 0L
+        val fix = localGpsFix()
+        navigateStart = fix?.let { it.lat to it.lng }
         val map = mapboxMap ?: return
         map.getStyle { style ->
-            val userLat = lastTeamMembers?.firstOrNull { isMe(it) }?.lat
-            val userLng = lastTeamMembers?.firstOrNull { isMe(it) }?.lng
-            val baselineStart = navigateStart
-            if (baselineStart != null) {
-                updateNavigateBaselineInternal(style, baselineStart.first, baselineStart.second, targetLat, targetLng)
+            navigateStart?.let { (lat, lng) ->
+                updateNavigateBaselineInternal(style, lat, lng, targetLat, targetLng)
             }
-            if (userLat != null && userLng != null) {
-                updateNavigateLineInternal(style, userLat, userLng, targetLat, targetLng)
+            if (fix != null) {
+                updateNavigateLineInternal(style, fix.lat, fix.lng, targetLat, targetLng, fix.accuracyM)
             } else {
-                showNavigateMetrics(-1.0, null)  // "—" until GPS available
+                showNavigateMetrics(-1.0, null, Float.NaN)
             }
         }
         showNavigateDistanceOverlay(true)
+        showWalkNavCard()
+        startNavigateOverlayAlivePulse()
+        notifyWalkNavigationStateChanged()
     }
 
     private fun startDriveNavigateTo(context: android.content.Context, targetLat: Double, targetLng: Double) {
@@ -2075,7 +2334,13 @@ class MapboxMapHolder(
     fun stopNavigate() {
         navigateTarget = null
         navigateStart = null
-        lastDisplayedDirectionDeg = null
+        lastSmoothedBearingDeg = null
+        lastGpsNavigateUpdateMs = 0L
+        walkNavTargetLabel = null
+        walkNavStartAction = WalkNavStartAction.None
+        stopNavigateOverlayAlivePulse()
+        cancelNavigateValueAnimators()
+        showWalkNavCard(false)
         // Hide overlay immediately so cancel feels responsive even if style callback is delayed.
         showNavigateDistanceOverlay(false)
         val map = mapboxMap ?: return
@@ -2085,6 +2350,7 @@ class MapboxMapHolder(
             if (style.styleLayerExists(NAVIGATE_BASELINE_LAYER_ID)) style.removeStyleLayer(NAVIGATE_BASELINE_LAYER_ID)
             if (style.styleSourceExists(NAVIGATE_BASELINE_SOURCE_ID)) style.removeStyleSource(NAVIGATE_BASELINE_SOURCE_ID)
         }
+        notifyWalkNavigationStateChanged()
     }
 
     private fun showNavigateDistanceOverlay(show: Boolean) {
@@ -2092,11 +2358,55 @@ class MapboxMapHolder(
             val root = mapView.rootView
             val container = root.findViewById<View>(R.id.navigate_distance_container)
             container?.visibility = if (show) View.VISIBLE else View.GONE
-            if (show) {
-                container?.findViewById<View>(R.id.navigate_distance_close)?.setOnClickListener {
-                    stopNavigate()
-                }
+        }
+    }
+
+    private fun showWalkNavCard(show: Boolean = true) {
+        navigateOverlayHandler.post {
+            val host = mapView.rootView.findViewById<ViewGroup>(R.id.walk_nav_card_host) ?: return@post
+            if (!show) {
+                host.visibility = View.GONE
+                host.removeAllViews()
+                walkNavCard = null
+                return@post
             }
+            host.removeAllViews()
+            val card = LayoutInflater.from(mapView.context).inflate(R.layout.card_walk_nav, host, true)
+            walkNavCard = card
+            val targetView = card.findViewById<TextView>(R.id.walk_nav_target)
+            val label = walkNavTargetLabel
+            if (!label.isNullOrBlank()) {
+                targetView.text = label
+                targetView.visibility = View.VISIBLE
+            } else {
+                targetView.visibility = View.GONE
+            }
+            val startBtn = card.findViewById<View>(R.id.btn_walk_start)
+            if (walkNavStartActionHasWorkflow(walkNavStartAction)) {
+                startBtn.visibility = View.VISIBLE
+                startBtn.setOnClickListener { performWalkNavStart() }
+            } else {
+                startBtn.visibility = View.GONE
+            }
+            card.findViewById<View>(R.id.btn_walk_cancel).setOnClickListener { stopNavigate() }
+            host.visibility = View.VISIBLE
+        }
+    }
+
+    private fun performWalkNavStart() {
+        when (val action = walkNavStartAction) {
+            is WalkNavStartAction.GisObject -> {
+                runStartWorkflow(action.feature, action.properties, action.objContext, action.onClick)
+                stopNavigate()
+            }
+            is WalkNavStartAction.Trakt -> {
+                val center = featureCenter(action.feature)
+                if (center != null) {
+                    performCenterOnTrakterWorkflow(action.trakt, action.properties, center.first, center.second)
+                }
+                stopNavigate()
+            }
+            WalkNavStartAction.None -> Unit
         }
     }
 
@@ -2107,75 +2417,203 @@ class MapboxMapHolder(
             else -> String.format("%.1f km", distanceM / 1000)
         }
 
-    private fun showNavigateMetrics(distanceM: Double, directionDeg: Double?) {
-        Handler(Looper.getMainLooper()).post {
-            val root = mapView.rootView
-            val textView = root.findViewById<android.widget.TextView>(R.id.navigate_distance_text)
-            if (textView != null) {
-                val dirText = if (directionDeg == null || directionDeg.isNaN()) "—"
-                else String.format(Locale.US, "%.1f°", directionDeg)
-                textView.text = "${mapView.context.getString(R.string.navigate_distance_label)}: ${formatDistance(distanceM)}\n" +
-                    "${mapView.context.getString(R.string.navigate_direction_label)}: $dirText"
+    private fun ensureNavigateMetricViews() {
+        if (navigateDistanceValueView != null) return
+        val root = mapView.rootView
+        navigateDistanceValueView = root.findViewById(R.id.navigate_distance_value)
+        navigateBearingValueView = root.findViewById(R.id.navigate_bearing_value)
+        navigateAccuracyValueView = root.findViewById(R.id.navigate_accuracy_value)
+    }
+
+    private fun formatAccuracy(accuracyM: Float): String =
+        when {
+            accuracyM.isNaN() || accuracyM <= 0f -> "—"
+            else -> String.format(Locale.US, "±%.0f m", accuracyM)
+        }
+
+    private fun showNavigateMetrics(distanceM: Double, directionDeg: Double?, accuracyM: Float) {
+        navigateOverlayHandler.post {
+            ensureNavigateMetricViews()
+            if (distanceM < 0) {
+                cancelNavigateValueAnimators()
+                navigateDistanceValueView?.text = "—"
+                navigateBearingValueView?.text = "—"
+                navigateAccuracyValueView?.text = "—"
+                displayedDistanceM = Double.NaN
+                displayedBearingDeg = Double.NaN
+                displayedAccuracyM = Float.NaN
+                return@post
+            }
+            animateNavigateDistance(distanceM)
+            if (directionDeg == null || directionDeg.isNaN()) {
+                navigateBearingAnimator?.cancel()
+                navigateBearingValueView?.text = "—"
+                displayedBearingDeg = Double.NaN
+            } else {
+                animateNavigateBearing(directionDeg)
+            }
+            val accText = formatAccuracy(accuracyM)
+            if (accText != navigateAccuracyValueView?.text) {
+                displayedAccuracyM = accuracyM
+                navigateAccuracyValueView?.text = accText
             }
         }
     }
 
-    private fun normalizeAngleDeg(value: Double): Double {
-        var v = value
-        while (v > 180.0) v -= 360.0
-        while (v <= -180.0) v += 360.0
-        return v
-    }
-
-    /** Local east/north meters at ref latitude (WGS84 approximation). */
-    private fun toLocalMeters(lat: Double, lng: Double, refLat: Double): Pair<Double, Double> {
-        val latRad = Math.toRadians(refLat)
-        val mPerDegLat = 111_320.0
-        val mPerDegLng = 111_320.0 * cos(latRad)
-        return lng * mPerDegLng to lat * mPerDegLat
-    }
-
-    /**
-     * Signed angle (degrees) of how far left/right of the yellow baseline the user is.
-     * Uses cross-track offset from the start→target segment (stable near the target),
-     * not the difference between two bearings to the target.
-     * Negative = left of baseline, positive = right, ~0° when on the line.
-     */
-    private fun navigationDirectionDeg(
-        startLat: Double,
-        startLng: Double,
-        userLat: Double,
-        userLng: Double,
-        targetLat: Double,
-        targetLng: Double
-    ): Double {
-        val refLat = (startLat + targetLat + userLat) / 3.0
-        val (sx, sy) = toLocalMeters(targetLat - startLat, targetLng - startLng, refLat)
-        val (ux, uy) = toLocalMeters(userLat - startLat, userLng - startLng, refLat)
-        val len2 = sx * sx + sy * sy
-        if (len2 < 0.25) return Double.NaN
-
-        // Project user onto the baseline segment (clamp so "past target" still uses end point).
-        val t = ((ux * sx + uy * sy) / len2).coerceIn(0.0, 1.0)
-        val projX = t * sx
-        val projY = t * sy
-        val lateralM = (ux - projX) * sy - (uy - projY) * sx // signed meters, RH rule: + = left of start→target
-
-        val distToTargetM = Geomatte.dist(userLat, userLng, targetLat, targetLng) * 1000.0
-        if (distToTargetM < NAV_DIR_FREEZE_DISTANCE_M) {
-            return lastDisplayedDirectionDeg ?: 0.0
+    private fun animateNavigateDistance(targetM: Double) {
+        val valueView = navigateDistanceValueView ?: return
+        val from = if (displayedDistanceM.isNaN()) targetM else displayedDistanceM
+        if (abs(targetM - from) < 0.01) {
+            displayedDistanceM = targetM
+            valueView.text = formatDistance(targetM)
+            return
         }
+        navigateDistanceAnimator = ValueAnimator.ofFloat(from.toFloat(), targetM.toFloat()).apply {
+            duration = NAV_VALUE_ANIM_MS
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { anim ->
+                val v = (anim.animatedValue as Float).toDouble()
+                displayedDistanceM = v
+                valueView.text = formatDistance(v)
+            }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    displayedDistanceM = targetM
+                    valueView.text = formatDistance(targetM)
+                }
+            })
+            start()
+        }
+    }
 
-        // Angle from lateral offset vs distance to target (stable; avoids bearing flip near target).
-        val angleDeg = Math.toDegrees(atan2(lateralM, distToTargetM.coerceAtLeast(1.0)))
-        val clamped = normalizeAngleDeg(angleDeg)
+    private fun animateNavigateBearing(targetDeg: Double) {
+        val valueView = navigateBearingValueView ?: return
+        val from = if (displayedBearingDeg.isNaN()) targetDeg else displayedBearingDeg
+        if (abs(shortestBearingDeltaDeg(from, targetDeg)) < 0.01) {
+            displayedBearingDeg = targetDeg
+            valueView.text = formatBearing(targetDeg)
+            return
+        }
+        val delta = shortestBearingDeltaDeg(from, targetDeg)
+        navigateBearingAnimator?.cancel()
+        navigateBearingAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = NAV_VALUE_ANIM_MS
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { anim ->
+                val t = anim.animatedValue as Float
+                val v = (from + t * delta + 360.0) % 360.0
+                displayedBearingDeg = v
+                valueView.text = formatBearing(v)
+            }
+            addListener(object : android.animation.AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    displayedBearingDeg = targetDeg
+                    valueView.text = formatBearing(targetDeg)
+                }
+            })
+            start()
+        }
+    }
 
-        val smoothed = lastDisplayedDirectionDeg?.let { prev ->
-            val delta = normalizeAngleDeg(clamped - prev)
-            normalizeAngleDeg(prev + (1.0 - NAV_DIR_SMOOTHING) * delta)
-        } ?: clamped
-        lastDisplayedDirectionDeg = smoothed
+    private fun formatBearing(deg: Double): String =
+        String.format(Locale.US, "%.0f°", deg)
+
+    private fun cancelNavigateValueAnimators() {
+        navigateDistanceAnimator?.cancel()
+        navigateDistanceAnimator = null
+        navigateBearingAnimator?.cancel()
+        navigateBearingAnimator = null
+        navigateAliveAnimator?.cancel()
+        navigateAliveAnimator = null
+        navigateDistanceValueView = null
+        navigateBearingValueView = null
+        navigateAccuracyValueView = null
+    }
+
+    private fun startNavigateOverlayAlivePulse() {
+        stopNavigateOverlayAlivePulse()
+        val runnable = object : Runnable {
+            override fun run() {
+                if (navigateTarget == null) return
+                val age = SystemClock.elapsedRealtime() - lastGpsNavigateUpdateMs
+                if (lastGpsNavigateUpdateMs > 0L && age < NAV_GPS_STALE_MS) {
+                    nudgeNavigateValuesAlive()
+                }
+                navigateOverlayHandler.postDelayed(this, NAV_GPS_ALIVE_INTERVAL_MS)
+            }
+        }
+        navigateAliveRunnable = runnable
+        navigateOverlayHandler.postDelayed(runnable, NAV_GPS_ALIVE_INTERVAL_MS)
+    }
+
+    private fun stopNavigateOverlayAlivePulse() {
+        navigateAliveRunnable?.let { navigateOverlayHandler.removeCallbacks(it) }
+        navigateAliveRunnable = null
+    }
+
+    /** Brief ValueAnimator alpha pulse on numeric fields when GPS is alive but values are unchanged. */
+    private fun nudgeNavigateValuesAlive() {
+        navigateOverlayHandler.post {
+            ensureNavigateMetricViews()
+            val views = listOfNotNull(
+                navigateDistanceValueView,
+                navigateBearingValueView,
+                navigateAccuracyValueView
+            ).filter { it.text?.toString() != "—" }
+            if (views.isEmpty()) return@post
+            navigateAliveAnimator?.cancel()
+            navigateAliveAnimator = ValueAnimator.ofFloat(1f, 0.35f, 1f).apply {
+                duration = NAV_ALIVE_ANIM_MS
+                interpolator = AccelerateDecelerateInterpolator()
+                addUpdateListener { anim ->
+                    val alpha = anim.animatedValue as Float
+                    views.forEach { it.alpha = alpha }
+                }
+                addListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: android.animation.Animator) {
+                        views.forEach { it.alpha = 1f }
+                    }
+                    override fun onAnimationCancel(animation: android.animation.Animator) {
+                        views.forEach { it.alpha = 1f }
+                    }
+                })
+                start()
+            }
+        }
+    }
+
+    private fun shortestBearingDeltaDeg(from: Double, to: Double): Double {
+        var d = (to - from) % 360.0
+        if (d > 180.0) d -= 360.0
+        if (d <= -180.0) d += 360.0
+        return d
+    }
+
+    private fun smoothCompassBearingDeg(raw: Double): Double {
+        val prev = lastSmoothedBearingDeg
+        if (prev == null) {
+            lastSmoothedBearingDeg = raw
+            return raw
+        }
+        val delta = shortestBearingDeltaDeg(prev, raw)
+        val smoothed = (prev + (1.0 - NAV_DIR_SMOOTHING) * delta + 360.0) % 360.0
+        lastSmoothedBearingDeg = smoothed
         return smoothed
+    }
+
+    /** Compass bearing from user to target: 0° = north, 90° = east, range [0, 360). */
+    private fun compassBearingToTargetDeg(
+        fromLat: Double,
+        fromLng: Double,
+        toLat: Double,
+        toLng: Double
+    ): Double {
+        val lat1 = Math.toRadians(fromLat)
+        val lat2 = Math.toRadians(toLat)
+        val dLng = Math.toRadians(toLng - fromLng)
+        val y = sin(dLng) * cos(lat2)
+        val x = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(dLng)
+        return (Math.toDegrees(atan2(y, x)) + 360.0) % 360.0
     }
 
     private fun updateNavigateBaselineInternal(
@@ -2207,7 +2645,8 @@ class MapboxMapHolder(
         userLat: Double,
         userLng: Double,
         targetLat: Double,
-        targetLng: Double
+        targetLng: Double,
+        accuracyM: Float = Float.NaN
     ) {
         val line = com.mapbox.geojson.LineString.fromLngLats(
             listOf(Point.fromLngLat(userLng, userLat), Point.fromLngLat(targetLng, targetLat))
@@ -2225,12 +2664,11 @@ class MapboxMapHolder(
                 }
             )
         }
+        lastGpsNavigateUpdateMs = SystemClock.elapsedRealtime()
         val distanceKm = Geomatte.dist(userLat, userLng, targetLat, targetLng)
-        val start = navigateStart
-        val direction = if (start != null) {
-            navigationDirectionDeg(start.first, start.second, userLat, userLng, targetLat, targetLng)
-        } else null
-        showNavigateMetrics(distanceKm * 1000, direction)
+        val rawBearing = compassBearingToTargetDeg(userLat, userLng, targetLat, targetLng)
+        val bearing = smoothCompassBearingDeg(rawBearing)
+        showNavigateMetrics(distanceKm * 1000, bearing, accuracyM)
     }
 
     /**
@@ -2269,13 +2707,6 @@ class MapboxMapHolder(
                 // Update source data in place to avoid "Source already exists" (remove/add is racy)
                 (style.getSource(TEAM_ME_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(meFeatures)
                 (style.getSource(TEAM_OTHERS_SOURCE_ID) as? GeoJsonSource)?.updateGeoJSONSourceFeatures(othersFeatures)
-                val target = navigateTarget
-                if (target != null) {
-                    val me = members.firstOrNull { isMe(it) }
-                    if (me != null) {
-                        updateNavigateLineInternal(style, me.lat, me.lng, target.first, target.second)
-                    }
-                }
                 return@getStyle
             }
             stopMePulse()
@@ -2398,13 +2829,6 @@ class MapboxMapHolder(
                 )
                 style.getLayer(TEAM_LAYER_ID)?.visibility(if (teamLayerVisible) Visibility.VISIBLE else Visibility.NONE)
                 scheduleWiggle()
-            }
-            val target = navigateTarget
-            if (target != null) {
-                val me = members.firstOrNull { isMe(it) }
-                if (me != null) {
-                    updateNavigateLineInternal(style, me.lat, me.lng, target.first, target.second)
-                }
             }
         }
     }
