@@ -1139,6 +1139,10 @@ class MapboxMapHolder(
     private fun setupMapClickListener() {
         val map = mapboxMap ?: return
         map.addOnMapClickListener { point ->
+            if (navigateTarget != null) {
+                // Walk mode lock: swallow map taps so only walk-card controls are interactive.
+                return@addOnMapClickListener true
+            }
             if (addObjectPlacementMode) {
                 Handler(Looper.getMainLooper()).post { updatePlacementPoint(point) }
                 return@addOnMapClickListener true
@@ -1198,6 +1202,7 @@ class MapboxMapHolder(
             true
         }
     }
+
 
     private fun formatLastSeen(timestampMs: Long): String {
         if (timestampMs <= 0) return mapView.context.getString(R.string.team_member_active_now)
