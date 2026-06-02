@@ -40,6 +40,7 @@ import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.teraim.fieldapp.dynamic.Executor;
+import com.teraim.fieldapp.dynamic.templates.MapTemplate;
 import com.teraim.fieldapp.dynamic.templates.StartupFragment;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
 import com.teraim.fieldapp.dynamic.types.Workflow;
@@ -204,8 +205,12 @@ public class Start extends MenuActivity implements StartProvider {
         } catch (Exception ex) {
             // Ignore
         }
-        // Initial state: toolbar opaque, content below it
-        findViewById(R.id.content_frame_root).post(() -> setToolbarTransparent(false));
+        // Initial state: toolbar opaque, content below it (skip when map is already foreground — e.g. after rotation).
+        findViewById(R.id.content_frame_root).post(() -> {
+            if (!isMapTemplateForeground()) {
+                setToolbarTransparent(false);
+            }
+        });
 
         View rootView = findViewById(R.id.content_frame_root);
         ViewCompat.setOnApplyWindowInsetsListener(rootView, new OnApplyWindowInsetsListener() {
@@ -696,6 +701,12 @@ public class Start extends MenuActivity implements StartProvider {
             int toolbarHeight = toolbar.getHeight() > 0 ? toolbar.getHeight() : (int) (56 * getResources().getDisplayMetrics().density);
             contentFrame.setPadding(0, toolbarHeight, 0, 0);
         }
+    }
+
+    /** True when MapTemplate is the visible content fragment (map should keep a transparent toolbar). */
+    private boolean isMapTemplateForeground() {
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+        return fragment instanceof MapTemplate && fragment.isResumed();
     }
 
     private void setupObservers() {
