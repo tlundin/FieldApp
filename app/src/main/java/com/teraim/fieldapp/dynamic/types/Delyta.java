@@ -77,7 +77,7 @@ public class Delyta {
 		//close the loop End -> Start. IsArc is always true.
 		if (rDist(raw.get(raw.size()-1).rikt,raw.get(0).rikt)>1) {
 			tag.add(new Segment(raw.get(raw.size()-1),raw.get(0),true));
-			Log.d(TAG,"Added ending arc from "+tag.get(tag.size()-1).start.rikt+" to "+tag.get(tag.size()-1).end.rikt);
+			Log.d(TAG,"Added ending arc from "+ tag.get(tag.size() - 1).start().rikt+" to "+ tag.get(tag.size() - 1).end().rikt);
 		} else
 			Log.e("nils","No ending arc added. Start & end are next to each other");
 		//Calc area.
@@ -215,21 +215,21 @@ public class Delyta {
 		double v1 = pole.rikt*DR;
 
 		for (Segment s:tag) {
-			if (s.isArc) {
-				int endToPoleDist = pDist(s.end.rikt,pole.rikt);
-				int endToStartDist = pDist(s.end.rikt,s.start.rikt);
+			if (s.isArc()) {
+				int endToPoleDist = pDist(s.end().rikt,pole.rikt);
+				int endToStartDist = pDist(s.end().rikt, s.start().rikt);
 				if (endToPoleDist < endToStartDist) {				
 					Log.d(TAG,"This arc goes through pole");
 					min=0;
 					break;
 				}
 			}
-			v2 = s.start.rikt*DR;
-			r2 = s.start.avst;
+			v2 = s.start().rikt*DR;
+			r2 = s.start().avst;
 			d = calcDistance(r1,v1,r2,v2);
 			if (d<min)
 				min = d;
-			Log.d(TAG,"DISTANCE TO "+(pole.equals(West)?"WEST":"SOUTH")+" for ("+s.start.avst+","+s.start.rikt+") to ("+pole.avst+","+pole.rikt+"): "+d);
+			Log.d(TAG,"DISTANCE TO "+(pole.equals(West)?"WEST":"SOUTH")+" for ("+ s.start().avst+","+ s.start().rikt+") to ("+pole.avst+","+pole.rikt+"): "+d);
 		}
 		return (float)min;
 	}
@@ -245,9 +245,9 @@ public class Delyta {
 		Log.d(TAG,"In distance calc..");
 		for (Segment s:tag) {
 			Log.d(TAG,"Segment: "+DelyteManager.printSegment(s));
-			if (s.isArc) {
-				int endToPoleDist = pDist(s.end.rikt,Pole.rikt);
-				int endToStartDist = pDist(s.end.rikt,s.start.rikt);
+			if (s.isArc()) {
+				int endToPoleDist = pDist(s.end().rikt,Pole.rikt);
+				int endToStartDist = pDist(s.end().rikt, s.start().rikt);
 				if (endToPoleDist < endToStartDist) {				
 					Log.d(TAG,"This arc goes through pole");
 					max=0;
@@ -255,13 +255,13 @@ public class Delyta {
 				}
 				else {
 					//d = sqrt [ (x2 - x1)^2 + (y2 - y1)^2 ]
-					float dStart = (s.start.rikt-Pole.rikt);
-					float dEnd = (s.end.rikt-Pole.rikt);
+					float dStart = (s.start().rikt-Pole.rikt);
+					float dEnd = (s.end().rikt-Pole.rikt);
 					if (dStart<0)
 						dStart +=360;
 					if (dEnd<0)
 						dEnd +=360;
-					Coord shortest = dStart<=dEnd?s.start:s.end;
+					Coord shortest = dStart<=dEnd? s.start() : s.end();
 					Dx = shortest.x-Pole.x;
 					Dy = shortest.y-Pole.y;
 					//Log.d(TAG,"dStart dEnd, shortest dx dy"+dStart+","+dEnd+","+shortest.rikt+","+Dx+","+Dy);
@@ -316,12 +316,12 @@ public class Delyta {
 		//Area is calculated using Euler. 
 		for (Segment s:tag) {
 			//If not arc, add.
-			if (!s.isArc) {
-				areaC.add(s.start);
-				areaC.add(s.end);
+			if (!s.isArc()) {
+				areaC.add(s.start());
+				areaC.add(s.end());
 			}
 			else
-				addArcCoords(areaC,s.start,s.end);					
+				addArcCoords(areaC, s.start(), s.end());
 		}
 		//Now use euler to calc area.
 		float T=0; 

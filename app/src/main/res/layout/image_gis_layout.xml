@@ -89,7 +89,6 @@
 
 
     <FrameLayout
-        android:id="@+id/avstriktF"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="left|center_vertical"

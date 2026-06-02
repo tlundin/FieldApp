@@ -28,7 +28,7 @@ public class WF_TextBlockWidget extends WF_Widget {
 			lp.setMargins(horizontalMargin,verticalMargin,horizontalMargin,verticalMargin);
 		}
 		if (background!=null)
-			getWidget().setBackgroundColor(Tools.getColorResource(ctx.getContext(),background));
+			getWidget().setBackgroundColor(Tools.getColorResource(ctx.getContext(),background, R.color.black, true));
 	}
 	
 	

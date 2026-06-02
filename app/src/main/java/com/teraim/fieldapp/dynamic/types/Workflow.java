@@ -19,7 +19,7 @@ public class Workflow implements Serializable {
 	private static final long serialVersionUID = -8806673639097744372L;
 	private List<Block> blocks;
 	private String name;
-	private transient DB_Context mContext=null;
+	private final transient DB_Context mContext=null;
 	private int blockP = 0;
 	private transient PageDefineBlock myPDefBl = null;
 	private transient boolean called = false;

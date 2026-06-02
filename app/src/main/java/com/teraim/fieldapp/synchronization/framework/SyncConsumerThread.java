@@ -68,6 +68,6 @@ public class SyncConsumerThread extends Thread {
         mCaller.handleMessage(Message.obtain(null, SyncService.MSG_SYNC_RUN_ENDED));
 
     }
-};
+}
 
 

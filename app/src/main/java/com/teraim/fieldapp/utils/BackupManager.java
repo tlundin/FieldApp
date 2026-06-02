@@ -205,6 +205,7 @@ public class BackupManager {
 			return ret;
 		}
 		Log.d(TAG,"file successfully written to backup: "+exportFileName);
+		LogRepository.getInstance().addText("Backup file: " + file.getAbsolutePath());
 
 		return ret;
 
@@ -242,6 +243,7 @@ public class BackupManager {
 			return ret;
 		}
 		Log.d(TAG,"file successfully written to backup: "+exportFileName);
+		LogRepository.getInstance().addText("Backup file: " + file.getAbsolutePath());
 
 		return ret;
 

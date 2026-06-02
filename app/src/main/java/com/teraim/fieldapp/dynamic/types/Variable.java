@@ -113,7 +113,7 @@ public class Variable implements Serializable {
 			if (histKeyChain == null) {
 				histKeyChain = new HashMap<String,String>(keyChain);
 				histKeyChain.put(VariableConfiguration.KEY_YEAR, Constants.HISTORICAL_TOKEN_IN_DATABASE);
-				Log.d(TAG,"My historical keychain: "+histKeyChain.toString()+" my name: "+name);
+				Log.d(TAG,"My historical keychain: "+ histKeyChain +" my name: "+name);
 				histSelection = myDb.createSelection(histKeyChain,name);
 			}
 
@@ -518,7 +518,7 @@ public class Variable implements Serializable {
 			return null;
 		int c = varId.lastIndexOf(Constants.VariableSeparator);
 		if (c!=-1 && c<(varId.length()-1))
-			return varId.substring(c+1,varId.length());
+			return varId.substring(c+1);
 		else {
 			Log.d(TAG,"getVarSuffix returns null for "+varId);
 			return null;

@@ -14,8 +14,9 @@ public class WF_ClickableField_Selection_OnSave extends WF_ClickableField_Select
 	
 	
 	public WF_ClickableField_Selection_OnSave(String headerT, String descriptionT,
-											  WF_Context context, String id, boolean isVisible, boolean autoOpenSpinner, DisplayFieldBlock format) {
-		super(headerT,descriptionT, context, id,isVisible,format);
+											  WF_Context context, String id, boolean isVisible, boolean autoOpenSpinner,
+											  DisplayFieldBlock format, int outputValueTextSizeSp) {
+		super(headerT,descriptionT, context, id,isVisible,format, outputValueTextSizeSp);
 		context.registerEventListener(this, EventType.onSave);
 		setAutoOpenSpinner(autoOpenSpinner);
 	}

@@ -10,6 +10,7 @@ import androidx.core.view.OnApplyWindowInsetsListener;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.fragment.app.Fragment;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -23,6 +24,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.graphics.Color;
 import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
@@ -32,6 +34,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
@@ -51,6 +54,8 @@ import com.teraim.fieldapp.ui.MenuActivity;
 import com.teraim.fieldapp.viewmodels.GisViewModel;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.PersistenceHelper;
+import com.mapbox.common.MapboxOptions;
+import com.teraim.fieldapp.BuildConfig;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -62,7 +67,7 @@ import java.util.Arrays;
  */
 public class Start extends MenuActivity implements StartProvider {
     private static final String TAG = "Start";
-
+    private static Start currentInstance;
 
     //	private Map<String,List<String>> menuStructure;
 
@@ -99,6 +104,7 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        currentInstance = this;
         WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         // Setup handler for uncaught exceptions.
 /*        Thread.setDefaultUncaughtExceptionHandler (new Thread.UncaughtExceptionHandler()
@@ -113,6 +119,15 @@ public class Start extends MenuActivity implements StartProvider {
 
         Log.d(TAG,"in START onCreate");
         startInstance = this;
+        
+        // Initialize Mapbox token early, before any layouts with MapView are inflated
+        try {
+            MapboxOptions.setAccessToken(BuildConfig.MAPBOX_ACCESS_TOKEN);
+            Log.d(TAG, "Mapbox access token initialized");
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set Mapbox access token", e);
+        }
+        
         shouldLoadDbModules = getIntent().getBooleanExtra(Constants.RELOAD_DB_MODULES, false);
         //This is the frame for all pages, defining the Action bar and Navigation menu.
         setContentView(R.layout.naviframe);
@@ -138,6 +153,12 @@ public class Start extends MenuActivity implements StartProvider {
         actionbar.setDisplayHomeAsUpEnabled(true);
         mDrawerMenu = new  DrawerMenu(this,toolbar);
         mDrawerToggle = mDrawerMenu.getDrawerToggle();
+        // If GlobalState already exists (for example after a configuration
+        // change), reattach this new DrawerMenu instance so that its contents
+        // can be rebuilt from the recorded menu definition.
+        if (GlobalState.getInstance() != null) {
+            GlobalState.getInstance().setDrawerMenu(mDrawerMenu);
+        }
 
         // 2. Get the shared ViewModel
         GisViewModel gisViewModel = new ViewModelProvider(this).get(GisViewModel.class);
@@ -183,6 +204,9 @@ public class Start extends MenuActivity implements StartProvider {
         } catch (Exception ex) {
             // Ignore
         }
+        // Initial state: toolbar opaque, content below it
+        findViewById(R.id.content_frame_root).post(() -> setToolbarTransparent(false));
+
         View rootView = findViewById(R.id.content_frame_root);
         ViewCompat.setOnApplyWindowInsetsListener(rootView, new OnApplyWindowInsetsListener() {
             @Override
@@ -190,18 +214,36 @@ public class Start extends MenuActivity implements StartProvider {
                 // Get the insets for system bars (status bar, navigation bar)
                 Insets systemBarsInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars());
 
-                // Apply padding to the view
+                // Apply padding for top/left/right only; bottom=0 so map extends behind transparent nav bar
                 view.setPadding(
                         systemBarsInsets.left,
                         systemBarsInsets.top,
                         systemBarsInsets.right,
-                        systemBarsInsets.bottom
+                        0
                 );
 
                 // Return CONSUMED to indicate that you've handled these insets
                 return WindowInsetsCompat.CONSUMED;
             }
         });
+
+        // Hide navigation bar until user swipes from bottom edge; prevents nav bar from covering content
+        getWindow().getDecorView().post(() -> {
+            WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+            controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            controller.hide(WindowInsetsCompat.Type.navigationBars());
+        });
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            // Re-hide navigation bar when window regains focus (e.g. after dialog or app switch)
+            WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(getWindow(), getWindow().getDecorView());
+            controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            controller.hide(WindowInsetsCompat.Type.navigationBars());
+        }
     }
 
 
@@ -470,15 +512,20 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     public void onDestroy() {
+        if (currentInstance == this) {
+            currentInstance = null;
+        }
         if (histT!=null) {
             histT.cancel(true);
         }
 
-        if (GlobalState.getInstance()!=null) {
-
-            //kill tracker
+        // Only tear down the GlobalState and close the database when the
+        // activity is actually finishing (e.g. user exits the app). During
+        // configuration changes such as rotation, we keep the process-wide
+        // GlobalState instance alive so that configuration and workflow state
+        // are preserved across Activity recreation.
+        if (isFinishing() && GlobalState.getInstance()!=null) {
             GlobalState.getInstance().getDb().closeDatabaseBeforeExit();
-
             GlobalState.destroy();
         }
 
@@ -600,7 +647,7 @@ public class Start extends MenuActivity implements StartProvider {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           String permissions[], int[] grantResults) {
+                                           String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode,permissions,grantResults);
         switch (requestCode) {
             case PERMISSION_ALL: {
@@ -612,7 +659,6 @@ public class Start extends MenuActivity implements StartProvider {
                     Log.e("vortex","Permission denied: "+ Arrays.toString(permissions));
 
                 }
-                return;
             }
 
             // other 'case' lines to check for other
@@ -630,6 +676,25 @@ public class Start extends MenuActivity implements StartProvider {
             }
         } else {
             Log.w("StartActivity", "ActionBar not found, cannot set visibility.");
+        }
+    }
+
+    /**
+     * Makes the toolbar transparent and lets the map extend behind it (when true),
+     * or restores opaque toolbar with content below it (when false).
+     */
+    public void setToolbarTransparent(boolean transparent) {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        FrameLayout contentFrame = findViewById(R.id.content_frame);
+        if (toolbar == null || contentFrame == null) return;
+
+        if (transparent) {
+            toolbar.setBackgroundColor(Color.TRANSPARENT);
+            contentFrame.setPadding(0, 0, 0, 0);
+        } else {
+            toolbar.setBackgroundColor(ContextCompat.getColor(this, R.color.primary));
+            int toolbarHeight = toolbar.getHeight() > 0 ? toolbar.getHeight() : (int) (56 * getResources().getDisplayMetrics().density);
+            contentFrame.setPadding(0, toolbarHeight, 0, 0);
         }
     }
 
@@ -670,6 +735,10 @@ public class Start extends MenuActivity implements StartProvider {
     @Override
     public Start getStartInstance() {
         return startInstance;
+    }
+
+    public static Start getCurrentInstance() {
+        return currentInstance;
     }
     /*
     @Override

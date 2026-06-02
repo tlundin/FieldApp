@@ -12,6 +12,7 @@ import com.teraim.fieldapp.utils.DbHelper.TmpVal;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -208,7 +209,7 @@ public class VariableCache {
                         int myKeyhashSize = 0;
                         String[] rowKHA=null;
                         if (myKeyHash != null) {
-                            myKeyhashSize = myKeyHash.keySet().size();
+                            myKeyhashSize = myKeyHash.size();
                             //Log.d(TAG,"myKSize: "+myKeyhashSize+" myKeyHash: "+myKeyHash.keySet()+"rowKH: "+rowKH);
                         }
                         if (rowKH != null && !rowKH.isEmpty()) {
@@ -429,11 +430,11 @@ public class VariableCache {
             //			Log.d(TAG,"eq returns false. Trying to match: "+(chainToFind==null?"null":chainToFind.toString())+" with: "+(varChain==null?"null":varChain.toString()));
             return false;
         }
-        Log.d(TAG, "ChainToFind: " + chainToFind.toString());
-        Log.d(TAG, "VarChain: " + varChain.toString());
+        Log.d(TAG, "ChainToFind: " + chainToFind);
+        Log.d(TAG, "VarChain: " + varChain);
         for (String key : chainToFind.keySet()) {
             if (chainToFind.get(key) == null) {
-                Log.d(TAG, "SubsetOf returns false. Key " + key + " is not in Chaintofind: " + chainToFind.toString());
+                Log.d(TAG, "SubsetOf returns false. Key " + key + " is not in Chaintofind: " + chainToFind);
                 return false;
             }
             if (!chainToFind.get(key).equals(varChain.get(key))) {
@@ -472,7 +473,7 @@ public class VariableCache {
         else {
             for (Map<String, String> chain : newcache.keySet()) {
                 if (SubsetOf(keyChain, chain)) {
-                    Log.d(TAG, "found subset chain " + chain.toString());
+                    Log.d(TAG, "found subset chain " + chain);
                     this.refreshCache(chain);
                     this.deleteCacheEntry(chain);
 
@@ -612,7 +613,7 @@ public class VariableCache {
         Log.d(TAG, "newCache: ");
         for (Map<String, String> key : newcache.keySet()) {
             if (key != null) {
-                Log.d(TAG, key.toString() + ", HASH: " + key.hashCode());
+                Log.d(TAG, key + ", HASH: " + key.hashCode());
                 Map<String, Variable> varMap = newcache.get(key);
                 for (String vKey : varMap.keySet()) {
                     Variable v = varMap.get(vKey);
@@ -624,6 +625,32 @@ public class VariableCache {
 
             } else
                 Log.d(TAG, "*NULL*");
+        }
+    }
+
+    /**
+     * Dump for the session log: one line per variable in {@link #currentCache} only —
+     * variable id and value (sorted by id).
+     */
+    public String buildVariableDiagnosticText() {
+        StringBuilder sb = new StringBuilder(1024);
+        sb.append("Variables (current context)\n\n");
+        appendSortedVariableNameAndValue(sb, currentCache);
+        return sb.toString();
+    }
+
+    private static void appendSortedVariableNameAndValue(StringBuilder sb, Map<String, Variable> map) {
+        if (map == null || map.isEmpty()) {
+            sb.append("(none)\n");
+            return;
+        }
+        List<String> keys = new ArrayList<>(map.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            Variable v = map.get(key);
+            if (v == null) continue;
+            String val = v.getValue();
+            sb.append(v.getId()).append(" = ").append(val == null ? "" : val).append("\n");
         }
     }
 
@@ -639,7 +666,7 @@ public class VariableCache {
 
     //private final Queue<Variable> dbQueue = new ConcurrentLinkedQueue<Variable>() ;
 
-    private ScheduledExecutorService scheduleTaskExecutor = null;
+    private final ScheduledExecutorService scheduleTaskExecutor = null;
 
 
     //public void save(Variable variable) {

@@ -19,8 +19,8 @@ public abstract class GisPointObject extends GisObject {
 
 	// NEW: Animation fields for pulsing effect
 	private long animationStartTime = -1;
-	private long animationDuration = 800; // ms: total duration of one pulse cycle
-	private float animationPeakScale = 1.2f; // Max scale (20% larger)
+	private final long animationDuration = 800; // ms: total duration of one pulse cycle
+	private final float animationPeakScale = 1.2f; // Max scale (20% larger)
 	private boolean isAnimating = false;
 	private static final String TAG = "GisPointObject";
 

@@ -469,9 +469,9 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 		public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
 
 			// Remove the string out of destination that is to be replaced
-			String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend, dest.toString().length());
+			String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend);
 			// Add the new string in
-			newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart, newVal.length());
+			newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart);
 			if (isLegal(newVal))
 				return null;
 			return "";
@@ -492,9 +492,9 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 		public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
 
 			// Remove the string out of destination that is to be replaced
-			String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend, dest.toString().length());
+			String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend);
 			// Add the new string in
-			newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart, newVal.length());
+			newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart);
 			if (isLegal(newVal))
 				return null;
 			return "";
@@ -538,7 +538,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 						break;
 					if (a.toString().isEmpty()||r.toString().isEmpty())
 						break;
-					res+=a.toString()+","+r.toString()+",";
+					res+= a +","+ r +",";
 				}
 				if (!res.isEmpty())
 					res = res.substring(0, res.length()-1);
@@ -619,7 +619,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				header.setText("Tåg "+row);
 				String errorTxt="";
 				if (errorArray[row-1]!=null) {
-					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(Color.RED);
+					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(gs.getContext().getResources().getColor(R.color.error_text,gs.getContext().getTheme()));
 					errorTxt = "["+errorArray[row-1]+"]";
 				}  else
 					((TextView)tagView.findViewById(R.id.tagBody)).setTextColor(gs.getContext().getResources().getColor(R.color.blue_background,gs.getContext().getTheme()));
@@ -688,7 +688,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				start = co+1;
 				co = tagT.indexOf(',', start);
 				if (co==-1) {
-					rikt = tagT.substring(start,tagT.length());
+					rikt = tagT.substring(start);
 					if (rikt.length()==0 && rikt.length()>3) {
 						err=true;
 						errorArray[row]=", syntax error (rikt)";
@@ -718,7 +718,7 @@ public class TagTemplate extends Executor implements EventListener, OnGesturePer
 				}
 			}
 			if (errorArray[row]!=null) {
-				tagTextView.setTextColor(Color.RED);
+				tagTextView.setTextColor(gs.getContext().getResources().getColor(R.color.error_text,gs.getContext().getTheme()));
 				tagTextView.setText(tagT+errorArray[row]);
 			} else 
 				tagTextView.setTextColor(gs.getContext().getResources().getColor(R.color.blue_background,gs.getContext().getTheme()));

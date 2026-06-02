@@ -21,15 +21,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Handler;
-import java.util.logging.LogRecord;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
     private static final String TAG = "BlockCreateListEntriesFromFieldList";
 
 
 
-    private static final Map <String,List<List<String>>> cacheMap=new HashMap <String,List<List<String>>>();
+    private static final Map<String,List<List<String>>> cacheMap = new HashMap<>();
     private final String id;
     private final String type;
     private final String containerId;
@@ -106,7 +106,8 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
             @Override
             public void run() {
                 VariableConfiguration al = GlobalState.getInstance().getVariableConfiguration();
-                List<List<String>> rows = cacheMap.get(blockId);
+                final String cacheKey = createCacheKey(myContext);
+                List<List<String>> rows = cacheMap.get(cacheKey);
                 Log.d(TAG, "selectionField: "+selectionField+" selectionPattern: "+selectionPattern+" rows: " + (rows==null?"null":rows.size()));
 
                 if (rows == null) {
@@ -120,7 +121,7 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
                             Log.d(TAG, "filtered rows size: " + rows.size());
                         }
                     }
-                    cacheMap.put(blockId, rows);
+                    cacheMap.put(cacheKey, rows);
 
                 }
                 if (rows.size() == 0) {
@@ -146,10 +147,20 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
 
     private List<List<String>> getRowsContaining(VariableConfiguration al,List<List<String>> rows, String columnName, String pattern) {
         String colValue;
-        List<List<String>> ret = new ArrayList<List<String>>();
+        List<List<String>> ret = new ArrayList<>();
+        Pattern regex = null;
+        boolean useRegex = false;
+        if (pattern != null) {
+            try {
+                regex = Pattern.compile(pattern);
+                useRegex = true;
+            } catch (PatternSyntaxException ignored) {
+                // Fall back to equals-only if not a valid regex.
+            }
+        }
         for (List<String> row: rows) {
             colValue=al.getColumn(columnName, row);
-            if (colValue!=null && (colValue.equals(pattern)||colValue.matches(pattern))) {
+            if (colValue!=null && (colValue.equals(pattern) || (useRegex && regex.matcher(colValue).matches()))) {
                 ret.add(row);
             }
         }
@@ -178,9 +189,26 @@ public class BlockCreateListEntriesFromFieldList extends DisplayFieldBlock {
     }
 
     public void createVariables(WF_Context myContext) {
+        if (associatedVariablesList == null || associatedVariablesList.isEmpty()) {
+            return;
+        }
         for (AddVariableToEveryListEntryBlock bl:associatedVariablesList){
             bl.create(myContext);
         }
+    }
+
+    private String createCacheKey(WF_Context context) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(blockId).append("|");
+        sb.append(selectionField).append("|");
+        sb.append(selectionPattern).append("|");
+        sb.append(context.getHash()).append("|");
+        if (associatedFiltersList != null) {
+            for (AddFilter f : associatedFiltersList) {
+                sb.append(f.getSelectionField()).append("=").append(f.getSelectionPattern()).append(";");
+            }
+        }
+        return sb.toString();
     }
 }
 

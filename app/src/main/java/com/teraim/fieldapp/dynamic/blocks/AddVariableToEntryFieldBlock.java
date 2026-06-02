@@ -39,14 +39,12 @@ public class AddVariableToEntryFieldBlock extends Block {
 
 		WF_ClickableField myField = (WF_ClickableField)myContext.getDrawable(target);
 		if (myField == null) {
-
 			o.addCriticalText("Couldn't find Entry Field with name "+target+" in AddVariableToEntryBlock" );
 			myContext.printD();
-			
 		} else {
 			Variable var =  gs.getVariableCache().getVariable(namn,initialValue,-1);
 			if (var!=null) {
-				myField.addVariable(var, displayOut, format,isVisible,showHistorical);
+				myField.addVariable(var,displayOut,format,isVisible,showHistorical);
 				return var;
 			} else {
 				o.addCriticalText("Couldn't find Variable with name "+namn+" in AddVariableToEntryBlock" );

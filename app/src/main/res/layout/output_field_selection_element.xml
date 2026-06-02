@@ -12,9 +12,10 @@
         android:singleLine="true"
         android:gravity="center_vertical|right"
         android:layout_height="match_parent"
-        android:minEms="2"
         android:text="30"
-        android:textSize="25sp" />
+		android:textAppearance="@style/TextAppearance.FieldValueXLarge"
+        android:textStyle="bold"
+         />
 
 	<TextView
     android:id="@+id/outputUnitField"
@@ -24,6 +25,7 @@
 	android:layout_marginRight="5dp"
     android:gravity="center_vertical|left"
     android:text="%"
-    android:textSize="20sp" />
+    android:textAppearance="@style/TextAppearance.FieldValueLarge"
+     />
 
 </LinearLayout>

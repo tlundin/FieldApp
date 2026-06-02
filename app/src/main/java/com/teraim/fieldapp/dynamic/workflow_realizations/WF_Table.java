@@ -39,17 +39,17 @@ public class WF_Table extends WF_List  {
 	private final View headerCell;
 	protected List<? extends Listable> filteredList;
 
-	private transient WF_Context myContext;
+	private final transient WF_Context myContext;
 	private transient final GlobalState gs;
 	private transient final VariableConfiguration al;
 	private String myVariator;
-	private transient LayoutInflater inflater ;
-	private transient TableLayout tableView;
+	private final transient LayoutInflater inflater ;
+	private final transient TableLayout tableView;
 	//The index of the currently selected column.
 	private int selectedColumnIndex =-1;
 
 	private int rowNumber=0, numberOfColumns =1;
-    private transient WF_Table_Row headerRow;
+    private final transient WF_Table_Row headerRow;
 	private boolean tableTypeSimple;
 
     //How about using the Container's panel?? TODO
@@ -88,7 +88,7 @@ public class WF_Table extends WF_List  {
 
 		this.myVariator=variatorColumn;
 		allInstances = gs.getDb().preFetchValues(myContext.getKeyHash(), selectionPattern, myVariator);
-		Log.d(TAG,"in addTexts. AllInstances contain "+allInstances.size()+ ": "+allInstances.toString());
+		Log.d(TAG,"in addTexts. AllInstances contain "+allInstances.size()+ ": "+ allInstances);
 
 		//Rows are not containing unique entries. only need one of each.
 		Map<String,List<String>>uRows = new HashMap<String,List<String>>();
@@ -156,9 +156,9 @@ public class WF_Table extends WF_List  {
 		
 		//Add as many columns as there are keys. Check if labels are used or if the columnkey should be used.
 		if (useColumKeyAsHeader&&labels.size()<columnKeyL.size()) {
-			Log.e("vortex","There are too few labels in addColumns! Labels: "+labels.toString());
+			Log.e("vortex","There are too few labels in addColumns! Labels: "+ labels);
 			o.addText("");
-			o.addCriticalText("There are too few labels in addColumns! Labels: "+labels.toString());
+			o.addCriticalText("There are too few labels in addColumns! Labels: "+ labels);
 			return;
 		}
 		if (columnKeyL==null) {
@@ -495,7 +495,7 @@ public class WF_Table extends WF_List  {
 					prefetchValue = valueMap.get(colKey);
 				}
 				if (prefetchValue!=null) {
-					Log.d(TAG,"valueMap: "+valueMap.toString()+" colKey: "+colKey);
+					Log.d(TAG,"valueMap: "+ valueMap +" colKey: "+colKey);
 					Log.d(TAG,"found prefetch value "+prefetchValue);
 				}
 				cell.addVariable(varGrId, displayOut, format, isVisible, showHistorical,prefetchValue);

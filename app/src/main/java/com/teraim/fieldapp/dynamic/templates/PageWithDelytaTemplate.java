@@ -53,7 +53,7 @@ public class PageWithDelytaTemplate extends Executor {
 		//myContext.onCreateView();
 		myContext.addContainers(getContainers());
 		
-		ViewGroup provytaViewPanel = (LinearLayout)v.findViewById(R.id.Description);
+		ViewGroup provytaViewPanel = v.findViewById(R.id.Description);
 		DelyteManager dym = DelyteManager.getInstance();
 
 		//Marker man = new Marker(BitmapFactory.decodeResource(getResources(),R.drawable.icon_man));

@@ -278,8 +278,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     List<Location> gopCoordinates = gop.getCoordinates();
                     if (gopCoordinates != null && !gopCoordinates.isEmpty()) {
                         Location last = gopCoordinates.get(gopCoordinates.size()-1);
-                        if (last instanceof SweLocation) {
-                            SweLocation sweloc = (SweLocation)last;
+                        if (last instanceof SweLocation sweloc) {
                             switch (d) {
                                 case UP:
                                     sweloc.north+=changeDistance;
@@ -478,7 +477,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                 if (gop!=null) {
                     Location sweref = gop.getLocation();
                     if (sweref != null) {
-                        Location latlong = Geomatte.convertToLatLong(sweref.getX(), sweref.getY());
+                        Location latlong = Geomatte.convertToLatLong(sweref.getY(), sweref.getX()); // (northing, easting)
                         Log.d(TAG, "Nav to: " + sweref.getX() + "," + sweref.getY() + " LAT: " + latlong.getX() + " LONG: " + latlong.getY());
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("google.navigation:q=" + latlong.getX() + "," + latlong.getY()));
                         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -593,7 +592,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
                     Gravity.CENTER);
             myText.setLayoutParams(params1);
             myText.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
-            myText.setTextColor(Color.WHITE);
+            myText.setTextColor(resolveThemeColor(ctx, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text));
             return myText;
         });
 
@@ -607,7 +606,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             myText.setLayoutParams(params12);
             myText.setTextSize(TypedValue.COMPLEX_UNIT_SP,20);
 
-            myText.setTextColor(Color.WHITE);
+            myText.setTextColor(resolveThemeColor(ctx, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text));
             return myText;
         });
 
@@ -650,6 +649,10 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             clearLayerCaches();
         } else {
             myLayers = new ArrayList<>();
+            // Default visibility for the Team layer:
+            // - For legacy CreateGisBlock-based maps, use createGisBlock.isTeamVisible()
+            // - For block_add_gis_map_view-based maps, MapTemplate uses GisMapView.isTeamVisible()
+            //   to decide whether to set up the team overlay; here we just honor the CreateGisBlock flag.
             if (createGisBlock.isTeamVisible()) {
                 String team = GlobalState.getInstance().getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
                 if (team != null && !team.isEmpty()) {
@@ -1157,7 +1160,7 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             if (layer instanceof MapGisLayer)
                 continue;
             if (layer.hasWidget()) {
-                Log.d(TAG,"layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+layer.toString());
+                Log.d(TAG,"layer row created for "+layer.getLabel()+" show labels: "+layer.showLabels()+" is visible: "+layer.isVisible()+" Obj: "+ layer);
                 layersRow = li.inflate(R.layout.layers_row, null);
                 final CheckBox lFet = layersRow.findViewById(R.id.cbFet);
                 final CheckBox lShow = layersRow.findViewById(R.id.cbShow);
@@ -1342,5 +1345,16 @@ public class WF_Gis_Map extends WF_Widget implements Drawable, EventListener, An
             return true;
         }
         return b.booleanValue();
+    }
+
+    private int resolveThemeColor(Context context, int attrResId, int fallbackColorResId) {
+        TypedValue typedValue = new TypedValue();
+        if (context.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(context, typedValue.resourceId);
+            }
+            return typedValue.data;
+        }
+        return ContextCompat.getColor(context, fallbackColorResId);
     }
 }

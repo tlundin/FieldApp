@@ -32,6 +32,7 @@ import com.teraim.fieldapp.non_generics.Constants;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Collections;
 import java.util.Set;
 
 public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventListener {
@@ -41,11 +42,14 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 	private final Map<String, String> myHash;
 	private final CheckBox myCheckBox;
 	private Variable myVariable = null;
+	private Set<Variable> associatedVariablesSingleton = null;
 	private Drawable originalBackground;
 	private final Context ctx;
 	private ActionMode mActionMode;
 
-	private CellType cellType;
+	private final CellType cellType;
+	private final WF_Context myContext;
+	private boolean eventListenerRegistered = false;
 	private static final int backgroundColor=Color.TRANSPARENT;
 
 	private void setBackgroundColor(int color) {
@@ -91,15 +95,9 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 						.getBackingDataSet();
 				String url = al.getUrl(row);
 
-				if (url == null || url.length() == 0)
-					x.setVisible(false);
-				else
-					x.setVisible(true);
-				if (row != null && al.getVariableDescription(row) != null
-						&& al.getVariableDescription(row).length() > 0)
-					y.setVisible(true);
-				else
-					y.setVisible(false);
+                x.setVisible(url != null && url.length() != 0);
+                y.setVisible(row != null && al.getVariableDescription(row) != null
+                        && al.getVariableDescription(row).length() > 0);
 
 			} else {
 				x.setVisible(false);
@@ -173,6 +171,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 									 final WF_Context context, String id,boolean isVisible,CellType type) {
 			super(id,new CheckBox(context.getContext()),isVisible,context);
 			myHash = columnKeyHash;
+			this.myContext = context;
 			ctx = context.getContext();
 			cellType = type;
 			myCheckBox = (CheckBox) getWidget();//v.findViewById(R.id.checkbox);
@@ -215,7 +214,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 					}
 				}
 			});
-			context.registerEventListener(this, Event.EventType.onSave);
+			// Registering event listeners per cell is expensive; defer until first variable is attached.
 		}
 
 		@Override
@@ -223,8 +222,13 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 			myVariable = GlobalState.getInstance().getVariableCache().getCheckedVariable(myHash, varId, prefetchValue, prefetchValue!=null);
 			//Log.d(TAG,"prefetchvalue for "+varId+"is "+prefetchValue);
 			if (myVariable!=null) {
+			associatedVariablesSingleton = Collections.singleton(myVariable);
 				String val = myVariable.getValue();
 				myCheckBox.setChecked(val!=null && val.equals("true"));
+				if (!eventListenerRegistered) {
+					myContext.registerEventListener(this, Event.EventType.onSave);
+					eventListenerRegistered = true;
+				}
 			}
 
 		}
@@ -254,12 +258,7 @@ public class WF_Simple_Cell_Widget extends WF_Widget implements WF_Cell, EventLi
 
 		@Override
 		public Set<Variable> getAssociatedVariables() {
-			if (myVariable!=null) {
-				Set<Variable> ret = new HashSet<Variable>();
-				ret.add(myVariable);
-				return ret;
-			}
-			return null;
+			return associatedVariablesSingleton;
 
 		}
 

@@ -182,7 +182,7 @@ public class DelyteManager {
 			//Just a simple arc?
 			Set<Segment>arcs=new HashSet<Segment>();
 			for (Segment s:cTag) {
-				if (s.isArc)
+				if (s.isArc())
 					arcs.add(s);
 			}
 			if (!arcs.isEmpty()) {
@@ -192,16 +192,16 @@ public class DelyteManager {
 				Segment arc=it.next();
 				int dist;
 				int arcMid,nyR;
-				dist = Delyta.rDist(arc.start.rikt,arc.end.rikt);
+				dist = Delyta.rDist(arc.start().rikt, arc.end().rikt);
 				Log.d(TAG,"Delyta: "+d.getId());
-				Log.d(TAG,"Start: "+arc.start.rikt+" End: "+arc.end.rikt+ "Dist: "+dist);
+				Log.d(TAG,"Start: "+ arc.start().rikt+" End: "+ arc.end().rikt+ "Dist: "+dist);
 				arcMid =  (dist/2);
 				Log.d(TAG," Medeldistans "+arcMid);
-				nyR = (int)(arc.start.rikt+arcMid);
+				nyR = (int)(arc.start().rikt+arcMid);
 				Log.d(TAG," nyR "+nyR);
 				if (nyR>360)
 					nyR=nyR-360;
-				if (arc.start.rikt>arc.end.rikt) 
+				if (arc.start().rikt> arc.end().rikt)
 					Log.d(TAG,"Start more: "+nyR);
 				else
 					Log.d(TAG,"Start less: "+nyR);
@@ -214,7 +214,7 @@ public class DelyteManager {
 			} else {
 				Log.e("nils","NO ARC FOUND!");
 				for (Segment s:cTag)
-					Log.d(TAG,"Start: "+s.start.rikt+" End: "+s.end.rikt);
+					Log.d(TAG,"Start: "+ s.start().rikt+" End: "+ s.end().rikt);
 			}
 			/*} else if (arcs.size()==2) {
 
@@ -297,7 +297,7 @@ public class DelyteManager {
 					backId = delyteIdC;
 			}
 			Log.d(TAG,
-					"Assigned ID "+d.getId()+" to delyta with first segment S:"+d.getSegments().get(0).start.rikt+" E:"+d.getSegments().get(0).end.rikt+" isArc: "+d.getSegments().get(0).isArc);
+					"Assigned ID "+d.getId()+" to delyta with first segment S:"+ d.getSegments().get(0).start().rikt+" E:"+ d.getSegments().get(0).end().rikt+" isArc: "+ d.getSegments().get(0).isArc());
 
 			delyteIdC++;
 		}
@@ -312,15 +312,15 @@ public class DelyteManager {
 		SortedSet<Segment> sortedArcs = new TreeSet<Segment>(new Comparator<Segment>(){
 			@Override
 			public int compare(Segment lhs, Segment rhs) {
-				return (int)(lhs.start.rikt-rhs.start.rikt);
+				return (int)(lhs.start().rikt- rhs.start().rikt);
 			}});
 		//Sort arcs. Save in set.
 		for(Delyta d:myDelytor)
 			for (Segment s:d.tag) {
-				if (!s.isArc)
+				if (!s.isArc())
 					continue;
 				else {
-					Log.d(TAG,"Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
+					Log.d(TAG,"Adding existing arc piece. S:"+ s.start().rikt+" E:"+ s.end().rikt+" Delyta "+d.getId());
 					sortedArcs.add(s);
 				}
 			}
@@ -344,16 +344,16 @@ public class DelyteManager {
 
 			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
-				Log.d(TAG,"checking arc: "+x.end.rikt+","+s.start.rikt);
-				if (Delyta.rDist(x.end.rikt, s.start.rikt)<1) {
-					Log.d(TAG,"skipping "+x.end.rikt+","+s.start.rikt);
+				Log.d(TAG,"checking arc: "+ x.end().rikt+","+ s.start().rikt);
+				if (Delyta.rDist(x.end().rikt, s.start().rikt)<1) {
+					Log.d(TAG,"skipping "+ x.end().rikt+","+ s.start().rikt);
 
 				} else {
-					Segment potential = new Segment(x.end,s.start,true);
+					Segment potential = new Segment(x.end(), s.start(),true);
 					//check that this arc is not already covered.
 					if (!hasSegment(sortedArcs, potential)) {
-						freeArcs.add(new Segment(x.end,s.start,true));
-						Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+						freeArcs.add(new Segment(x.end(), s.start(),true));
+						Log.d(TAG,"Adding free arc piece. S:"+ x.end().rikt+" E:"+ s.start().rikt);
 					}
 				}
 				x=s;
@@ -363,11 +363,11 @@ public class DelyteManager {
 		//Extract all segments that are not arcs.
 		for(Delyta d:myDelytor) {
 			for (Segment s:d.tag) {
-				if (s.isArc)
+				if (s.isArc())
 					continue;
 				else {//Add reverse of all sides.
-					freeArcs.add(new Segment(s.end,s.start,false));
-					Log.d(TAG,"added side piece S:"+s.end.rikt+" E:"+s.start.rikt);
+					freeArcs.add(new Segment(s.end(), s.start(),false));
+					Log.d(TAG,"added side piece S:"+ s.end().rikt+" E:"+ s.start().rikt);
 				}
 			}
 		}
@@ -424,7 +424,7 @@ public class DelyteManager {
 
 		//If first and last touches, and there is more than one segment, this is a poly!
 		if (polySize>1&&isConnected(bgPoly.get(0),bgPoly.get(polySize-1))) {
-			if (bgPoly.get(0).isArc || bgPoly.get(polySize-1).isArc) {
+			if (bgPoly.get(0).isArc() || bgPoly.get(polySize - 1).isArc()) {
 				Log.d(TAG,"found touch between "+printSegment(bgPoly.get(polySize-1))+" and "+ printSegment(bgPoly.get(0)));
 				answer = new ArrayList<Segment>();
 				answer.addAll(bgPoly);
@@ -472,30 +472,30 @@ public class DelyteManager {
 	}
 	
 	public static String printSegment(Segment c) {
-		return "[ s:("+c.start.avst+","+c.start.rikt+"),e:("+c.end.avst+","+c.end.rikt+") ]";
+		return "[ s:("+ c.start().avst+","+ c.start().rikt+"),e:("+ c.end().avst+","+ c.end().rikt+") ]";
 	}
 
 	private boolean hasArc(List<Segment> segments) {
 		for (Segment s:segments)
-			if (s.isArc)
+			if (s.isArc())
 				return true;
 		return false;
 	}
 
 	private boolean startsOnEdge(Segment s) {
-		return s.start.avst==r;
+		return s.start().avst==r;
 	}
 
 	private boolean isTouching(Segment a, Segment b) {
 		Log.d(TAG,"isTouching "+printSegment(a)+" and "+printSegment(b)+" ?");
-		if (a.isArc&&b.isArc) {
+		if (a.isArc() && b.isArc()) {
 			Log.e("vortex","Touch between arcs, not allowed");
 			return false;
 		}
-		return a.end.rikt == b.start.rikt && a.end.avst==b.start.avst;
+		return a.end().rikt == b.start().rikt && a.end().avst== b.start().avst;
 	}
 	private boolean isConnected(Segment a, Segment b) {
-		return a.start.rikt == b.end.rikt && a.start.avst==b.end.avst;
+		return a.start().rikt == b.end().rikt && a.start().avst== b.end().avst;
 
 	}
 
@@ -507,15 +507,15 @@ public class DelyteManager {
 		SortedSet<Segment> sortedArcs = new TreeSet<Segment>(new Comparator<Segment>(){
 			@Override
 			public int compare(Segment lhs, Segment rhs) {
-				return (int)(lhs.start.rikt-rhs.start.rikt);
+				return (int)(lhs.start().rikt- rhs.start().rikt);
 			}});
 		//Sort arcs. Save in set.
 		for(Delyta d:myDelytor)
 			for (Segment s:d.tag) {
-				if (!s.isArc)
+				if (!s.isArc())
 					continue;
 				else {
-					Log.d(TAG,"Adding existing arc piece. S:"+s.start.rikt+" E:"+s.end.rikt+" Delyta "+d.getId());
+					Log.d(TAG,"Adding existing arc piece. S:"+ s.start().rikt+" E:"+ s.end().rikt+" Delyta "+d.getId());
 					sortedArcs.add(s);
 				}
 			}
@@ -539,17 +539,17 @@ public class DelyteManager {
 
 			Log.d(TAG,"number of arcs: "+sortedArcs.size());
 			for (Segment s:sortedArcs) {
-				Log.d(TAG,"checking arc: "+x.end.rikt+","+s.start.rikt);
-				if (Delyta.rDist(x.end.rikt, s.start.rikt)<1) {
-					Log.d(TAG,"skipping "+x.end.rikt+","+s.start.rikt);
+				Log.d(TAG,"checking arc: "+ x.end().rikt+","+ s.start().rikt);
+				if (Delyta.rDist(x.end().rikt, s.start().rikt)<1) {
+					Log.d(TAG,"skipping "+ x.end().rikt+","+ s.start().rikt);
 					x=s;
 					continue;
 				}
-				Segment potential = new Segment(x.end,s.start,true);
+				Segment potential = new Segment(x.end(), s.start(),true);
 				//check that this arc is not already covered.
 				if (!hasSegment(sortedArcs, potential)) {
-					freeArcs.add(new Segment(x.end,s.start,true));
-					Log.d(TAG,"Adding free arc piece. S:"+x.end.rikt+" E:"+s.start.rikt);
+					freeArcs.add(new Segment(x.end(), s.start(),true));
+					Log.d(TAG,"Adding free arc piece. S:"+ x.end().rikt+" E:"+ s.start().rikt);
 				}
 				x=s;
 			}
@@ -559,10 +559,10 @@ public class DelyteManager {
 		//Extract all segments that are not arcs.
 		for(Delyta d:myDelytor) {
 			for (Segment s:d.tag) {
-				if (s.isArc)
+				if (s.isArc())
 					continue;
 				else
-					freeArcs.add(new Segment(s.end,s.start,false));
+					freeArcs.add(new Segment(s.end(), s.start(),false));
 			}
 		}
 		Log.d(TAG,"Freacrs has "+freeArcs.size()+" elements");
@@ -581,8 +581,8 @@ public class DelyteManager {
 			while (freeArcs.size() > 0 && found) {
 				found = false;
 				for (Segment n:freeArcs) {
-					Log.d(TAG,"Comparing segment (("+c.start.rikt+","+c.start.avst+"),("+c.end.rikt+","+c.end.avst+")) to (("+n.start.rikt+","+n.start.avst+"),("+n.end.rikt+","+n.end.avst+"))");	
-					if (n.start.rikt==c.end.rikt && n.start.avst == c.end.avst) {
+					Log.d(TAG,"Comparing segment (("+ c.start().rikt+","+ c.start().avst+"),("+ c.end().rikt+","+ c.end().avst+")) to (("+ n.start().rikt+","+ n.start().avst+"),("+ n.end().rikt+","+ n.end().avst+"))");
+					if (n.start().rikt== c.end().rikt && n.start().avst == c.end().avst) {
 						bgPoly.add(n);
 						freeArcs.remove(c);
 						c=n;
@@ -595,7 +595,7 @@ public class DelyteManager {
 			}
 			Log.d(TAG,"bgpoly found of size "+bgPoly.size());
 			for(Segment s:bgPoly) 
-				Log.d(TAG,"start: "+s.start.rikt+"end: "+s.end.rikt+" isarc: "+s.isArc);
+				Log.d(TAG,"start: "+ s.start().rikt+"end: "+ s.end().rikt+" isarc: "+ s.isArc());
 			bgPollies.add(bgPoly);
 		}
 		/*
@@ -698,7 +698,7 @@ public class DelyteManager {
 
 	private boolean hasSegment(SortedSet<Segment> sortedArcs, Segment p) {
 		for (Segment s:sortedArcs) {
-			if (p.start.rikt==s.start.rikt) // && p.end.rikt == s.end.rikt)
+			if (p.start().rikt== s.start().rikt) // && p.end.rikt == s.end.rikt)
 				return true;
 		}
 		return false;
@@ -708,7 +708,7 @@ public class DelyteManager {
 		for (Delyta d:myDelytor) {
 			Log.d(TAG,"DELYTA ID: "+d.getId()+" isbg: "+d.isBackground()+" WEST: "+d.myWest+" SOUTH: "+d.mySouth);
 			for(Segment s:d.getSegments()) {
-				Log.d(TAG,"S: "+s.start.rikt+" E:"+s.end.rikt+" isArc: "+s.isArc);
+				Log.d(TAG,"S: "+ s.start().rikt+" E:"+ s.end().rikt+" isArc: "+ s.isArc());
 			}
 		}
 	}
@@ -900,10 +900,7 @@ public class DelyteManager {
 
 	public void setSelected(int i) {
 		for(Delyta d:myDelytor) {
-			if (i == d.getId())
-				d.setSelected(true);
-			else
-				d.setSelected(false);
+            d.setSelected(i == d.getId());
 		}
 	}
 

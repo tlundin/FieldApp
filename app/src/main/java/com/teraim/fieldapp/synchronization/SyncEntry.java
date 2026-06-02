@@ -105,7 +105,7 @@ public class SyncEntry extends SyncMessage {
     private static Map<String,String> collectPairs(String[] pairs) {
         Map<String,String> result = new HashMap<>();
         for (String pair : pairs) {
-            String tmp[] = pair.split("=");
+            String[] tmp = pair.split("=");
             result.put(tmp[0],tmp.length>1?tmp[1]:"");
         }
         return result;

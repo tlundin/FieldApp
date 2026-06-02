@@ -84,8 +84,12 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 		scanHeader = true;
 		//check if there is a groups configuration.
 		if ((gc=GroupsConfiguration.getSingleton()) != null) {
-			groupsFileHeaderS = gc.getGroupFileColumns();
 			groups = gc.getGroups();
+			if (groups == null) {
+				Log.d(TAG, "Groups singleton exists but getGroups() is null (Groups not ready). Retrying.");
+				throw new Dependant_Configuration_Missing("Groups");
+			}
+			groupsFileHeaderS = gc.getGroupFileColumns();
 			nameIndex = gc.getNameIndex();
 			groupIndex = gc.getGroupIndex();
 		} else {
@@ -167,7 +171,7 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 					//Log.d(TAG,"Generated variable ["+r[pNameIndex]+"] ROW:\n"+row);
 				} else {
 					//Log.d(TAG,"found group name: "+pGroup);
-					elems = groups.get(pGroup);
+					elems = (groups != null) ? groups.get(pGroup) : null;
 					String varPatternName = r[pNameIndex];
 					if (elems==null) {
 						//If the variable has a group,add it 
@@ -177,7 +181,9 @@ public class VariablesConfiguration extends CSVConfigurationModule {
 						trr.set(pNameIndex, name);
 						myTable.addRow(trr);
 					} else {
-						for (List<String>elem:elems) {
+						// Iterate over a copy to avoid ConcurrentModificationException if groups/elems is modified during iteration
+						List<List<String>> elemsCopy = new ArrayList<>(elems);
+						for (List<String>elem:elemsCopy) {
 							//Go through all rows in group. Generate variables.
 							String cFileNamePart = elem.get(nameIndex);
 

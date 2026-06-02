@@ -70,7 +70,7 @@ public class ModuleLoaderViewModel extends ViewModel {
         this.currentWorkflow = workflow;
 
         LoadJob initialJob = workflow.getInitialJob();
-        if (initialJob == null || initialJob.modules.isEmpty()) {
+        if (initialJob == null || initialJob.modules().isEmpty()) {
             // Handle early success: post to both STATE and EVENT
             LogRepository.getInstance().addColorText("Load ended: no initial job", Color.parseColor("#E6E6FA"));
             WorkflowResult successResult = new WorkflowResult(LoadingStatus.SUCCESS, registry,myContext);
@@ -83,7 +83,7 @@ public class ModuleLoaderViewModel extends ViewModel {
     }
 
     private void runJob(final LoadJob job, final boolean forceReload, final ModuleRegistry registry, final Workflow_I workflow) {
-        StatefulModuleLoader loader = new StatefulModuleLoader(job.modules, job.stage, forceReload);
+        StatefulModuleLoader loader = new StatefulModuleLoader(job.modules(), job.stage(), forceReload);
 
         // IMPORTANT NOTE on observeForever:
         // This pattern is risky. If the removeObserver call is ever missed due to an error,
@@ -94,12 +94,12 @@ public class ModuleLoaderViewModel extends ViewModel {
             @Override
             public void onChanged(LoadCompletionEvent completionEvent) {
 
-                if (completionEvent.status == LoadingStatus.SUCCESS) {
-                    registry.add(job.modules);
-                    LogRepository.getInstance().addColorText("ModuleLoader succeeded. Loaded " + job.modules.size() + " modules.", Color.parseColor("#E6E6FA"));
+                if (completionEvent.status() == LoadingStatus.SUCCESS) {
+                    registry.add(job.modules());
+                    LogRepository.getInstance().addColorText("ModuleLoader succeeded. Loaded " + job.modules().size() + " modules.", Color.parseColor("#E6E6FA"));
                     LoadJob nextJob = workflow.getNextJob(registry);
                     if (nextJob != null && forceReload) {
-                        LogRepository.getInstance().addColorText("ModuleLoader: continue - next job has " + nextJob.modules.size() + " modules", Color.parseColor("#E6E6FA"));
+                        LogRepository.getInstance().addColorText("ModuleLoader: continue - next job has " + nextJob.modules().size() + " modules", Color.parseColor("#E6E6FA"));
                         runJob(nextJob, true, registry, workflow);
                     } else {
                         // This is the FINAL success. Post to both STATE and EVENT streams.

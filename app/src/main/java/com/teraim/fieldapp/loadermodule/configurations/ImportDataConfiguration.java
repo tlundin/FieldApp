@@ -259,15 +259,15 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
     protected void setEssence() {
 		//No essence...all goes into db.
 		essence = null;
-		Log.e("vortex","SKIPPED KEYS:\n"+skipped.toString());
-		Log.e("vortex","Keys Found:\n"+allKeys.toString());
+		Log.e("vortex","SKIPPED KEYS:\n"+ skipped);
+		Log.e("vortex","Keys Found:\n"+ allKeys);
 		o.addText("");
 		if (skipped.isEmpty())
 			o.addGreenText("No unknown keys..");
 		else
-			o.addText("Unknown keys: "+skipped.toString());
+			o.addText("Unknown keys: "+ skipped);
 		o.addText("");
-		o.addGreenText("Keys Found:\n"+allKeys.toString());
+		o.addGreenText("Keys Found:\n"+ allKeys);
 
 
 	}
@@ -293,7 +293,7 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 					o.addText("");
 					o.addCriticalText(var);				
 				}
-				Log.e("vortex","Variables not found:\n"+missingVariables.toString());
+				Log.e("vortex","Variables not found:\n"+ missingVariables);
 			}
 		}
 		//Insert variables into database
@@ -301,14 +301,14 @@ public class ImportDataConfiguration extends JSONConfigurationModule {
 		{
 			boolean success;
 			for(ValuePair v:e.variables) {
-				if(varTable.getRowFromKey(v.mkey)==null)
-					missingVariables.add(v.mkey);
+				if(varTable.getRowFromKey(v.mkey())==null)
+					missingVariables.add(v.mkey());
 				//Still insert even if variable is missing.
 				success = myDb.fastHistoricalInsert(e.keys,
-						v.mkey,v.mval);
+                        v.mkey(), v.mval());
 				if (!success) {
 					o.addText("");
-					o.addCriticalText("Row: "+counter+". Insert failed. Variable: "+v.mkey);
+					o.addCriticalText("Row: "+counter+". Insert failed. Variable: "+ v.mkey());
 				}
 
 			}

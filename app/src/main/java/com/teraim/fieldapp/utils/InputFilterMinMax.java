@@ -27,9 +27,9 @@ public class InputFilterMinMax implements TextFilter {
 	public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
 
 		// Remove the string out of destination that is to be replaced
-		String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend, dest.toString().length());
+		String newVal = dest.toString().substring(0, dstart) + dest.toString().substring(dend);
 		// Add the new string in
-		newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart, newVal.length());
+		newVal = newVal.substring(0, dstart) + source.toString() + newVal.substring(dstart);
 		if (isLegal(newVal))
 			return null;
 		return "";

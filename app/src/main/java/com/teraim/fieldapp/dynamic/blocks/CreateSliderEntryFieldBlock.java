@@ -25,8 +25,17 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
     private final boolean showHistorical;
 	private String variableName=null;
 	private transient WF_ClickableField myField;
+	private final int outputValueTextSizeSp;
 	public CreateSliderEntryFieldBlock(String id, String name,
 									   String containerId, boolean isVisible, boolean showHistorical, String initialValue, String label, String variableName, String group,String textColor,String backgroundColor,int min,int max,String verticalFormat,String verticalMargin) {
+		this(id, name, containerId, isVisible, showHistorical, initialValue, label, variableName, group,
+				textColor, backgroundColor, min, max, verticalFormat, verticalMargin, -1);
+	}
+
+	public CreateSliderEntryFieldBlock(String id, String name,
+									   String containerId, boolean isVisible, boolean showHistorical, String initialValue, String label,
+									   String variableName, String group, String textColor, String backgroundColor,
+									   int min, int max, String verticalFormat, String verticalMargin, int outputValueTextSizeSp) {
 		super(textColor,backgroundColor,verticalFormat,verticalMargin);
 		this.name = name;
 		this.group = group;
@@ -39,6 +48,7 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 		this.variableName = variableName;
 		this.min=min;
 		this.max=max;
+		this.outputValueTextSizeSp = outputValueTextSizeSp;
 		if (name==null || name.isEmpty()) {
 			this.name = id;
 		}
@@ -83,7 +93,7 @@ public class CreateSliderEntryFieldBlock extends DisplayFieldBlock {
 				}
 				Log.d(TAG, "current hash: " + gs.getVariableCache().getContext());
 				myField = new WF_ClickableField_Slider(label==null||label.equals("")?v.getLabel():label, "This is a description for the entryfield"
-						, myContext, name, isVisible,group,min,max,this);
+						, myContext, name, isVisible,group,min,max,this, outputValueTextSizeSp);
 				Log.d(TAG, "In CreateSliderEntryFieldBlock.");
 				myField.addVariable(v, true,"slider",true,showHistorical);
 				myContext.addDrawable(v.getId(), myField);

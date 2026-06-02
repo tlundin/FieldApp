@@ -8,18 +8,21 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.text.style.TypefaceSpan;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -31,6 +34,8 @@ import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.Start;
 import com.teraim.fieldapp.StartProvider;
+import com.teraim.fieldapp.SessionPersistence;
+import com.teraim.fieldapp.SessionSnapshot;
 import com.teraim.fieldapp.dynamic.Executor;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.Table;
@@ -45,6 +50,7 @@ import com.teraim.fieldapp.loadermodule.configurations.WorkFlowBundleConfigurati
 import com.teraim.fieldapp.log.LogRepository;
 import com.teraim.fieldapp.non_generics.Constants;
 import com.teraim.fieldapp.ui.MenuActivity;
+import com.teraim.fieldapp.ui.ConfigMenu;
 import com.teraim.fieldapp.viewmodels.ModuleLoaderViewModel;
 import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.DbHelper;
@@ -54,10 +60,12 @@ import com.teraim.fieldapp.utils.Tools;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.net.URL;
 
 
 /**
@@ -84,6 +92,7 @@ public class StartupFragment extends Executor {
     private String bundleName;
     private float oldAppVersion = -1;
     private boolean loadAllModules = false;
+    private boolean isLoadingConfiguration = false;
     private Start startInstance;
     private GisDatabaseWorkflow gisDatabaseWorkflowInstance;
 
@@ -93,7 +102,7 @@ public class StartupFragment extends Executor {
         if (context instanceof StartProvider) {
             startInstance = ((StartProvider) context).getStartInstance();
         } else {
-            throw new RuntimeException(context.toString()
+            throw new RuntimeException(context
                     + " must implement StartProvider");
         }
     }
@@ -122,6 +131,7 @@ public class StartupFragment extends Executor {
                 initialize();
             }
         }
+        ensureDerivedSyncGroup();
 
         // Load configuration and display initial UI text
         bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
@@ -146,7 +156,13 @@ public class StartupFragment extends Executor {
         viewModel = new ViewModelProvider(requireActivity()).get(ModuleLoaderViewModel.class);
 
         // Set up the listener for the reload button
-        loadConfigurationButton.setOnClickListener(v -> showReloadDialog());
+        updateLoadConfigurationButtonState();
+        loadConfigurationButton.setOnClickListener(v -> {
+            if (isLoadingConfiguration) {
+                return;
+            }
+            showReloadDialog();
+        });
         if (GlobalState.getInstance() == null) {
             viewModel.workflowState.observe(getViewLifecycleOwner(), result -> {
                 if (result == null) return;
@@ -156,11 +172,15 @@ public class StartupFragment extends Executor {
 
                 switch (result.status()) {
                     case LOADING:
+                        isLoadingConfiguration = true;
+                        updateLoadConfigurationButtonState();
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate Loading",getColor(requireContext(),R.color.purple));
                         Log.d(TAG, "Loading....");
 
                         break;
                     case SUCCESS:
+                        isLoadingConfiguration = false;
+                        updateLoadConfigurationButtonState();
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate success",getColor(requireContext(),R.color.purple));
                         // Pass the completed ModuleRegistry to the startApplication method.
                         // Corrected: Access registry on the unwrapped result
@@ -174,6 +194,8 @@ public class StartupFragment extends Executor {
                         }
                         break;
                     case FAILURE:
+                        isLoadingConfiguration = false;
+                        updateLoadConfigurationButtonState();
                         startupFailed = true;
                         LogRepository.getInstance().addColorText("StartupFragment received workflowstate Failure",getColor(requireContext(),R.color.purple));
                         showErrorDialog("An error occurred during loading. Please check your connection and try again.");
@@ -197,6 +219,14 @@ public class StartupFragment extends Executor {
         // This is the primary entry point for the automatic load.
         // If GlobalState is not initialized, it means we need to load the configuration.
         if (GlobalState.getInstance() == null) {
+            // If we can't even talk to the backend endpoints, go directly to setup.
+            if (shouldSkipLoadingForSetup()) {
+                Toast.makeText(requireContext(), R.string.setup_required_hint, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(requireActivity(), ConfigMenu.class);
+                startActivity(intent);
+                return;
+            }
+
             Log.d(TAG, "GlobalState is null. Starting initial configuration load.");
             Bundle b = this.getArguments();
             if (b != null && b.getBoolean(Constants.RELOAD_DB_MODULES)) {
@@ -216,6 +246,8 @@ public class StartupFragment extends Executor {
      * @param loadAllModules If true, all modules will be fetched from the server, ignoring cache.
      */
     private void startLoadingProcess(boolean loadAllModules) {
+        isLoadingConfiguration = true;
+        updateLoadConfigurationButtonState();
         if (loadAllModules && GlobalState.getInstance() != null) {
             GlobalState.destroy();
         }
@@ -230,6 +262,14 @@ public class StartupFragment extends Executor {
         // 2. Tell the ViewModel to execute it.
         // The ViewModel now handles all the complex pre-check and loading logic.
         viewModel.execute(gisDatabaseWorkflowInstance, loadAllModules, myContext);
+    }
+
+    private void updateLoadConfigurationButtonState() {
+        if (loadConfigurationButton == null) {
+            return;
+        }
+        loadConfigurationButton.setEnabled(!isLoadingConfiguration);
+        loadConfigurationButton.setPressed(isLoadingConfiguration);
     }
 
     /**
@@ -259,6 +299,14 @@ public class StartupFragment extends Executor {
         DbHelper myDb = new DbHelper(requireActivity().getApplicationContext(), t, globalPh, ph, bundleName);
         gs = GlobalState.createInstance(startInstance, requireActivity().getApplicationContext(), globalPh, ph, myDb, workflows, t, sd,logText, imgMetaFormat);
 
+        // Restore any previously saved lightweight session information into the
+        // newly created GlobalState. For now this only affects the explicit
+        // SessionState representation and does not alter module loading logic.
+        SessionSnapshot previousSnapshot = SessionPersistence.load(requireActivity().getApplicationContext());
+        if (previousSnapshot != null && gs.getSessionState() != null) {
+            gs.getSessionState().restoreFromSnapshot(previousSnapshot);
+        }
+
         if (gs.getBackupManager().timeToBackup()) {
             gs.getBackupManager().backUp();
         }
@@ -269,10 +317,31 @@ public class StartupFragment extends Executor {
         gs.setModuleRegistry(moduleRegistry);
         startInstance.getDrawerMenu().closeDrawer();
         startInstance.getDrawerMenu().clear();
+        gs.clearMenuDefinition();
+
+        // Capture a session snapshot after successful initialization so that
+        // a lightweight representation of the session can be restored later.
+        SessionSnapshot snapshot = gs.createSessionSnapshot();
+        SessionPersistence.save(requireActivity().getApplicationContext(), snapshot);
+
         Workflow wf = gs.getWorkflow("Main");
+        if (wf == null) {
+            // No main workflow found for this configuration; avoid crashing and inform the user.
+            showErrorDialog("Could not find the main workflow (\"Main\") in the loaded configuration. Please verify the configuration for this project/app.");
+            return true;
+        }
+
         gs.sendEvent(MenuActivity.INITDONE);
         //Redraws the same fragment but now with a global state.
         startInstance.changePage(wf, null);
+
+        // After the default project has been loaded, immediately route new users
+        // to setup when required fields (e.g. Username) are missing.
+        if (isUsernameMissing()) {
+            Toast.makeText(requireContext(), R.string.setup_required_hint, Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(requireActivity(), ConfigMenu.class);
+            startActivity(intent);
+        }
         return false;
     }
 
@@ -288,6 +357,7 @@ public class StartupFragment extends Executor {
                         Log.d(TAG, "User triggered a force reload.");
                         if (GlobalState.getInstance() != null) {
                             GlobalState.getInstance().getDrawerMenu().clear();
+                            GlobalState.getInstance().clearMenuDefinition();
                             GlobalState.destroyInstance();
                             // Clear persisted provYtaTypes as they will be re-generated
                             ph.remove(KEY_PROVYTE_TYPES);
@@ -317,37 +387,105 @@ public class StartupFragment extends Executor {
         String appBaseUrl = serverURL + bundleName.toLowerCase(Locale.ROOT) + "/";
         final String cacheFolder = requireContext().getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/";
 
-        // Use a full anonymous class to implement the multi-method interface
-        Tools.onLoadCacheImage(appBaseUrl, "bg_image.jpg", cacheFolder, new Tools.WebLoaderCb() {
-            @Override
-            public void loaded(Boolean result) {
-                if (result) {
-                    Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
-                    if (bm != null) bgImageView.setImageBitmap(bm);
+        // Always prefer downloading when network is available, but never block the UI:
+        // - online: download (or use existing cached file) then show from cache
+        // - offline: skip download and show whatever is already cached
+        if (Connectivity.isConnected(getContext())) {
+            // Show generic theme-matching background while we attempt download.
+            setGenericStartupBackground();
+
+            // Force refresh of background image when online. The caching helper
+            // skips downloads when the cache file already exists.
+            File bgCacheFile = new File(cacheFolder + "bg_image.jpg");
+            if (bgCacheFile.exists()) {
+                // Best-effort: if delete fails, the helper may skip re-download.
+                // This is still correct UX-wise because we always fall back to cached decoding below.
+                //noinspection ResultOfMethodCallIgnored
+                bgCacheFile.delete();
+            }
+
+            Tools.onLoadCacheImage(appBaseUrl, "bg_image.jpg", cacheFolder, new Tools.WebLoaderCb() {
+                @Override
+                public void loaded(Boolean result) {
+                    if (result != null && result) {
+                        Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
+                        if (bm != null) {
+                            bgImageView.setBackground(null);
+                            bgImageView.setImageBitmap(bm);
+                            return;
+                        }
+                    }
+                    // If server didn't have the image (or decode failed), fall back to generic background.
+                    setGenericStartupBackground();
                 }
-            }
 
-            @Override
-            public void progress(int bytesRead) {
-                // You can leave this empty if you don't need to show download progress
-            }
-        });
-
-        // Use a full anonymous class here as well
-        Tools.onLoadCacheImage(appBaseUrl, "logo.png", cacheFolder, new Tools.WebLoaderCb() {
-            @Override
-            public void loaded(Boolean result) {
-                if (result) {
-                    Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
-                    if (bm != null) logoImageView.setImageBitmap(bm);
+                @Override
+                public void progress(int bytesRead) {
+                    // Intentionally ignore progress for now.
                 }
+            });
+
+            Tools.onLoadCacheImage(appBaseUrl, "logo.png", cacheFolder, new Tools.WebLoaderCb() {
+                @Override
+                public void loaded(Boolean result) {
+                    // Logo is optional; keep existing/default if download fails.
+                    if (result != null && result) {
+                        Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
+                        if (bm != null) logoImageView.setImageBitmap(bm);
+                    }
+                }
+
+                @Override
+                public void progress(int bytesRead) {
+                    // Intentionally ignore progress for now.
+                }
+            });
+        } else {
+            // No network: rely on cached files only.
+            Bitmap bm = BitmapFactory.decodeFile(cacheFolder + "bg_image.jpg");
+            if (bm != null) {
+                bgImageView.setBackground(null);
+                bgImageView.setImageBitmap(bm);
+            } else {
+                setGenericStartupBackground();
             }
 
-            @Override
-            public void progress(int bytesRead) {
-                // Leave empty
+            Bitmap logoBm = BitmapFactory.decodeFile(cacheFolder + "logo.png");
+            if (logoBm != null) logoImageView.setImageBitmap(logoBm);
+        }
+    }
+
+    private void setGenericStartupBackground() {
+        if (!isAdded() || bgImageView == null) return;
+        // Theme-driven gradient so it looks good in both light/dark modes.
+        int primary = resolveThemeColor(R.attr.colorPrimary, 0x6750A4); // fallback indigo
+        int primaryVariant = resolveThemeColor(R.attr.colorPrimaryVariant, primary);
+
+        GradientDrawable gradient = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{primary, primaryVariant}
+        );
+        // Slight transparency makes it play nicely with the overlayed text.
+        gradient.setAlpha(220);
+        bgImageView.setBackground(gradient);
+        // If previously loaded an image bitmap, remove it so background is visible.
+        bgImageView.setImageDrawable(null);
+    }
+
+    private int resolveThemeColor(int attrResId, int defaultColor) {
+        if (!isAdded()) return defaultColor;
+        Context ctx = getContext();
+        if (ctx == null) return defaultColor;
+        TypedValue typedValue = new TypedValue();
+        if (ctx.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(ctx, typedValue.resourceId);
             }
-        });
+            if (typedValue.data != 0) {
+                return typedValue.data;
+            }
+        }
+        return defaultColor;
     }
 
     private boolean initIfFirstTime() {
@@ -361,27 +499,81 @@ public class StartupFragment extends Executor {
 
     private void initialize() {
         loadAllModules = true;
-        File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
-        File primaryExternalStorage = externalStorageVolumes[0];
 
-        // Create required application folders
-        new File(primaryExternalStorage.getAbsolutePath() + "/pics/").mkdirs();
-        new File(primaryExternalStorage.getAbsolutePath() + "/old_pics/").mkdirs();
-        new File(primaryExternalStorage.getAbsolutePath() + "/export/").mkdirs();
-        new File(requireContext().getFilesDir() + "/" + globalPh.get(PersistenceHelper.BUNDLE_NAME).toLowerCase(Locale.ROOT) + "/cache/").mkdirs();
-
-        // Set default global preferences
+        // Set default global preferences first so cache path uses correct bundle name
         globalPh.put(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
         globalPh.put(PersistenceHelper.VERSION_CONTROL, "Major");
         globalPh.put(PersistenceHelper.SYNC_METHOD, "NONE");
         globalPh.put(PersistenceHelper.LOG_LEVEL, "critical");
         globalPh.put(PersistenceHelper.SERVER_URL, Constants.DEFAULT_SERVER_URI);
         globalPh.put(PersistenceHelper.EXPORT_SERVER_URL, Constants.DEFAULT_EXPORT_SERVER);
+        ensureDerivedSyncGroup();
+
+        // Create required application folders (use getFilesDir() if external storage unavailable, e.g. some emulators)
+        File[] externalStorageVolumes = ContextCompat.getExternalFilesDirs(requireContext(), null);
+        File primaryStorage = (externalStorageVolumes != null && externalStorageVolumes.length > 0 && externalStorageVolumes[0] != null)
+                ? externalStorageVolumes[0]
+                : requireContext().getFilesDir();
+        if (primaryStorage != null) {
+            new File(primaryStorage.getAbsolutePath() + "/pics/").mkdirs();
+            new File(primaryStorage.getAbsolutePath() + "/old_pics/").mkdirs();
+            new File(primaryStorage.getAbsolutePath() + "/export/").mkdirs();
+        }
+        String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
+        File cacheDir = new File(requireContext().getFilesDir(), bundleName.toLowerCase(Locale.ROOT) + "/cache/");
+        cacheDir.mkdirs();
 
         // Mark initialization as complete
         globalPh.put(PersistenceHelper.FIRST_TIME_KEY, "Initialized");
         globalPh.put(PersistenceHelper.TIME_OF_FIRST_USE, System.currentTimeMillis());
         LogRepository.getInstance().setLogLevel(LogRepository.LogLevel.CRITICAL);
+    }
+
+    private void ensureDerivedSyncGroup() {
+        try {
+            String bundle = globalPh.get(PersistenceHelper.BUNDLE_NAME, Constants.DEFAULT_APP);
+            if (bundle == null) bundle = "";
+            bundle = bundle.trim();
+            if (bundle.isEmpty()) return;
+
+            String normalizedBundle = bundle.toLowerCase(Locale.ROOT);
+            String expectedTeam = normalizedBundle + "synk" + Calendar.getInstance().get(Calendar.YEAR);
+            String currentTeam = globalPh.get(PersistenceHelper.LAG_ID_KEY, "");
+            if (currentTeam == null || currentTeam.trim().isEmpty() || !expectedTeam.equals(currentTeam)) {
+                globalPh.put(PersistenceHelper.LAG_ID_KEY, expectedTeam);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to derive Sync Group", e);
+        }
+    }
+
+    private boolean isUsernameMissing() {
+        String username = globalPh.get(PersistenceHelper.USER_ID_KEY, "");
+        return username == null || username.trim().isEmpty() || PersistenceHelper.UNDEFINED.equals(username);
+    }
+
+    private boolean shouldSkipLoadingForSetup() {
+        // We allow configuration loading even if Username is missing (it is required for some functions,
+        // but not for downloading configuration), but we should not load if endpoints are missing/invalid.
+        String server = globalPh.get(PersistenceHelper.SERVER_URL, "");
+        String exportServer = globalPh.get(PersistenceHelper.EXPORT_SERVER_URL, "");
+        String bundle = globalPh.get(PersistenceHelper.BUNDLE_NAME, "");
+
+        return isMissingOrInvalidHttpUrl(server) || isMissingOrInvalidHttpUrl(exportServer) || bundle == null || bundle.trim().isEmpty();
+    }
+
+    private boolean isMissingOrInvalidHttpUrl(String url) {
+        if (url == null) return true;
+        url = url.trim();
+        if (url.isEmpty() || PersistenceHelper.UNDEFINED.equals(url)) return true;
+
+        try {
+            URL parsed = new URL(url);
+            String protocol = parsed.getProtocol();
+            return protocol == null || !(protocol.equalsIgnoreCase("http") || protocol.equalsIgnoreCase("https"));
+        } catch (Exception e) {
+            return true;
+        }
     }
 
     /**
@@ -407,7 +599,7 @@ public class StartupFragment extends Executor {
                 loadedProvYtaTypes.addAll(Arrays.asList(provYtaTypesString.split(",")));
             }
             GlobalState.getInstance().setProvYtaTypes(loadedProvYtaTypes);
-            Log.d(TAG, "Loaded ProvYta types from persistence: " + loadedProvYtaTypes.toString());
+            Log.d(TAG, "Loaded ProvYta types from persistence: " + loadedProvYtaTypes);
         }
     }
 

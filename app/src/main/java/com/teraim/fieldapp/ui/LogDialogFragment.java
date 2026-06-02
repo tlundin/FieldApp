@@ -55,6 +55,7 @@ public class LogDialogFragment extends DialogFragment {
         Button scrollDownButton = view.findViewById(R.id.button_scroll_down);
         Button backupDbButton = view.findViewById(R.id.button_backup_db);
         Button crashAppButton = view.findViewById(R.id.button_crash_app);
+        Button printVariablesButton = view.findViewById(R.id.button_print_variables);
 
         logViewModel.getLogContent().observe(getViewLifecycleOwner(), charSequence -> {
             logTextView.setText(charSequence);
@@ -83,6 +84,8 @@ public class LogDialogFragment extends DialogFragment {
                 ((LogDialogListener) getActivity()).onCrashAppClicked();
             }
         });
+
+        printVariablesButton.setOnClickListener(v -> logViewModel.printVariablesToLog());
     }
 
     // This makes the dialog full-screen

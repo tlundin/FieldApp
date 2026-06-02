@@ -35,7 +35,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
 
     // A pre-filtered list of modules to download, can be null.
     private final List<ConfigurationModule> modulesToDownload;
-    private Set<String> mapObjectsToRefresh = new HashSet<>();
+    private final Set<String> mapObjectsToRefresh = new HashSet<>();
     private int stageCount = 0;
 
     /**
@@ -149,8 +149,7 @@ public class GisDatabaseWorkflow implements Workflow_I {
         mapObjectsToRefresh.clear(); // Clear previous collection if any
         //add any static types
         for (ConfigurationModule module : registry.getAllModules()) {
-            if (module instanceof GisObjectConfiguration) {
-                GisObjectConfiguration gisObjectConfig = (GisObjectConfiguration) module;
+            if (module instanceof GisObjectConfiguration gisObjectConfig) {
                 if (gisObjectConfig.isProvYtaOrTrakt()) {
                     mapObjectsToRefresh.add(gisObjectConfig.getFileName());
                     Log.d(TAG, "Collected types to refresh: " + gisObjectConfig.getFileName());

@@ -22,7 +22,7 @@ import java.util.Set;
 public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Listable> {
 	private static final String TAG = "WF_Table_Row";
 
-	private transient WF_Table myWfTable;
+	private final transient WF_Table myWfTable;
 	private List<String> myRow;
 	private List<WF_Cell> myColumns;
 	private final WF_Context myContext;
@@ -126,7 +126,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		tv.setText(label);
 		((TableRow)this.getWidget()).addView(emptyCell);
 		if (backgroundColor!=null)
-			emptyCell.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor));
+			emptyCell.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor, R.color.black, true));
 		if (textColor!=null)
 			tv.setTextColor(Tools.getColorResource(myContext.getContext(),textColor));
 		return emptyCell;
@@ -141,7 +141,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		headerT.setText(label);
 		((TableRow)this.getWidget()).addView(headerC);
 		if (backgroundColor!=null)
-			headerC.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor));
+			headerC.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor, R.color.black, true));
 		if (textColor!=null)
 			headerT.setTextColor(Tools.getColorResource(myContext.getContext(),textColor));
 		//If no column selected, selectedIndex is -1
@@ -203,7 +203,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		TextView tv= emptyCell.findViewById(R.id.contentT);
 
 		((TableRow)this.getWidget()).addView(emptyCell);
-		bg.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor));
+		bg.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor, R.color.black, true));
 		tv.setTextColor(Tools.getColorResource(myContext.getContext(),textColor));
 //		Log.d(TAG,"var for row "+this.getLabel());
 //		Log.d(TAG,"v: "+al.getVarName(myRow)+" key: "+al.getKeyChain(myRow));
@@ -217,7 +217,7 @@ public class WF_Table_Row extends WF_Widget implements Listable,Comparable<Lista
 		CheckBox cb= emptyCell.findViewById(R.id.contentT);
 
 		((TableRow)this.getWidget()).addView(emptyCell);
-		emptyCell.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor));
+		emptyCell.setBackgroundColor(Tools.getColorResource(myContext.getContext(),backgroundColor, R.color.black, true));
 		cb.setTextColor(Tools.getColorResource(myContext.getContext(),textColor));
 		return cb;
 	}

@@ -1,6 +1,7 @@
 package com.teraim.fieldapp.viewmodels;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Paint;
 import android.util.Log;
@@ -8,6 +9,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Bitmap;
 
 
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -27,6 +30,7 @@ import org.json.JSONObject;
 import org.json.JSONArray;
 
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects; // Added for Objects.equals
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,8 +49,9 @@ import com.teraim.fieldapp.utils.Connectivity;
 import com.teraim.fieldapp.utils.Expressor;
 import com.teraim.fieldapp.utils.PersistenceHelper;
 import com.teraim.fieldapp.gis.TrackerListener.GPS_State;
+import com.teraim.fieldapp.dynamic.types.LatLong;
 import com.teraim.fieldapp.dynamic.types.Location;
-import com.teraim.fieldapp.dynamic.types.SweLocation;
+import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.StaticGisPoint;
@@ -76,17 +81,32 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
     private final MutableLiveData<Boolean> _serverPendingUpdate = new MutableLiveData<>();
     public LiveData<Boolean> serverPendingUpdate = _serverPendingUpdate;
 
-    private RequestQueue requestQueue;
+    private final RequestQueue requestQueue;
     private final AtomicInteger activeRequestCount = new AtomicInteger(0);
-    private GlobalState gs;
-    private PersistenceHelper globalPh;
+    private final GlobalState gs;
+    private final PersistenceHelper globalPh;
     private GPS_State latestSignal;
+    @Nullable
+    private Runnable onLocalGpsUpdated;
+
+    /** Latest device GPS fix for navigation (WGS84); independent of server team positions. */
+    public static final class LocalGpsFix {
+        public final double lat;
+        public final double lng;
+        public final float accuracyM;
+
+        public LocalGpsFix(double lat, double lng, float accuracyM) {
+            this.lat = lat;
+            this.lng = lng;
+            this.accuracyM = accuracyM;
+        }
+    }
 
     // List to hold all available custom map needle bitmaps
-    private List<Bitmap> allAvailableCustomNeedles;
+    private final List<Bitmap> allAvailableCustomNeedles;
     // Cache for individual team member specific needles (loaded from server parameter)
     // Key: user UUID, Value: Bitmap for their icon
-    private Map<String, Bitmap> teamMemberSpecificNeedleCache;
+    private final Map<String, Bitmap> teamMemberSpecificNeedleCache;
 
     public TeamStatusViewModel(Application application) {
         super(application);
@@ -101,6 +121,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         allAvailableCustomNeedles = new ArrayList<>();
         teamMemberSpecificNeedleCache = new HashMap<>();
         loadAllCustomNeedles(); // Load all custom needles once during ViewModel init
+        gs.registerListener(this, TrackerListener.Type.USER);
     }
 
     // Method to load all 12 (or more) individual custom map needle icons
@@ -121,10 +142,150 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
+    /** Read current user's map needle index from the same SharedPreferences as the settings screen (GlobalPrefs). */
+    private int getCurrentUserNeedleIndex() {
+        try {
+            return getApplication().getSharedPreferences(Constants.GLOBAL_PREFS, Context.MODE_PRIVATE)
+                    .getInt(PersistenceHelper.MAP_NEEDLE_INDEX, 0);
+        } catch (Exception e) {
+            Log.e(TAG, "Error reading map_needle_set preference: " + e.getMessage());
+            return 0;
+        }
+    }
+
+    @Nullable
+    public LocalGpsFix getLocalGpsFix() {
+        if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
+            return null;
+        }
+        double lat = -1;
+        double lng = -1;
+        if (latestSignal.lat != -1 && latestSignal.lng != -1) {
+            lat = latestSignal.lat;
+            lng = latestSignal.lng;
+        } else if (latestSignal.x != -1 && latestSignal.y != -1) {
+            LatLong wgs84 = Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+            lat = wgs84.getX();
+            lng = wgs84.getY();
+        }
+        if (lat == -1 || lng == -1) {
+            return null;
+        }
+        return new LocalGpsFix(lat, lng, latestSignal.accuracy);
+    }
+
+    public void setOnLocalGpsUpdated(@Nullable Runnable listener) {
+        onLocalGpsUpdated = listener;
+    }
 
     @Override
     public void gpsStateChanged(GPS_State signal) {
         this.latestSignal = signal;
+        if (onLocalGpsUpdated != null && signal != null && signal.state == GPS_State.State.newValueReceived) {
+            onLocalGpsUpdated.run();
+        }
+    }
+
+    /**
+     * POSTs only the current user's position and updates LiveData with local "me" position.
+     * Use for 1-second "me" updates. Does not fetch team positions.
+     */
+    public void sendMyPositionOnly() {
+        if (!Connectivity.isConnected(getApplication())) {
+            return;
+        }
+        if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
+            return;
+        }
+        double lat = -1, lng = -1;
+        if (latestSignal.lat != -1 && latestSignal.lng != -1) {
+            lat = latestSignal.lat;
+            lng = latestSignal.lng;
+        } else if (latestSignal.x != -1 && latestSignal.y != -1) {
+            LatLong wgs84 = Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+            lat = wgs84.getX();
+            lng = wgs84.getY();
+        }
+        if (lat == -1 || lng == -1) return;
+
+        try {
+            JSONObject positionObject = new JSONObject();
+            positionObject.put("lat", lat);
+            positionObject.put("long", lng);
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("uuid", gs.getUserUUID());
+            jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
+            jsonBody.put("timestamp", latestSignal.time);
+            jsonBody.put("icon", getCurrentUserNeedleIndex());
+            jsonBody.put("position", positionObject);
+
+            final String requestBody = jsonBody.toString();
+            StringRequest postRequest = new StringRequest(Request.Method.POST, Constants.SynkStatusURI + "/position",
+                    response -> { },
+                    error -> Log.e(TAG, "Error posting my position: " + getVolleyErrorString(error))) {
+                @Override
+                public String getBodyContentType() { return "application/json; charset=utf-8"; }
+                @Override
+                public byte[] getBody() throws AuthFailureError {
+                    return requestBody.getBytes(StandardCharsets.UTF_8);
+                }
+                @Override
+                protected Response<String> parseNetworkResponse(NetworkResponse response) {
+                    return Response.success("", HttpHeaderParser.parseCacheHeaders(response));
+                }
+            };
+            requestQueue.add(postRequest);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error creating JSON for my position: " + e.getMessage());
+            return;
+        }
+
+        // Update LiveData with local "me" position so map refreshes immediately
+        String teamName = gs.getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
+        String currentUserUUID = globalPh.get(PersistenceHelper.USERUUID_KEY);
+        String nameFromPref = globalPh.get(PersistenceHelper.USER_ID_KEY);
+        final String myName = (nameFromPref != null && !nameFromPref.isEmpty()) ? nameFromPref : "me";
+        Location myLocation = new LatLong(lat, lng);
+        int needleIndex = getCurrentUserNeedleIndex();
+        if (allAvailableCustomNeedles == null || allAvailableCustomNeedles.isEmpty()) loadAllCustomNeedles();
+        boolean usingCustom = allAvailableCustomNeedles != null && !allAvailableCustomNeedles.isEmpty() && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size();
+        Bitmap myIcon = usingCustom ? allAvailableCustomNeedles.get(needleIndex) : getDefaultTeamMemberIcon(latestSignal.time);
+        final Map<String, String> myKeychain = new HashMap<>();
+        myKeychain.put(DbHelper.YEAR, Constants.getYear());
+        myKeychain.put("lag", teamName != null ? teamName : "");
+        myKeychain.put("author", myName);
+        myKeychain.put("uuid", currentUserUUID);
+        myKeychain.put("timestamp", String.valueOf(latestSignal.time));
+        GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
+            @Override public float getLineWidth() { return 2.0f; }
+            @Override public float getRadius() { return 4.0f; }
+            @Override public String getColor() { return "black"; }
+            @Override public String getBorderColor() { return "red"; }
+            @Override public GisObjectType getGisPolyType() { return GisObjectType.Point; }
+            @Override public android.graphics.Bitmap getIcon() { return myIcon; }
+            @Override public Paint.Style getStyle() { return Paint.Style.FILL_AND_STROKE; }
+            @Override public PolyType getShape() { return PolyType.circle; }
+            @Override public String getClickFlow() { return "wf_teammember"; }
+            @Override public DB_Context getObjectKeyHash() { return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", myKeychain); }
+            @Override public String getStatusVariable() { return null; }
+            @Override public boolean isUser() { return true; }
+            @Override public String getName() { return myName; }
+            @Override public String getRawLabel() { return myName; }
+            @Override public String getCreator() { return ""; }
+            @Override public boolean useIconOnMap() { return true; }
+            @Override public boolean isVisible() { return true; }
+            @Override public List<Expressor.EvalExpr> getLabelExpression() { return Expressor.preCompileExpression(myName); }
+        }, myKeychain, myLocation, null, null);
+        myGisObject.setLabel(myName + " (me)");
+
+        Set<GisPointObject> current = _teamMemberGisObjects.getValue();
+        Set<GisPointObject> updated = new HashSet<>(current != null ? current : java.util.Collections.emptySet());
+        updated.removeIf(g -> {
+            Map<String, String> kh = g.getKeyHash();
+            return kh != null && currentUserUUID != null && currentUserUUID.equals(kh.get("uuid"));
+        });
+        updated.add(myGisObject);
+        _teamMemberGisObjects.postValue(updated);
     }
 
     public void sendAndReceiveTeamPositions() {
@@ -132,7 +293,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
             Log.d(TAG, "No internet connection, skipping sync.");
             _errorMessage.postValue("No internet connection.");
             if (activeRequestCount.get() == 0) {
-                _isUpdating.postValue(false);
+                _isUpdating.setValue(false);
             }
             return;
         }
@@ -143,7 +304,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
 
        // Log.d(TAG, "Initiating network calls...");
-        _isUpdating.postValue(true);
+        _isUpdating.setValue(true);
         _errorMessage.postValue(null);
 
         boolean updateMyPosition = true;
@@ -158,30 +319,44 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
         Runnable decrementAndCheck = () -> {
             if (activeRequestCount.decrementAndGet() == 0) {
-                Log.d(TAG, "All requests completed for this cycle.");
                 _isUpdating.postValue(false);
             }
         };
 
-        // --- 1. POST My Position ---
+        // --- 1. POST My Position (WGS84 lat/long - Android native format, no SWEREF conversion) ---
         if (updateMyPosition) {
             JSONObject jsonBody = new JSONObject();
             try {
-                JSONObject positionObject = new JSONObject();
-                positionObject.put("easting", latestSignal.x);
-                positionObject.put("northing", latestSignal.y);
+                double lat = -1, lng = -1;
+                if (latestSignal.lat != -1 && latestSignal.lng != -1) {
+                    lat = latestSignal.lat;
+                    lng = latestSignal.lng;
+                } else if (latestSignal.x != -1 && latestSignal.y != -1) {
+                    LatLong wgs84 = Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+                    lat = wgs84.getX();
+                    lng = wgs84.getY();
+                } else {
+                    Log.d(TAG, "No valid coordinates (lat,lng or x,y), skipping position update.");
+                    updateMyPosition = false;
+                }
+                if (updateMyPosition && lat != -1 && lng != -1) {
+                    JSONObject positionObject = new JSONObject();
+                    positionObject.put("lat", lat);
+                    positionObject.put("long", lng);
 
-                jsonBody.put("uuid", gs.getUserUUID());
-                jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
-                jsonBody.put("timestamp", latestSignal.time);
-                jsonBody.put("icon", gs.getGlobalPreferences().getInt(PersistenceHelper.MAP_NEEDLE_INDEX));
-                jsonBody.put("position", positionObject);
+                    jsonBody.put("uuid", gs.getUserUUID());
+                    jsonBody.put("name", gs.getGlobalPreferences().get(PersistenceHelper.USER_ID_KEY));
+                    jsonBody.put("timestamp", latestSignal.time);
+                    jsonBody.put("icon", getCurrentUserNeedleIndex());
+                    jsonBody.put("position", positionObject);
+                }
             } catch (JSONException e) {
                 Log.e(TAG, "Error creating JSON for my position: " + e.getMessage());
                 _errorMessage.postValue("Internal error: " + e.getMessage());
                 _isUpdating.postValue(false);
                 return;
             }
+            if (updateMyPosition) {
             final String requestBody = jsonBody.toString();
             final String SendMyPoisition = Constants.SynkStatusURI + "/position";
 
@@ -209,14 +384,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 @Override
                 public byte[] getBody() throws AuthFailureError {
-                    try {
-                        return requestBody == null ? null : requestBody.getBytes("utf-8");
-                    } catch (UnsupportedEncodingException uee) {
-                        Log.e(TAG, String.format("Unsupported Encoding while trying to get the bytes of %s using %s", requestBody, "utf-8"));
-                        _errorMessage.postValue("Encoding error for position data.");
-                        decrementAndCheck.run();
-                        throw new AuthFailureError("Encoding error", uee);
-                    }
+                    return requestBody == null ? null : requestBody.getBytes(StandardCharsets.UTF_8);
                 }
 
                 @Override
@@ -228,6 +396,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 }
             };
             requestQueue.add(postMyPositionRequest);
+            }
         }
 
         // --- 2. GET Team Positions ---
@@ -282,57 +451,122 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
-    // Method to process the raw team positions JSON into a Set of GisPointObjects
+    // Method to process the raw team positions JSON into a Set of GisPointObjects.
+    // Uses 'name' as unique key: only the LATEST position (by timestamp) per name is shown.
+    // For the current user ("me"), map needle always comes from device preference (mapNeedlePref), not from server.
     private void processTeamPositionsResponse(String jsonString) {
         Set<GisPointObject> teamMembers = new HashSet<>();
+        boolean addedMeFromResponse = false; // true if we added "me" from server response with local icon
         try {
             JSONArray jsonArray = new JSONArray(jsonString);
             String teamName = gs.getGlobalPreferences().get(PersistenceHelper.LAG_ID_KEY);
             String currentUserUUID = globalPh.get(PersistenceHelper.USERUUID_KEY); // Get current user's UUID
 
-
+            // Keep only the latest entry per name (by timestamp). Always keep current user ("me") separate
+            // so we never drop "me" when another user has the same display name with a newer timestamp.
+            java.util.Map<String, JSONObject> latestByName = new HashMap<>();
+            JSONObject meEntry = null; // latest API entry for current user (by uuid)
             for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject memberJson = jsonArray.getJSONObject(i);
+                JSONObject ob = jsonArray.getJSONObject(i);
+                String n = ob.optString("name", "");
+                String u = ob.optString("uuid", "");
+                long ts = ob.optLong("timestamp", 0L);
+                boolean isCurrentUser = currentUserUUID != null && !currentUserUUID.isEmpty() && u != null
+                        && u.trim().equalsIgnoreCase(currentUserUUID.trim());
+                if (isCurrentUser) {
+                    if (meEntry == null || meEntry.optLong("timestamp", 0L) < ts) {
+                        meEntry = ob;
+                    }
+                } else {
+                    if (!latestByName.containsKey(n) || latestByName.get(n).optLong("timestamp", 0L) < ts) {
+                        latestByName.put(n, ob);
+                    }
+                }
+            }
 
+            int deviceNeedleIndex = getCurrentUserNeedleIndex();
+            // Process current user from API first (so "me" is always shown with preference needle and API position when available)
+            if (meEntry != null) {
+                JSONObject memberJson = meEntry;
                 String name = memberJson.getString("name");
                 String uuid = memberJson.getString("uuid");
                 long timestamp = memberJson.getLong("timestamp");
                 JSONObject positionJson = memberJson.getJSONObject("position");
-                double easting = positionJson.getDouble("easting");
-                double northing = positionJson.getDouble("northing");
+                double lat = positionJson.getDouble("lat");
+                double lng = positionJson.getDouble("long");
 
-                // Optional map_needle_id from server
+                addedMeFromResponse = true;
+                if (allAvailableCustomNeedles == null || allAvailableCustomNeedles.isEmpty()) {
+                    loadAllCustomNeedles();
+                }
+                int needleIndex = getCurrentUserNeedleIndex(); // from Preference (MAP_NEEDLE_INDEX)
+                boolean useCustom = allAvailableCustomNeedles != null && !allAvailableCustomNeedles.isEmpty() && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size();
+                Bitmap myIcon = useCustom ? allAvailableCustomNeedles.get(needleIndex) : getDefaultTeamMemberIcon(timestamp);
+                final Map<String, String> myKeychain = new HashMap<>();
+                myKeychain.put(DbHelper.YEAR, Constants.getYear());
+                myKeychain.put("lag", teamName != null ? teamName : "");
+                myKeychain.put("author", name);
+                myKeychain.put("uuid", uuid);
+                myKeychain.put("timestamp", String.valueOf(timestamp));
+                Location myLocation = new LatLong(lat, lng);
+                final Bitmap iconForMe = myIcon;
+                GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
+                    @Override public float getLineWidth() { return 2.0f; }
+                    @Override public float getRadius() { return 4.0f; }
+                    @Override public String getColor() { return "black"; }
+                    @Override public String getBorderColor() { return "red"; }
+                    @Override public GisObjectType getGisPolyType() { return GisObjectType.Point; }
+                    @Override public android.graphics.Bitmap getIcon() { return iconForMe; }
+                    @Override public Paint.Style getStyle() { return Paint.Style.FILL_AND_STROKE; }
+                    @Override public PolyType getShape() { return PolyType.circle; }
+                    @Override public String getClickFlow() { return "wf_teammember"; }
+                    @Override public DB_Context getObjectKeyHash() { return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", myKeychain); }
+                    @Override public String getStatusVariable() { return null; }
+                    @Override public boolean isUser() { return true; }
+                    @Override public String getName() { return name; }
+                    @Override public String getRawLabel() { return name; }
+                    @Override public String getCreator() { return ""; }
+                    @Override public boolean useIconOnMap() { return true; }
+                    @Override public boolean isVisible() { return true; }
+                    @Override public List<Expressor.EvalExpr> getLabelExpression() { return Expressor.preCompileExpression(name); }
+                }, myKeychain, myLocation, null, null);
+                myGisObject.setLabel(name + " (me)");
+                teamMembers.add(myGisObject);
+            }
+
+            for (JSONObject memberJson : latestByName.values()) {
+                String name = memberJson.getString("name");
+                String uuid = memberJson.getString("uuid");
+                long timestamp = memberJson.getLong("timestamp");
+                JSONObject positionJson = memberJson.getJSONObject("position");
+                double lat = positionJson.getDouble("lat");
+                double lng = positionJson.getDouble("long");
+
+                // Optional map_needle_id from server (may be number or string) — ignored for current user; we always use device preference
                 String mapNeedleIdStr = null;
                 if (memberJson.has("icon")) {
-                    mapNeedleIdStr = memberJson.getString("icon");
+                    Object iconObj = memberJson.get("icon");
+                    mapNeedleIdStr = iconObj instanceof Number ? String.valueOf(((Number) iconObj).intValue()) : String.valueOf(iconObj);
                 }
 
-                // Skip yourself if your UUID matches
-                if (uuid.equals(currentUserUUID)) {
-      //              Log.d(TAG, "Skipping myself: " + name);
-                    continue;
-                }
-                // Skip if team name not set or empty
-                if (teamName == null || teamName.isEmpty()) {
-                    Log.d(TAG, "Skipping team member " + name + " - no team set.");
-                    continue;
-                }
+                // (Current user already processed above from meEntry; latestByName contains only other users.)
 
                 // Create a key for the workflow (as in GisImageView's original findMyTeam)
                 final Map<String, String> keychain = new HashMap<>();
                 keychain.put(DbHelper.YEAR, Constants.getYear());
-                keychain.put("lag", teamName);
+                keychain.put("lag", teamName != null ? teamName : "");
                 keychain.put("author", name);
                 // Also add UUID to keychain for potential use by GisPointObject itself for identification
                 keychain.put("uuid", uuid);
+                keychain.put("timestamp", String.valueOf(timestamp));
 
-                Location memberLocation = new SweLocation(easting, northing);
+                Location memberLocation = new LatLong(lat, lng);
 
-                // --- Determine the correct icon for this team member ---
+                // --- Determine the correct icon for this team member (keyed by name for cache/persist) ---
                 Bitmap finalIconBitmap = null;
 
-                // Get the currently persisted icon ID for this user, if any. This represents the last successfully loaded icon ID.
-                String persistedNeedleIdStr = globalPh.get("user_map_needle_" + uuid);
+                // Get the currently persisted icon ID for this user (by name), if any.
+                String persistedNeedleIdStr = globalPh.get("user_map_needle_" + name);
 
                 // Determine the effective needle ID to use for this update cycle.
                 // Server-provided ID takes precedence. If absent, use the persisted one.
@@ -341,13 +575,9 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                     effectiveNeedleIdStr = persistedNeedleIdStr;
                 }
 
-                // Check if we can use the cached bitmap.
-                // We can use it if:
-                // 1. The UUID exists in the cache.
-                // 2. The *effective* needle ID for this update matches the *persisted* needle ID (meaning the icon hasn't changed).
-                if (teamMemberSpecificNeedleCache.containsKey(uuid) && Objects.equals(persistedNeedleIdStr, effectiveNeedleIdStr)) {
-                    finalIconBitmap = teamMemberSpecificNeedleCache.get(uuid);
-      //              Log.d(TAG, "Using cached needle " + effectiveNeedleIdStr + " for team member " + name);
+                // Check if we can use the cached bitmap (cache keyed by name).
+                if (teamMemberSpecificNeedleCache.containsKey(name) && Objects.equals(persistedNeedleIdStr, effectiveNeedleIdStr)) {
+                    finalIconBitmap = teamMemberSpecificNeedleCache.get(name);
                 }
 
                 // If not found in cache (or cache was stale), load/derive the bitmap
@@ -357,27 +587,23 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                             int needleIndex = Integer.parseInt(effectiveNeedleIdStr);
                             if (allAvailableCustomNeedles != null && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size()) {
                                 finalIconBitmap = allAvailableCustomNeedles.get(needleIndex);
-                                teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache it for future use
-                                //Log.d(TAG, "Loaded and cached needle " + needleIndex + " for team member " + name);
-                                // Persist the ID only if it came from server or was a valid persisted one
-                                globalPh.put("user_map_needle_" + uuid, effectiveNeedleIdStr);
+                                teamMemberSpecificNeedleCache.put(name, finalIconBitmap);
+                                globalPh.put("user_map_needle_" + name, effectiveNeedleIdStr);
                             } else {
                                 Log.w(TAG, "Icon ID " + effectiveNeedleIdStr + " for user " + name + " is out of bounds or invalid. Falling back.");
                                 finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
-                                teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
-                                globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
+                                teamMemberSpecificNeedleCache.put(name, finalIconBitmap);
+                                globalPh.remove("user_map_needle_" + name);
                             }
                         } catch (NumberFormatException e) {
-                           // Log.d(TAG, "Icon ID for user " + name + " is not a valid integer: " + effectiveNeedleIdStr);
                             finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
-                            teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
-                            globalPh.remove("user_map_needle_" + uuid); // Remove potentially invalid persisted ID
+                            teamMemberSpecificNeedleCache.put(name, finalIconBitmap);
+                            globalPh.remove("user_map_needle_" + name);
                         }
                     } else {
-                        // No server-provided or previously persisted ID, use default based on timestamp
                         finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
-                        teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap); // Cache the fallback
-                        globalPh.remove("user_map_needle_" + uuid); // Ensure no old ID is lingering if we default
+                        teamMemberSpecificNeedleCache.put(name, finalIconBitmap);
+                        globalPh.remove("user_map_needle_" + name);
                     }
                 }
 
@@ -385,9 +611,8 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
                 if (finalIconBitmap == null) {
                     Log.e(TAG, "Failed to determine icon for team member " + name + ", using generic fallback.");
                     finalIconBitmap = getDefaultTeamMemberIcon(timestamp);
-                    teamMemberSpecificNeedleCache.put(uuid, finalIconBitmap);
+                    teamMemberSpecificNeedleCache.put(name, finalIconBitmap);
                 }
-
 
                 // Create GisPointObject (StaticGisPoint)
                 Bitmap iconForGisObject = finalIconBitmap; // Store the resolved bitmap
@@ -417,7 +642,50 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
                 teamMembers.add(memberGisObject);
             }
-            //Log.d(TAG, "Processed " + teamMembers.size() + " team members into GisObjects.");
+
+            // Add current user to the team layer with local position and current needle preference when not already added from API response.
+            if (!addedMeFromResponse && currentUserUUID != null && !currentUserUUID.isEmpty() && latestSignal != null && latestSignal.state != GPS_State.State.disabled) {
+                String nameFromPref = globalPh.get(PersistenceHelper.USER_ID_KEY);
+                final String myName = (nameFromPref != null && !nameFromPref.isEmpty()) ? nameFromPref : "me";
+                int needleIndex = getCurrentUserNeedleIndex();
+                if (allAvailableCustomNeedles == null || allAvailableCustomNeedles.isEmpty()) {
+                    loadAllCustomNeedles();
+                }
+                boolean usingCustom = allAvailableCustomNeedles != null && !allAvailableCustomNeedles.isEmpty() && needleIndex >= 0 && needleIndex < allAvailableCustomNeedles.size();
+                Bitmap myIcon = usingCustom ? allAvailableCustomNeedles.get(needleIndex) : getDefaultTeamMemberIcon(latestSignal.time);
+                final Map<String, String> myKeychain = new HashMap<>();
+                myKeychain.put(DbHelper.YEAR, Constants.getYear());
+                myKeychain.put("lag", teamName != null ? teamName : "");
+                myKeychain.put("author", myName);
+                myKeychain.put("uuid", currentUserUUID);
+                myKeychain.put("timestamp", String.valueOf(latestSignal.time));
+                Location myLocation = (latestSignal.lat != -1 && latestSignal.lng != -1)
+                        ? new LatLong(latestSignal.lat, latestSignal.lng)
+                        : Geomatte.convertToLatLong(latestSignal.y, latestSignal.x);
+                GisPointObject myGisObject = new StaticGisPoint(new FullGisObjectConfiguration() {
+                    @Override public float getLineWidth() { return 2.0f; }
+                    @Override public float getRadius() { return 4.0f; }
+                    @Override public String getColor() { return "black"; }
+                    @Override public String getBorderColor() { return "red"; }
+                    @Override public GisObjectType getGisPolyType() { return GisObjectType.Point; }
+                    @Override public android.graphics.Bitmap getIcon() { return myIcon; }
+                    @Override public Paint.Style getStyle() { return Paint.Style.FILL_AND_STROKE; }
+                    @Override public PolyType getShape() { return PolyType.circle; }
+                    @Override public String getClickFlow() { return "wf_teammember"; }
+                    @Override public DB_Context getObjectKeyHash() { return new DB_Context("år=[getCurrentYear()], lag = [getTeamName()], author ", myKeychain); }
+                    @Override public String getStatusVariable() { return null; }
+                    @Override public boolean isUser() { return true; }
+                    @Override public String getName() { return myName; }
+                    @Override public String getRawLabel() { return myName; }
+                    @Override public String getCreator() { return ""; }
+                    @Override public boolean useIconOnMap() { return true; }
+                    @Override public boolean isVisible() { return true; }
+                    @Override public List<Expressor.EvalExpr> getLabelExpression() { return Expressor.preCompileExpression(myName); }
+                }, myKeychain, myLocation, null, null);
+                myGisObject.setLabel(myName + " (me)");
+                teamMembers.add(myGisObject);
+            }
+
             _teamMemberGisObjects.postValue(teamMembers);
 
         } catch (JSONException e) {
@@ -428,10 +696,36 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         }
     }
 
-    // Helper method to get default icon based on timestamp
+    // Helper method to get default icon based on timestamp. Never returns null (uses drawable->bitmap if decodeResource fails, e.g. for vectors).
     private Bitmap getDefaultTeamMemberIcon(long timestamp) {
         boolean anHourOld = Tools.isOverAnHourOld(System.currentTimeMillis() - timestamp);
-        return BitmapFactory.decodeResource(getApplication().getResources(), anHourOld ? R.drawable.person_away : R.drawable.person_active);
+        int resId = anHourOld ? R.drawable.person_away : R.drawable.person_active;
+        String resName = (resId == R.drawable.person_active) ? "person_active" : "person_away";
+        Bitmap b = BitmapFactory.decodeResource(getApplication().getResources(), resId);
+        if (b != null) {
+            return b;
+        }
+        android.graphics.drawable.Drawable d = ContextCompat.getDrawable(getApplication(), resId);
+        if (d != null) {
+            b = Tools.drawableToBitmap(d);
+            if (b != null) {
+                return b;
+            }
+        }
+        // Last resort: try the other drawable
+        resId = anHourOld ? R.drawable.person_active : R.drawable.person_away;
+        resName = (resId == R.drawable.person_active) ? "person_active" : "person_away";
+        b = BitmapFactory.decodeResource(getApplication().getResources(), resId);
+        if (b != null) {
+            return b;
+        }
+        d = ContextCompat.getDrawable(getApplication(), resId);
+        if (d != null) b = Tools.drawableToBitmap(d);
+        if (b != null) {
+            return b;
+        }
+        Log.e(TAG, "getDefaultTeamMemberIcon: could not load any default icon");
+        return Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888);
     }
 
 
@@ -467,11 +761,7 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
         if (error.networkResponse != null) {
             String statusCode = String.valueOf(error.networkResponse.statusCode);
             String responseBody = "";
-            try {
-                responseBody = new String(error.networkResponse.data, "utf-8");
-            } catch (UnsupportedEncodingException e) {
-                Log.e(TAG, "Failed to parse error response body: " + e.getMessage());
-            }
+            responseBody = new String(error.networkResponse.data, StandardCharsets.UTF_8);
             return "HTTP " + statusCode + (responseBody.isEmpty() ? "" : ": " + responseBody);
         }
         if (error.getMessage() != null) {
@@ -486,6 +776,9 @@ public class TeamStatusViewModel extends AndroidViewModel implements TrackerList
 
     @Override
     protected void onCleared() {
+        if (gs != null) {
+            gs.unregisterListener(TrackerListener.Type.USER);
+        }
         super.onCleared();
     }
 }

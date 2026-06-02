@@ -1,6 +1,7 @@
 package com.teraim.fieldapp.dynamic.workflow_realizations;
 
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -32,7 +33,8 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 	@SuppressWarnings("WrongConstant")
 	public WF_ClickableField_Slider(String headerT, String descriptionT,
-									WF_Context context, String id, boolean isVisible, final String groupName, final int min, final int max, DisplayFieldBlock format) {
+									WF_Context context, String id, boolean isVisible, final String groupName, final int min, final int max, DisplayFieldBlock format,
+									int outputValueTextSizeSp) {
 		super(headerT,descriptionT, context, id,
 				LayoutInflater.from(context.getContext()).inflate(format.isHorisontal()?R.layout.selection_field_normal_horizontal:R.layout.selection_field_normal_vertical,null),
 				isVisible,format);
@@ -42,6 +44,12 @@ public class WF_ClickableField_Slider extends WF_ClickableField implements Event
 
 		context.registerEventListener(this, Event.EventType.onSave);
 		ll = (LinearLayout)LayoutInflater.from(myContext.getContext()).inflate(R.layout.output_field_slider_element,null);
+		TextView outputValueField = ll.findViewById(R.id.outputValueField);
+		// Fallback default: keep slider output consistent with entry output.
+		outputValueField.setTextAppearance(myContext.getContext(), R.style.TextAppearance_FieldValueXLarge);
+		if (outputValueTextSizeSp > 0) {
+			outputValueField.setTextSize(TypedValue.COMPLEX_UNIT_SP, outputValueTextSizeSp);
+		}
 		sb = ll.findViewById(R.id.spinnerOut);
 		sb.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
 			@Override

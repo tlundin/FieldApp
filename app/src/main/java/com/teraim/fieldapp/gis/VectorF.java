@@ -26,8 +26,8 @@ class VectorF {
 	public final PointF end = new PointF();
 	
 	public void calculateEndPoint() {
-		float cosV = (float)Math.cos((double)angle);
-		float sinV = (float)Math.sin((double)angle);
+		float cosV = (float)Math.cos(angle);
+		float sinV = (float)Math.sin(angle);
 		end.x = cosV * length + start.x;
 		end.y = sinV * length + start.y;
 	}

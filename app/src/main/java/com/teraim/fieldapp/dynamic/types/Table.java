@@ -29,7 +29,7 @@ public class Table implements Serializable {
 	private final ArrayList<String> keyParts = new ArrayList<String>();
 	//Immutable list of Required columns.
 	private int rowCount=0,keyChainIndex =-1;
-	private List<String> myColumns;
+	private final List<String> myColumns;
 	private String previousKeyChain = null;
 	private int variableIdIndex=-1;
 
@@ -44,7 +44,7 @@ public class Table implements Serializable {
 		this.keyChainIndex = keyChainIndex;
 		this.variableIdIndex = nameIndex;
 		myColumns = columnNames;
-		Log.d(TAG,"Created table with column names: "+myColumns.toString());
+		Log.d(TAG,"Created table with column names: "+ myColumns);
 	}
 
 	public enum ErrCode {
@@ -66,7 +66,7 @@ public class Table implements Serializable {
 		int size = rowEntries.size();		
 		if (size > myColumns.size()) {
 			Log.e("nils","TOO MANY: ");
-			Log.e("nils","RowEntries: "+rowEntries.toString());
+			Log.e("nils","RowEntries: "+ rowEntries);
 			Log.e("nils","myColumns: "+myColumns.toString());
 			Log.e("nils","RowEntries s: "+rowEntries.size());
 			Log.e("nils","myColumns s: "+myColumns.size());

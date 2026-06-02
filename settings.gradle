@@ -5,6 +5,9 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
 
 // Load Mapbox downloads token from local.properties (not committed to repo)
 // This token is used by the Mapbox Maven repository for authentication
@@ -26,9 +29,16 @@ dependencyResolutionManagement {
         mavenCentral()
         // Mapbox Maven repository - requires MAPBOX_DOWNLOADS_TOKEN from local.properties
         // The token is loaded above and set as a system property
-        maven { url 'https://api.mapbox.com/downloads/v2/releases/maven' }
+        maven { url = uri('https://api.mapbox.com/downloads/v2/releases/maven') }
     }
 }
 
 rootProject.name = "FieldApp" // Replace with your app's name
 include ':app'
+
+// Configure Java toolchain
+gradle.beforeProject { project ->
+    project.tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs.addAll(['-source', '17', '-target', '17'])
+    }
+}

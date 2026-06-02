@@ -31,9 +31,9 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 	private final Map<String,WF_ClickableField_Selection> entryFields = new HashMap<>();
 
 
-	private int index = 0;
+	private final int index = 0;
 	private final String variatorColumn;
-	private Set<List<String>> selectedRows = new HashSet<>();
+	private final Set<List<String>> selectedRows = new HashSet<>();
 
 
 	private Map<String, Map<String, String>> varValueMap;
@@ -93,7 +93,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 
         suffices.add(varSuffix);
 		parameters.put(varSuffix,new VarPars(showHistorical,isVisible,displayOut,format,initialValue));
-		Log.d(TAG,"In addvariabletoEverylist! Suffices now: "+suffices.toString());
+		Log.d(TAG,"In addvariabletoEverylist! Suffices now: "+ suffices);
 		return true;
 	}
 
@@ -101,7 +101,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 	//Creates the entryfields iteratively for each new batch of variables.
 
 
-	private Set<String> myVars=new HashSet<>();
+	private final Set<String> myVars=new HashSet<>();
 
 	private void updateEntryFields() {
 		//fetch all variable instances of given namePrefix. Remove variator from keychain so that all variables independent of variator are loaded.
@@ -111,7 +111,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 		//preload
 		try (Cursor c = gs.getDb().getPrefetchCursor(myKeyHash, namePrefix, variatorColumn)) {
 			if (c.moveToFirst() ) {
-				Log.d(TAG,"In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+myKeyHash.toString());
+				Log.d(TAG,"In prefetchValues. Got "+c.getCount()+" results. PrefetchValues "+namePrefix+" with key "+ myKeyHash);
 				do {
 					Log.d(TAG,"varid: "+c.getString(0)+" index: "+c.getString(1)+" value: "+c.getString(2));
 					String varId = c.getString(0);
@@ -131,7 +131,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							String entryInstanceLabel = al.getEntryLabel(var.getBackingDataSet())+" ["+index+"]";
 							WF_ClickableField_Selection ef = entryFields.get(entryInstanceLabel);
 							if (ef == null) {
-								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat);
+								ef = new WF_ClickableField_Selection(entryInstanceLabel,al.getDescription(var.getBackingDataSet()),myContext,entryInstanceLabel,true,entryFormat,-1);
 								Log.d(TAG,"Added list entry for "+entryInstanceLabel);
 								//cache
 								entryFields.put(entryInstanceLabel, ef);
@@ -156,7 +156,7 @@ public class WF_Instance_List extends WF_Static_List implements EventListener,Ev
 							} else {
 								Set<Variable> vars = ef.getAssociatedVariables();
 								if (vars!=null)
-									Log.d(TAG,"ASSOC VARS: "+vars.toString());
+									Log.d(TAG,"ASSOC VARS: "+ vars);
 								else
 									Log.d(TAG,"ASSOCs are null");
 								//find missing variables for myvars. missing = var - suffix + other endings.

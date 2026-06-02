@@ -127,11 +127,17 @@ public class StatefulModuleLoader implements ModuleLoaderCb {
                     .anyMatch(m -> m.state.getValue() == ConfigurationModule.ModuleLoadState.ERROR);
 
             // 3. Finally, send the completion signal.
-            // This will be queued on the main thread AFTER the final progress update.
             if (hasErrors) {
+                StringBuilder failed = new StringBuilder("Module load failed. Failed modules: ");
+                for (ConfigurationModule m : modules) {
+                    if (m.state.getValue() == ConfigurationModule.ModuleLoadState.ERROR) {
+                        failed.append("[").append(m.getLabel().trim()).append("] ");
+                    }
+                }
+                Log.e(TAG, failed.toString());
+                LogRepository.getInstance().addCriticalText(failed.toString());
                 loadingStatus.postValue(new LoadCompletionEvent(LoadingStatus.FAILURE, this.stage));
                 LogRepository.getInstance().addColorText("Module load failed", Color.parseColor("#E6E6FA"));
-
             } else {
                 loadingStatus.postValue(new LoadCompletionEvent(LoadingStatus.SUCCESS, this.stage));
                 LogRepository.getInstance().addColorText("Module load succeeded", Color.parseColor("#E6E6FA"));

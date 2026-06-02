@@ -11,6 +11,9 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
+import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.Marker;
 import com.teraim.fieldapp.dynamic.types.MovingMarker;
 import com.teraim.fieldapp.non_generics.DelyteManager.Coord;
@@ -49,18 +52,18 @@ public class FixytaView extends View {
 		super(context,attrs);
 
 
-		px.setColor(Color.DKGRAY);
+		px.setColor(ContextCompat.getColor(context, R.color.secondary_text));
 		px.setTypeface(Typeface.SANS_SERIF);
 
 
-		pl.setColor(Color.BLACK);
+		pl.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		pl.setStyle(Style.STROKE);
 		pl.setTypeface(Typeface.DEFAULT_BOLD); 
 		pl.setTextAlign(Align.CENTER);
 		pl.setTextSize(25);
 
 
-		p.setColor(Color.BLACK);
+		p.setColor(ContextCompat.getColor(context, R.color.primary_text));
 		p.setStyle(Style.STROKE);
 		p.setTextSize(20);
 
@@ -153,7 +156,7 @@ public class FixytaView extends View {
 
 
 	public void showDistance(int dist) {
-		msg = "Avst: "+String.valueOf(dist)+"m";
+		msg = "Avst: "+ dist +"m";
 	}
 
 	

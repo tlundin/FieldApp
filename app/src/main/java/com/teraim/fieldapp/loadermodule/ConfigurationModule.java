@@ -58,6 +58,8 @@ public abstract class ConfigurationModule {
 	// Helpers and context
 	private final Context context;
 	protected final PersistenceHelper globalPh;
+	/** For subclasses that need cache dir (e.g. schema version file). */
+	protected Context getContext() { return context; }
 	protected final PersistenceHelper ph;
 
 
@@ -85,23 +87,27 @@ public abstract class ConfigurationModule {
 		state.postValue(ModuleLoadState.LOADING);
 
 		executor.submit(() -> {
-			// 1. Check for a cached version first, unless forced to reload.
-			if (!forceReload) {
-				if (thawSynchronously().errCode == ErrorCode.thawed) {
-					Log.d(TAG, "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
-					// FIX: Always invoke the callback on success to notify the loader.
-					cb.onFileLoaded(new LoadResult(this, ErrorCode.thawed));
-					return; // Stop execution here.
+			try {
+				// 1. Check for a cached version first, unless forced to reload.
+				if (!forceReload) {
+					LoadResult thawResult = thawSynchronously();
+					if (thawResult.errCode == ErrorCode.thawed) {
+						Log.d(TAG, "Module [" + getLabel() + "] successfully thawed from cache. Skipping network.");
+						cb.onFileLoaded(new LoadResult(this, ErrorCode.thawed));
+						return;
+					}
 				}
-			}
-			// 2. If no valid cache, or if forced, proceed with network download.
-			Log.d(TAG, "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
-			// Assuming DataLoader performs the synchronous network request.
-			LoadResult networkResult = DataLoader.loadAndParseAndFreeze(this);
-			if (networkResult.errCode == ErrorCode.frozen ) {
-				cb.onFileLoaded(networkResult);
-			} else {
-				cb.onError(networkResult);
+				// 2. If no valid cache, or if forced, proceed with network download.
+				Log.d(TAG, "Module [" + getLabel() + "] will be fetched from network. ForceReload=" + forceReload);
+				LoadResult networkResult = DataLoader.loadAndParseAndFreeze(this);
+				if (networkResult.errCode == ErrorCode.frozen) {
+					cb.onFileLoaded(networkResult);
+				} else {
+					cb.onError(networkResult);
+				}
+			} catch (Throwable t) {
+				Log.e(TAG, "Module [" + getLabel() + "] threw during load (cache or network)", t);
+				cb.onError(new LoadResult(this, ErrorCode.thawFailed, t.getMessage() != null ? t.getMessage() : t.getClass().getSimpleName()));
 			}
 		});
 	}
@@ -112,13 +118,20 @@ public abstract class ConfigurationModule {
 	private void initLazyFields() {
 		if (frozenPath == null) {
 			String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
-			frozenPath = context.getFilesDir() + "/" + bundleName.toLowerCase(Locale.ROOT) + "/cache/" + fileName;
+			if (bundleName == null || bundleName.isEmpty()) {
+				bundleName = "vortex";
+			}
+			File cacheDir = new File(context.getFilesDir(), bundleName.toLowerCase(Locale.ROOT) + "/cache");
+			cacheDir.mkdirs();
+			// Use lowercased fileName so cache works regardless of bundle name case (e.g. Rlogis vs rlogis).
+			frozenPath = new File(cacheDir, fileName.toLowerCase(Locale.ROOT)).getAbsolutePath();
 		}
 	}
 
 	public LoadResult thawSynchronously() {
+		initLazyFields(); // Ensure frozenPath is set (e.g. when thaw runs on executor thread).
 		Type essenceType = getEssenceType();
-		Log.d(TAG, "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName() + "");
+		Log.d(TAG, "getEssenceType() returned " + essenceType + " for " + this.getClass().getSimpleName());
 		if (essenceType == null) {
 			Log.e("ConfigModule", "getEssenceType() returned null for " + this.getClass().getSimpleName());
 			return new LoadResult(this, ErrorCode.thawFailed);

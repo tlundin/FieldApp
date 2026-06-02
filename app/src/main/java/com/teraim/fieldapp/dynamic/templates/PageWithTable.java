@@ -3,6 +3,7 @@ package com.teraim.fieldapp.dynamic.templates;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.text.Html;
 import android.text.SpannableStringBuilder;
 import android.util.Log;
@@ -64,6 +65,8 @@ import android.text.style.ClickableSpan;
 import com.google.android.flexbox.FlexboxLayout;
 public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSyncManager,OnFilterSelectedListener {
     private static final String TAG = "PageWithTable";
+    private static final String TIMING_TAG = "TableTiming";
+    private static final boolean TRACE_TABLE_TIMING = true;
 
 
     private HorizontalScrollView stickyHeaderScrollView;
@@ -99,7 +102,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public static final String HEADER_ROW_ID = "TableHeader";
     private boolean tableTypeSimple=false;
 
-    private List<ColumnDefinition> columnDefinitions = new ArrayList<>();
+    private final List<ColumnDefinition> columnDefinitions = new ArrayList<>();
     private int currentlyFocusedColumn = -1;
 
     // Filter states
@@ -615,6 +618,8 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     }
 
     public void applyRowFilters() {
+        final boolean trace = TRACE_TABLE_TIMING && masterTableRowsDataList != null && masterTableRowsDataList.size() > 500;
+        final long t0 = trace ? SystemClock.elapsedRealtime() : 0;
         //Log.d(TAG, "Applying row filters. Top: " + activeTopFilter + ", Alpha: " + activeAlphabeticalFilter + ", HideEmpty: " + filterHideRowsWithNoEntries);
         displayedTableRowsDataList.clear();
 
@@ -622,9 +627,13 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         // This assumes availableColumnFilterLabels is a class-level field in PageWithTable
         Set<String> columnFiltersSet = new HashSet<>(availableColumnFilterLabels);
 
+        long tFilterEnd = 0;
+        long tSortEnd = 0;
+        long tNotifyEnd = 0;
+        long tRefreshEnd = 0;
+        long tFilterStart = trace ? SystemClock.elapsedRealtime() : 0;
         for (Listable item : masterTableRowsDataList) {
-            if (item instanceof WF_Table_Row_Recycle) {
-                WF_Table_Row_Recycle rowWidget = (WF_Table_Row_Recycle) item;
+            if (item instanceof WF_Table_Row_Recycle rowWidget) {
                 if (rowWidget.getRowData() == null) continue;
 
                 boolean shouldDisplay = true; // Assume true by default for this row
@@ -709,13 +718,53 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 }
             }
         }
+        if (trace) {
+            tFilterEnd = SystemClock.elapsedRealtime();
+        }
 
+        long tSortStart = trace ? SystemClock.elapsedRealtime() : 0;
         Collections.sort(displayedTableRowsDataList, Comparator.comparing(o -> ((o != null && o.getLabel() != null) ? o.getLabel() : ""), String.CASE_INSENSITIVE_ORDER));
+        if (trace) {
+            tSortEnd = SystemClock.elapsedRealtime();
+        }
         if (tableBodyAdapter != null) {
             //Log.d(TAG, "Notifying adapter. Displayed rows: " + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size());
             tableBodyAdapter.notifyDataSetChanged();
         }
-        refreshColumnVisibilitiesInUI();
+        if (trace) {
+            tNotifyEnd = SystemClock.elapsedRealtime();
+        }
+        // Updating per-cell visibility across thousands of rows is expensive.
+        // Only do it when a user has focused/collapsed columns (i.e. some columns are not visible).
+        if (shouldRefreshColumnVisibilities()) {
+            refreshColumnVisibilitiesInUI();
+        }
+        if (trace) {
+            tRefreshEnd = SystemClock.elapsedRealtime();
+            long total = tRefreshEnd - t0;
+            Log.d(TIMING_TAG,
+                    "PageWithTable#applyRowFilters top=" + activeTopFilter +
+                            " alpha=" + activeAlphabeticalFilter +
+                            " hideEmpty=" + filterHideRowsWithNoEntries +
+                            " displayed=" + displayedTableRowsDataList.size() + "/" + masterTableRowsDataList.size() +
+                            " filter=" + (tFilterEnd - tFilterStart) + "ms" +
+                            " sort=" + (tSortEnd - tSortStart) + "ms" +
+                            " notify=" + (tNotifyEnd - tSortEnd) + "ms" +
+                            " refresh=" + (tRefreshEnd - tNotifyEnd) + "ms" +
+                            " total=" + total + "ms");
+        }
+    }
+
+    private boolean shouldRefreshColumnVisibilities() {
+        if (currentlyFocusedColumn != -1) {
+            return true;
+        }
+        for (ColumnDefinition cd : columnDefinitions) {
+            if (cd != null && !cd.isVisible) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -836,10 +885,13 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public void addColumns(List<String> labels,
                            List<String> columnKeyL, String type, String widthS,
                            String backgroundColor, String textColor) {
+        final boolean trace = TRACE_TABLE_TIMING && masterTableRowsDataList != null && masterTableRowsDataList.size() > 500;
+        final long t0 = trace ? SystemClock.elapsedRealtime() : 0;
         Log.d(TAG, "addColumns called. Type: " + type);
         columnDefinitions.clear();
         if (headerRow != null) headerRow.clearCells();
         for (Listable item : masterTableRowsDataList) if (item instanceof WF_Table_Row_Recycle) ((WF_Table_Row_Recycle)item).clearCells();
+        long tAfterClear = trace ? SystemClock.elapsedRealtime() : 0;
 
         if (labels != null && columnKeyL != null && labels.size() == columnKeyL.size()) {
             for (int i = 0; i < labels.size(); i++) {
@@ -855,17 +907,48 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 addColumnInternal(colDef, i);
             }
         } else { Log.w("PageWithTable", "Labels/keys null or mismatch in addColumns."); }
+        long tAfterCells = trace ? SystemClock.elapsedRealtime() : 0;
         if (type!=null && type.equals("simple")) tableTypeSimple=true;
         currentlyFocusedColumn = -1;
         if (headerRow != null) headerRow.updateHeaderAppearance(columnDefinitions, currentlyFocusedColumn);
+        long tAfterApplyFilters = 0;
         applyRowFilters();
+        if (trace) {
+            tAfterApplyFilters = SystemClock.elapsedRealtime();
+        }
         refreshHeaderUI();
+        if (trace) {
+            long tAfterHeaderRefresh = SystemClock.elapsedRealtime();
+            Log.d(TIMING_TAG,
+                    "PageWithTable#addColumns rows=" + masterTableRowsDataList.size() +
+                            " colsRequested=" + (labels == null ? "null" : labels.size()) +
+                            " clear=" + (tAfterClear - t0) + "ms" +
+                            " addCells=" + (tAfterCells - tAfterClear) + "ms" +
+                            " applyFilters=" + (tAfterApplyFilters - tAfterCells) + "ms" +
+                            " headerRefresh=" + (tAfterHeaderRefresh - tAfterApplyFilters) + "ms" +
+                            " total=" + (tAfterHeaderRefresh - t0) + "ms");
+        }
     }
     public void addVariableToEveryCell(String variableSuffix,
                                        boolean displayOut, String format, boolean isVisible,
                                        boolean showHistorical, String initialValue) {
+        final boolean trace = TRACE_TABLE_TIMING && masterTableRowsDataList != null && masterTableRowsDataList.size() > 500;
+        final long t0 = trace ? SystemClock.elapsedRealtime() : 0;
         if (o == null && gs != null) { o = gs.getLogger(); }
         if (o == null) { Log.e("PageWithTable", "'o' (logger/output) is not defined in addVariableToEveryCell."); }
+
+        // Avoid repeatedly checking colDef.isAggregate and repeated cell-list fetching.
+        final List<ColumnDefinition> normalColumnDefinitions = new ArrayList<>();
+        if (columnDefinitions != null) {
+            for (ColumnDefinition cd : columnDefinitions) {
+                if (cd != null && !cd.isAggregate) normalColumnDefinitions.add(cd);
+            }
+        }
+
+        // If table is large, avoid inflating per-cell output views upfront.
+        // We'll lazily materialize outputs for visible rows when RecyclerView binds them.
+        Variable.DataType inferredVarType = null;
+        boolean canLazyOutputViews = false; // set after we infer first variable type
 
         for (Listable wft : masterTableRowsDataList) {
             Set<String> varIds = varIdMap.get(wft.getLabel());
@@ -873,6 +956,24 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             if (varIds==null) { Log.e("vortex","No varIds for "+wft.getLabel()); continue; }
             else { for (String varGr:varIds) { if (varGr.endsWith(variableSuffix)) { varGrId = varGr; break; } } }
             if (varGrId==null) { Log.e("vortex","no var for suffix: "+variableSuffix +" for row "+wft.getLabel()); if (o != null) { o.addText(""); o.addCriticalText("Could not add var with suffix: "+variableSuffix); } continue; }
+
+            if (inferredVarType == null && gs != null && gs.getVariableConfiguration() != null) {
+                List<String> rowDef = gs.getVariableConfiguration().getCompleteVariableDefinition(varGrId);
+                if (rowDef != null) {
+                    inferredVarType = gs.getVariableConfiguration().getnumType(rowDef);
+                    canLazyOutputViews = inferredVarType != Variable.DataType.list;
+                }
+            }
+
+            // Delay output view inflation only when:
+            // - Caller wanted displayOut=true
+            // - Table is large (trace=true)
+            // - Variable is not a list (we don't lazy-create spinner labels)
+            boolean effectiveDisplayOut = displayOut;
+            if (trace && displayOut && canLazyOutputViews) {
+                effectiveDisplayOut = false;
+            }
+
             if (tableTypeSimple && gs != null && gs.getVariableConfiguration() != null) {
                 List<String> rowDef = gs.getVariableConfiguration().getCompleteVariableDefinition(varGrId);
                 if (rowDef != null) {
@@ -885,24 +986,39 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
                 }
             }
             Map<String, String> valueMap = (allInstances != null) ? allInstances.get(varGrId) : null;
-            int dataCellIndex = 0; // Index for accessing cells in wft.getCells() which only contains data cells
-            for (int colDefIndex = 0; colDefIndex < columnDefinitions.size(); colDefIndex++) {
-                ColumnDefinition colDef = columnDefinitions.get(colDefIndex);
-                if (colDef.isAggregate) { continue; } // Skip aggregate columns for this variable assignment
-                List<WF_Cell> cells = ((WF_Table_Row_Recycle) wft).getCells();
-                if (cells != null && dataCellIndex < cells.size()) {
-                    WF_Cell cell = cells.get(dataCellIndex);
-                    String colKey = colDef.key;
-                    String prefetchValue = (valueMap!=null) ? valueMap.get(colKey) : null;
-                    cell.addVariable(varGrId, displayOut, format, isVisible, showHistorical,prefetchValue);
-                } else {
-                    Log.w("PageWithTable", "Data cell index OOB or cells null in addVarToCell. Row: "+wft.getLabel()+", DataCellIdx: "+dataCellIndex+", ColDefIdx: "+colDefIndex);
-                    break;
-                }
-                dataCellIndex++;
+            List<WF_Cell> cells = ((WF_Table_Row_Recycle) wft).getCells();
+            if (cells == null) {
+                Log.w("PageWithTable", "Cells null in addVariableToEveryCell for row: " + wft.getLabel());
+                continue;
+            }
+
+            if (cells.size() < normalColumnDefinitions.size()) {
+                Log.w("PageWithTable", "Cells size < normal columns in addVariableToEveryCell. Row: " + wft.getLabel()
+                        + " cells=" + cells.size() + " cols=" + normalColumnDefinitions.size());
+            }
+
+            int limit = Math.min(normalColumnDefinitions.size(), cells.size());
+            for (int colDefIndex = 0; colDefIndex < limit; colDefIndex++) {
+                ColumnDefinition colDef = normalColumnDefinitions.get(colDefIndex);
+                WF_Cell cell = cells.get(colDefIndex);
+                if (cell == null || colDef == null) continue;
+                String colKey = colDef.key;
+                String prefetchValue = (valueMap!=null) ? valueMap.get(colKey) : null;
+                cell.addVariable(varGrId, effectiveDisplayOut, format, isVisible, showHistorical, prefetchValue);
             }
         }
+        long tAfterCellAttach = trace ? SystemClock.elapsedRealtime() : 0;
         applyRowFilters();
+        if (trace) {
+            long tAfterFilters = SystemClock.elapsedRealtime();
+            Log.d(TIMING_TAG,
+                    "PageWithTable#addVariableToEveryCell suffix=" + variableSuffix +
+                            " rows=" + masterTableRowsDataList.size() +
+                            " cols=" + columnDefinitions.size() +
+                            " attach=" + (tAfterCellAttach - t0) + "ms" +
+                            " filters=" + (tAfterFilters - tAfterCellAttach) + "ms" +
+                            " total=" + (tAfterFilters - t0) + "ms");
+        }
     }
     public void setTableName(String name) {
         if (headerRow != null) {
@@ -1059,6 +1175,8 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
     public void addAggregateColumn(String label, Expressor.EvalExpr expressionE,
                                    String aggregationFunction, String format, String widthStr,
                                    boolean isDisplayed, String backgroundColor, String textColor) {
+        final boolean trace = TRACE_TABLE_TIMING && masterTableRowsDataList != null && masterTableRowsDataList.size() > 500;
+        final long t0 = trace ? SystemClock.elapsedRealtime() : 0;
         Log.d(TAG, "addAggregateColumn - Label: " + label);
         if (label == null) label = "";
         String colKey = "agg_" + label.replaceAll("\\s+", "_").toLowerCase();
@@ -1072,14 +1190,14 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
 
         ColumnDefinition colDef = new ColumnDefinition(label, colKey, type, parsedWidth, backgroundColor, textColor, true);
-        colDef.isVisible = true;
-        if (!isDisplayed) colDef.isVisible = false;
+        colDef.isVisible = isDisplayed;
         columnDefinitions.add(colDef);
         addColumnInternal(colDef, columnDefinitions.size() - 1);
 
         if (headerRow != null) headerRow.updateHeaderAppearance(columnDefinitions, currentlyFocusedColumn);
         applyRowFilters();
         refreshHeaderUI();
+        long tAfterHeaderAndFilters = trace ? SystemClock.elapsedRealtime() : 0;
 
         AggregateFunction aggF;
         try {
@@ -1094,8 +1212,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         AggregateColumn aggColInstance = new AggregateColumn(label, expressionE, format, aggF, isLogical, masterTableRowsDataList);
 
         for (Listable item : masterTableRowsDataList) {
-            if (item instanceof WF_Table_Row_Recycle) {
-                WF_Table_Row_Recycle wft = (WF_Table_Row_Recycle) item;
+            if (item instanceof WF_Table_Row_Recycle wft) {
                 View aggCellView;
                 // Use colDef.width (which is parsedWidth) for aggregate cells
                 if (!isLogical) {
@@ -1118,9 +1235,22 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         if (myContext != null) {
             myContext.registerEvent(new WF_Event_OnSave("PageWithTable_AggColAdded_" + label));
         }
+        if (trace) {
+            long tEnd = SystemClock.elapsedRealtime();
+            Log.d(TIMING_TAG,
+                    "PageWithTable#addAggregateColumn label=" + label +
+                            " rows=" + masterTableRowsDataList.size() +
+                            " stageHeader+filters=" + (tAfterHeaderAndFilters - t0) + "ms" +
+                            " stageAggCellLoop=" + (tEnd - tAfterHeaderAndFilters) + "ms" +
+                            " total=" + (tEnd - t0) + "ms");
+        }
     }
 
     public void addText(List<String> rowData) {
+        addText(rowData, true);
+    }
+
+    private void addText(List<String> rowData, boolean applyFiltersAfterAdd) {
         if (rowData == null) { Log.w("PageWithTable", "addText null data"); return; }
         if (inflater == null || myContext == null) { Log.e("PageWithTable", "inflater or myContext null in addText"); return; }
 
@@ -1151,8 +1281,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
         }
         if (myContext != null && myContext.getEventListeners(Event.EventType.onSave) != null) {
             for (Object listener : myContext.getEventListeners(Event.EventType.onSave)) {
-                if (listener instanceof AggregateColumn) {
-                    AggregateColumn aggCol = (AggregateColumn) listener;
+                if (listener instanceof AggregateColumn aggCol) {
                     ColumnDefinition aggColDef = null;
                     for(ColumnDefinition cd : columnDefinitions) if (cd.isAggregate && cd.label.equals(aggCol.label)) { aggColDef = cd; break; }
                     if (aggColDef != null) {
@@ -1174,15 +1303,25 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             }
         }
         masterTableRowsDataList.add(rowWidget);
-        applyRowFilters();
+        if (applyFiltersAfterAdd) {
+            applyRowFilters();
+        }
     }
     public void addRows(List<List<String>> rows,String variatorColumn, String selectionPattern) {
+        final long t0 = TRACE_TABLE_TIMING ? SystemClock.elapsedRealtime() : 0;
         if (gs == null || al == null) { Log.e("PageWithTable", "gs or al not initialized!"); return; }
         if (myContext == null) { myContext = getCurrentContext(); if (myContext == null) { Log.e("PageWithTable", "myContext still null!"); return; } }
         this.myVariator = variatorColumn;
+        long tPrefetchEnd = 0;
+        long tBuildURowsEnd = 0;
+        long tAddTextEnd = 0;
+        long tApplyFiltersEnd = 0;
         if (gs.getDb() != null && myContext.getKeyHash() != null) {
             this.allInstances = gs.getDb().preFetchValues(myContext.getKeyHash(), selectionPattern, myVariator);
         } else { this.allInstances = new HashMap<>(); }
+        if (TRACE_TABLE_TIMING) {
+            tPrefetchEnd = SystemClock.elapsedRealtime();
+        }
         Map<String,List<String>> uRows = new HashMap<>();
         for (List<String> row : rows) {
             String key = al.getEntryLabel(row);
@@ -1191,8 +1330,30 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             if (s == null) { s = new HashSet<>(); varIdMap.put(key, s); }
             s.add(al.getVarName(row));
         }
+        if (TRACE_TABLE_TIMING) {
+            tBuildURowsEnd = SystemClock.elapsedRealtime();
+        }
         for (String rowKey : uRows.keySet()) {
-            addText(uRows.get(rowKey));
+            addText(uRows.get(rowKey), false);
+        }
+        if (TRACE_TABLE_TIMING) {
+            tAddTextEnd = SystemClock.elapsedRealtime();
+        }
+        // Apply filters once after bulk add to avoid O(n^2) redraw cost.
+        applyRowFilters();
+        if (TRACE_TABLE_TIMING) {
+            tApplyFiltersEnd = SystemClock.elapsedRealtime();
+            long total = tApplyFiltersEnd - t0;
+            Log.d(TIMING_TAG,
+                    "PageWithTable#addRows variator=" + variatorColumn +
+                            " selectionPattern=" + selectionPattern +
+                            " rows=" + (rows == null ? "null" : rows.size()) +
+                            " uniqueEntries=" + uRows.size() +
+                            " prefetch=" + (tPrefetchEnd - t0) + "ms" +
+                            " buildUnique=" + (tBuildURowsEnd - tPrefetchEnd) + "ms" +
+                            " addTextLoop=" + (tAddTextEnd - tBuildURowsEnd) + "ms" +
+                            " applyFilters=" + (tApplyFiltersEnd - tAddTextEnd) + "ms" +
+                            " total=" + total + "ms");
         }
     }
 
@@ -1207,8 +1368,7 @@ public class PageWithTable extends Executor implements TableBodyAdapter.ScrollSy
             for (int i = 0; i < tableRecyclerView.getChildCount(); i++) {
                 View child = tableRecyclerView.getChildAt(i);
                 RecyclerView.ViewHolder rawViewHolder = tableRecyclerView.getChildViewHolder(child);
-                if (rawViewHolder instanceof TableBodyAdapter.RowViewHolder) {
-                    TableBodyAdapter.RowViewHolder viewHolder = (TableBodyAdapter.RowViewHolder) rawViewHolder;
+                if (rawViewHolder instanceof TableBodyAdapter.RowViewHolder viewHolder) {
                     if (viewHolder.rowScrollView != source) {
                         viewHolder.rowScrollView.scrollTo(scrollX, 0);
                     }

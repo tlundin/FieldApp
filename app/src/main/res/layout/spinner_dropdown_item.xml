@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Custom spinner item so text is readable on light background (avoids white-on-white with theme). -->
+<CheckedTextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/text1"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:singleLine="true"
+    android:ellipsize="marquee"
+    android:paddingStart="@dimen/spacing_sm"
+    android:paddingEnd="@dimen/spacing_sm"
+    android:background="@drawable/spinner_dropdown_item_background"
+    android:gravity="center_vertical|start"
+    android:textColor="@color/primary_text"
+    android:textAppearance="@style/TextAppearance.FieldValue" />

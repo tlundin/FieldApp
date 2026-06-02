@@ -54,8 +54,8 @@ public class VariableConfiguration implements Serializable {
     private static final int SCOPE=8;
     private static final int LIMIT=9;
     private static final int D_LIMIT=10;
-    private static int GROUP_LABEL=11;
-    private static int GROUP_DESCRIPTION = 12;
+    private static final int GROUP_LABEL=11;
+    private static final int GROUP_DESCRIPTION = 12;
 
 	public String getColumn(String columnName, List<String> row) {
 		int cIndex = getTable().getColumnIndex(columnName);
@@ -269,7 +269,7 @@ public class VariableConfiguration implements Serializable {
 			res =this.getVarLabel(row);
 		}
 		if (res == null)
-			Log.e("nils","getEntryLabel failed to find a Label for row: "+row.toString());
+			Log.e("nils","getEntryLabel failed to find a Label for row: "+ row);
 		return res;
 	}
 

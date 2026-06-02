@@ -282,7 +282,7 @@ public class Parser {
 	for (int i = tokens.index; 0 <= i; --i) {
 	    Token t;
 	    if (i < v.size()) {
-		t = (Token) v.elementAt(i);
+		t = v.elementAt(i);
 	    } else {
 		String s = tokens.getInput();
 		t = new Token(Token.TT_EOF, 0, s, s.length(), s.length());
@@ -323,7 +323,7 @@ public class Parser {
 	for (int i = tokens.index; 0 <= i; --i) {
 	    if (v.size() <= i)
 		continue;
-	    Token t = (Token) v.elementAt(i);
+	    Token t = v.elementAt(i);
 	    Token[] candidates = possibleSubstitutions(t);
 	    for (int j = 0; j < candidates.length; ++j) {
 		v.setElementAt(candidates[j], i);

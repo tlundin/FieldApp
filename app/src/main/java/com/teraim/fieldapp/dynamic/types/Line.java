@@ -18,10 +18,10 @@ class Line
 		_start = start;
 		_end = end;
 
-		if (_end.x - _start.x != 0)
+		if (_end.x() - _start.x() != 0)
 		{
-			_a = ((_end.y - _start.y) / (_end.x - _start.x));
-			_b = _start.y - _a * _start.x;
+			_a = ((_end.y() - _start.y()) / (_end.x() - _start.x()));
+			_b = _start.y() - _a * _start.x();
 		}
 
 		else
@@ -39,12 +39,12 @@ class Line
 	 */
 	public boolean isInside(Point point)
 	{
-		float maxX = _start.x > _end.x ? _start.x : _end.x;
-		float minX = _start.x < _end.x ? _start.x : _end.x;
-		float maxY = _start.y > _end.y ? _start.y : _end.y;
-		float minY = _start.y < _end.y ? _start.y : _end.y;
+		float maxX = _start.x() > _end.x() ? _start.x() : _end.x();
+		float minX = _start.x() < _end.x() ? _start.x() : _end.x();
+		float maxY = _start.y() > _end.y() ? _start.y() : _end.y();
+		float minY = _start.y() < _end.y() ? _start.y() : _end.y();
 
-        return (point.x >= minX && point.x <= maxX) && (point.y >= minY && point.y <= maxY);
+        return (point.x() >= minX && point.x() <= maxX) && (point.y() >= minY && point.y() <= maxY);
     }
 
 	/**
@@ -102,6 +102,6 @@ class Line
 	@Override
 	public String toString()
 	{
-		return String.format("%s-%s", _start.toString(), _end.toString());
+		return String.format("%s-%s", _start, _end);
 	}
 }

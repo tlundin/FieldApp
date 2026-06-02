@@ -133,12 +133,14 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			try {
 				this.polyType=PolyType.valueOf(polyType);
 			} catch (IllegalArgumentException e) {
-				if (polyType.toUpperCase().equals("SQUARE")||polyType.toUpperCase().equals("RECT")||polyType.toUpperCase().equals("RECTANGLE"))
+				String u = polyType.toUpperCase();
+				if (u.equals("SQUARE") || u.equals("RECT") || u.equals("RECTANGLE"))
 					this.polyType=PolyType.rect;
-				else if (polyType.toUpperCase().equals("TRIANGLE"))
+				else if (u.equals("TRIANGLE"))
 					this.polyType=PolyType.triangle;
+				else if (u.equals("NEEDLE"))
+					this.polyType=PolyType.needle;
 				else {
-					
 					o.addCriticalText("Unknown polytype: ["+polyType+"]. Will default to circle");
 				}
 			}
@@ -163,11 +165,15 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 	//Refresh: only add new objects created after last check.
 
 	public void create(WF_Context myContext, boolean refresh) {
-		Log.d(TAG,"Creating GisPointObjects - myContext is "+myContext.toString()+" refresh is "+refresh+ "myGis is "+myContext.getCurrentGis().toString());
+		if (myContext == null) {
+			Log.e(TAG, "create: myContext is null, skipping");
+			return;
+		}
+		WF_Gis_Map gisB = myContext.getCurrentGis();
+		Log.d(TAG,"Creating GisPointObjects - myContext is "+ myContext +" refresh is "+refresh+ " myGis is "+ gisB);
 		setDefaultBitmaps(myContext);
 		o = LogRepository.getInstance();
 		GlobalState gs = GlobalState.getInstance();
-		WF_Gis_Map gisB = myContext.getCurrentGis();
 		if (gisB==null) {
 			Log.e("vortex","gisB null!!");
 			return;
@@ -334,7 +340,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 			try {
 				myGisObjects = new HashSet<GisObject>();
 				boolean hasV1Value = pickerLocation1.moveToFirst();
-				boolean hasV2Value = twoVars ? pickerLocation2.moveToFirst() : false;
+				boolean hasV2Value = twoVars && pickerLocation2.moveToFirst();
 				String v1Val = hasV1Value ? pickerLocation1.getVariable().value : null;
 				String v2Val = hasV2Value ? pickerLocation2.getVariable().value : null;
 				//No values! A dynamic variable can create new ones, so create object anyway.
@@ -406,7 +412,7 @@ public class AddGisPointObjects extends Block implements FullGisObjectConfigurat
 								map2 = pickerLocation1.getKeyColumnValues();
 								Log.d(TAG, "Found columns " + map2.toString() + " for " + storedVar2.name);
 								if (Tools.sameKeys(map1, map2)) {
-									Log.e("Glapp", "key mismatch in db fetch: X key:" + map1.toString() + "\nY key: " + map2.toString());
+									Log.e("Glapp", "key mismatch in db fetch: X key:" + map1 + "\nY key: " + map2);
 								} else {
 									if (!dynamic) {
 										myGisObjects.add(new StaticGisPoint(this, map1, new SweLocation(storedVar1.value, storedVar2.value), statusVarP.first, statusVarP.second));

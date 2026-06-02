@@ -28,7 +28,7 @@ public class Rule implements Serializable {
     private int myTargetBlockId=-1;
     private final String conditionS=null;
     //Old rule engine for back compa.
-    private boolean oldStyle = false;
+    private final boolean oldStyle = false;
 
     public Rule(String id, String ruleLabel, String target, String condition,
                 String action, String errorMsg) {
@@ -76,7 +76,7 @@ public class Rule implements Serializable {
     //Execute Rule. Target will be colored accordingly.
     public Boolean execute() {
        if (condition!=null) {
-    	   System.err.println("BANANA: CALING BOOL ANALYSIS WITH "+condition.toString());
+    	   System.err.println("BANANA: CALING BOOL ANALYSIS WITH "+ condition);
        
         //Log.d(TAG, "Result of rule eval was: " + Expressor.analyzeBooleanExpression(condition));
            Log.d(TAG,"rule context: "+(ruleContext==null?"null":ruleContext)+" myBlock: "+(myBlock==null?"null":myBlock));

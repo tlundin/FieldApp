@@ -91,7 +91,7 @@ public class GisObject {
 		label = Expressor.analyze(foc.getLabelExpression(),keyChain);
 		//@notation for id
 		if (label!=null && label.startsWith("@")) {
-			String key = label.substring(1, label.length());
+			String key = label.substring(1);
 			if (key.length()>0)
 				label = keyChain.get(key);
 

@@ -33,7 +33,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 	final WF_Context myContext;
 	String myDescription;
 	private boolean showAuthor  = false;
-	final Map<Variable,OutC> myOutputFields = new HashMap<Variable,OutC>();
+	protected final Map<Variable,OutC> myOutputFields = new HashMap<Variable,OutC>();
 
 	//Hack! Used to determine what is the master key for this type of element.
 	//If DisplayOut & Virgin --> This is master key.
@@ -83,19 +83,22 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
     WF_Not_ClickableField(String id, final String label, final String descriptionT, WF_Context myContext,
                           View view, boolean isVisible, DisplayFieldBlock format) {
 		super(id,view,myContext,isVisible);
-
-
 		this.myContext = myContext;
         TextView myHeader = getWidget().findViewById(R.id.editfieldtext);
 		outputContainer = getWidget().findViewById(R.id.outputContainer);
 		//outputContainer.setLayoutParams(params);
 		//Log.d(TAG,"variable label: "+label+" variable ID: "+id);
 		textColorC = Tools.getColorResource(myContext.getContext(),format.getTextColor());
+		Log.d("barf","Setting header to "+label+" with color "+format.getTextColor());
 		//myheader can be null in case this is a Cell in a table.
 		if (myHeader !=null) {
 			myHeader.setTextColor(textColorC);
-			myHeader.setText(label);
-		}
+			// Ensure header always has displayable text (avoid invisible header when label is null/empty)
+			String displayLabel = (label != null && !label.trim().isEmpty()) ? label.trim() : id;
+			myHeader.setText(displayLabel);
+		} else
+			Log.d("barf","header is null");
+
 		//change between horizontal and vertical
 
 
@@ -104,7 +107,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 		//Show owner.
 		showAuthor = GlobalState.getInstance().getGlobalPreferences().getB(PersistenceHelper.SHOW_AUTHOR_KEY);
 		if (format.getBackgroundColor()!=null) {
-			backgroundColor = Tools.getColorResource(myContext.getContext(),format.getBackgroundColor());
+			backgroundColor = Tools.getColorResource(myContext.getContext(),format.getBackgroundColor(), R.color.black, true);
 			getWidget().setBackgroundColor(backgroundColor);
 		}
 
@@ -178,8 +181,9 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 			if (variable.hasBrokenRules()||variable.hasValueOutOfRange()) {
 				Log.d(TAG,"VARID: "+variable.getId()+" hasBroken: "+variable.hasBrokenRules()+" hasoutofRange: "+variable.hasValueOutOfRange());
-				o.setTextColor(Color.RED);
-				u.setTextColor(Color.RED);
+				int errorColor = myContext.getContext().getResources().getColor(R.color.error_text, myContext.getContext().getTheme());
+				o.setTextColor(errorColor);
+				u.setTextColor(errorColor);
 			} else {
 				if (variable.isUsingDefault()) {
 					Log.d(TAG,"Variable "+variable.getId()+" is purple");
@@ -197,11 +201,10 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 
 			if (variable.getType() != Variable.DataType.bool) {
 
-				if (outC instanceof OutSpin) {
+				if (outC instanceof OutSpin os) {
 					Log.d(TAG,"gets here. "+ Arrays.toString(((OutSpin) outC).opt));
 					outS = value;
-					OutSpin os = ((OutSpin)outC);
-					if (os.opt!=null && os.val!=null)						
+                    if (os.opt!=null && os.val!=null)
 						for (int i=0;i<os.val.length;i++)
 							if (os.val[i].equals(value)) {
 								outS = os.opt[i];
@@ -340,7 +343,7 @@ public abstract class WF_Not_ClickableField extends WF_ListEntry {
 					}		
 				} else {
 					if(value.contains(".")) {
-						String p[]  = value.split("\\.");
+						String[] p = value.split("\\.");
 						value = p[0];
 					}
 					if (value.length()<lf) 

@@ -80,9 +80,8 @@ public class RuleBlock extends Block {
 			if (b instanceof CreateEntryFieldBlock) {
 				Log.d(TAG, "target ok");
 				((CreateEntryFieldBlock) b).attachRule(currentRule);
-			} else if (b instanceof BlockCreateListEntriesFromFieldList) {
-				BlockCreateListEntriesFromFieldList bl = (BlockCreateListEntriesFromFieldList) b;
-				currentRule.setTarget(myContext, bl);
+			} else if (b instanceof BlockCreateListEntriesFromFieldList bl) {
+                currentRule.setTarget(myContext, bl);
 			} else {
 				Log.e("vortex", "target for rule doesnt seem correct: " + b.getClass() + " blId: " + currentRule.getTargetString());
 				o = LogRepository.getInstance();

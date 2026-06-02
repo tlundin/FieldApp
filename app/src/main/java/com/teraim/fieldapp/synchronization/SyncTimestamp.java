@@ -1,8 +1,8 @@
 package com.teraim.fieldapp.synchronization;
 
 public class SyncTimestamp {
-    private long time;
-    private int seq_no;
+    private final long time;
+    private final int seq_no;
 
     public SyncTimestamp(long time, int seq_no) {
         this.time = time;

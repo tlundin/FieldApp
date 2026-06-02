@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@color/background_light"
+        android:background="?attr/colorSurface"
         android:orientation="vertical" >
 
         <LinearLayout
@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
-            android:background="@color/white"
+            android:background="?attr/colorSurface"
             android:orientation="vertical" >
 
             <TextView
@@ -37,10 +37,9 @@
 		<View
             android:layout_width="fill_parent"
             android:layout_height="1dip"
-            android:background="#000000" />
+            android:background="?attr/dividerColor" />
         
         <LinearLayout
-            android:id="@+id/popBody"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="10dp"
@@ -308,7 +307,6 @@
                 android:layout_height="wrap_content" >
 
                 <TextView
-                    android:id="@+id/textView6"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Riktning6:"
@@ -331,20 +329,18 @@
         <View
             android:layout_width="fill_parent"
             android:layout_height="1dip"
-            android:background="#000000" />
+            android:background="?attr/dividerColor" />
 
 		 <LinearLayout
-		     android:id="@+id/buttonsW"
-		     android:layout_width="match_parent"
+             android:layout_width="match_parent"
 		     android:layout_height="match_parent"
-		     android:background="@color/white"
+		     android:background="?attr/colorSurface"
 		     android:orientation="horizontal" >
 
             <LinearLayout
-                android:id="@+id/buttonsL"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@color/white"
+                android:background="?attr/colorSurface"
                 android:gravity="left"
                 android:orientation="horizontal" >
 
@@ -362,10 +358,9 @@
 
             </LinearLayout>
         <LinearLayout
-            android:id="@+id/buttons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@color/white"
+            android:background="?attr/colorSurface"
             android:gravity="right"
             android:orientation="horizontal" >
 

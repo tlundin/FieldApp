@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string-array name="deviceTypesA">
-        <item>Master (RED)</item>
-        <item>Client (BLUE)</item>
-        <item>Solo (YELLOW)</item>
-    </string-array>
     <string-array name="filter_array">
         <item>Not Started</item>
         <item>Started (Yellow)</item>
@@ -13,11 +8,6 @@
         <item>Status Done (Green)</item>
     </string-array>
 
-    <string-array name="deviceTypes_values">
-        <item>Master</item>
-        <item>Client</item>
-        <item>Solo</item>
-    </string-array>
     <string-array name="log_levels">
         <item>normal</item>
         <item>critical only</item>
@@ -26,27 +16,20 @@
         <item>normal</item>
         <item>critical</item>
     </string-array>
-    <string-array name="versionArray">
-        <item>Update only when the version of your App changes (default)</item>
-        <item>Check version for each configuration file individually</item>
-        <item>Forced load independent of version (slow!)</item>
-    </string-array>
-    <string-array name="versionValues">
-        <item>Major</item>
-        <item>Detailed</item>
-        <item>Forced</item>
-    </string-array>
-    <string-array name="syncMethodArray">
-        <item>Sync on</item>
-        <item>Sync off</item>
-    </string-array>
-    <string-array name="syncMethodValues">
-        <item>Internet</item>
-        <item>NONE</item>
-    </string-array>
     <array name="map_needle_image_sets">
         <item>@drawable/icon_set1</item>
         <item>@drawable/icon_set2</item>
         <item>@drawable/icon_set3</item>
+        <item>@drawable/icon_set4</item>
     </array>
+
+    <string-array name="organisation_entries">
+        <item>@string/organisation_default</item>
+        <item>@string/organisation_slu</item>
+    </string-array>
+
+    <string-array name="organisation_values">
+        <item>default</item>
+        <item>slu</item>
+    </string-array>
 </resources>

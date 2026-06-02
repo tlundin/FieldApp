@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- For Dark Theme, text on surfaces should be light/white -->
-    <color name="my_dark_on_surface_color">#DEFFFFFF</color> <!-- 87% White -->
+    <!-- Dark theme: lighter primary for better contrast on dark surfaces -->
+    <color name="primary">#D0BCFF</color>
+    <color name="primary_dark">#381E72</color>
+    <color name="primary_light">#E8DEF8</color>
+    <color name="accent">#03DAC6</color>
+    <color name="background_base">#1E1E1E</color>
+    <color name="button_on_primary">#000000</color>
 
-    <!-- The divider should also be light on a dark surface -->
-    <color name="my_dark_divider_color">#1FFFFFFF</color> <!-- 12% White -->
-
-    <!-- You can also override other colors here if needed for dark theme -->
-    <!-- For example, if 'my_light_on_surface_color' is used by your dark theme's style, override it too -->
+    <!-- Text on dark surfaces -->
+    <color name="primary_text">#EDEDED</color>
+    <color name="secondary_text">#B0B0B0</color>
+    <color name="default_text_color">#EDEDED</color>
+    <color name="error_text">#FF8A80</color>
+    <color name="purple">#D0BCFF</color>
     <color name="my_light_on_surface_color">#DEFFFFFF</color>
+    <color name="my_light_divider_color">#1FFFFFFF</color>
+    <!-- Legacy color lookup tokens (dark theme) -->
+    <color name="legacy_black_dark">#E0E0E0</color>
+    <color name="legacy_white_dark">#1E1E1E</color>
+    <color name="legacy_green_dark">#6EDC6E</color>
+    <color name="legacy_red_dark">#FF8A80</color>
+    <color name="legacy_blue_dark">#82B1FF</color>
+    <color name="legacy_lightgray_dark">#8A8A8A</color>
+
+    <!-- Navigation drawer in dark mode -->
 </resources>

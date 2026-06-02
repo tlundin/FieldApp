@@ -2,11 +2,11 @@ package com.teraim.fieldapp.ui;
 
 public interface ExportDialogInterface {
 
-    public void setGenerateStatus(String msg) ;
-    public void setSendStatus(String msg) ;
-    public void setBackupStatus(String msg) ;
-    public void setCheckGenerate(boolean success) ;
-    public void setCheckBackup(boolean success) ;
-    public void setCheckSend(int status) ;
-    public void setOutCome(String msg) ;
+    void setGenerateStatus(String msg) ;
+    void setSendStatus(String msg) ;
+    void setBackupStatus(String msg) ;
+    void setCheckGenerate(boolean success) ;
+    void setCheckBackup(boolean success) ;
+    void setCheckSend(int status) ;
+    void setOutCome(String msg) ;
 }

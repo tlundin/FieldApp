@@ -151,7 +151,7 @@ public class SyncContentProvider extends ContentProvider {
 
 
     private SQLiteDatabase db;
-    private int currentCount=0;
+    private final int currentCount=0;
 
 
     @Override

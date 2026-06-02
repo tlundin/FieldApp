@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -71,6 +72,9 @@ public class CreateGisBlock extends Block {
 	private final List<EvalExpr> sourceE;
 	public boolean isTeamVisible() { return showTeam;}
 
+	/** Map name under which the GIS map is registered as a drawable (e.g. "traktkarta"). */
+	public String getName() { return name; }
+
 	public CreateGisBlock(String id, String name,
 						  String containerId, boolean isVisible, String source, String N, String E, String S, String W, boolean hasCarNavigation, boolean showTeam) {
 		super();
@@ -132,6 +136,17 @@ public class CreateGisBlock extends Block {
 		o = gs.getLogger();
 		this.cb=cb;
 		this.myContext = myContext;
+
+		// With MapTemplate, network, and use_maps enabled, use the map background instead of loading image layers.
+		String template = myContext.getWorkflow() != null ? myContext.getWorkflow().getTemplate() : null;
+		boolean hasNetwork = Tools.hasNetworkConnection(ctx);
+		boolean useMaps = gs.getGlobalPreferences().getPreferences().getBoolean(PersistenceHelper.MAP_ENABLED, true);
+		Log.d(TAG, "CreateGisBlock check: template=[" + template + "] hasNetwork=" + hasNetwork + " useMaps=" + useMaps + " (skip when MapTemplate && hasNetwork && useMaps)");
+		if ("MapTemplate".equals(template) && hasNetwork && useMaps) {
+			Log.d(TAG, "MapTemplate with network and use_maps: skipping CreateGisBlock (using map background)");
+			return true;
+		}
+
 		PersistenceHelper ph = gs.getPreferences();
 		PersistenceHelper globalPh = gs.getGlobalPreferences();
 
@@ -268,7 +283,7 @@ public class CreateGisBlock extends Block {
 				mapLayers.clear();
 			}
 
-			new Handler().postDelayed(new Runnable() {
+			new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
 				public void run() {
 
 					Bitmap bmp = Tools.getScaledImageRegion(myContext.getContext(),cachedImgFilePath,r);

@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.util.TypedValue;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView; // Added for error view
@@ -75,7 +76,7 @@ public class FilterDialogFragment extends DialogFragment {
         rootContainer.addView(popupContentLayout, params);
         // Set a background for the dialog fragment's view area if the passed layout doesn't have one
         // Consider using a theme attribute for better light/dark theme support
-        rootContainer.setBackgroundColor(ContextCompat.getColor(requireContext(), android.R.color.white));
+        rootContainer.setBackgroundColor(resolveThemeColor(com.google.android.material.R.attr.colorSurface, android.R.color.white));
 
         return rootContainer;
     }
@@ -109,5 +110,16 @@ public class FilterDialogFragment extends DialogFragment {
         assert getParentFragment() != null;
         ((FilterDialogDismissListener) getParentFragment()).onFilterDialogDismissed(getTag());
 
+    }
+
+    private int resolveThemeColor(int attrResId, int fallbackColorResId) {
+        TypedValue typedValue = new TypedValue();
+        if (requireContext().getTheme().resolveAttribute(attrResId, typedValue, true)) {
+            if (typedValue.resourceId != 0) {
+                return ContextCompat.getColor(requireContext(), typedValue.resourceId);
+            }
+            return typedValue.data;
+        }
+        return ContextCompat.getColor(requireContext(), fallbackColorResId);
     }
 }

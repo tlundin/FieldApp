@@ -22,13 +22,15 @@
         <View
             android:layout_width="1dip"
             android:layout_height="match_parent"
-            android:background="#000000" />
+            android:background="?attr/dividerColor" />
 
         <LinearLayout
             android:id="@+id/aggregates"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.5"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:layout_marginEnd="@dimen/spacing_sm"
             android:orientation="vertical" >
         </LinearLayout>
     </LinearLayout>
@@ -36,7 +38,7 @@
     <View
         android:layout_width="fill_parent"
         android:layout_height="5dip"
-        android:background="#000000" />
+        android:background="?attr/dividerColor" />
 
     <ScrollView
         android:id="@+id/scrollView3"
@@ -50,6 +52,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:layout_marginStart="@dimen/spacing_sm"
+            android:layout_marginEnd="@dimen/spacing_sm"
             android:requiresFadingEdge="vertical"
             android:fadingEdgeLength="20dp"
             android:overScrollMode="never" >

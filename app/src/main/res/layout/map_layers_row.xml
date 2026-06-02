@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<RadioButton android:id="@+id/first"
-    android:button="@null"
+<RadioButton android:button="@null"
     android:drawableEnd="@android:drawable/btn_radio"
     android:drawablePadding="10dp"
     android:layout_width="match_parent"

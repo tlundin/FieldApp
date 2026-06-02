@@ -17,6 +17,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 import com.teraim.fieldapp.dynamic.VariableConfiguration;
 import com.teraim.fieldapp.dynamic.types.DB_Context;
+import com.teraim.fieldapp.dynamic.types.LatLong;
 import com.teraim.fieldapp.dynamic.types.Location;
 import com.teraim.fieldapp.dynamic.types.SpinnerDefinition;
 import com.teraim.fieldapp.dynamic.types.SweLocation;
@@ -66,7 +67,7 @@ import okhttp3.OkHttpClient;
  * Classes defining datatypes for ruta, provyta, delyta and tåg.
  * There are two Scan() functions reading data from two input files (found under the /raw project folder).
  */
-public class GlobalState {
+public class GlobalState implements GlobalStateCore {
 	private static final String TAG = "GlobalState";
 
 
@@ -86,7 +87,10 @@ public class GlobalState {
     private final Map<String, Workflow> myWfs;
     //Spinner definitions
     private final SpinnerDefinition mySpinnerDef;
+    // Legacy UI-coupled references. These are being gradually migrated into
+    // a dedicated GlobalUiBinding implementation.
     private DrawerMenu myDrawerMenu;
+    private final GlobalUiBinding uiBinding;
 
     public String TEXT_LARGE;
     private String myPartner = "?";
@@ -104,7 +108,64 @@ public class GlobalState {
     private final CharSequence logTxt;
     private final String userUUID;
     private ModuleRegistry moduleRegistry;
-    private RequestQueue requestQueue;
+    private final RequestQueue requestQueue;
+
+    // Explicit representation of the current logical session/workflow state.
+    // This is kept in-memory only for now; persistence and restoration will be
+    // introduced in later steps.
+    private final SessionState sessionState;
+
+    // Lightweight record of how the side drawer menu was constructed (headers
+    // and entries). This allows us to rebuild the visual menu when a new
+    // Activity/DrawerMenu instance is created after a configuration change
+    // without re-running the workflow that originally defined it.
+    public static abstract class MenuOp {}
+
+    public static final class MenuHeaderOp extends MenuOp {
+        public final String label;
+        public final String textColor;
+        public final String bgColor;
+
+        public MenuHeaderOp(String label, String textColor, String bgColor) {
+            this.label = label;
+            this.textColor = textColor;
+            this.bgColor = bgColor;
+        }
+    }
+
+    public static final class MenuEntryOp extends MenuOp {
+        public final String workflowName;
+        public final String textColor;
+        public final String bgColor;
+
+        public MenuEntryOp(String workflowName, String textColor, String bgColor) {
+            this.workflowName = workflowName;
+            this.textColor = textColor;
+            this.bgColor = bgColor;
+        }
+    }
+
+    private final List<MenuOp> menuOps = new java.util.ArrayList<>();
+
+    /** Pending map center (WGS84 lat, lng) for MapTemplate when opened from a GIS object. Cleared after use. */
+    private Double pendingMapCenterLat;
+    private Double pendingMapCenterLng;
+    /** When non-null, MapTemplate uses this zoom when applying pending center; otherwise default (e.g. 10.5). Not persisted in session. */
+    private Double pendingMapZoom;
+
+    /** Lat/lng and optional zoom for restoring the map after navigation from a GIS feature. */
+    public static final class PendingMapCamera {
+        public final double lat;
+        public final double lng;
+        /** Null means use MapTemplate default zoom for pending center. */
+        public final Double zoom;
+
+        public PendingMapCamera(double lat, double lng, Double zoom) {
+            this.lat = lat;
+            this.lng = lng;
+            this.zoom = zoom;
+        }
+    }
 
     public static GlobalState getInstance() {
 
@@ -131,7 +192,8 @@ public class GlobalState {
         this.ph = ph;
         this.startActivity = startActivity;
         this.db = myDb;
-        this.requestQueue = Volley.newRequestQueue(startActivity);
+        // Use the application context for the Volley queue to avoid tying it to a specific Activity instance.
+        this.requestQueue = Volley.newRequestQueue(applicationContext);
         //Parser for rules
         parser = new Parser(this);
         artLista = new VariableConfiguration(this, t);
@@ -142,6 +204,10 @@ public class GlobalState {
         myStatusHandler = new StatusHandler(this);
 
         mySpinnerDef = sd;
+
+        // Initialize UI binding with the current Start activity and (optionally)
+        // a DrawerMenu which will be attached later.
+        uiBinding = new GlobalUiBindingImpl(startActivity, null);
 
         singleton = this;
 
@@ -173,6 +239,23 @@ public class GlobalState {
             userUUID = uid;
 
         Log.d(TAG, "userUUID is " + userUUID);
+
+        // Initialize an explicit SessionState representation from existing fields.
+        SessionState tmpSession = new SessionState();
+        tmpSession.setUserUUID(userUUID);
+        tmpSession.setTeamId(globalPh.get(PersistenceHelper.LAG_ID_KEY));
+        tmpSession.setPartnerId(myPartner);
+        // Represent device role as a simple string for now.
+        if (isMaster()) {
+            tmpSession.setDeviceRole("Master");
+        } else if (isSolo()) {
+            tmpSession.setDeviceRole("Solo");
+        } else if (isSlave()) {
+            tmpSession.setDeviceRole("Client");
+        }
+        // Workflow and DB context will be populated when those parts of the
+        // system are in a well-defined state.
+        sessionState = tmpSession;
     }
 
     public static void destroyInstance() {
@@ -182,13 +265,58 @@ public class GlobalState {
     public String getUserUUID() {
         return userUUID;
     }
+
+    /**
+     * Accessor for the explicit in-memory session state representation.
+     * This does not introduce any persistence or rotation behaviour by
+     * itself; it is a structured view over selected GlobalState fields.
+     */
+    public SessionState getSessionState() {
+        return sessionState;
+    }
+
+    /**
+     * Helper for creating a lightweight, serialization-friendly snapshot of
+     * the current session state. This does not persist anything by itself;
+     * callers are expected to handle any storage concerns.
+     */
+    public SessionSnapshot createSessionSnapshot() {
+        if (sessionState == null) {
+            return null;
+        }
+        return sessionState.toSnapshot();
+    }
+
+    // Record how the drawer menu is constructed so that it can be rebuilt
+    // later for a new DrawerMenu instance (e.g. after rotation).
+    public void recordMenuHeader(String label, String textColor, String bgColor) {
+        menuOps.add(new MenuHeaderOp(label, textColor, bgColor));
+    }
+
+    public void recordMenuEntry(String workflowName, String textColor, String bgColor) {
+        menuOps.add(new MenuEntryOp(workflowName, textColor, bgColor));
+    }
+
+    // Clear the recorded menu definition, used when the drawer menu is
+    // intentionally cleared (for example when reloading configuration or
+    // resetting the current workflow).
+    public void clearMenuDefinition() {
+        menuOps.clear();
+    }
+
+    // Indicates whether a logical drawer menu definition has already been
+    // recorded. Used to avoid re-running menu-building workflow blocks on
+    // configuration changes such as rotation.
+    public boolean isMenuDefined() {
+        return !menuOps.isEmpty();
+    }
     public static Account getmAccount(Context ctx) {
         if (mAccount == null)
             mAccount = CreateSyncAccount(ctx);
         return mAccount;
     }
 
-    private boolean callInProgress = false;
+    private final boolean callInProgress = false;
 
 
     public String getMyTeam() {
@@ -220,27 +348,16 @@ public class GlobalState {
                 // 5. Get the nested "position" JSONObject
                 JSONObject positionObject = userObject.getJSONObject("position");
 
-                // 6. Extract elements from the "position" object
-                double easting = positionObject.getDouble("easting");
-                double northing = positionObject.getDouble("northing");
+                // 6. Extract elements from the "position" object (WGS84 lat/long)
+                double lat = positionObject.getDouble("lat");
+                double lng = positionObject.getDouble("long");
 
-                // --- Now you have all the variables ---
-/*
-                Log.d(TAG,"--- User " + (i + 1) + " ---");
-                Log.d(TAG,"UUID: " + uuid);
-                Log.d(TAG,"Name: " + name);
-                Log.d(TAG,"Timestamp (ms): " + timestampMillis);
-                Log.d(TAG,"Position:");
-                Log.d(TAG,"  Easting: " + easting);
-                Log.d(TAG,"  Northing: " + northing);
-                Log.d(TAG,"--------------------");
-*/
                 if (name.equals(globalPh.get(PersistenceHelper.USER_ID_KEY))) {
                     //Log.d(TAG,"skip own position");
                     continue;
                 }
 
-                teamPositions.put(name,new TeamPosition(name, uuid, timestampMillis, easting, northing));
+                teamPositions.put(name, new TeamPosition(name, uuid, timestampMillis, lat, lng));
 
             } // End of loop
         } catch (JSONException e) {
@@ -265,11 +382,54 @@ public class GlobalState {
         return requestQueue;
     }
     public void setTitle(String wfLabel) {
-        startActivity.setTitle(wfLabel);
+        if (uiBinding != null) {
+            uiBinding.setTitle(wfLabel);
+        } else {
+            startActivity.setTitle(wfLabel);
+        }
     }
 
     public void changePage(Workflow wf, String statusVar) {
-        startActivity.changePage(wf,statusVar);
+        if (uiBinding != null) {
+            uiBinding.changePage(wf, statusVar);
+        } else {
+            startActivity.changePage(wf, statusVar);
+        }
+    }
+
+    /** Set pending map center (WGS84) so MapTemplate can focus there when opened from a GIS object. */
+    public void setPendingMapCenter(double lat, double lng) {
+        setPendingMapCenter(lat, lng, null);
+    }
+
+    /**
+     * Set pending map camera for MapTemplate. {@code zoomLevel} null keeps default zoom when the map opens
+     * (e.g. TRAKT center-on); non-null preserves user zoom when returning from a GeoJSON feature workflow.
+     */
+    public void setPendingMapCenter(double lat, double lng, Double zoomLevel) {
+        this.pendingMapCenterLat = lat;
+        this.pendingMapCenterLng = lng;
+        this.pendingMapZoom = zoomLevel;
+        if (sessionState != null) {
+            sessionState.setPendingMapCenterLat(lat);
+            sessionState.setPendingMapCenterLng(lng);
+        }
+    }
+
+    /** Get and clear pending map camera, or null if none set. */
+    public PendingMapCamera getAndClearPendingMapCamera() {
+        if (pendingMapCenterLat == null || pendingMapCenterLng == null) {
+            return null;
+        }
+        PendingMapCamera result = new PendingMapCamera(pendingMapCenterLat, pendingMapCenterLng, pendingMapZoom);
+        pendingMapCenterLat = null;
+        pendingMapCenterLng = null;
+        pendingMapZoom = null;
+        if (sessionState != null) {
+            sessionState.setPendingMapCenterLat(null);
+            sessionState.setPendingMapCenterLng(null);
+        }
+        return result;
     }
 
     public Set<String> getProvYtaTypes() {
@@ -284,23 +444,24 @@ public class GlobalState {
     }
 
     public MenuActivity getActivity() {
+        // Retain the existing behavior for now; callers still get the Start/MenuActivity.
         return startActivity;
     }
 
 
     public class TeamPosition {
-        private String name;
-        private String uuid;
-        private long timestampMillis;
-        private double easting;
-        private double northing;
+        private final String name;
+        private final String uuid;
+        private final long timestampMillis;
+        private final double lat;
+        private final double lng;
 
-        public TeamPosition(String name, String uuid, long timestampMillis, double easting, double northing) {
+        public TeamPosition(String name, String uuid, long timestampMillis, double lat, double lng) {
             this.name = name;
             this.uuid = uuid;
             this.timestampMillis = timestampMillis;
-            this.easting = easting;
-            this.northing = northing;
+            this.lat = lat;
+            this.lng = lng;
         }
 
         public long timestamp() {
@@ -308,7 +469,7 @@ public class GlobalState {
         }
 
         public Location getPosition() {
-            return new SweLocation(easting,northing);
+            return new LatLong(lat, lng);
         }
 
         public String getUuid() {
@@ -406,12 +567,20 @@ public class GlobalState {
     public Workflow getWorkflow(String id) {
         if (id == null || id.isEmpty())
             return null;
+        if (myWfs == null) {
+            Log.e(TAG, "getWorkflow called with id '" + id + "' but workflow map is null");
+            return null;
+        }
         return myWfs.get(id);
     }
 
     public Workflow getWorkflowFromLabel(String label) {
         if (label == null)
             return null;
+        if (myWfs == null) {
+            Log.e(TAG, "getWorkflowFromLabel called with label '" + label + "' but workflow map is null");
+            return null;
+        }
         for (Workflow wf : myWfs.values())
             if (wf.getLabel() != null && wf.getLabel().equals(label))
                 return wf;
@@ -423,7 +592,7 @@ public class GlobalState {
     public String[] getWorkflowNames() {
         if (myWfs == null)
             return null;
-        String[] array = new String[myWfs.keySet().size()];
+        String[] array = new String[myWfs.size()];
         myWfs.keySet().toArray(array);
         return array;
 
@@ -432,7 +601,7 @@ public class GlobalState {
     public String[] getWorkflowLabels() {
         if (myWfs == null)
             return null;
-        String[] array = new String[myWfs.keySet().size()];
+        String[] array = new String[myWfs.size()];
         int i = 0;
         String label;
         for (Workflow wf : myWfs.values()) {
@@ -473,6 +642,9 @@ public class GlobalState {
 
     public void setDBContext(DB_Context context) {
         myVariableCache.setCurrentContext(context);
+        if (sessionState != null) {
+            sessionState.setCurrentDbContext(context);
+        }
     }
 
     public boolean isMaster() {
@@ -572,9 +744,8 @@ public class GlobalState {
         public void handleMessage(Message msg) {
             Intent intent = null;
 
-            if (msg.obj instanceof String) {
+            if (msg.obj instanceof String s) {
                 //Log.d(TAG,"IN HANDLE MESSAGE WITH MSG: "+msg.toString());
-                String s = (String) msg.obj;
                 intent = new Intent();
                 intent.setAction(s);
             } else if (msg.obj instanceof Intent)
@@ -655,12 +826,31 @@ public class GlobalState {
         }
     */
     public DrawerMenu getDrawerMenu() {
-        // TODO Auto-generated method stub
         return myDrawerMenu;
     }
 
     public void setDrawerMenu(DrawerMenu mDrawerMenu) {
         myDrawerMenu = mDrawerMenu;
+        if (uiBinding != null) {
+            ((GlobalUiBindingImpl) uiBinding).setDrawerMenu(mDrawerMenu);
+        }
+        // When a new DrawerMenu instance is attached (for example after a
+        // configuration change), rebuild its contents from the recorded menu
+        // operations so the side menu remains populated without re-running the
+        // defining workflow.
+        if (myDrawerMenu != null && !menuOps.isEmpty()) {
+            myDrawerMenu.clear();
+            for (MenuOp op : menuOps) {
+                if (op instanceof MenuHeaderOp h) {
+                    myDrawerMenu.addHeader(h.label, h.textColor, h.bgColor);
+                } else if (op instanceof MenuEntryOp e) {
+                    Workflow wf = getWorkflow(e.workflowName);
+                    if (wf != null) {
+                        myDrawerMenu.addItem(wf.getLabel(), wf, e.textColor, e.bgColor);
+                    }
+                }
+            }
+        }
     }
 
 
@@ -676,6 +866,7 @@ public class GlobalState {
     }
     private TrackerListener map,menu,user;
     public void registerListener(TrackerListener tl, TrackerListener.Type type) {
+        // Maintain existing fields for now while delegating to the UI binding.
         switch (type) {
             case MAP:
                 map = tl;
@@ -687,10 +878,30 @@ public class GlobalState {
                 user = tl;
                 break;
         }
+        if (uiBinding != null) {
+            uiBinding.registerListener(tl, type);
+        }
+    }
+
+    public void unregisterListener(TrackerListener.Type type) {
+        switch (type) {
+            case MAP:
+                map = null;
+                break;
+            case MENU:
+                menu = null;
+                break;
+            case USER:
+                user = null;
+                break;
+        }
+        if (uiBinding != null) {
+            uiBinding.unregisterListener(type);
+        }
     }
     int oHash = -1;
     public void updateCurrentPosition(TrackerListener.GPS_State newState, int hash) {
-        //if a disable arrives from a previous old object, discard it.
+        // Existing logic retained for compatibility.
         if (newState.state == TrackerListener.GPS_State.State.enabled)
             oHash = hash;
         else if (newState.state == TrackerListener.GPS_State.State.disabled && hash != oHash)
@@ -704,6 +915,9 @@ public class GlobalState {
         if (map!=null)
             map.gpsStateChanged(newState);
 
+        if (uiBinding != null) {
+            uiBinding.updateCurrentPosition(newState, hash);
+        }
     }
 
 

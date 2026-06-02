@@ -15,6 +15,8 @@ import com.teraim.fieldapp.dynamic.workflow_abstracts.Listable;
 import com.teraim.fieldapp.log.LogRepository;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
 public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_ClickableField implements EventListener {
@@ -24,7 +26,6 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
     private final WF_Static_List targetList;
 	private final WF_Context myContext;
 	private final String myPattern;
-	private Set<Variable> allMatchingVariables=null;
 
 	public enum Type {
 		sum,
@@ -77,13 +78,13 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 				"type of event: "+e.getType().name());
 		if (e.getType().equals(EventType.onFlowExecuted)) {
 			long t = System.currentTimeMillis();
-			matchAndRecalculateMe();
+			matchAndRecalculateMe(e.getType().name(), e.getProvider());
 			refresh();
 			Log.d(TAG,"sum calc time "+(System.currentTimeMillis()-t));
 		} else
 			if (e.getProvider().equals(targetList.getId())) {
 			//Log.d(TAG,"This is my list!");
-			matchAndRecalculateMe();
+			matchAndRecalculateMe(e.getType().name(), e.getProvider());
 			refresh();
 		} else
 			Log.d(TAG,"event discarded - from wrong list");
@@ -95,22 +96,28 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 		return "SUM_AND_COUNT "+this.getId();
 	}
 
-	private void matchAndRecalculateMe() {
+	private void matchAndRecalculateMe(String eventType, String provider) {
 		String variablesWithNoValue = "[";
 		Long sum=Long.valueOf(0);
+		Set<Variable> allMatchingVariables = new HashSet<Variable>();
+		Map<String, Integer> idFrequency = new LinkedHashMap<String, Integer>();
+		int listableCount = 0;
+		int rawMatchCount = 0;
 		if (targetList==null)
 			return;
-		if (allMatchingVariables==null) {
-			allMatchingVariables = new HashSet<Variable>();
-			for (Listable l : targetList.get()) {
-				Set<Variable> vars = l.getAssociatedVariables();
-				for (Variable v : vars) {
-//					Log.e("vortex","VAR: "+v.getId());
-					if (v.getId().matches(myPattern))
-						allMatchingVariables.add(v);
-//					else
-//						Log.e("vortex","DIDNT MATCH: "+v.getId());
+		for (Listable l : targetList.get()) {
+			listableCount++;
+			Set<Variable> vars = l.getAssociatedVariables();
+			for (Variable v : vars) {
+//				Log.e("vortex","VAR: "+v.getId());
+				if (v.getId().matches(myPattern)) {
+					rawMatchCount++;
+					allMatchingVariables.add(v);
+					Integer prev = idFrequency.get(v.getId());
+					idFrequency.put(v.getId(), prev == null ? 1 : prev + 1);
 				}
+//				else
+//					Log.e("vortex","DIDNT MATCH: "+v.getId());
 			}
 		}
 
@@ -150,8 +157,35 @@ public class WF_Not_ClickableField_SumAndCountOfVariables extends WF_Not_Clickab
 			o.addGreenText("Found match(es) in Count/Add Block with pattern ["+myPattern+"]");
 		}
 
-		if (myVar !=null)
+		int duplicateIdCount = 0;
+		StringBuilder duplicateIdSummary = new StringBuilder();
+		for (Map.Entry<String, Integer> entry : idFrequency.entrySet()) {
+			if (entry.getValue() > 1) {
+				duplicateIdCount++;
+				if (duplicateIdSummary.length() > 0) {
+					duplicateIdSummary.append(", ");
+				}
+				duplicateIdSummary.append(entry.getKey()).append("x").append(entry.getValue());
+			}
+		}
+		Log.d(TAG, "COUNTDBG block=" + getId()
+				+ " type=" + myType
+				+ " event=" + eventType
+				+ " provider=" + provider
+				+ " target=" + targetList.getId()
+				+ " pattern=" + myPattern
+				+ " listables=" + listableCount
+				+ " rawMatches=" + rawMatchCount
+				+ " uniqueVars=" + allMatchingVariables.size()
+				+ " duplicateIds=" + duplicateIdCount
+				+ (duplicateIdCount > 0 ? " [" + duplicateIdSummary + "]" : "")
+				+ " result=" + sum);
+
+		if (myVar !=null) {
+			String oldValue = myVar.getValue();
 			myVar.setValue(sum.toString());
+			Log.d(TAG, "COUNTDBG write resultVar=" + myVar.getId() + " old=" + oldValue + " new=" + sum);
+		}
 
 	}
 

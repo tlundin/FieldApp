@@ -10,6 +10,7 @@ import com.teraim.fieldapp.dynamic.blocks.AddEntryToFieldListBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisFilter;
 import com.teraim.fieldapp.dynamic.blocks.AddGisLayerBlock;
+import com.teraim.fieldapp.dynamic.blocks.AddGisMapViewBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddGisPointObjects;
 import com.teraim.fieldapp.dynamic.blocks.AddSumOrCountBlock;
 import com.teraim.fieldapp.dynamic.blocks.AddVariableToEntryFieldBlock;
@@ -48,6 +49,7 @@ import com.teraim.fieldapp.dynamic.blocks.RuleBlock;
 import com.teraim.fieldapp.dynamic.blocks.SetValueBlock;
 import com.teraim.fieldapp.dynamic.blocks.StartBlock;
 import com.teraim.fieldapp.dynamic.blocks.StartCameraBlock;
+import com.teraim.fieldapp.dynamic.types.GisMapView;
 import com.teraim.fieldapp.dynamic.types.Workflow;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Not_ClickableField_SumAndCountOfVariables;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
@@ -77,7 +79,8 @@ import java.util.Set;
 
 public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	private static final String TAG = "WorkFlowBundleConfiguration";
-
+	/** Bump when workflow structure changes (e.g. gis_mode in PageDefineBlock). Invalidates old cache. */
+	private static final int WF_CACHE_SCHEMA_VERSION = 2;
 
 	private String myApplication;
 	private final LogRepository o;
@@ -111,6 +114,51 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	public boolean isRequired() {
 		return true;
+	}
+
+	@Override
+	public LoadResult thawSynchronously() {
+		// Invalidate cache if schema version is old (e.g. pre-gis_mode in PageDefineBlock).
+		try {
+			String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+			if (bundleName == null || bundleName.isEmpty()) bundleName = "vortex";
+			java.io.File cacheDir = new java.io.File(getContext().getFilesDir(), bundleName.toLowerCase(java.util.Locale.ROOT) + "/cache");
+			java.io.File schemaF = new java.io.File(cacheDir, getFileName().toLowerCase(java.util.Locale.ROOT) + ".schema");
+			if (!schemaF.exists()) {
+				Log.d(TAG, "Workflow cache schema file missing, invalidating cache (need reload for gis_mode)");
+				setFrozenVersion(-1);
+				return new LoadResult(this, ErrorCode.thawFailed);
+			}
+			String schemaContent = Tools.getFileContentAsString(schemaF.getAbsolutePath());
+			int cachedSchema = (schemaContent != null && !schemaContent.isEmpty()) ? Integer.parseInt(schemaContent.trim()) : 0;
+			if (cachedSchema < WF_CACHE_SCHEMA_VERSION) {
+				Log.d(TAG, "Workflow cache schema " + cachedSchema + " < " + WF_CACHE_SCHEMA_VERSION + ", invalidating (need reload for gis_mode)");
+				setFrozenVersion(-1);
+				return new LoadResult(this, ErrorCode.thawFailed);
+			}
+		} catch (Exception e) {
+			Log.w(TAG, "Could not check workflow cache schema, invalidating", e);
+			setFrozenVersion(-1);
+			return new LoadResult(this, ErrorCode.thawFailed);
+		}
+		return super.thawSynchronously();
+	}
+
+	@Override
+	public void freeze(int counter) {
+		super.freeze(counter);
+		if (counter == -1 && essence != null) {
+			try {
+				String bundleName = globalPh.get(PersistenceHelper.BUNDLE_NAME);
+				if (bundleName == null || bundleName.isEmpty()) bundleName = "vortex";
+				java.io.File cacheDir = new java.io.File(getContext().getFilesDir(), bundleName.toLowerCase(java.util.Locale.ROOT) + "/cache");
+				cacheDir.mkdirs();
+				java.io.File schemaF = new java.io.File(cacheDir, getFileName().toLowerCase(java.util.Locale.ROOT) + ".schema");
+				java.nio.file.Files.write(schemaF.toPath(), String.valueOf(WF_CACHE_SCHEMA_VERSION).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+			} catch (Exception e) {
+				Log.w(TAG, "Could not write workflow cache schema", e);
+			}
+		}
 	}
 
 	//workflows will be added to this one.
@@ -155,8 +203,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 			String name = parser.getName();
 			if (parser.getName().equals("language")) {
-				;
-				o.addGreenText("Language set to: "+language);
+                o.addGreenText("Language set to: "+language);
 				language = readText("language",parser);
 			}
 			else if (name.equals("workflow")) {
@@ -326,6 +373,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					case "block_add_gis_layer":
 						blocks.add(readBlockAddGisLayer(parser));
 						break;
+					case "block_add_gis_map_view":
+						blocks.add(readBlockAddGisMapView(parser));
+						break;
 					case "block_add_gis_point_objects":
 						blocks.add(readBlockAddGisPointObjects(parser, GisObjectType.Point));
 						break;
@@ -378,8 +428,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				return blocks;
 			}
 		}
-		;
-		o.addGreenText("No duplicate block IDs");
+        o.addGreenText("No duplicate block IDs");
 		return blocks;
 	}
 
@@ -720,6 +769,10 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//o.addText("Parsing block: block_add_gis_layer...");
 		String id=null,nName=null,target=null,label=null;
 		boolean isVisible=true,hasWidget=true,showLabels=false,isBold=false;
+		String fillColor=null,lineColor=null,polyType=null,lineDasharray=null;
+		Float fillOpacity=null,lineWidth=null,circleRadius=null;
+		String objContext=null,onClick=null,gistype=null;
+		String iconLabel=null,iconLabelPosition=null;
 
 		parser.require(XmlPullParser.START_TAG, null,"block_add_gis_layer");
 		//Log.d(TAG,"In block block_add_gis_layer!!");
@@ -744,6 +797,30 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				hasWidget = "true".equals(readText("has_widget", parser));
 			} else if (name.equalsIgnoreCase("is_bold")) {
 				isBold = "true".equals(readText("is_bold", parser));
+			} else if (name.equals("fill_color")) {
+				fillColor = readText("fill_color", parser);
+			} else if (name.equals("fill_opacity")) {
+				fillOpacity = parseFloatOrNull(readText("fill_opacity", parser));
+			} else if (name.equals("line_color")) {
+				lineColor = readText("line_color", parser);
+			} else if (name.equals("line_width")) {
+				lineWidth = parseFloatOrNull(readText("line_width", parser));
+			} else if (name.equals("line_dasharray")) {
+				lineDasharray = readText("line_dasharray", parser);
+			} else if (name.equals("circle_radius")) {
+				circleRadius = parseFloatOrNull(readText("circle_radius", parser));
+			} else if (name.equals("poly_type")) {
+				polyType = readText("poly_type", parser);
+			} else if (name.equalsIgnoreCase("gistype")) {
+				gistype = readText("gistype", parser);
+			} else if (name.equalsIgnoreCase("obj_context")) {
+				objContext = readText("obj_context", parser);
+			} else if (name.equals("on_click")) {
+				onClick = readText("on_click", parser);
+			} else if (name.equals("icon_label")) {
+				iconLabel = readText("icon_label", parser);
+			} else if (name.equals("icon_label_position")) {
+				iconLabelPosition = readText("icon_label_position", parser);
 			}
 			else {
 				Log.e("vortex","Skipped "+name);
@@ -752,8 +829,78 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		}
 
 		checkForNull("block_ID",id,"target",target);
-		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold);
+		String objContextTrimmed = (objContext != null && !objContext.trim().isEmpty()) ? objContext.trim() : null;
+		String onClickTrimmed = (onClick != null && !onClick.trim().isEmpty()) ? onClick.trim() : null;
+		String gistypeTrimmed = (gistype != null && !gistype.trim().isEmpty()) ? gistype.trim() : null;
+		String lineDasharrayTrimmed = (lineDasharray != null && !lineDasharray.trim().isEmpty()) ? lineDasharray.trim() : null;
+		String iconLabelTrimmed = (iconLabel != null && !iconLabel.trim().isEmpty()) ? iconLabel.trim() : null;
+		String iconLabelPositionTrimmed = (iconLabelPosition != null && !iconLabelPosition.trim().isEmpty()) ? iconLabelPosition.trim() : null;
+		return new AddGisLayerBlock(id,nName,label,target,isVisible,hasWidget,showLabels,isBold,
+				fillColor,fillOpacity,lineColor,lineWidth,lineDasharrayTrimmed,circleRadius,polyType,objContextTrimmed,onClickTrimmed,gistypeTrimmed,
+				iconLabelTrimmed, iconLabelPositionTrimmed);
 
+	}
+
+	private Block readBlockAddGisMapView(XmlPullParser parser) throws IOException, XmlPullParserException {
+		String id = null, nName = null, containerName = null, mapType = null, centerStr = null;
+		String onCenterClick = null;
+		Double zoom = null, pitch = null, bearing = null;
+		boolean teamVisible = false;
+
+		parser.require(XmlPullParser.START_TAG, null, "block_add_gis_map_view");
+		while (parser.next() != XmlPullParser.END_TAG) {
+			if (parser.getEventType() != XmlPullParser.START_TAG) {
+				continue;
+			}
+			String name = parser.getName();
+			if (name.equals("block_ID")) {
+				id = readText("block_ID", parser);
+			} else if (name.equals("name")) {
+				nName = readText("name", parser);
+			} else if (name.equals("container_name")) {
+				containerName = readText("container_name", parser);
+			} else if (name.equals("map_type")) {
+				mapType = readText("map_type", parser);
+			} else if (name.equals("center")) {
+				centerStr = readText("center", parser);
+			} else if (name.equals("zoom")) {
+				zoom = parseDoubleOrNull(readText("zoom", parser));
+			} else if (name.equals("pitch")) {
+				pitch = parseDoubleOrNull(readText("pitch", parser));
+			} else if (name.equals("bearing")) {
+				bearing = parseDoubleOrNull(readText("bearing", parser));
+			} else if (name.equals("team_visible")) {
+				String raw = readText("team_visible", parser);
+				teamVisible = raw == null || "true".equalsIgnoreCase(raw.trim());
+			} else if (name.equals("on_click")) {
+				// Deprecated: on_click is now on block_add_gis_layer (per-layer). Ignore on map view.
+				skip(name, parser);
+			} else {
+				Log.e("vortex", "Skipped " + name);
+				skip(name, parser);
+			}
+		}
+
+		checkForNull("block_ID", id, "name", nName, "container_name", containerName, "map_type", mapType);
+		double centerLng, centerLat;
+		if (centerStr == null || centerStr.trim().isEmpty()) {
+			centerLng = 15.0;
+			centerLat = 62.0;
+		} else {
+			String[] parts = centerStr.trim().split("\\s*,\\s*");
+			if (parts.length != 2) {
+				throw new XmlPullParserException("center must be [lng, lat], e.g. 15.0,62.0");
+			}
+			centerLng = Double.parseDouble(parts[0].trim());
+			centerLat = Double.parseDouble(parts[1].trim());
+		}
+		double zoomVal = zoom != null ? zoom : 4.0;
+		double pitchVal = pitch != null ? pitch : 0.0;
+		double bearingVal = bearing != null ? bearing : 0.0;
+
+		String onCenterClickTrimmed = (onCenterClick != null && !onCenterClick.trim().isEmpty()) ? onCenterClick.trim() : null;
+		GisMapView gisMapView = new GisMapView(id, nName, containerName, mapType, centerLng, centerLat, zoomVal, pitchVal, bearingVal, teamVisible, onCenterClickTrimmed);
+		return new AddGisMapViewBlock(id, gisMapView);
 	}
 
 	private Block readBlockAddGoogleGis(XmlPullParser parser) throws IOException,XmlPullParserException {
@@ -1082,7 +1229,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 
 		}
-		checkForNull("block_ID",id,"label",label,"text_color",textColor,"bck_color",bgColor);
+		checkForNull("block_ID",id,"label",label);
 		return new MenuHeaderBlock(id,label,textColor,bgColor);
 
 	}
@@ -1770,6 +1917,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String namn=null,containerId=null,postLabel="",id=null,initialValue=null,label=null,variableName=null,group=null;
 		String textColor = "Black";
 		int min=0,max=100;
+		int textSizeSp = -1;
 		String backgroundColor = null,verticalMargin=null,verticalFormat=null;
 		Unit unit = Unit.nd;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_slider_entry_field");
@@ -1842,13 +1990,25 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "vertical_format":
 					verticalFormat = readText("vertical_format", parser);
 					break;
+				case "text_size":
+					{
+						String ts = readText("text_size", parser);
+						if (ts != null && ts.length() > 0) {
+							try {
+								textSizeSp = Integer.parseInt(ts);
+							} catch (NumberFormatException e) {
+								textSizeSp = -1;
+							}
+						}
+					}
+					break;
 				default:
 					skip(name, parser, o);
 					break;
 			}
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"variableName",variableName);
-		return new CreateSliderEntryFieldBlock(id,namn, containerId,isVisible,showHistorical,initialValue,label,variableName,group,textColor,backgroundColor,min,max,verticalFormat,verticalMargin);
+		return new CreateSliderEntryFieldBlock(id,namn, containerId,isVisible,showHistorical,initialValue,label,variableName,group,textColor,backgroundColor,min,max,verticalFormat,verticalMargin,textSizeSp);
 	}
 
 	private CreateEntryFieldBlock readBlockCreateEntryField(XmlPullParser parser)throws IOException, XmlPullParserException {
@@ -1857,6 +2017,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		String namn=null,containerId=null,postLabel="",format=null,id=null,initialValue=null,label=null;
 		Unit unit = Unit.nd;
 		String textColor = "black";
+		int textSizeSp = -1;
 		String backgroundColor = null,verticalMargin=null,verticalFormat=null;
 		parser.require(XmlPullParser.START_TAG, null,"block_create_entry_field");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -1905,13 +2066,25 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "vertical_format":
 					verticalFormat = readText("vertical_format", parser);
 					break;
+				case "text_size":
+					{
+						String ts = readText("text_size", parser);
+						if (ts != null && ts.length() > 0) {
+							try {
+								textSizeSp = Integer.parseInt(ts);
+							} catch (NumberFormatException e) {
+								textSizeSp = -1;
+							}
+						}
+					}
+					break;
 				default:
 					skip(name, parser, o);
 					break;
 			}
 		}
 		checkForNull("block_ID",id,"name",namn,"container_name",containerId,"format",format);
-		return new CreateEntryFieldBlock(id,namn, containerId,isVisible,format,showHistorical,initialValue,label,autoOpenSpinner,textColor,backgroundColor,verticalFormat,verticalMargin);
+		return new CreateEntryFieldBlock(id,namn, containerId,isVisible,format,showHistorical,initialValue,label,autoOpenSpinner,textColor,backgroundColor,verticalFormat,verticalMargin,textSizeSp);
 	}
 
 	/**
@@ -1924,8 +2097,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 
 	private void dummyWarning(String block,XmlPullParser parser) {
 		o.addText("Parsing block: "+block);
-		;
-		o.addCriticalText("This type of block is not supported");
+        o.addCriticalText("This type of block is not supported");
 	}
 
 
@@ -2259,8 +2431,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 					break;
 				case "workflowname":
 					workflowName = readSymbol("workflowname", parser);
-					;
-					o.addGreenText("Reading workflow: [" + workflowName + "]");
+                    o.addGreenText("Reading workflow: [" + workflowName + "]");
 					Log.d(TAG, "Reading workflow: " + workflowName);
 
 					break;
@@ -2279,8 +2450,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 		}
 		if (workflowName == null)  {
-			;
-			o.addCriticalText("Error reading startblock. Workflowname missing");
+            o.addCriticalText("Error reading startblock. Workflowname missing");
 			throw new XmlPullParserException("Parameter missing");
 		}
 		checkForNull("block_ID",id,"workflowname",workflowName);
@@ -2343,7 +2513,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 	 */
 	private PageDefineBlock readPageDefineBlock(XmlPullParser parser) throws IOException, XmlPullParserException {
 		//o.addText("Parsing block: block_define_page...");
-		String pageType=null,label="",id=null,gpsPriority="low";
+		String pageType=null,label="",id=null,gpsPriority="low",gisMode="normal";
 		boolean hasGPS=false,goBackAllowed=true,hasSatNav = false;
 		parser.require(XmlPullParser.START_TAG, null,"block_define_page");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -2366,6 +2536,9 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				case "gps_priority":
 					gpsPriority = readText("gps_priority", parser);
 					break;
+				case "gis_mode":
+					gisMode = readText("gis_mode", parser);
+					break;
 				case "allow_OS_page_back":
 					goBackAllowed = readText("allow_OS_page_back", parser).equals("true");
 					break;
@@ -2379,7 +2552,7 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 			}
 		}
 		checkForNull("block_ID",id,"type",pageType,"label",label);
-		return new PageDefineBlock(id,"root", pageType,label,hasGPS,gpsPriority,goBackAllowed);
+		return new PageDefineBlock(id,"root", pageType,label,hasGPS,gpsPriority,goBackAllowed,gisMode);
 	}
 
 
@@ -2475,10 +2648,29 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 				lab = par;
 				continue;
 			} else if (par==null) {
-				;
-				o.addYellowText("Parameter "+lab+" was NULL");
+                o.addYellowText("Parameter "+lab+" was NULL");
 
 			}
+		}
+	}
+
+	/** Returns null if s is null/empty or not a valid float. */
+	private static Float parseFloatOrNull(String s) {
+		if (s == null || s.trim().isEmpty()) return null;
+		try {
+			return Float.parseFloat(s.trim());
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/** Returns null if s is null/empty or not a valid double. */
+	private static Double parseDoubleOrNull(String s) {
+		if (s == null || s.trim().isEmpty()) return null;
+		try {
+			return Double.parseDouble(s.trim());
+		} catch (NumberFormatException e) {
+			return null;
 		}
 	}
 
@@ -2492,13 +2684,11 @@ public class WorkFlowBundleConfiguration extends XMLConfigurationModule {
 		//Check that it does not start with a number.
 		if (text!=null) {
 			if (text.length()>0 && Character.isDigit(text.charAt(0))) {
-				;
-				o.addCriticalText("XML: EXCEPTION - Symbol started with integer");
+                o.addCriticalText("XML: EXCEPTION - Symbol started with integer");
 				throw new XmlPullParserException("Symbol cannot start with integer");
 			}
 		} else {
-			;
-			o.addCriticalText("XML: EXCEPTION - Symbol was NULL");
+            o.addCriticalText("XML: EXCEPTION - Symbol was NULL");
 			throw new XmlPullParserException("Symbol cannot be null");
 		}
 		return text;

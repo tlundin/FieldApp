@@ -89,7 +89,7 @@ public class DB_Context implements Serializable {
 			//Returns fully evaluated context as a string
 			String cContext = Expressor.analyze(eContext);
 			if (cContext==null) {
-				err = "Context syntax error when evaluating precompiled context: "+eContext.toString();
+				err = "Context syntax error when evaluating precompiled context: "+ eContext;
 
 			} else {
 				String[] pairs = cContext.split(",");

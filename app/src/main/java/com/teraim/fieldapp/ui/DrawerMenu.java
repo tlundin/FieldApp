@@ -14,8 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
 import com.google.android.material.navigation.NavigationView;
 import com.teraim.fieldapp.GlobalState;
 import com.teraim.fieldapp.R;
@@ -37,7 +35,7 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 	private ActionBarDrawerToggle toggle;
 	private int nextItemId = 1000;
 	private SparseIntArray index;
-	private Map<Integer, Workflow> workflowMap = new HashMap<>();
+	private final Map<Integer, Workflow> workflowMap = new HashMap<>();
 	private boolean open = false;
 	private NavigationView navigationView;
 
@@ -89,22 +87,26 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 	}
 
 	public void addHeader(String label) {
+		addHeader(label, null, null);
+	}
+
+	public void addHeader(String label, String textColor, String bgColor) {
 		Menu menu = navigationView.getMenu();
 		currentSubMenu = menu.addSubMenu(Menu.NONE, Menu.NONE, Menu.NONE, label);
 	}
 
 	public void addItem(String label, Workflow wf) {
+		addItem(label, wf, null, null);
+	}
+
+	public void addItem(String label, Workflow wf, String textColor, String bgColor) {
 		if (currentSubMenu == null) {
-			// Handle cases where addItem is called before addHeader, maybe add to a default section or throw an error
-			// For this example, let's add a default header if none exists
-			addHeader("Vecka "+Constants.getWeekNumber());
+			addHeader("Vecka " + Constants.getWeekNumber());
 		}
 
 		int itemId = nextItemId++;
 		MenuItem menuItem = currentSubMenu.add(Menu.NONE, itemId, Menu.NONE, label);
-		menuItem.setCheckable(true); // Make items selectable
-
-		// Store the workflow object
+		menuItem.setCheckable(true);
 		workflowMap.put(itemId, wf);
 	}
 
@@ -161,12 +163,10 @@ public class DrawerMenu implements NavigationView.OnNavigationItemSelectedListen
 	}
 
 	public void clear() {
-		navigationView.getMenu().clear(); // Clear existing menu items
-		currentSubMenu = null; // Reset current submenu
-		workflowMap.clear(); // Clear the workflow map
-		nextItemId = 1000; // Reset item ID counter
+		navigationView.getMenu().clear();
+		currentSubMenu = null;
+		workflowMap.clear();
+		nextItemId = 1000;
 	}
-
-
 
 }

@@ -189,7 +189,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private long lastRedraw = 0;
     private Handler teamHandler = null;
 
-    private IntentFilter filter = new IntentFilter();
+    private final IntentFilter filter = new IntentFilter();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,8 +211,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             }
         });
         teamHandler = new Handler(Looper.getMainLooper());
-
-
 
         brr = new BroadcastReceiver() {
             private static final long MIN_REDRAW_DELAY = 5000;
@@ -237,7 +235,6 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             fetchTeamUpdatesRunnable = new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.d(TAG, "Polling for team updates...");
                                     // Trigger the network calls in the ViewModel
                                     teamStatusViewModel.sendAndReceiveTeamPositions();
                                     // Schedule the next execution
@@ -276,7 +273,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                             //delay or discard call.
                             Log.d(TAG, "Calling redraw");
                             if (handler == null) {
-                                handler = new Handler();
+                                handler = new Handler(Looper.getMainLooper());
                                 handler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
@@ -405,8 +402,28 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
                 mBound = false;
             }
         }
+        // If initialization was already completed in a previous Activity instance
+        // (for example before a configuration change), GlobalState will be
+        // non-null but we may not have received a fresh INITDONE broadcast in
+        // this new instance. In that case, re-establish the same post-init
+        // wiring as in the INITDONE branch of our BroadcastReceiver so that
+        // the menu row is correctly populated after rotation.
+        if (GlobalState.getInstance() != null && !initDone) {
+            initDone = true;
+            gs = GlobalState.getInstance();
+            GlobalState.getInstance().registerListener(this, Type.MENU);
+            TeamStatusViewModel teamStatusViewModel = new ViewModelProvider(this).get(TeamStatusViewModel.class);
+            fetchTeamUpdatesRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    teamStatusViewModel.sendAndReceiveTeamPositions();
+                    teamHandler.postDelayed(this, TimeUnit.SECONDS.toMillis(Constants.LOCATION_UPDATE_INTERVAL));
+                }
+            };
+        }
         if (initDone) {
             startTeamUpdatesPolling(Constants.LOCATION_UPDATE_INTERVAL);
+            refreshStatusRow();
         }
     }
 
@@ -443,6 +460,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
         private SyncConsumerThread syncConsumerThread;
 
         IncomingHandler(MenuActivity menuActivity) {
+            super(Looper.getMainLooper());
 
             this.menuActivity = menuActivity;
             syncConsumerThread = null;
@@ -572,6 +590,17 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
     private void refreshStatusRow() {
+        // If the menu has not yet been created (e.g. onResume called before
+        // onCreateOptionsMenu after a configuration change), bail out early.
+        if (mnu[MENU_ITEM_GPS_QUALITY] == null
+                || mnu[MENU_ITEM_SYNC_TYPE] == null
+                || mnu[MENU_ITEM_CONTEXT] == null
+                || mnu[MENU_ITEM_LOG_WARNING] == null
+                || mnu[MENU_ITEM_SETTINGS] == null
+                || mnu[MENU_ITEM_ABOUT] == null) {
+            return;
+        }
+
         //If init failed, show only log and settings
         if (initFailed) {
             if (mnu[MENU_ITEM_LOG_WARNING] != null) {
@@ -581,7 +610,9 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             }
             //Init done succesfully? Show all items.
         } else if (GlobalState.getInstance() != null && initDone) {
-            if (latestSignal.state == GPS_State.State.disabled) {
+            // Guard against latestSignal being null (can happen after lifecycle
+            // events where GPS has not yet produced a value in this instance).
+            if (latestSignal == null || latestSignal.state == GPS_State.State.disabled) {
                 mnu[MENU_ITEM_GPS_QUALITY].setVisible(false);
                 monitorGPS(false);
             }
@@ -631,7 +662,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
     private void monitorGPS(boolean on) {
         //Log.d(TAG,"MONITOR CALLED "+on);
         if (on && GPShandler == null) {
-            GPShandler = new Handler();
+            GPShandler = new Handler(Looper.getMainLooper());
             Runnable runnable = new Runnable(){
                 public void run() {
                     GPShandler=null;
@@ -1059,8 +1090,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
             boolean twoButton = false;
 
             private void showProgress(int max) {
-                if (mContext instanceof Activity) {
-                    Activity activity = (Activity) mContext;
+                if (mContext instanceof Activity activity) {
                     if (activity.isFinishing() || activity.isDestroyed()) {
                         return;
                     }
@@ -1393,7 +1423,7 @@ public class MenuActivity extends AppCompatActivity implements TrackerListener,L
 
 
 
-    private SyncGroup syncGroup = null;
+    private final SyncGroup syncGroup = null;
 
     private SyncGroup getSyncGroup() {
         return syncGroup;

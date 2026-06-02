@@ -5,7 +5,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/myRoot"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:paddingBottom="56dp">
 
     <!-- Background Image -->
     <ImageView
@@ -61,14 +62,20 @@
         tools:text="1.23" />
 
     <!-- Reload Button -->
-    <Button
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonLoadConfig"
+        style="@style/Widget.MaterialComponents.Button"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:text="@string/ladda_styrfiler"
+        app:icon="@drawable/ic_download"
+        app:iconGravity="textStart"
+        app:iconPadding="12dp"
+        app:iconSize="24dp"
+        app:iconTint="?attr/colorOnPrimary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
@@ -80,6 +87,8 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="8dp"
+        android:background="#66000000"
+        android:padding="6dp"
         android:textColor="@color/white"
         android:textSize="10sp"
         app:layout_constraintBottom_toTopOf="@+id/buttonLoadConfig"

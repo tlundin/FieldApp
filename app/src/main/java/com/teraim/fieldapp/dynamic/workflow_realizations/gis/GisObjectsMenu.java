@@ -15,6 +15,8 @@ import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.core.content.ContextCompat;
+
 import com.teraim.fieldapp.R;
 import com.teraim.fieldapp.dynamic.types.TabButton;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.FullGisObjectConfiguration.GisObjectType;
@@ -99,8 +101,11 @@ public class GisObjectsMenu extends View {
 		SpaceBetweenHeaderAndButton = 10*scale;
 		spacingAroundTabs = 4*scale;
 		int scaledSize = getResources().getDimensionPixelSize(R.dimen.text_size_large);
+		int colorOnSurface = resolveThemeColor(context, com.google.android.material.R.attr.colorOnSurface, R.color.primary_text);
+		int colorSurface = resolveThemeColor(context, com.google.android.material.R.attr.colorSurface, R.color.white);
+		int dividerColor = resolveThemeColor(context, com.google.android.material.R.attr.colorOutline, R.color.my_light_divider_color);
 		tabTextP = new Paint();
-		tabTextP.setColor(Color.WHITE);
+		tabTextP.setColor(colorOnSurface);
 		tabTextP.setTextSize(scaledSize);
 
 		Log.d(TAG,"scale on device is "+scale);
@@ -126,44 +131,44 @@ public class GisObjectsMenu extends View {
 		selectedTabPaint.setPathEffect(corEffect);
 		notSelectedTabPaint.setPathEffect(corEffect);
 		headerTextP = new Paint();
-		headerTextP.setColor(Color.WHITE);
+		headerTextP.setColor(colorOnSurface);
 		headerTextP.setTextSize(scale*15);
 		headerTextP.setStyle(Paint.Style.STROKE);
 		headerTextP.setTextAlign(Paint.Align.CENTER);
 
 		blackTextP = new Paint();
-		blackTextP.setColor(Color.BLACK);
+		blackTextP.setColor(colorOnSurface);
 		blackTextP.setTextSize(scale*15);
 		blackTextP.setStyle(Paint.Style.STROKE);
 		blackTextP.setTextAlign(Paint.Align.CENTER);
 
 
 		whiteTextP = new Paint();
-		whiteTextP.setColor(Color.WHITE);
+		whiteTextP.setColor(colorSurface);
 		whiteTextP.setTextSize(scale*15);
 		whiteTextP.setStyle(Paint.Style.STROKE);
 		whiteTextP.setTextAlign(Paint.Align.CENTER);
 
         Paint gopButtonBackgroundP = new Paint();
-		gopButtonBackgroundP.setColor(Color.WHITE);
+		gopButtonBackgroundP.setColor(colorSurface);
 		gopButtonBackgroundP.setStyle(Paint.Style.FILL);
 
         Paint gopButtonBackgroundSP = new Paint();
-		gopButtonBackgroundSP.setColor(Color.BLACK);
+		gopButtonBackgroundSP.setColor(colorOnSurface);
 		gopButtonBackgroundSP.setStyle(Paint.Style.FILL);
 
         Paint gopButtonEdgeP = new Paint();
-		gopButtonEdgeP.setColor(Color.BLACK);
+		gopButtonEdgeP.setColor(dividerColor);
 		gopButtonEdgeP.setStyle(Paint.Style.STROKE);
 		gopButtonEdgeP.setStrokeWidth(2*scale);
 
 		thinBlackEdgeP = new Paint();
-		thinBlackEdgeP.setColor(Color.BLACK);
+		thinBlackEdgeP.setColor(dividerColor);
 		thinBlackEdgeP.setStyle(Paint.Style.STROKE);
 		thinBlackEdgeP.setStrokeWidth(0);
 
 		thinWhiteEdgeP = new Paint();
-		thinWhiteEdgeP.setColor(Color.WHITE);
+		thinWhiteEdgeP.setColor(colorSurface);
 		thinWhiteEdgeP.setStyle(Paint.Style.STROKE);
 		thinWhiteEdgeP.setStrokeWidth(0);
 
@@ -230,6 +235,17 @@ public class GisObjectsMenu extends View {
 
 	}
 
+	private int resolveThemeColor(Context context, int attrResId, int fallbackColorResId) {
+		TypedValue typedValue = new TypedValue();
+		if (context.getTheme().resolveAttribute(attrResId, typedValue, true)) {
+			if (typedValue.resourceId != 0) {
+				return ContextCompat.getColor(context, typedValue.resourceId);
+			}
+			return typedValue.data;
+		}
+		return ContextCompat.getColor(context, fallbackColorResId);
+	}
+
 	@Override
 	public boolean performClick() {
 		// Calls the super implementation, which generates an AccessibilityEvent
@@ -279,7 +295,7 @@ public class GisObjectsMenu extends View {
 		//Create Menu items.
 		myGis=gis;
 		myMap=map;
-		if (myMenuItems!=null && !myMenuItems.keySet().isEmpty()) {
+		if (myMenuItems!=null && !myMenuItems.isEmpty()) {
 			//Last entry is first in tab order
 			String firstEntry=null;
 			for (String key:myMenuItems.keySet()) {
@@ -288,7 +304,7 @@ public class GisObjectsMenu extends View {
 			//String firstEntry = myMenuItems.keySet().iterator().next();
 			currentPalette= userSelectedPalette==null?firstEntry:userSelectedPalette;
 			//Make sure userSelectedPalette is not from previous collection.
-			if (!myMenuItems.keySet().contains(currentPalette))
+			if (!myMenuItems.containsKey(currentPalette))
 				currentPalette=firstEntry;
 			for (String paletteName : myMenuItems.keySet()) {
 				List<FullGisObjectConfiguration> myMenuItemsForPalette = myMenuItems.get(paletteName);
@@ -510,6 +526,12 @@ public class GisObjectsMenu extends View {
 					} else if (fop.getShape()==PolyType.triangle) {
 
 						myGis.drawTriangle(canvas,r.width()/2-iconPadding*2,(int) (r.left+r.width()/2), (int)(r.top+r.height()/2), myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
+					} else if (fop.getShape()==PolyType.needle) {
+						android.graphics.Bitmap needleBmp = android.graphics.BitmapFactory.decodeResource(getContext().getResources(), R.drawable.person_active);
+						if (needleBmp != null)
+							canvas.drawBitmap(needleBmp, null, rect, null);
+						else
+							canvas.drawCircle(r.left+r.width()/2, r.top+r.height()/2, r.width()/2-iconPadding*2, myGis.createPaint(fop.getColor(),fop.getStyle(),2,false));
 					}
 				} else {
 					//Paint tst = new Paint();

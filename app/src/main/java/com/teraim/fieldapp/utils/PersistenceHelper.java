@@ -63,6 +63,7 @@ public class PersistenceHelper {
 	public static final String FILTER_BUTTON_LIST = "filter_button_list";
 
 	public static final String MAP_NEEDLE_INDEX = "map_needle_set";
+	public static final String MAP_ENABLED = "map_enabled";
 	private final SharedPreferences sp;
 	ArrayList<String> delta = new ArrayList<String>();
 

@@ -25,8 +25,11 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
     private final boolean showHistorical;
     private boolean autoOpenSpinner=true;
 	private final String format;
+	private final int outputValueTextSizeSp;
 	public CreateEntryFieldBlock(String id,String name, 
-			String containerId,boolean isVisible,String format,boolean showHistorical,String initialValue, String label, boolean autoOpenSpinner,String textColor,String backgroundColor,String verticalFormat,String verticalMargin) {
+			String containerId,boolean isVisible,String format,boolean showHistorical,String initialValue, String label,
+			boolean autoOpenSpinner,String textColor,String backgroundColor,String verticalFormat,String verticalMargin,
+			int outputValueTextSizeSp) {
 		super(textColor,backgroundColor,verticalFormat,verticalMargin);
 		this.name = name;
 		this.containerId=containerId;
@@ -37,6 +40,7 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 		this.showHistorical=showHistorical;
 		this.label=label;
 		this.autoOpenSpinner=autoOpenSpinner;
+		this.outputValueTextSizeSp = outputValueTextSizeSp;
 
 	}
 
@@ -75,9 +79,15 @@ public class CreateEntryFieldBlock extends DisplayFieldBlock {
 				Log.d(TAG, "Variable " + name + " referenced in block_create_entry_field not found.");
 				o.addCriticalText("Variable ["+name+"] referenced in block_create_entry_field not found.");
 				o.addCriticalText("Current DB Context: ["+ gs.getVariableCache().getContext()+"]");
-			} else	{	
-				myField = new WF_ClickableField_Selection_OnSave(label==null||label.equals("")?v.getLabel():label,
-						al.getDescription(v.getBackingDataSet()),myContext,name,isVisible,autoOpenSpinner,this);
+			} else	{
+				// Header: use block label if set, else variable label, else variable name so header is never empty
+				String headerLabel = (label != null && !label.trim().isEmpty()) ? label.trim() : null;
+				if (headerLabel == null) {
+					String vLabel = v.getLabel();
+					headerLabel = (vLabel != null && !vLabel.trim().isEmpty()) ? vLabel.trim() : name;
+				}
+				myField = new WF_ClickableField_Selection_OnSave(headerLabel,
+						al.getDescription(v.getBackingDataSet()),myContext,name,isVisible,autoOpenSpinner,this,outputValueTextSizeSp);
 				//Log.d(TAG, "In CreateEntryField. Description: "+al.getDescription(v.getBackingDataSet()));
 				//Log.d(TAG,"Backing data: "+v.getBackingDataSet().toString());
 				myField.addVariable(v, true,format,true,showHistorical);

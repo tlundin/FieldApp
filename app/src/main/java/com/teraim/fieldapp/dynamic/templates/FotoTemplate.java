@@ -56,7 +56,7 @@ public class FotoTemplate extends Executor {
     private GestureLibrary gestureLib;
 	//private ToggleButton gpsB;
 	//private TextView gpsT,GPS_X,GPS_Y;
-	private boolean fixed = false;
+	private final boolean fixed = false;
 	private ImageButton norr;
 	private ImageButton syd;
 	private ImageButton ost;

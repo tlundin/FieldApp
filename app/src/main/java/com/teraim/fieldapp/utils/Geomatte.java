@@ -21,19 +21,19 @@ public class Geomatte {
 	{
 		double dlong = (long2 - long1) * d2r;
 		double dlat = (lat2 - lat1) * d2r;
-		double a = Math.pow(Math.sin(dlat/2.0), 2) + Math.cos(lat1*d2r) * 
+		double a = Math.pow(Math.sin(dlat/2.0), 2) + Math.cos(lat1*d2r) *
 				Math.cos(lat2*d2r) * Math.pow(Math.sin(dlong/2.0), 2);
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 
-        return 6367 * c;
+		return 6367 * c;
 	}
 
 	private static double sqr(double x) { return x * x; }
-	private static double dist2(Location v, Location w,double pxr,double pyr) { 
-		
-		
-		return sqr((v.getX() - w.getX())*pxr) + sqr((v.getY() - w.getY())*pyr); 
-		
+	private static double dist2(Location v, Location w,double pxr,double pyr) {
+
+
+		return sqr((v.getX() - w.getX())*pxr) + sqr((v.getY() - w.getY())*pyr);
+
 	}
 	private static double distToSegmentSquared(Location p, Location v, Location w,double pxr,double pyr) {
 		double l2 = dist2(v, w,pxr,pyr);
@@ -48,26 +48,26 @@ public class Geomatte {
 
 
 
-	public static double sweDist(double myY,double myX,double destY, double destX) {	
+	public static double sweDist(double myY,double myX,double destY, double destX) {
 		//Log.d(TAG,"diffX: diffY: "+(myX-destX)+" "+(myY-destY));
 		//Log.d(TAG,"Values  x1 y1 x2 y2: "+myX+" "+myY+" "+destX+" "+destY);
-        //Log.d(TAG,"res: "+res);
+		//Log.d(TAG,"res: "+res);
 		return Math.sqrt(Math.pow((myX-destX),2)+Math.pow(myY-destY, 2));
 
 	}
-	
+
 	private static double sweDist(Location location, Location location2) {
 		//Log.d(TAG,"swedist: x1,y1  - x2,y2"+location.getX()+","+location.getY()+" - "+location2.getX()+","+location2.getY());
 		return sweDist(location.getX(),location.getY(),location2.getX(),location2.getY());
 	}
-	
+
 	public static double lengthOfPath(List<Location> myDots) {
 		if (myDots==null || myDots.size()<2) {
 			Log.d(TAG,"too few coordinates in lengthofpath...returning 0");
 			return 0;
 		}
 		double length = 0;
-		
+
 		for (int i = 0 ; i < myDots.size()-1; i++) {
 			//Log.d(TAG,"mydots: "+myDots.get(i)+","+myDots.get(i+1));
 			length += sweDist(myDots.get(i),myDots.get(i+1));
@@ -76,7 +76,7 @@ public class Geomatte {
 	}
 
 	public static double getArea(List<Location> myDots) {
-		double T=0; 
+		double T=0;
 		int p,n;
 		for (int i=0;i<myDots.size();i++) {
 			p = i==0?myDots.size()-1:i-1;
@@ -86,10 +86,10 @@ public class Geomatte {
 		return Math.abs(T/2);
 	}
 	public static double getCircumference(List<Location> myDots) {
-			return lengthOfPath(myDots);
+		return lengthOfPath(myDots);
 	}
 
-	
+
 
 	public static double getRikt2(double userY, double userX, double destY, double destX) {
 		double alfa=-100;
@@ -115,7 +115,7 @@ public class Geomatte {
 		double b = destX-centerX;
 		//double a = Math.abs(destY-centerY); **not needed.
 
-        double  beta = Math.acos(b/ dest);
+		double  beta = Math.acos(b/ dest);
 		Log.d(TAG,"b,c,beta: "+b+" "+ dest +" "+beta);
 		//Gamma is the top angle in a 90 deg. triangle.
 		double gamma = Math.PI/2-beta; // 90 grader - beta i radianer = 90*pi/180 = 1*pi/2.
@@ -136,9 +136,13 @@ public class Geomatte {
 
 
 
+	private static boolean loggedConversionVersion;
+
 	public static LatLong convertToLatLong(double northing, double easting) {
-
-
+		if (!loggedConversionVersion) {
+			loggedConversionVersion = true;
+			Log.d(TAG, "convertToLatLong: Sweref99 TM fix active (false_easting=150000, xi/eta correct)");
+		}
 		double axis; // Semi-major axis of the ellipsoid.
 		double flattening; // Flattening of the ellipsoid.
 		double central_meridian; // Central meridian for the projection.
@@ -146,19 +150,13 @@ public class Geomatte {
 		double false_northing; // Offset for origo.
 		double false_easting; // Offset for origo.
 
-		//Sweref 99_tm.
+		// Match convertToSweRef: central meridian 15°E, false easting 500000, false northing 0, scale 0.9996.
 		axis = 6378137.0; // GRS 80.
 		flattening = 1.0 / 298.257222101; // GRS 80.
-		central_meridian = Double.MIN_VALUE;
-		scale = 1.0;
-		false_northing = 0.0;
-		false_easting = 150000.0;
 		central_meridian = 15.00;
 		scale = 0.9996;
 		false_northing = 0.0;
 		false_easting = 500000.0;
-
-
 
 
 
@@ -178,11 +176,11 @@ public class Geomatte {
 		double Cstar = (224.0 * e2 * e2 * e2 + 889.0 * e2 * e2 * e2 * e2) / 120.0;
 		double Dstar = -(4279.0 * e2 * e2 * e2 * e2) / 1260.0;
 
-		// Convert.
+		// Convert: in this formulation xi = northing, eta = easting (so phi_star from xi, delta_lambda from eta).
 		double deg_to_rad = Math.PI / 180;
 		double lambda_zero = central_meridian * deg_to_rad;
-		double xi = (easting - false_northing) / (scale * a_roof);
-		double eta = (northing - false_easting) / (scale * a_roof);
+		double xi = (northing - false_northing) / (scale * a_roof);
+		double eta = (easting - false_easting) / (scale * a_roof);
 		double xi_prim = xi -
 				delta1 * Math.sin(2.0 * xi) * math_cosh(2.0 * eta) -
 				delta2 * Math.sin(4.0 * xi) * math_cosh(4.0 * eta) -
@@ -204,7 +202,33 @@ public class Geomatte {
 		lat_lon[0] = lat_radian * 180.0 / Math.PI;
 		lat_lon[1] = lon_radian * 180.0 / Math.PI;
 		return new LatLong(lat_lon[0],lat_lon[1]);
-		
+
+	}
+
+	/**
+	 * Self-test for Sweref99 TM -> WGS84 conversion. Örebro: SweRef E 517887.965, N 6564271.672
+	 * should be ~ WGS84 lat 59.215, lon 15.313. Call once at startup to verify in logcat.
+	 */
+	public static void runConversionSelfTest() {
+		double eastingOrebro = 517887.965;
+		double northingOrebro = 6564271.672;
+		double expectedLat = 59.2150;
+		double expectedLon = 15.3130;
+		// Method signature: convertToLatLong(northing, easting).
+		LatLong result = convertToLatLong(northingOrebro, eastingOrebro);
+		double lat = result.getX(); // LatLong.getX() returns latitude
+		double lon = result.getY(); // LatLong.getY() returns longitude
+		double latErr = Math.abs(lat - expectedLat);
+		double lonErr = Math.abs(lon - expectedLon);
+		boolean ok = latErr < 0.01 && lonErr < 0.01;
+		String msg = "Conversion self-test: SweRef(E=" + eastingOrebro + ", N=" + northingOrebro
+				+ ") -> WGS84(lat=" + lat + ", lon=" + lon + "). Expected ~(" + expectedLat + ", " + expectedLon
+				+ "). " + (ok ? "PASS" : "FAIL (errors: lat " + latErr + ", lon " + lonErr + ")");
+		if (ok) {
+			Log.d(TAG, msg);
+		} else {
+			Log.w(TAG, msg);
+		}
 	}
 
 	public static SweLocation convertToSweRef(double lat, double lon) {
@@ -223,7 +247,7 @@ public class Geomatte {
 		double lambda = lon*Math.PI/180.0;
 		double lambda0 = cent_m*Math.PI/180.0;
 		double deltalambda = lambda-lambda0;
-        double B = (1.0/6.0)*(5.0*Math.pow(e2, 2)-Math.pow(e2, 3));
+		double B = (1.0/6.0)*(5.0*Math.pow(e2, 2)-Math.pow(e2, 3));
 		double C = (1.0/120.0)*(104.0*Math.pow(e2, 3)-45.0*Math.pow(e2, 4));
 		double D = (1.0/1260.0)*(1237.0*Math.pow(e2, 4));
 		double latStar = latr-Math.sin(latr)*Math.cos(latr)*(e2 +B*Math.pow(Math.sin(latr),2)+
@@ -255,7 +279,7 @@ public class Geomatte {
 	}
 
 	public static Location subtract(Location l1,
-			Location l2) {
+									Location l2) {
 		return new SweLocation(l1.getX()-l2.getX(),l1.getY()-l2.getY());
 	}
 

@@ -19,7 +19,9 @@ public interface FullGisObjectConfiguration extends GisObjectBaseAttributes {
 	enum PolyType {
 		circle,
 		rect,
-		triangle
+		triangle,
+		/** Draw point using the map needle icon (e.g. user position style). */
+		needle
 	}
 	
 	float getRadius();

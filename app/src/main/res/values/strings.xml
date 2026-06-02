@@ -14,7 +14,6 @@
     <string name="close">Close</string>
     <string name="description">Description</string>
     <string name="reference">Reference</string>
-    <string name="resetSyncButton">Reset_sync</string>
     <string name="settings">Settings</string>
     <string name="length_">Length:</string>
     <string name="context">Context</string>
@@ -22,25 +21,25 @@
     <string name="ok">OK</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="add_map_note_content_description">Add object to map</string>
+    <string name="select_object_type">Select object type</string>
 
-    <string name="DeviceType">Device Type</string>
     <string name="Team">Sync Group</string>
     <string name="UserName">Username</string>
     <string name="DevOp">Advanced</string>
     <string name="log_levels_h">Log Levels</string>
-    <string name="UserName_dm">Required for sync</string>
+    <string name="UserName_dm">Required</string>
     <string name="Team_s">Required for sync</string>
+    <string name="organisation_h">Organisation</string>
+    <string name="organisation_summary">Preset server endpoints</string>
+    <string name="organisation_default">Default</string>
+    <string name="organisation_slu">SLU</string>
+    <string name="setup_required_hint">Setup required</string>
+    <string name="username_missing_title">Username missing</string>
+    <string name="username_missing_continue_message">Running the app without a Username will prevent some functions to work properly. Continue?</string>
 
-    <string name="restart">Restart</string>
-    <string name="repair">Database repaired</string>
-    <string name="restartMessage">The app will restart</string>
-    <string name="team_missing_error">Team required</string>
-    <string name="team_missing_error_message">To be able to use the sync function, you must enter a team name. Otherwise your entries will not be synchronised.</string>
     <string name="developer_functions">Developer Functions</string>
-    <string name="Sync_method">Sync Method</string>
-    <string name="Version_control">Version Control</string>
     <string name="Automatic_backup">Backup</string>
-    <string name="Backup_folder">Backup Folder</string>
 
     <string name="sync_pop_header">Synchronization status</string>
     <string name="sync_pop_sync_on">Current state</string>
@@ -51,10 +50,8 @@
     <string name="synk_off">Turned off</string>
     <string name="synk_error">Not working</string>
     <string name="synk_idle">Idle, active</string>
-    <string name="synk_inserting">Inserting data</string>
     <string name="synk_send_receive">Working </string>
     <string name="in_sync">Fully syncronised</string>
-    <string name="imin_sync">Your data has been uploaded</string>
     <string name="sync_time_months">month(s)</string>
     <string name="sync_time_days">day(s)</string>
     <string name="sync_time_hours">hour(s)</string>
@@ -63,12 +60,7 @@
 
     <string name="General">General</string>
     <string name="appDialMsg">Enter the application name</string>
-    <string name="Backup_folder_s">Leave empty to use folder named \'backup\' under project folder</string>
-    <string name="Backup_dm">Leave blank and reload App for default</string>
     <string name="Automatic_backup_s">Automatically backup database at regular intervals</string>
-    <string name="show_author_s">Show author of data (App runs slower)</string>
-    <string name="show_author_t">Show Author</string>
-    <string name="reset_sync_d">Erases all sync data</string>
 
     <string name="layers">Layers</string>
     <string name="filters">Filters</string>
@@ -77,10 +69,6 @@
 
     <string name="s_summary">Location of all configuration files</string>
     <string name="s_summary_e">Server that receives the export data</string>
-    <string name="s_folder_summary">Folder for configuration files</string>
-    <string name="config_from_server">Local Configuration</string>
-
-    <string name="local_config_s">Loads configuration from project folder in file system</string>
 
     <string name="fieldpad_description">Field Pad is an app for collection of earth data in the field. It is configured using a bundle of control files. An optional back-end can be used to sync collected data between team members."</string>
     <string name="teraim_description">We are a software house that started out serving the ecosystem science community, with functionality for collecting data about species in the field.</string>
@@ -90,23 +78,19 @@
     <string name="details">Details</string>
     <string name="contact_us_button_text">Contact us</string>
     <string name="start">Start</string>
+    <string name="gis_object">Object</string>
+    <string name="map_pick_feature_title">Several objects in this area</string>
+    <string name="map_pick_team_row">Team: %1$s</string>
+    <string name="map_pick_trakter_row">Trakt %1$s — %2$s</string>
+    <string name="map_pick_trakter_id_only">Id %1$s — %2$s</string>
     <string name="continue_">Continue</string>
     <string name="reset_cache_d">Erase all cached files to force reload</string>
     <string name="resetCache">Clear Cache</string>
     <string name="reset_cache_warn">"This will erase all cached images and configuration files. Are you sure?"</string>
     <string name="reset_cache_toast">files deleted from cache</string>
-    <string name="reload_config_d">Forces reload of configuration</string>
-    <string name="reload_config">Reload Config</string>
-    <string name="reload_config_warn">"This will restart the app on exit and reload all files. Are you sure?"</string>
-    <string name="reload_config_toast">App will restart and reload configuration on exit</string>
     <string name="scan_QR_code_h">Scan QR</string>
     <string name="scan_QR_code">If you have received settings via a QR code, you can scan it here</string>
     <string name="log_levels_d">Determines granularity of information shown in log</string>
-    <string name="done_loading">"App is ready to run. 'About' page for details"</string>
-    <string name="_continue">"Continue"</string>
-    <string name="old_xml_message">"The FieldPad version you have installed is too old for this bundle. The required FieldPad version is "</string>
-    <string name="warning">Warning</string>
-    <string name="old_xml_message_cont">". Fieldpad will try to use an older version of the XML if you click Continue but this may lead to errors."</string>
     <string name="none">None</string>
     <string name="filtering">Filtering</string>
     <string name="visible">Visible</string>
@@ -115,21 +99,17 @@
     <string name="map_background">Map background</string>
     <string name="sync_pop_time_since_last_entry">Time of last input</string>
     <string name="loading_please_wait">Loading. Please wait...</string>
-    <string name="warning_exit">This will exit the page</string>
     <string name="image_failed_to_load">GisImageView failed to load. File not found: </string>
     <string name="export_and_finalize">Export and finalize</string>
     <string name="save_and_exit">Save and Exit</string>
     <string name="back_to_page">Back</string>
     <string name="continue_edit">Edit</string>
-    <string name="refresh_team">Refresh</string>
     <string name="my_data">My Data</string>
     <string name="Export">Export</string>
     <string name="Generating">1. Generating</string>
     <string name="Backing_up">2. Backing up</string>
     <string name="Forwarding">3. Forwarding</string>
     <string name="Bundle">BUNDLE</string>
-    <string name="clear">Clear</string>
-    <string name="Scroll_down">Scroll down</string>
     <string name="Send_error_log">Send Error Log to Teraim</string>
     <string name="log_exit">Exit</string>
     <string name="fet">Bold</string>
@@ -138,9 +118,62 @@
     <string name="exit_app">This will exit the application</string>
     <string name="refresh_completed">Refresh completed</string>
     <string name="cleaning_up_please_wait">Cleaning up...</string>
-    <string name="select_log_level">Select a log level</string>
     <string name="map_settings">Map Settings</string>
+    <string name="use_maps">Use maps</string>
+    <string name="use_maps_summary">Enable map functionality</string>
     <string name="map_needle_title">Map needles</string>
-    <string name="map_needle_summary">Choose a map needle</string>
+    <string name="select_layers_title">Layers</string>
+    <string name="toggle_all_layers">Toggle all layers</string>
+    <string name="no_layers_loaded">No layers loaded yet.</string>
+    <string name="no_user_position_available">No user position available. Enable location and ensure GPS has a fix.</string>
+    <string name="trakter_center_on">Center on</string>
+    <string name="trakter_navigate">Navigate</string>
+    <string name="navigate_walk">Walk</string>
+    <string name="navigate_drive">Drive</string>
+    <string name="navigate_distance_label">Distance</string>
+    <string name="navigate_bearing_label">Bearing</string>
+    <string name="walking_to_title">Walking to</string>
+    <string name="navigate_accuracy_label">Accuracy</string>
+    <string name="trakter_info_title">Trakt %1$s</string>
+    <string name="trakter_status_high">High priority</string>
+    <string name="trakter_status_none">Nothing done</string>
+    <string name="trakter_status_started">Work started</string>
+    <string name="trakter_status_partial">Partially done</string>
+    <string name="trakter_status_much">Much done</string>
+    <string name="trakter_status_complete">All done, and imported</string>
+    <string name="pystatus_default">Default</string>
+    <string name="pystatus_error">Error</string>
+    <string name="pystatus_ready">Ready</string>
+    <string name="pystatus_exported">Ready and exported</string>
+    <string name="pystatus_inserted">Ready and inserted in DB</string>
+    <string name="team_member_active_now">active now</string>
+    <string name="team_member_seen_ago">seen %1$s ago</string>
+
+    <!-- Export dialog (ButtonBlock.displayExportDialog) -->
+    <string name="export_vars_exported_to_file">%1$d variables exported to file: %2$s.%3$s&#10;</string>
+    <string name="export_configuration_error">Configuration error</string>
+    <string name="export_forwarding_failed_to_method">Forwarding to %1$s failed.</string>
+    <string name="export_please_check_your_configuration">Please check your configuration.</string>
+    <string name="export_file_forwarded_to">File forwarded to %1$s.</string>
+    <string name="export_file_forwarded_by_mail">File forwarded by mail.</string>
+    <string name="export_failed_no_network">Export failed - no network</string>
+    <string name="export_check_connection_try_again">Check your connection and try again</string>
+    <string name="export_send_status_no_network">No network</string>
+    <string name="export_server_url_not_defined">Export Server URL not defined - Please configure in the Settings Menu</string>
+    <string name="export_waiting_for_response">[%1$d/%2$d]. Waiting for response...</string>
+    <string name="export_send_status_failed">FAILED</string>
+    <string name="export_send_status_progress">[%1$d/%2$d]</string>
+    <string name="export_network_timeout_outcome">Network Timeout. [%1$d] images exported. Please retry to send the remaining images</string>
+    <string name="export_failed_error_details">Export failed.&#10;Error: %1$s</string>
+    <string name="export_failed_response_details">Export failed.&#10;Response: %1$s&#10;Return code: %2$d</string>
+    <string name="export_no_new_images_to_export">No new images to export.</string>
+    <string name="export_all_files_exported">All files exported.</string>
+    <string name="export_failed_to_compress_bitmap">Failed to compress bitmap. Export failed</string>
+    <string name="export_nothing_to_export">Nothing to export.</string>
+    <string name="export_failed_reason_prefix">Export failed. Reason: %1$s</string>
+
+    <string name="export_exported_items">Exported items:</string>
+    <string name="export_log_file_prefix">File: </string>
+    <string name="export_log_image_prefix">Image: </string>
 
 </resources>

@@ -67,7 +67,7 @@ public class StatusHandler {
 		Selection statusSelector = dbh.createSelection(keyMap, what);
 		List<String> statusL = dbh.getValues(statusSelector);
 		if (statusL!=null) {
-			Log.d(TAG,"Got "+statusL.toString()+" for "+what);
+			Log.d(TAG,"Got "+ statusL +" for "+what);
 			return selectThoseDone(statusL);
 		}
 		else

@@ -36,6 +36,9 @@ public class BlockDeserializer implements JsonDeserializer<Block> {
             case "AddGisLayerBlock":
                 blockClass = AddGisLayerBlock.class;
                 break;
+            case "AddGisMapViewBlock":
+                blockClass = AddGisMapViewBlock.class;
+                break;
             case "AddGisPointObjects":
                 blockClass = AddGisPointObjects.class;
                 break;

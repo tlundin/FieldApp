@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Speech bubble: rounded rectangle with pointer tail at bottom center -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="60dp"
+    android:viewportWidth="120"
+    android:viewportHeight="60">
+    <!-- Rounded rect body (top-left, top-right, bottom-right, bottom-left corners rounded; bottom center has notch) -->
+    <!-- Path: rounded rect from (8,0) to (112,0) to (112,44) then triangle notch, then (8,44) back -->
+    <!-- Rounded rect with triangular pointer at bottom center -->
+    <path
+        android:fillColor="#F5F5F5"
+        android:strokeColor="#E0E0E0"
+        android:strokeWidth="2"
+        android:pathData="M 24,0 L 96,0 Q 112,0 112,16 L 112,36 Q 112,44 104,44 L 66,44 L 60,56 L 54,44 L 16,44 Q 8,44 8,36 L 8,16 Q 8,0 24,0 Z"/>
+</vector>

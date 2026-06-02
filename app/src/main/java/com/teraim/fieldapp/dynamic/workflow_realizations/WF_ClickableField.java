@@ -11,6 +11,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Vibrator;
 import android.text.InputFilter;
 import android.text.Selection;
@@ -95,6 +96,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
     boolean iAmOpen = false;
     private Spinner firstSpinner = null;
+    // Auto-open spinner should only happen once per dialog open.
+    private boolean pendingAutoOpenSpinner = false;
     private List<Rule> myRules;
 
     class VariableView {
@@ -134,17 +137,14 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             MenuItem y = menu.getItem(1);
             MenuItem z = menu.getItem(2);
             Log.d(TAG, "myVars has " + myVars.size() + " elements. "
-                    + myVars.toString());
+                    + myVars);
             if (myVars.size() > 0) {
                 z.setVisible(true);
                 List<String> row = myVars.keySet().iterator().next()
                         .getBackingDataSet();
                 String url = al.getUrl(row);
 
-                if (url == null || url.length() == 0)
-                    x.setVisible(false);
-                else
-                    x.setVisible(true);
+                x.setVisible(url != null && url.length() != 0);
                 if (row != null && ((al.getVariableDescription(row) != null
                         && al.getVariableDescription(row).length() > 0 ) || (al.getGroupDescription(row)!=null && al.getGroupDescription(row).length()>0)))
                     y.setVisible(true);
@@ -280,8 +280,8 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
         // content.setSpan(new UnderlineSpan(), 0, content.length(), 0);
         scrollableInputContainer = (ScrollView)LayoutInflater.from(myContext.getContext()).inflate(
                 R.layout.input_container, null);
-        innerInputContainer = (LinearLayout)scrollableInputContainer.findViewById(R.id.inner);
-        headerInputCointainer = (TextView) innerInputContainer.findViewById(R.id.header);
+        innerInputContainer = scrollableInputContainer.findViewById(R.id.inner);
+        headerInputCointainer = innerInputContainer.findViewById(R.id.header);
        // inputContainer = new LinearLayout(context.getContext());
        // inputContainer.setOrientation(LinearLayout.VERTICAL);
        // inputContainer.setLayoutParams(new LinearLayout.LayoutParams(
@@ -345,15 +345,18 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         new AlertDialog.Builder(v.getContext());
                 alert.setTitle(label);
                 //alert.setMessage(myDescription);
+
                 headerInputCointainer.setText(myDescription);
-                refreshInputFields();
                 iAmOpen = true;
+                pendingAutoOpenSpinner = autoOpenSpinner;
+                refreshInputFields();
 
                 alert.setPositiveButton(R.string.save,
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 iAmOpen = false;
+                                pendingAutoOpenSpinner = false;
                                 save();
                                 refresh();
                                 ViewGroup x = ((ViewGroup) scrollableInputContainer
@@ -369,6 +372,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                             public void onClick(DialogInterface dialog,
                                                 int whichButton) {
                                 iAmOpen = false;
+                                pendingAutoOpenSpinner = false;
                                 ViewGroup x = ((ViewGroup) scrollableInputContainer
                                         .getParent());
                                 if (x != null)
@@ -486,7 +490,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
             //If adding variables in a list, they will all share same opt and val. Can reuse.
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                     myContext.getContext(),
-                    android.R.layout.simple_spinner_dropdown_item,
+                    R.layout.spinner_dropdown_item,
                     new ArrayList<String>());
             vv.adapter = adapter;
 
@@ -556,7 +560,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                                         + "...opt has " + opt.length + " elements.");
                                 val = new String[opt.length];
                                 int c = 0;
-                                String tmp[];
+                                String[] tmp;
                                 for (String s : opt) {
                                     s = s.replace("{", "");
                                     s = s.replace("}", "");
@@ -619,6 +623,48 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
     }
 
+    /**
+     * Lazily materialize output views (the rendered/printed part) for already-attached variables.
+     * This is used by {@link com.teraim.fieldapp.ui.TableBodyAdapter} to avoid inflating UI for
+     * thousands of off-screen table cells.
+     *
+     * Note: we only lazily materialize non-list variables here. List variables require spinner
+     * option arrays to be available, so they should be created eagerly at attach time.
+     */
+    public void ensureOutputViewsCreated() {
+        if (myVars == null || myVars.isEmpty()) {
+            return;
+        }
+
+        for (Map.Entry<Variable, VariableView> entry : myVars.entrySet()) {
+            Variable variable = entry.getKey();
+            VariableView vv = entry.getValue();
+            if (variable == null || vv == null) {
+                continue;
+            }
+
+            // Already materialized for this variable instance.
+            if (myOutputFields != null && myOutputFields.containsKey(variable)) {
+                continue;
+            }
+
+            // Only lazy-create non-list outputs. List outputs are created eagerly.
+            if (variable.getType() == DataType.list) {
+                continue;
+            }
+
+            LinearLayout ll = getFieldLayout();
+            OutC w = new OutC(ll, vv.format);
+            myOutputFields.put(variable, w);
+            outputContainer.addView(ll, 0);
+            refreshOutputField(variable, w);
+        }
+
+        if (outputContainer != null) {
+            outputContainer.requestLayout();
+        }
+    }
+
     private int findSpinnerIndexFromValue(String hist, String[] val) {
         int h = Integer.parseInt(hist);
         if (val == null)
@@ -677,7 +723,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 LinearLayout sl = (LinearLayout) view;
                 Spinner sp = sl.findViewById(R.id.spinner);
                 int s = sp.getSelectedItemPosition();
-                String v[] = values.get(variable);
+                String[] v = values.get(variable);
                 if (v != null) {
                     if (s >= 0 && s < v.length)
                         newValue = v[s];
@@ -891,6 +937,14 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                     spinner.setAdapter(varV.adapter);
                     innerInputContainer.addView(sl);
+                    // Ensure the dropdown list uses the same width as the spinner/dialog.
+                    // Without this, the Spinner's dropdown can be measured too wide (e.g. screen width).
+                    spinner.post(() -> {
+                        int w = spinner.getWidth();
+                        if (w > 0) {
+                            spinner.setDropDownWidth(w);
+                        }
+                    });
                     Log.d(TAG, "Adding spinner for label " + label);
 
                     if (firstSpinner == null && vc==0 && autoOpenSpinner)
@@ -1018,7 +1072,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                         if (varV.format != null && varV.format.equals("slider")) {
                             l = LayoutInflater.from(myContext.getContext()).inflate(
                                     R.layout.edit_field_slider, null);
-                            SeekBar sb = l.findViewById(R.id.seekbar);
+                            @SuppressLint("MissingInflatedId") SeekBar sb = l.findViewById(R.id.seekbar);
                             final EditText et = l.findViewById(R.id.edit);
                             et.setKeyListener(null);
                             String value = var.getValue();
@@ -1128,19 +1182,20 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
                 TextView limit = v.findViewById(R.id.limit);
                 CharSequence limiTxt = new SpannableString("");
-                et.setTextColor(Color.BLACK);
-                if (variable.isUsingDefault()) {
-                    et.setTextColor(myContext.getContext().getResources()
-                            .getColor(R.color.purple,myContext.getContext().getTheme()));
-                } else
-                    Log.d(TAG, "Variable " + variable.getId()
-                            + " is NOT YELLOW");
+                et.setTextColor(myContext.getContext().getResources()
+                        .getColor(R.color.primary_text, myContext.getContext().getTheme()));
+                if (!variable.isUsingDefault())
+                    Log.d(TAG, "Variable " + variable.getId() + " is NOT default");
                 if (filter != null) {
                     if (variable.hasValueOutOfRange())
-                        et.setTextColor(Color.RED);
+                        et.setTextColor(myContext.getContext().getResources()
+                                .getColor(R.color.error_text, myContext.getContext().getTheme()));
                     limiTxt = TextUtils.concat(limiTxt, filter.prettyPrint());
                 }
-                et.setTextColor(Color.BLACK);
+                if (!(filter != null && variable.hasValueOutOfRange())) {
+                    et.setTextColor(myContext.getContext().getResources()
+                            .getColor(R.color.primary_text, myContext.getContext().getTheme()));
+                }
 				/*
 				 * CharSequence ruleExec =
 				 * ruleExecutor.getRuleExecutionAsString(
@@ -1157,25 +1212,27 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
                 // this is the spinner.
                 final Spinner sp = v.findViewById(R.id.spinner);
 
-                final Handler h = new Handler();
-                if (firstSpinner != null)
+                final Handler h = new Handler(Looper.getMainLooper());
+                if (firstSpinner != null && pendingAutoOpenSpinner) {
+                    pendingAutoOpenSpinner = false;
                     new Thread(new Runnable() {
                         public void run() {
 
                             h.postDelayed(new Runnable() {
                                 public void run() {
                                     // Open the Spinner...
-                                    if (firstSpinner.isShown())
+                                    if (iAmOpen && firstSpinner.isShown())
                                         firstSpinner.performClick();
                                 }
                             }, 500);
                         }
                     }).start();
+                }
 
                 String[] opt = null;
                 String tag = (String) sp.getTag(R.string.u1);
                 Log.d(TAG,"TAG IS "+tag);
-                String val[] = values.get(variable);
+                String[] val = values.get(variable);
                 if (val != null) {
 
                     for (int i = 0; i < val.length; i++) {
@@ -1220,6 +1277,7 @@ public abstract class WF_ClickableField extends WF_Not_ClickableField implements
 
         }
     }
+
 
 
 
