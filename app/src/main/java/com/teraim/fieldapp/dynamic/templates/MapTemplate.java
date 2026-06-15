@@ -39,6 +39,7 @@ import com.teraim.fieldapp.dynamic.types.SweLocation;
 import com.teraim.fieldapp.dynamic.workflow_realizations.WF_Container;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.GisPointObject;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.MapboxMapHolder;
+import com.teraim.fieldapp.dynamic.workflow_realizations.gis.MapboxOrnamentsKt;
 import com.teraim.fieldapp.dynamic.workflow_realizations.gis.TeamMemberMapPoint;
 import com.teraim.fieldapp.utils.Geomatte;
 import com.teraim.fieldapp.non_generics.Constants;
@@ -102,6 +103,10 @@ public class MapTemplate extends Executor {
 	@Override
 	public void onStart() {
 		super.onStart();
+		android.app.Activity activity = getActivity();
+		if (activity instanceof com.teraim.fieldapp.Start) {
+			((com.teraim.fieldapp.Start) activity).setToolbarTransparent(true);
+		}
 		if (mapView != null) {
 			mapView.onStart();
 		}
@@ -987,6 +992,14 @@ public class MapTemplate extends Executor {
 		if (activity instanceof com.teraim.fieldapp.Start) {
 			((com.teraim.fieldapp.Start) activity).setToolbarTransparent(true);
 			activity.setTitle("");
+		}
+		if (mapView != null) {
+			// After transparent toolbar + layout: compass margin = measured action bar height.
+			mapView.post(() -> {
+				if (mapView != null) {
+					MapboxOrnamentsKt.updateFieldAppCompassPlacement(mapView);
+				}
+			});
 		}
 		// When map is visible: apply latest team data (from ViewModel or cached). Team layer always enabled for Mapbox map.
 		if (pendingGisMapViewConfig != null && mapboxMapHolder != null) {
